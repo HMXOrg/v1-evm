@@ -250,7 +250,7 @@ contract Pool is Constants, ReentrancyGuard {
     IERC20(tokenIn).safeTransferFrom(msg.sender, address(this), amountIn);
 
     uint256 priceIn = oracle.getMinPrice(tokenIn);
-    uint256 priceOut = oracle.getMinPrice(tokenOut);
+    uint256 priceOut = oracle.getMaxPrice(tokenOut);
 
     uint256 amountOut = (amountIn * priceIn) / priceOut;
     amountOut = _convertTokenDecimals(
@@ -275,7 +275,7 @@ contract Pool is Constants, ReentrancyGuard {
     );
     uint256 amountOutAfterFee = _collectSwapFee(
       tokenOut,
-      priceOut,
+      oracle.getMinPrice(tokenOut),
       amountOut,
       swapFeeBps
     );
