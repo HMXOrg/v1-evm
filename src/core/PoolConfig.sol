@@ -35,6 +35,9 @@ contract PoolConfig is Ownable {
   // ------------------
   uint64 public mintBurnFeeBps;
   uint64 public taxBps;
+  uint64 public stableTaxBps;
+  uint64 public swapFeeBps;
+  uint64 public stableSwapFeeBps;
 
   // -----
   // Misc.
@@ -48,9 +51,13 @@ contract PoolConfig is Ownable {
     bool newIsDynamicFeeEnable
   );
   event SetMintBurnFeeBps(uint256 prevFeeBps, uint256 newFeeBps);
-  event SetFundingInterval(
-    uint256 prevFundingInterval,
-    uint256 newFundingInterval
+  event SetFundingRate(
+    uint64 prevFundingInterval,
+    uint64 newFundingInterval,
+    uint64 prevFundingRateFactor,
+    uint64 newFundingRateFactor,
+    uint64 prevStableFundingRateFactor,
+    uint64 newStableFundingRateFactor
   );
   event SetLiquidityCoolDownDuration(
     uint256 prevCoolDownPeriod,
@@ -80,6 +87,8 @@ contract PoolConfig is Ownable {
     fundingRateFactor = _fundingRateFactor;
     liquidityCoolDownDuration = _liquidityCoolDownDuration;
     isDynamicFeeEnable = false;
+    stableSwapFeeBps = 4; // 0.04%
+    swapFeeBps = 30; // 0.3%
   }
 
   function setIsDynamicFeeEnable(bool newIsDynamicFeeEnable)
@@ -90,9 +99,22 @@ contract PoolConfig is Ownable {
     isDynamicFeeEnable = newIsDynamicFeeEnable;
   }
 
-  function setFundingInterval(uint64 newFundingInterval) external onlyOwner {
-    emit SetFundingInterval(fundingInterval, newFundingInterval);
+  function setFundingRate(
+    uint64 newFundingInterval,
+    uint64 newFundingRateFactor,
+    uint64 newStableFundingRateFactor
+  ) external onlyOwner {
+    emit SetFundingRate(
+      fundingInterval,
+      newFundingInterval,
+      fundingRateFactor,
+      newFundingRateFactor,
+      stableFundingRateFactor,
+      newStableFundingRateFactor
+    );
     fundingInterval = newFundingInterval;
+    fundingRateFactor = newFundingRateFactor;
+    stableFundingRateFactor = newStableFundingRateFactor;
   }
 
   function setLiquidityCoolDownDuration(uint64 newLiquidityCoolDownPeriod)

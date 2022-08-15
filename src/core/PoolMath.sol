@@ -83,11 +83,10 @@ contract PoolMath is Constants {
     Pool pool,
     address token,
     uint256 value,
+    uint256 feeBps,
+    uint256 taxBps,
     LiquidityDirection direction
   ) internal view returns (uint256) {
-    uint256 feeBps = pool.config().mintBurnFeeBps();
-    uint256 taxBps = pool.config().taxBps();
-
     if (!pool.config().isDynamicFeeEnable()) return feeBps;
 
     uint256 startValue = pool.usdDebtOf(token);
@@ -127,15 +126,66 @@ contract PoolMath is Constants {
     Pool pool,
     address token,
     uint256 value
-  ) public view returns (uint256) {
-    return getFeeBps(pool, token, value, LiquidityDirection.ADD);
+  ) external view returns (uint256) {
+    return
+      getFeeBps(
+        pool,
+        token,
+        value,
+        pool.config().mintBurnFeeBps(),
+        pool.config().taxBps(),
+        LiquidityDirection.ADD
+      );
   }
 
   function getRemoveLiquidityFeeBps(
     Pool pool,
     address token,
     uint256 value
-  ) public view returns (uint256) {
-    return getFeeBps(pool, token, value, LiquidityDirection.REMOVE);
+  ) external view returns (uint256) {
+    return
+      getFeeBps(
+        pool,
+        token,
+        value,
+        pool.config().mintBurnFeeBps(),
+        pool.config().taxBps(),
+        LiquidityDirection.REMOVE
+      );
+  }
+
+  function getSwapFeeBps(
+    Pool pool,
+    address tokenIn,
+    address tokenOut,
+    uint256 usdDebt
+  ) external view returns (uint256) {
+    bool isStableSwap = pool.config().isStableToken(tokenIn) &&
+      pool.config().isStableToken(tokenOut);
+    uint64 baseFeeBps = isStableSwap
+      ? pool.config().stableSwapFeeBps()
+      : pool.config().swapFeeBps();
+    uint64 taxBps = isStableSwap
+      ? pool.config().stableTaxBps()
+      : pool.config().taxBps();
+    uint256 feeBpsIn = getFeeBps(
+      pool,
+      tokenIn,
+      usdDebt,
+      baseFeeBps,
+      taxBps,
+      LiquidityDirection.ADD
+    );
+    uint256 feeBpsOut = getFeeBps(
+      pool,
+      tokenOut,
+      usdDebt,
+      baseFeeBps,
+      taxBps,
+      LiquidityDirection.REMOVE
+    );
+
+    // Return the highest feeBps.
+    return feeBpsIn > feeBpsOut ? feeBpsIn : feeBpsOut;
   }
 }

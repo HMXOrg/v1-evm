@@ -17,6 +17,7 @@ contract Pool is Constants, ReentrancyGuard {
 
   error Pool_BadAmountOut();
   error Pool_BadArgument();
+  error Pool_Buffer();
   error Pool_CoolDown();
   error Pool_LiquidityMismatch();
   error Pool_InsufficientLiquidity();
@@ -37,6 +38,7 @@ contract Pool is Constants, ReentrancyGuard {
   mapping(address => uint256) public totals;
   mapping(address => uint256) public liquidityOf;
   mapping(address => uint256) public reservedOf;
+  mapping(address => uint256) public bufferOf;
 
   mapping(address => uint256) public sumFundingRateOf;
   mapping(address => uint256) public lastFundingTimeOf;
@@ -97,6 +99,15 @@ contract Pool is Constants, ReentrancyGuard {
     uint256 supply,
     uint256 usdDebt,
     uint256 amountOut
+  );
+  event Swap(
+    address account,
+    address tokenIn,
+    address tokenOut,
+    uint256 amountIn,
+    uint256 amountOut,
+    uint256 amountOutAfterFee,
+    uint256 swapFeeBps
   );
 
   constructor(
@@ -218,6 +229,83 @@ contract Pool is Constants, ReentrancyGuard {
     );
 
     return amountOut;
+  }
+
+  function swap(
+    address tokenIn,
+    address tokenOut,
+    uint256 amountIn,
+    uint256 minAmountOut,
+    address receiver
+  ) external nonReentrant returns (uint256) {
+    if (!config.isAcceptToken(tokenIn)) revert Pool_BadArgument();
+    if (!config.isAcceptToken(tokenOut)) revert Pool_BadArgument();
+    if (tokenIn == tokenOut) revert Pool_BadArgument();
+    if (amountIn == 0) revert Pool_BadArgument();
+
+    accrueFundingRate(tokenIn);
+    accrueFundingRate(tokenOut);
+
+    // Transfer amount in.
+    IERC20(tokenIn).safeTransferFrom(msg.sender, address(this), amountIn);
+
+    uint256 priceIn = oracle.getMinPrice(tokenIn);
+    uint256 priceOut = oracle.getMinPrice(tokenOut);
+
+    uint256 amountOut = (amountIn * priceIn) / priceOut;
+    amountOut = _convertTokenDecimals(
+      config.tokenDecimals(tokenIn),
+      config.tokenDecimals(tokenOut),
+      amountOut
+    );
+
+    // Adjust USD debt as swap shifted the debt between two assets
+    uint256 usdDebt = (amountIn * priceIn) / PRICE_PRECISION;
+    usdDebt = _convertTokenDecimals(
+      config.tokenDecimals(tokenIn),
+      USD_DECIMALS,
+      usdDebt
+    );
+
+    uint256 swapFeeBps = poolMath.getSwapFeeBps(
+      Pool(address(this)),
+      tokenIn,
+      tokenOut,
+      usdDebt
+    );
+    uint256 amountOutAfterFee = _collectSwapFee(
+      tokenOut,
+      priceOut,
+      amountOut,
+      swapFeeBps
+    );
+
+    _increasePoolLiquidity(tokenIn, amountIn);
+    _increaseUsdDebt(tokenIn, usdDebt);
+
+    _decreasePoolLiquidity(tokenOut, amountOut);
+    _decreaseUsdDebt(tokenOut, amountOutAfterFee);
+
+    // Buffer check
+    if (liquidityOf[tokenOut] < bufferOf[tokenOut]) revert Pool_Buffer();
+
+    // Slippage check
+    if (amountOutAfterFee < minAmountOut) revert Pool_Slippage();
+
+    // Transfer amount out.
+    IERC20(tokenOut).transfer(receiver, amountOutAfterFee);
+
+    emit Swap(
+      receiver,
+      tokenIn,
+      tokenOut,
+      amountIn,
+      amountOut,
+      amountOutAfterFee,
+      swapFeeBps
+    );
+
+    return amountOutAfterFee;
   }
 
   function _collectSwapFee(
