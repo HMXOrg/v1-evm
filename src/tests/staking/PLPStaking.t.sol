@@ -38,7 +38,7 @@ contract PLPStakingTest is BaseTest {
   }
 
   function testRevert_NotStakingToken_WhenAliceDeposit() external {
-    vm.expectRevert(abi.encodeWithSignature("Staking_isNotStakingToken()"));
+    vm.expectRevert(abi.encodeWithSignature("Staking_UnknownStakingToken()"));
     vm.prank(ALICE);
     staking.deposit(ALICE, address(p168), 100 ether);
   }
@@ -94,14 +94,16 @@ contract PLPStakingTest is BaseTest {
 
   function testRevert_NotStakingToken_WhenAliceWithdraw() external {
     vm.startPrank(ALICE);
-    vm.expectRevert(abi.encodeWithSignature("Staking_isNotStakingToken()"));
+    vm.expectRevert(abi.encodeWithSignature("Staking_UnknownStakingToken()"));
     staking.withdraw(ALICE, address(p168), 100 ether);
     vm.stopPrank();
   }
 
   function testRevert_InsufficientBalance_WhenAliceWithdraw() external {
     vm.startPrank(ALICE);
-    vm.expectRevert(abi.encodeWithSignature("Staking_Insufficient()"));
+    vm.expectRevert(
+      abi.encodeWithSignature("Staking_InsufficientTokenAmount()")
+    );
     staking.withdraw(ALICE, address(plp), 100 ether);
     vm.stopPrank();
   }
