@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
-import { BaseTest, console } from "../base/BaseTest.sol";
+import { BaseTest } from "../base/BaseTest.sol";
 import { PLPStaking } from "../../staking/PLPStaking.sol";
 import { MockErc20 } from "../mocks/MockERC20.sol";
 import { MockRewarder } from "../mocks/MockRewarder.sol";
 
-contract StakingTest is BaseTest {
+contract PLPStakingTest is BaseTest {
   PLPStaking internal staking;
 
   MockErc20 internal plp;
@@ -37,20 +37,20 @@ contract StakingTest is BaseTest {
     p168.mint(BOB, 100 ether);
   }
 
-  function test_WhenAliceDeposit_NotStakingToken_ShouldFail() external {
+  function testRevert_NotStakingToken_WhenAliceDeposit() external {
     vm.expectRevert(abi.encodeWithSignature("Staking_isNotStakingToken()"));
     vm.prank(ALICE);
     staking.deposit(ALICE, address(p168), 100 ether);
   }
 
-  function test_WhenAliceDeposit_InsufficientAllowance_ShouldFail() external {
+  function testRevert_InsufficientAllowance_WhenAliceDeposit() external {
     vm.startPrank(ALICE);
     vm.expectRevert("ERC20: insufficient allowance");
     staking.deposit(ALICE, address(plp), 100 ether);
     vm.stopPrank();
   }
 
-  function test_WhenAliceDeposit_InsufficientBalance_ShouldFail() external {
+  function testRevert_InsufficientBalance_WhenAliceDeposit() external {
     vm.startPrank(ALICE);
     plp.approve(address(staking), 200 ether);
     vm.expectRevert("ERC20: transfer amount exceeds balance");
@@ -58,7 +58,7 @@ contract StakingTest is BaseTest {
     vm.stopPrank();
   }
 
-  function test_WhenAliceBobDeposit_ShouldWork() external {
+  function testCorrectness_WhenAliceBobDeposit() external {
     vm.startPrank(BOB);
     plp.approve(address(staking), 100 ether);
     staking.deposit(BOB, address(plp), 100 ether);
@@ -92,21 +92,21 @@ contract StakingTest is BaseTest {
     assertEq(staking.calculateTotalShare(address(PRewarder)), 200 ether);
   }
 
-  function test_WhenAliceWithdraw_NotStakingToken_ShouldFail() external {
+  function testRevert_NotStakingToken_WhenAliceWithdraw() external {
     vm.startPrank(ALICE);
     vm.expectRevert(abi.encodeWithSignature("Staking_isNotStakingToken()"));
     staking.withdraw(ALICE, address(p168), 100 ether);
     vm.stopPrank();
   }
 
-  function test_WhenAliceWithdraw_InsufficientBalance_ShouldFail() external {
+  function testRevert_InsufficientBalance_WhenAliceWithdraw() external {
     vm.startPrank(ALICE);
     vm.expectRevert(abi.encodeWithSignature("Staking_Insufficient()"));
     staking.withdraw(ALICE, address(plp), 100 ether);
     vm.stopPrank();
   }
 
-  function test_WhenAliceBobWithdraw_ShouldWork() external {
+  function testCorrectness_WhenAliceBobWithdraw() external {
     vm.startPrank(BOB);
     plp.approve(address(staking), 100 ether);
     staking.deposit(BOB, address(plp), 100 ether);

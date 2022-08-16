@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
-import { BaseTest, console } from "../base/BaseTest.sol";
+import { BaseTest } from "../base/BaseTest.sol";
 import { DragonStaking } from "../../staking/DragonStaking.sol";
 import { MockErc20 } from "../mocks/MockERC20.sol";
 import { MockRewarder } from "../mocks/MockRewarder.sol";
 
-contract Staking1Test is BaseTest {
+contract DragonStakingTest is BaseTest {
   DragonStaking internal staking;
 
   MockErc20 internal p88;
@@ -47,7 +47,7 @@ contract Staking1Test is BaseTest {
     dp.mint(BOB, 100 ether);
   }
 
-  function test_WhenAliceBobDeposit_ShouldWork() external {
+  function testCorrectness_WhenAliceBobDeposit() external {
     vm.startPrank(BOB);
     dp.approve(address(staking), 100 ether);
     staking.deposit(BOB, address(dp), 100 ether);
@@ -85,7 +85,7 @@ contract Staking1Test is BaseTest {
     assertEq(staking.calculateTotalShare(address(PRewarder)), 200 ether);
   }
 
-  function test_WhenAliceBobWithdraw_ShouldWork() external {
+  function testCorrectness_WhenAliceBobWithdraw() external {
     vm.startPrank(BOB);
     dp.approve(address(staking), 100 ether);
     staking.deposit(BOB, address(dp), 100 ether);
