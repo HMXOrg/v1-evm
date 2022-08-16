@@ -156,4 +156,91 @@ contract RewarderTest is BaseTest {
     mockStaking.harvest(address(rewarder), ALICE);
     assertEq(rewardToken.balanceOf(ALICE), 9999.999999999980000000 ether);
   }
+
+  function test_WhenFeedTokenMultipleTimes_AliceShouldHarvestTokenCorrectly2()
+    external
+  {
+    // DAY#0
+    // feed and amount of token
+    rewarder.feed(20000 ether, 20 days);
+
+    // ALICE deposit 10 shares
+    mockStaking.deposit(address(rewarder), ALICE, 10 ether);
+
+    // DAY#9
+    // After 9 days, feed more reward
+    vm.warp(block.timestamp + 9 days);
+    rewarder.feed(45000 ether, 25 days);
+
+    // DAY#16
+    // After 7 days, harvest
+    // From the first 9 days, ALICE should get 45% of first 20000 REW.
+    // Then the next 7 days, ALICE should get 28% of (leftover 11000 REW + 45000 REW)
+    // Hence, ALICE should get 9000 REW + 15680 REW = 24680 REW.
+    vm.warp(block.timestamp + 7 days);
+    assertEq(rewardToken.balanceOf(ALICE), 0);
+    mockStaking.harvest(address(rewarder), ALICE);
+    assertEq(rewardToken.balanceOf(ALICE), 24679.999999999980000000 ether);
+  }
+
+  function test_WhenFeedTokenMultipleTimes_WithAliceAndBobDepositAndWithdraw_BothShouldHarvestTokenCorrectly()
+    external
+  {
+    // DAY#0
+    // feed and amount of token
+    rewarder.feed(20000 ether, 20 days);
+
+    // ALICE deposit 10 shares
+    mockStaking.deposit(address(rewarder), ALICE, 10 ether);
+    // BOB deposit 15 shares
+    mockStaking.deposit(address(rewarder), BOB, 15 ether);
+
+    // DAY#10
+    // After 10 days, feed more reward
+    vm.warp(block.timestamp + 10 days);
+    rewarder.feed(45000 ether, 25 days);
+
+    // DAY#12
+    // ALICE withdraw 5 shares
+    vm.warp(block.timestamp + 2 days);
+    mockStaking.withdraw(address(rewarder), ALICE, 5 ether);
+
+    // DAY#15
+    // Both harvest
+    vm.warp(block.timestamp + 3 days);
+
+    // Day0 to Day10:
+    // ALICE vs BOB share = 40:60
+    // Reward should be distributed 50% of 20000 REW = 10000 REW
+    // ALICE should get 40% of 10000 REW = 4000 REW
+    // BOB should get 60% of 10000 REW = 6000 REW
+    // Then, new portion of reward was added 45000 REW.
+    // Total reward: 45000 REW + leftover 10000 REW = 55000 REW
+
+    // Day10 to Day12:
+    // Reward should be distributed 8% of 55000 REW = 4400 REW
+    // ALICE should get 40% of 4400 REW = 1760 REW
+    // BOB should get 60% of 4400 REW = 2640 REW
+    // Then, ALICE withdraw 5 shares.
+    // ALICE vs BOB share = 25:75
+    // Total reward: 55000 REW - 4400 REW = 50600 REW
+
+    // Day12 to Day15:
+    // Reward should be distributed 13.0434782609% of 50600 REW = 6600.0000000154 REW
+    // ALICE should get 25% of 6600.0000000154 REW = 1,650.0000000039 REW
+    // BOB should get 75% of 6600.0000000154 REW = 4,950.0000000116 REW
+
+    // In total
+    // ALICE gets 4000 REW + 1760 REW + 1650.0000000039 REW ~= 7410.0000000039 REW
+    // BOB gets 6000 REW + 2640 REW + 4950.0000000116 REW ~= 13590.0000000116 REW
+    assertEq(rewardToken.balanceOf(ALICE), 0);
+    assertEq(rewarder.pendingReward(ALICE), 7409.999999999975000000 ether);
+    mockStaking.harvest(address(rewarder), ALICE);
+    assertEq(rewardToken.balanceOf(ALICE), 7409.999999999975000000 ether);
+
+    assertEq(rewardToken.balanceOf(BOB), 0);
+    assertEq(rewarder.pendingReward(BOB), 13589.999999999955000000 ether);
+    mockStaking.harvest(address(rewarder), BOB);
+    assertEq(rewardToken.balanceOf(BOB), 13589.999999999955000000 ether);
+  }
 }
