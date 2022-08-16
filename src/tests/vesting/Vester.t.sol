@@ -4,21 +4,21 @@ pragma solidity >=0.8.4 <0.9.0;
 import { BaseTest } from "../base/BaseTest.sol";
 import { Vester } from "../../vesting/Vester.sol";
 
-import { MockERC20 } from "../mock/MockERC20.sol";
+import { MockErc20 } from "../mocks/MockERC20.sol";
 
 import { Math } from "../../utils/Math.sol";
 
 contract Vester_Test is BaseTest {
   Vester private vester;
-  MockERC20 private p88;
-  MockERC20 private esP88;
+  MockErc20 private p88;
+  MockErc20 private esP88;
 
   address private constant BURN_ADDRESS = address(1);
   address private constant TREASURY_ADDRESS = address(2);
 
   function setUp() external {
-    esP88 = new MockERC20("Escrowed P88", "esP88");
-    p88 = new MockERC20("P88", "P88");
+    esP88 = new MockErc20("Escrowed P88", "esP88", 18);
+    p88 = new MockErc20("P88", "P88", 18);
 
     vester = new Vester(
       address(esP88),
