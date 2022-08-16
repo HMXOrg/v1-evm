@@ -18,7 +18,9 @@ contract SimpleStrategyTest is BaseTest {
     strategy = new SimpleStrategy(pool);
   }
 
-  function test_ExecuteStrategy() external {
+  function testCorrectness_WhenLockDropExecuteStrategy_ThenStrategyReturnAmountPLPToken()
+    external
+  {
     // User Approve Token
     baseToken.mint(address(this), 10 ether);
     baseToken.approve(address(strategy), 10 ether);
@@ -27,15 +29,13 @@ contract SimpleStrategyTest is BaseTest {
     assertEq(strategy.execute(1, address(baseToken)), 20);
   }
 
-  function test_NegativeNonApproveToken() external {
+  function testRevert_WhenUserNotApproveToken() external {
     // User Not Approve Token
+
+    //  Expect Revert
+    vm.expectRevert("ERC20: insufficient allowance");
+
     // Execute Strategy
-    try strategy.execute(1, address(baseToken)) {} catch Error(
-      string memory reason
-    ) {
-      // Throw Error
-      assertEq("ERC20: insufficient allowance", reason);
-      console.log("Error ", reason);
-    }
+    strategy.execute(1, address(baseToken));
   }
 }
