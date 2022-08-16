@@ -22,11 +22,7 @@ contract Pool is Constants, ReentrancyGuard {
   error Pool_LiquidityMismatch();
   error Pool_InsufficientLiquidity();
   error Pool_InsufficientLiquidityMint();
-  error Pool_OverUsdDebtCeiling(
-    address token,
-    uint256 usdDebtCeiling,
-    uint256 totalUsdDebt
-  );
+  error Pool_OverUsdDebtCeiling();
   error Pool_Slippage();
   error Pool_SwapDisabled();
 
@@ -347,8 +343,7 @@ contract Pool is Constants, ReentrancyGuard {
     uint256 usdDebtCeiling = config.tokenUsdDebtCeiling(token);
 
     if (usdDebtCeiling != 0) {
-      if (newUsdDebt > usdDebtCeiling)
-        revert Pool_OverUsdDebtCeiling(token, newUsdDebt, usdDebtCeiling);
+      if (newUsdDebt > usdDebtCeiling) revert Pool_OverUsdDebtCeiling();
     }
 
     emit IncreaseUsdDebt(token, amount);

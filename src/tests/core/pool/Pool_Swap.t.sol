@@ -43,6 +43,47 @@ contract Pool_SwapTest is Pool_BaseTest {
     pool.swap(address(dai), address(wbtc), 0, 0, address(this));
   }
 
+  function testRevert_WhenOverUsdDebtCeiling() external {
+    daiPriceFeed.setLatestAnswer(1 * 10**8);
+    maticPriceFeed.setLatestAnswer(300 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(60000 * 10**8);
+
+    dai.mint(address(this), 200000 ether);
+    wbtc.mint(address(this), 10 ether);
+
+    dai.approve(address(pool), type(uint256).max);
+    wbtc.approve(address(pool), type(uint256).max);
+
+    // Perform add liquidity
+    pool.addLiquidity(address(dai), 200000 ether, address(this), 199400 ether);
+    pool.addLiquidity(address(wbtc), 10 ether, address(this), 598200 ether);
+
+    // Set DAI's debt ceiling to be 200100 USD
+    address[] memory tokens = new address[](1);
+    tokens[0] = address(dai);
+    PoolConfig.TokenConfig[] memory tokenConfigs = new PoolConfig.TokenConfig[](
+      1
+    );
+    tokenConfigs[0] = PoolConfig.TokenConfig({
+      accept: true,
+      isStable: true,
+      isShortable: false,
+      decimals: dai.decimals(),
+      weight: 10000,
+      minProfitBps: 75,
+      usdDebtCeiling: 200100 ether,
+      shortCeiling: 0
+    });
+    poolConfig.setTokenConfigs(tokens, tokenConfigs);
+
+    // Mint more DAI
+    dai.mint(address(this), 701 ether);
+
+    // Try to swap that will exceed the debt ceiling
+    vm.expectRevert(abi.encodeWithSignature("Pool_OverUsdDebtCeiling()"));
+    pool.swap(address(dai), address(wbtc), 701 ether, 0, address(this));
+  }
+
   function testCorrectness_WhenSwapSuccess() external {
     daiPriceFeed.setLatestAnswer(1 * 10**8);
     maticPriceFeed.setLatestAnswer(300 * 10**8);
