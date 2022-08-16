@@ -2,7 +2,7 @@
 pragma solidity >=0.8.4 <0.9.0;
 
 import { BaseTest } from "../base/BaseTest.sol";
-import { Vester } from "../../Vester.sol";
+import { Vester } from "../../vesting/Vester.sol";
 
 import { MockERC20 } from "../mock/MockERC20.sol";
 
