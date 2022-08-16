@@ -17,8 +17,8 @@ contract Pool is Constants, ReentrancyGuard {
 
   error Pool_BadAmountOut();
   error Pool_BadArgument();
-  error Pool_Buffer();
   error Pool_CoolDown();
+  error Pool_LiquidityBuffer();
   error Pool_LiquidityMismatch();
   error Pool_InsufficientLiquidity();
   error Pool_InsufficientLiquidityMint();
@@ -35,7 +35,6 @@ contract Pool is Constants, ReentrancyGuard {
   mapping(address => uint256) public totals;
   mapping(address => uint256) public liquidityOf;
   mapping(address => uint256) public reservedOf;
-  mapping(address => uint256) public bufferOf;
 
   mapping(address => uint256) public sumFundingRateOf;
   mapping(address => uint256) public lastFundingTimeOf;
@@ -285,7 +284,8 @@ contract Pool is Constants, ReentrancyGuard {
     _decreaseUsdDebt(tokenOut, usdDebt);
 
     // Buffer check
-    if (liquidityOf[tokenOut] < bufferOf[tokenOut]) revert Pool_Buffer();
+    if (liquidityOf[tokenOut] < config.tokenBufferLiquidity(tokenOut))
+      revert Pool_LiquidityBuffer();
 
     // Slippage check
     if (amountOutAfterFee < minAmountOut) revert Pool_Slippage();

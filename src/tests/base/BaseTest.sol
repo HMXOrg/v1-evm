@@ -134,7 +134,8 @@ contract BaseTest is DSTest, CoreConstants {
       weight: 10000,
       minProfitBps: 75,
       usdDebtCeiling: 0,
-      shortCeiling: 0
+      shortCeiling: 0,
+      bufferLiquidity: 0
     });
     tokenConfigs[1] = PoolConfig.TokenConfig({
       accept: true,
@@ -144,7 +145,8 @@ contract BaseTest is DSTest, CoreConstants {
       weight: 10000,
       minProfitBps: 75,
       usdDebtCeiling: 0,
-      shortCeiling: 0
+      shortCeiling: 0,
+      bufferLiquidity: 0
     });
     tokenConfigs[2] = PoolConfig.TokenConfig({
       accept: true,
@@ -154,7 +156,8 @@ contract BaseTest is DSTest, CoreConstants {
       weight: 10000,
       minProfitBps: 75,
       usdDebtCeiling: 0,
-      shortCeiling: 0
+      shortCeiling: 0,
+      bufferLiquidity: 0
     });
 
     return (tokens, tokenConfigs);

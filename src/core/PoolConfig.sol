@@ -18,6 +18,7 @@ contract PoolConfig is Ownable {
     uint64 minProfitBps;
     uint256 usdDebtCeiling;
     uint256 shortCeiling;
+    uint256 bufferLiquidity;
   }
   LinkedList.List public allowTokens;
   mapping(address => TokenConfig) public tokenMetas;
@@ -196,6 +197,10 @@ contract PoolConfig is Ownable {
 
   function getNextAllowTokenOf(address token) external view returns (address) {
     return allowTokens.getNextOf(token);
+  }
+
+  function tokenBufferLiquidity(address token) external view returns (uint256) {
+    return tokenMetas[token].bufferLiquidity;
   }
 
   function tokenDecimals(address token) external view returns (uint8) {

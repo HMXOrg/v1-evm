@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.14;
 
-import { Pool_BaseTest, PoolConfig, stdError } from "./Pool_BaseTest.t.sol";
+import { Pool_BaseTest, PoolConfig, stdError, console } from "./Pool_BaseTest.t.sol";
 
 contract Pool_SwapTest is Pool_BaseTest {
   function setUp() public override {
@@ -72,7 +72,8 @@ contract Pool_SwapTest is Pool_BaseTest {
       weight: 10000,
       minProfitBps: 75,
       usdDebtCeiling: 200100 ether,
-      shortCeiling: 0
+      shortCeiling: 0,
+      bufferLiquidity: 0
     });
     poolConfig.setTokenConfigs(tokens, tokenConfigs);
 
@@ -82,6 +83,46 @@ contract Pool_SwapTest is Pool_BaseTest {
     // Try to swap that will exceed the debt ceiling
     vm.expectRevert(abi.encodeWithSignature("Pool_OverUsdDebtCeiling()"));
     pool.swap(address(dai), address(wbtc), 701 ether, 0, address(this));
+  }
+
+  function testRevert_WhenLiquidityLessThanBuffer() external {
+    daiPriceFeed.setLatestAnswer(1 * 10**8);
+    maticPriceFeed.setLatestAnswer(300 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(60000 * 10**8);
+
+    dai.mint(address(this), 200000 ether);
+    wbtc.mint(address(this), 10 ether);
+
+    dai.approve(address(pool), type(uint256).max);
+    wbtc.approve(address(pool), type(uint256).max);
+
+    // Perform add liquidity
+    pool.addLiquidity(address(dai), 200000 ether, address(this), 199400 ether);
+    pool.addLiquidity(address(wbtc), 10 * 10**8, address(this), 598200 ether);
+
+    // Set WBTC's liquidity buffer to be 9.97 WBTC
+    address[] memory tokens = new address[](1);
+    tokens[0] = address(wbtc);
+    PoolConfig.TokenConfig[] memory tokenConfigs = new PoolConfig.TokenConfig[](
+      1
+    );
+    tokenConfigs[0] = PoolConfig.TokenConfig({
+      accept: true,
+      isStable: false,
+      isShortable: true,
+      decimals: wbtc.decimals(),
+      weight: 10000,
+      minProfitBps: 75,
+      usdDebtCeiling: 0,
+      shortCeiling: 0,
+      bufferLiquidity: 9.97 * 10**8
+    });
+    poolConfig.setTokenConfigs(tokens, tokenConfigs);
+
+    dai.mint(address(this), 1 ether);
+
+    vm.expectRevert(abi.encodeWithSignature("Pool_LiquidityBuffer()"));
+    pool.swap(address(dai), address(wbtc), 1 ether, 0, address(this));
   }
 
   function testCorrectness_WhenSwapSuccess() external {
