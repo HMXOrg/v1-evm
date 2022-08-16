@@ -9,9 +9,6 @@ contract RewarderTest is BaseTest {
   Rewarder internal rewarder;
   MockERC20 internal rewardToken;
 
-  address public constant ALICE = address(1);
-  address public constant BOB = address(2);
-
   function setUp() external {
     rewardToken = new MockERC20("Reward Token", "REW");
     rewarder = new Rewarder("REWRewarder", address(rewardToken));

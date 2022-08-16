@@ -7,9 +7,6 @@ import { P88 } from "../tokens/P88.sol";
 contract P88Test is BaseTest {
   P88 internal p88;
 
-  address public constant ALICE = address(1);
-  address public constant BOB = address(2);
-
   function setUp() external {
     p88 = new P88();
   }
