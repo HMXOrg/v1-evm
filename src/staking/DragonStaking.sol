@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.14;
 
-import "./Staking.sol";
+import "./BaseStaking.sol";
 import "../tokens/MultiplierPointToken.sol";
 
-contract DragonStaking is Staking {
+contract DragonStaking is BaseStaking {
   MultiplierPointToken public dp;
 
   constructor(address dp_) {

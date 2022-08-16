@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./interfaces/IRewarder.sol";
 import "./interfaces/IStaking.sol";
 
-abstract contract Staking is IStaking, Ownable {
+abstract contract BaseStaking is IStaking, Ownable {
   using SafeERC20 for IERC20;
 
   error Staking_isNotStakingToken();
@@ -35,10 +35,11 @@ abstract contract Staking is IStaking, Ownable {
   );
 
   function addStakingToken(address newToken, address[] memory newRewarders)
-    public
+    external
     onlyOwner
   {
-    for (uint256 i = 0; i < newRewarders.length; ) {
+    uint256 length = newRewarders.length;
+    for (uint256 i = 0; i < length; ) {
       _updatePool(newToken, newRewarders[i]);
 
       unchecked {
@@ -48,10 +49,11 @@ abstract contract Staking is IStaking, Ownable {
   }
 
   function addRewarder(address newRewarder, address[] memory newTokens)
-    public
+    external
     onlyOwner
   {
-    for (uint256 i = 0; i < newTokens.length; ) {
+    uint256 length = newTokens.length;
+    for (uint256 i = 0; i < length; ) {
       _updatePool(newTokens[i], newRewarder);
 
       unchecked {
@@ -139,7 +141,7 @@ abstract contract Staking is IStaking, Ownable {
   }
 
   function calculateShare(address rewarder, address user)
-    public
+    external
     view
     returns (uint256)
   {
@@ -156,7 +158,11 @@ abstract contract Staking is IStaking, Ownable {
     return share;
   }
 
-  function calculateTotalShare(address rewarder) public view returns (uint256) {
+  function calculateTotalShare(address rewarder)
+    external
+    view
+    returns (uint256)
+  {
     address[] memory tokens = rewarderStakingTokens[rewarder];
     uint256 totalShare = 0;
     uint256 length = tokens.length;
