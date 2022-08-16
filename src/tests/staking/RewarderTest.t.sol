@@ -159,7 +159,7 @@ contract RewarderTest is BaseTest {
     assertEq(rewardToken.balanceOf(ALICE), 9999.999999999980000000 ether);
   }
 
-  function test_WhenFeedTokenMultipleTimes_AliceShouldHarvestTokenCorrectly2()
+  function test_WhenFeedTokenMultipleTimes_AliceShouldHarvestTokenCorrectly()
     external
   {
     // DAY#0
