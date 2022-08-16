@@ -36,6 +36,8 @@ contract Rewarder is IRewarder {
   );
 
   // Error
+  error RewarderError_FeedAmountDecayed();
+
   // TODO: add ACL
 
   constructor(
@@ -91,8 +93,10 @@ contract Rewarder is IRewarder {
   }
 
   function pendingReward(address user) external view returns (uint256) {
-    int256 accumulatedRewards = ((_userShare(user) * accRewardPerShare) /
-      ACC_REWARD_PRECISION).toInt256();
+    int256 accumulatedRewards = ((_userShare(user) *
+      _calculateAccRewardPerShare()) / ACC_REWARD_PRECISION).toInt256();
+
+    if (accumulatedRewards < userRewardDebts[user]) return 0;
     return (accumulatedRewards - userRewardDebts[user]).toUint256();
   }
 
@@ -106,7 +110,21 @@ contract Rewarder is IRewarder {
 
   function _feed(uint256 feedAmount, uint256 duration) internal {
     _updateRewardCalculationParams();
-    IERC20(rewardToken).safeTransferFrom(msg.sender, address(this), feedAmount);
+
+    {
+      // Transfer token, with decay check
+      uint256 balanceBefore = IERC20(rewardToken).balanceOf(address(this));
+      IERC20(rewardToken).safeTransferFrom(
+        msg.sender,
+        address(this),
+        feedAmount
+      );
+
+      if (
+        IERC20(rewardToken).balanceOf(address(this)) - balanceBefore !=
+        feedAmount
+      ) revert RewarderError_FeedAmountDecayed();
+    }
 
     uint256 leftOverReward = rewardRateExpiredAt > block.timestamp
       ? (rewardRateExpiredAt - block.timestamp) * rewardRate
@@ -137,6 +155,8 @@ contract Rewarder is IRewarder {
   }
 
   function _timePast() private view returns (uint256) {
+    // Prevent timePast to go over intended reward distribution period.
+    // On the other hand, prevent insufficient reward when harvest.
     if (block.timestamp < rewardRateExpiredAt) {
       return block.timestamp - lastRewardTime;
     } else {
