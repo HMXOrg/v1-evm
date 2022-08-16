@@ -43,14 +43,20 @@ contract PoolConfig is Ownable {
   // -----
   // Misc.
   // -----
+  uint64 public minProfitDuration;
   uint64 public liquidityCoolDownDuration;
   bool public isDynamicFeeEnable;
   bool public isSwapEnable;
+  bool public isLeverageEnable;
 
   event DeleteTokenConfig(address token);
   event SetIsDynamicFeeEnable(
     bool prevIsDynamicFeeEnable,
     bool newIsDynamicFeeEnable
+  );
+  event SetMinProfitDuration(
+    uint64 prevMinProfitDuration,
+    uint64 newMinProfitDuration
   );
   event SetMintBurnFeeBps(uint256 prevFeeBps, uint256 newFeeBps);
   event SetFundingRate(
@@ -70,6 +76,10 @@ contract PoolConfig is Ownable {
     address token,
     TokenConfig prevConfig,
     TokenConfig newConfig
+  );
+  event SetIsLeverageEnable(
+    bool prevIsLeverageEnable,
+    bool newIsLeverageEnable
   );
   event SetIsSwapEnable(bool prevIsSwapEnable, bool newIsSwapEnable);
 
@@ -107,6 +117,11 @@ contract PoolConfig is Ownable {
     isDynamicFeeEnable = newIsDynamicFeeEnable;
   }
 
+  function setIsLeverageEnable(bool newIsLeverageEnable) external onlyOwner {
+    emit SetIsLeverageEnable(isLeverageEnable, newIsLeverageEnable);
+    isLeverageEnable = newIsLeverageEnable;
+  }
+
   function setIsSwapEnable(bool newIsSwapEnable) external onlyOwner {
     emit SetIsSwapEnable(isSwapEnable, newIsSwapEnable);
     isSwapEnable = newIsSwapEnable;
@@ -139,6 +154,14 @@ contract PoolConfig is Ownable {
       newLiquidityCoolDownPeriod
     );
     liquidityCoolDownDuration = newLiquidityCoolDownPeriod;
+  }
+
+  function setMinProfitDuration(uint64 newMinProfitDuration)
+    external
+    onlyOwner
+  {
+    emit SetMinProfitDuration(minProfitDuration, newMinProfitDuration);
+    minProfitDuration = newMinProfitDuration;
   }
 
   function setMintBurnFeeBps(uint64 newMintBurnFeeBps) external onlyOwner {
@@ -191,6 +214,10 @@ contract PoolConfig is Ownable {
     return tokenMetas[token].isStable;
   }
 
+  function isShortableToken(address token) external view returns (bool) {
+    return tokenMetas[token].isShortable;
+  }
+
   function getAllowTokensLength() external view returns (uint256) {
     return allowTokens.size;
   }
@@ -207,6 +234,10 @@ contract PoolConfig is Ownable {
     return tokenMetas[token].decimals;
   }
 
+  function tokenMinProfitBps(address token) external view returns (uint256) {
+    return tokenMetas[token].minProfitBps;
+  }
+
   function tokenWeight(address token) external view returns (uint256) {
     return tokenMetas[token].weight;
   }
@@ -217,5 +248,12 @@ contract PoolConfig is Ownable {
 
   function tokenShortCeiling(address token) external view returns (uint256) {
     return tokenMetas[token].shortCeiling;
+  }
+
+  function shouldAccrueFundingRate(
+    address, /* collateralToken */
+    address /* indexToken */
+  ) external pure returns (bool) {
+    return true;
   }
 }

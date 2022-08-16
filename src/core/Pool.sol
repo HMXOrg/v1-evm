@@ -16,6 +16,7 @@ contract Pool is Constants, ReentrancyGuard {
   error Pool_BadAmountOut();
   error Pool_BadArgument();
   error Pool_CoolDown();
+  error Pool_LeverageDisabled();
   error Pool_LiquidityBuffer();
   error Pool_LiquidityMismatch();
   error Pool_InsufficientLiquidity();
@@ -55,6 +56,18 @@ contract Pool is Constants, ReentrancyGuard {
 
   // LP
   mapping(address => uint256) public lastAddLiquidityAtOf;
+
+  // Position
+  struct Position {
+    uint256 size;
+    uint256 collateral;
+    uint256 averagePrice;
+    uint256 entryFundingRate;
+    uint256 reserveAmount;
+    int256 realizedPnl;
+    uint256 lastIncreasedTime;
+  }
+  mapping(bytes32 => Position) public positions;
 
   event AccrueFundingRate(address token, uint256 sumFundingRate);
   event AddLiquidity(
@@ -116,7 +129,11 @@ contract Pool is Constants, ReentrancyGuard {
     plp = _plp;
   }
 
-  function accrueFundingRate(address collateralToken) public {
+  function accrueFundingRate(address collateralToken, address indexToken)
+    public
+  {
+    if (!config.shouldAccrueFundingRate(collateralToken, indexToken)) return;
+
     uint256 fundingInterval = config.fundingInterval();
 
     if (lastFundingTimeOf[collateralToken] == 0) {
@@ -161,8 +178,6 @@ contract Pool is Constants, ReentrancyGuard {
 
     // Transfer here or ERC777s could re-enter.
     IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
-
-    accrueFundingRate(token);
 
     uint256 usdDebt = _join(token, amount, receiver);
     uint256 mintAmount = aum == 0 ? usdDebt : (usdDebt * lpSupply) / aum;
@@ -238,8 +253,8 @@ contract Pool is Constants, ReentrancyGuard {
     if (tokenIn == tokenOut) revert Pool_BadArgument();
     if (amountIn == 0) revert Pool_BadArgument();
 
-    accrueFundingRate(tokenIn);
-    accrueFundingRate(tokenOut);
+    accrueFundingRate(tokenIn, tokenIn);
+    accrueFundingRate(tokenOut, tokenOut);
 
     // Transfer amount in.
     IERC20(tokenIn).safeTransferFrom(msg.sender, address(this), amountIn);
@@ -304,6 +319,134 @@ contract Pool is Constants, ReentrancyGuard {
     return amountOutAfterFee;
   }
 
+  function getDelta(
+    address indexToken,
+    uint256 size,
+    uint256 averagePrice,
+    Exposure exposure,
+    uint256 lastIncreasedTime
+  ) public view returns (bool, uint256) {
+    if (averagePrice == 0) revert Pool_BadArgument();
+    uint256 price = Exposure.LONG == exposure
+      ? oracle.getMinPrice(indexToken)
+      : oracle.getMaxPrice(indexToken);
+    uint256 priceDelta;
+    unchecked {
+      priceDelta = averagePrice > price
+        ? averagePrice - price
+        : price - averagePrice;
+    }
+    uint256 delta = (size * priceDelta) / averagePrice;
+
+    bool isProfit;
+    if (Exposure.LONG == exposure) {
+      isProfit = price > averagePrice;
+    } else {
+      isProfit = price < averagePrice;
+    }
+
+    uint256 minBps = block.timestamp >
+      lastIncreasedTime + config.minProfitDuration()
+      ? 0
+      : config.tokenMinProfitBps(indexToken);
+    if (isProfit && delta * BPS <= size * minBps) delta = 0;
+
+    return (isProfit, delta);
+  }
+
+  function getPositionId(
+    address account,
+    address collateralToken,
+    address indexToken,
+    Exposure exposure
+  ) public pure returns (bytes32) {
+    return
+      keccak256(
+        abi.encodePacked(account, collateralToken, indexToken, exposure)
+      );
+  }
+
+  function getNextAveragePrice(
+    address indexToken,
+    uint256 size,
+    uint256 averagePrice,
+    Exposure exposure,
+    uint256 nextPrice,
+    uint256 sizeDelta,
+    uint256 lastIncreasedTime
+  ) public view returns (uint256) {
+    (bool isProfit, uint256 delta) = getDelta(
+      indexToken,
+      size,
+      averagePrice,
+      exposure,
+      lastIncreasedTime
+    );
+    uint256 nextSize = size + sizeDelta;
+    uint256 divisor;
+    if (exposure == Exposure.LONG) {
+      divisor = isProfit ? nextSize + delta : nextSize - delta;
+    } else {
+      divisor = isProfit ? nextSize - delta : nextSize + delta;
+    }
+
+    return (nextPrice * nextSize) / divisor;
+  }
+
+  function _increasePosition(
+    address account,
+    address collateralToken,
+    address indexToken,
+    uint256 sizeDelta,
+    Exposure exposure
+  ) internal {
+    if (!config.isLeverageEnable()) revert Pool_LeverageDisabled();
+    if (Exposure.LONG == exposure) {
+      if (collateralToken != indexToken) revert Pool_BadArgument();
+      if (!config.isAcceptToken(collateralToken)) revert Pool_BadArgument();
+      if (config.isStableToken(collateralToken)) revert Pool_BadArgument();
+    } else {
+      if (!config.isAcceptToken(collateralToken)) revert Pool_BadArgument();
+      if (!config.isStableToken(collateralToken)) revert Pool_BadArgument();
+      if (config.isStableToken(indexToken)) revert Pool_BadArgument();
+      if (!config.isShortableToken(indexToken)) revert Pool_BadArgument();
+    }
+
+    accrueFundingRate(collateralToken, indexToken);
+
+    bytes32 posId = getPositionId(
+      account,
+      collateralToken,
+      indexToken,
+      exposure
+    );
+    Position storage position = positions[posId];
+
+    uint256 price = exposure == Exposure.LONG
+      ? oracle.getMaxPrice(collateralToken)
+      : oracle.getMinPrice(collateralToken);
+
+    if (position.size == 0) {
+      // If position size = 0, then it is a new position.
+      // So make average price to equal to price.
+      position.averagePrice = price;
+    }
+
+    if (position.size > 0 && sizeDelta > 0) {
+      // If position size > 0, then position is existed.
+      // Need to calculate the next average price.
+      position.averagePrice = getNextAveragePrice(
+        indexToken,
+        position.size,
+        position.averagePrice,
+        exposure,
+        price,
+        sizeDelta,
+        position.lastIncreasedTime
+      );
+    }
+  }
+
   function _collectSwapFee(
     address token,
     uint256 tokenPriceUsd,
@@ -365,6 +508,8 @@ contract Pool is Constants, ReentrancyGuard {
     uint256 amount,
     address receiver
   ) internal returns (uint256) {
+    accrueFundingRate(token, token);
+
     uint256 price = oracle.getMinPrice(token);
 
     uint256 tokenValueUsd = (amount * price) / PRICE_PRECISION;
@@ -408,7 +553,7 @@ contract Pool is Constants, ReentrancyGuard {
     uint256 usdValue,
     address receiver
   ) internal returns (uint256) {
-    accrueFundingRate(token);
+    accrueFundingRate(token, token);
 
     uint256 tokenPrice = oracle.getMaxPrice(token);
     uint256 amountOut = _convertTokenDecimals(
