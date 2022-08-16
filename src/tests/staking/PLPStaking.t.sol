@@ -146,7 +146,7 @@ contract PLPStakingTest is BaseTest {
     assertEq(staking.calculateTotalShare(address(PRewarder)), 50 ether);
   }
 
-  function test_WhenAddStakingTokenRewarder_ShouldWork() external {
+  function testCorrectness_WhenAddStakingTokenRewarder() external {
     vm.startPrank(BOB);
     plp.approve(address(staking), 100 ether);
     staking.deposit(BOB, address(plp), 100 ether);
@@ -184,7 +184,7 @@ contract PLPStakingTest is BaseTest {
     assertEq(staking.calculateTotalShare(address(PRewarder)), 300 ether);
   }
 
-  function test_WhenAddPartnerRewarder_ShouldWork() external {
+  function testCorrectness_WhenAddPartnerRewarder() external {
     MockRewarder P2Rewarder = new MockRewarder();
     address[] memory tokens = new address[](1);
     tokens[0] = address(plp);

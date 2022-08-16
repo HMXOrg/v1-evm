@@ -11,8 +11,8 @@ import "./interfaces/IStaking.sol";
 abstract contract BaseStaking is IStaking, Ownable {
   using SafeERC20 for IERC20;
 
-  error Staking_isNotStakingToken();
-  error Staking_Insufficient();
+  error Staking_UnknownStakingToken();
+  error Staking_InsufficientTokenAmount();
 
   mapping(address => mapping(address => uint256)) public userTokenAmount;
   address[] public rewarders;
@@ -77,7 +77,7 @@ abstract contract BaseStaking is IStaking, Ownable {
     address token,
     uint256 amount
   ) external {
-    if (!isStakingToken[token]) revert Staking_isNotStakingToken();
+    if (!isStakingToken[token]) revert Staking_UnknownStakingToken();
 
     uint256 length = stakingTokenRewarders[token].length;
     for (uint256 i = 0; i < length; ) {
@@ -101,8 +101,9 @@ abstract contract BaseStaking is IStaking, Ownable {
     address token,
     uint256 amount
   ) external {
-    if (!isStakingToken[token]) revert Staking_isNotStakingToken();
-    if (userTokenAmount[token][to] < amount) revert Staking_Insufficient();
+    if (!isStakingToken[token]) revert Staking_UnknownStakingToken();
+    if (userTokenAmount[token][to] < amount)
+      revert Staking_InsufficientTokenAmount();
 
     uint256 length = stakingTokenRewarders[token].length;
     for (uint256 i = 0; i < length; ) {
