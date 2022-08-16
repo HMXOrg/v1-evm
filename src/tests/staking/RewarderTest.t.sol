@@ -254,9 +254,7 @@ contract RewarderTest is BaseTest {
     // ALICE gets 4000 REW + 1760 REW + 1650.0000000039 REW ~= 7410.0000000039 REW
     // BOB gets 6000 REW + 2640 REW + 4950.0000000116 REW ~= 13590.0000000116 REW
     uint256 aliceTotal = aliceReward1 + aliceReward2 + aliceReward3;
-
     uint256 bobTotal = bobReward1 + bobReward2 + bobReward3;
-    console.log(aliceReward1, aliceReward2, aliceReward3);
 
     assertEq(rewardToken.balanceOf(ALICE), 0);
     assertTrue(math.almostEqual(rewarder.pendingReward(ALICE), aliceTotal, 1));
