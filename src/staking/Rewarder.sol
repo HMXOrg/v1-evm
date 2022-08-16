@@ -36,7 +36,7 @@ contract Rewarder is IRewarder {
   );
 
   // Error
-  error Rewarder_rewardRateHasNotExpired();
+  // TODO: add ACL
 
   constructor(
     string memory name_,
