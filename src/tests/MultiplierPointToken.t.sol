@@ -7,9 +7,6 @@ import { MultiplierPointToken } from "../tokens/MultiplierPointToken.sol";
 contract MultiplierPointTokenTest is BaseTest {
   MultiplierPointToken internal multiplierPointToken;
 
-  address public constant ALICE = address(1);
-  address public constant BOB = address(2);
-
   function setUp() external {
     multiplierPointToken = new MultiplierPointToken();
   }
