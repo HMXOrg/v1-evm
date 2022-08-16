@@ -5,6 +5,8 @@ import { BaseTest } from "../base/BaseTest.sol";
 import { Rewarder } from "../../staking/Rewarder.sol";
 import { MockErc20 } from "../mocks/MockERC20.sol";
 import { MockStaking } from "../mocks/MockStaking.sol";
+import { console } from "../utils/console.sol";
+import { math } from "../utils/math.sol";
 
 contract RewarderTest is BaseTest {
   Rewarder internal rewarder;
@@ -21,8 +23,8 @@ contract RewarderTest is BaseTest {
       address(mockStaking)
     );
 
-    rewardToken.mint(address(this), 1000000 ether);
-    rewardToken.approve(address(rewarder), 1000000 ether);
+    rewardToken.mint(address(this), 2 * 1e12 ether);
+    rewardToken.approve(address(rewarder), 2 * 1e12 ether);
   }
 
   function test_WhenRewarderIsInit_ShouldBeCorrectlyInit() external {
@@ -183,12 +185,22 @@ contract RewarderTest is BaseTest {
     assertEq(rewardToken.balanceOf(ALICE), 24679.999999999980000000 ether);
   }
 
-  function test_WhenFeedTokenMultipleTimes_WithAliceAndBobDepositAndWithdraw_BothShouldHarvestTokenCorrectly()
-    external
-  {
+  function testFuzzy_WhenFeedTokenMultipleTimes_WithAliceAndBobDepositAndWithdraw_BothShouldHarvestTokenCorrectly(
+    uint256 feedAmount1,
+    uint256 feedAmount2
+  ) external {
+    vm.assume(feedAmount1 > 0.01 ether);
+    vm.assume(feedAmount2 > 0.01 ether);
+    vm.assume(feedAmount1 < 1e12 ether);
+    vm.assume(feedAmount2 < 1e12 ether);
+
+    // the comment on this test case assumes, the following params
+    // uint256 feedAmount1 = 20000 ether;
+    // uint256 feedAmount2 = 45000 ether;
+
     // DAY#0
     // feed and amount of token
-    rewarder.feed(20000 ether, 20 days);
+    rewarder.feed(feedAmount1, 20 days);
 
     // ALICE deposit 10 shares
     mockStaking.deposit(address(rewarder), ALICE, 10 ether);
@@ -198,7 +210,7 @@ contract RewarderTest is BaseTest {
     // DAY#10
     // After 10 days, feed more reward
     vm.warp(block.timestamp + 10 days);
-    rewarder.feed(45000 ether, 25 days);
+    rewarder.feed(feedAmount2, 25 days);
 
     // DAY#12
     // ALICE withdraw 5 shares
@@ -214,6 +226,8 @@ contract RewarderTest is BaseTest {
     // Reward should be distributed 50% of 20000 REW = 10000 REW
     // ALICE should get 40% of 10000 REW = 4000 REW
     // BOB should get 60% of 10000 REW = 6000 REW
+    uint256 aliceReward1 = (((feedAmount1 * 50) / 100) * 40) / 100;
+    uint256 bobReward1 = (((feedAmount1 * 50) / 100) * 60) / 100;
     // Then, new portion of reward was added 45000 REW.
     // Total reward: 45000 REW + leftover 10000 REW = 55000 REW
 
@@ -221,26 +235,37 @@ contract RewarderTest is BaseTest {
     // Reward should be distributed 8% of 55000 REW = 4400 REW
     // ALICE should get 40% of 4400 REW = 1760 REW
     // BOB should get 60% of 4400 REW = 2640 REW
+    uint256 day10Amount = ((feedAmount1 * 50) / 100) + feedAmount2;
+    uint256 aliceReward2 = (((day10Amount * 8) / 100) * 40) / 100;
+    uint256 bobReward2 = (((day10Amount * 8) / 100) * 60) / 100;
     // Then, ALICE withdraw 5 shares.
     // ALICE vs BOB share = 25:75
     // Total reward: 55000 REW - 4400 REW = 50600 REW
 
     // Day12 to Day15:
-    // Reward should be distributed 13.0434782609% of 50600 REW = 6600.0000000154 REW
+    // Reward should be distributed 13.0434782609% (3/23) of 50600 REW = 6600.0000000154 REW
     // ALICE should get 25% of 6600.0000000154 REW = 1,650.0000000039 REW
     // BOB should get 75% of 6600.0000000154 REW = 4,950.0000000116 REW
+    uint256 day12Amount = (day10Amount * 92) / 100;
+    uint256 aliceReward3 = (((day12Amount * 3) / 23) * 25) / 100;
+    uint256 bobReward3 = (((day12Amount * 3) / 23) * 75) / 100;
 
     // In total
     // ALICE gets 4000 REW + 1760 REW + 1650.0000000039 REW ~= 7410.0000000039 REW
     // BOB gets 6000 REW + 2640 REW + 4950.0000000116 REW ~= 13590.0000000116 REW
+    uint256 aliceTotal = aliceReward1 + aliceReward2 + aliceReward3;
+
+    uint256 bobTotal = bobReward1 + bobReward2 + bobReward3;
+    console.log(aliceReward1, aliceReward2, aliceReward3);
+
     assertEq(rewardToken.balanceOf(ALICE), 0);
-    assertEq(rewarder.pendingReward(ALICE), 7409.999999999975000000 ether);
+    assertTrue(math.almostEqual(rewarder.pendingReward(ALICE), aliceTotal, 1));
     mockStaking.harvest(address(rewarder), ALICE);
-    assertEq(rewardToken.balanceOf(ALICE), 7409.999999999975000000 ether);
+    assertTrue(math.almostEqual(rewardToken.balanceOf(ALICE), aliceTotal, 1));
 
     assertEq(rewardToken.balanceOf(BOB), 0);
-    assertEq(rewarder.pendingReward(BOB), 13589.999999999955000000 ether);
+    assertTrue(math.almostEqual(rewarder.pendingReward(BOB), bobTotal, 1));
     mockStaking.harvest(address(rewarder), BOB);
-    assertEq(rewardToken.balanceOf(BOB), 13589.999999999955000000 ether);
+    assertTrue(math.almostEqual(rewardToken.balanceOf(BOB), bobTotal, 1));
   }
 }
