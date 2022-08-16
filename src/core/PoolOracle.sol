@@ -6,8 +6,6 @@ import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { ChainlinkPriceFeedInterface } from "../interfaces/ChainlinkPriceFeedInterface.sol";
 import { Constants } from "./Constants.sol";
 
-import { console } from "../tests/utils/console.sol";
-
 contract PoolOracle is Constants, Ownable {
   using SafeCast for int256;
 

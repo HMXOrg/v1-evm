@@ -10,8 +10,6 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.s
 import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import { Constants } from "./Constants.sol";
 
-import { console } from "../tests/utils/console.sol";
-
 contract Pool is Constants, ReentrancyGuard {
   using SafeERC20 for IERC20;
 

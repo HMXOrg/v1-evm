@@ -5,7 +5,6 @@ import { Pool } from "./Pool.sol";
 import { Constants } from "./Constants.sol";
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import { console } from "../tests/utils/console.sol";
 
 contract PoolMath is Constants {
   enum LiquidityDirection {
