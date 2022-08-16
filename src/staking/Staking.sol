@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./interfaces/IRewarder.sol";
 import "./interfaces/IStaking.sol";
 
-contract Staking is IStaking, Ownable {
+abstract contract Staking is IStaking, Ownable {
   using SafeERC20 for IERC20;
 
   error Staking_isNotStakingToken();
@@ -38,8 +38,12 @@ contract Staking is IStaking, Ownable {
     public
     onlyOwner
   {
-    for (uint256 i = 0; i < newRewarders.length; i++) {
+    for (uint256 i = 0; i < newRewarders.length; ) {
       _updatePool(newToken, newRewarders[i]);
+
+      unchecked {
+        ++i;
+      }
     }
   }
 
@@ -47,8 +51,12 @@ contract Staking is IStaking, Ownable {
     public
     onlyOwner
   {
-    for (uint256 i = 0; i < newTokens.length; i++) {
+    for (uint256 i = 0; i < newTokens.length; ) {
       _updatePool(newTokens[i], newRewarder);
+
+      unchecked {
+        ++i;
+      }
     }
   }
 
@@ -70,10 +78,14 @@ contract Staking is IStaking, Ownable {
     if (!isStakingToken[token]) revert Staking_isNotStakingToken();
 
     uint256 length = stakingTokenRewarders[token].length;
-    for (uint256 i = 0; i < length; i++) {
+    for (uint256 i = 0; i < length; ) {
       address rewarder = stakingTokenRewarders[token][i];
 
       IRewarder(rewarder).onDeposit(to, amount);
+
+      unchecked {
+        ++i;
+      }
     }
 
     userTokenAmount[token][to] += amount;
@@ -91,10 +103,14 @@ contract Staking is IStaking, Ownable {
     if (userTokenAmount[token][to] < amount) revert Staking_Insufficient();
 
     uint256 length = stakingTokenRewarders[token].length;
-    for (uint256 i = 0; i < length; i++) {
+    for (uint256 i = 0; i < length; ) {
       address rewarder = stakingTokenRewarders[token][i];
 
       IRewarder(rewarder).onWithdraw(to, amount);
+
+      unchecked {
+        ++i;
+      }
     }
 
     userTokenAmount[token][to] -= amount;
@@ -113,8 +129,12 @@ contract Staking is IStaking, Ownable {
 
   function harvest() external {
     uint256 length = rewarders.length;
-    for (uint256 i = 0; i < length; i++) {
+    for (uint256 i = 0; i < length; ) {
       IRewarder(rewarders[i]).onHarvest(msg.sender);
+
+      unchecked {
+        ++i;
+      }
     }
   }
 
@@ -126,8 +146,12 @@ contract Staking is IStaking, Ownable {
     address[] memory tokens = rewarderStakingTokens[rewarder];
     uint256 share = 0;
     uint256 length = tokens.length;
-    for (uint256 i = 0; i < length; i++) {
+    for (uint256 i = 0; i < length; ) {
       share += userTokenAmount[tokens[i]][user];
+
+      unchecked {
+        ++i;
+      }
     }
     return share;
   }
@@ -136,8 +160,12 @@ contract Staking is IStaking, Ownable {
     address[] memory tokens = rewarderStakingTokens[rewarder];
     uint256 totalShare = 0;
     uint256 length = tokens.length;
-    for (uint256 i = 0; i < length; i++) {
+    for (uint256 i = 0; i < length; ) {
       totalShare += IERC20(tokens[i]).balanceOf(address(this));
+
+      unchecked {
+        ++i;
+      }
     }
     return totalShare;
   }

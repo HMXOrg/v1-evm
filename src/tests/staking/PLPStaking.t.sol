@@ -2,12 +2,12 @@
 pragma solidity >=0.8.4 <0.9.0;
 
 import { BaseTest, console } from "../base/BaseTest.sol";
-import { Staking } from "../../staking/Staking.sol";
+import { PLPStaking } from "../../staking/PLPStaking.sol";
 import { MockErc20 } from "../mocks/MockERC20.sol";
 import { MockRewarder } from "../mocks/MockRewarder.sol";
 
 contract StakingTest is BaseTest {
-  Staking internal staking;
+  PLPStaking internal staking;
 
   MockErc20 internal plp;
   MockErc20 internal p168;
@@ -29,7 +29,7 @@ contract StakingTest is BaseTest {
     rewarders1[1] = address(esP88Rewarder);
     rewarders1[2] = address(PRewarder);
 
-    staking = new Staking();
+    staking = new PLPStaking();
     staking.addStakingToken(address(plp), rewarders1);
 
     plp.mint(ALICE, 100 ether);

@@ -4,7 +4,7 @@ pragma solidity 0.8.14;
 import "./Staking.sol";
 import "../tokens/MultiplierPointToken.sol";
 
-contract Staking1 is Staking {
+contract DragonStaking is Staking {
   MultiplierPointToken public dp;
 
   constructor(address dp_) {
@@ -13,8 +13,8 @@ contract Staking1 is Staking {
 
   function _afterWithdraw(
     address to,
-    address token,
-    uint256 amount
+    address, /*token*/
+    uint256 /*amount*/
   ) internal override {
     dp.burn(to, dp.balanceOf(to));
     dp.burn(address(this), userTokenAmount[address(dp)][to]);

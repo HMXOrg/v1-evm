@@ -2,12 +2,12 @@
 pragma solidity >=0.8.4 <0.9.0;
 
 import { BaseTest, console } from "../base/BaseTest.sol";
-import { Staking1 } from "../../staking/Staking1.sol";
+import { DragonStaking } from "../../staking/DragonStaking.sol";
 import { MockErc20 } from "../mocks/MockERC20.sol";
 import { MockRewarder } from "../mocks/MockRewarder.sol";
 
 contract Staking1Test is BaseTest {
-  Staking1 internal staking;
+  DragonStaking internal staking;
 
   MockErc20 internal p88;
   MockErc20 internal esP88;
@@ -37,7 +37,7 @@ contract Staking1Test is BaseTest {
     rewarders2[0] = address(PRRewarder);
     rewarders2[1] = address(PRewarder);
 
-    staking = new Staking1(address(dp));
+    staking = new DragonStaking(address(dp));
     staking.addStakingToken(address(p88), rewarders1);
     staking.addStakingToken(address(esP88), rewarders1);
     staking.addStakingToken(address(dp), rewarders2);
