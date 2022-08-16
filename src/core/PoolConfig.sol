@@ -44,6 +44,7 @@ contract PoolConfig is Ownable {
   // -----
   uint64 public liquidityCoolDownDuration;
   bool public isDynamicFeeEnable;
+  bool public isSwapEnable;
 
   event DeleteTokenConfig(address token);
   event SetIsDynamicFeeEnable(
@@ -69,6 +70,7 @@ contract PoolConfig is Ownable {
     TokenConfig prevConfig,
     TokenConfig newConfig
   );
+  event SetIsSwapEnable(bool prevIsSwapEnable, bool newIsSwapEnable);
 
   constructor(
     uint64 _fundingInterval,
@@ -86,7 +88,12 @@ contract PoolConfig is Ownable {
     stableFundingRateFactor = _stableFundingRateFactor;
     fundingRateFactor = _fundingRateFactor;
     liquidityCoolDownDuration = _liquidityCoolDownDuration;
+
+    // toggle
     isDynamicFeeEnable = false;
+    isSwapEnable = true;
+
+    // Fee
     stableSwapFeeBps = 4; // 0.04%
     swapFeeBps = 30; // 0.3%
   }
@@ -97,6 +104,11 @@ contract PoolConfig is Ownable {
   {
     emit SetIsDynamicFeeEnable(isDynamicFeeEnable, newIsDynamicFeeEnable);
     isDynamicFeeEnable = newIsDynamicFeeEnable;
+  }
+
+  function setIsSwapEnable(bool newIsSwapEnable) external onlyOwner {
+    emit SetIsSwapEnable(isSwapEnable, newIsSwapEnable);
+    isSwapEnable = newIsSwapEnable;
   }
 
   function setFundingRate(

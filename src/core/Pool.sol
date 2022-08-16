@@ -28,6 +28,7 @@ contract Pool is Constants, ReentrancyGuard {
     uint256 totalUsdDebt
   );
   error Pool_Slippage();
+  error Pool_SwapDisabled();
 
   MintableTokenInterface public plp;
 
@@ -48,7 +49,7 @@ contract Pool is Constants, ReentrancyGuard {
   mapping(address => uint256) public shortAveragePriceOf;
 
   // Fee
-  mapping(address => uint256) public feeReserves;
+  mapping(address => uint256) public feeReserveOf;
 
   // Debt
   uint256 public totalUsdDebt;
@@ -238,6 +239,7 @@ contract Pool is Constants, ReentrancyGuard {
     uint256 minAmountOut,
     address receiver
   ) external nonReentrant returns (uint256) {
+    if (!config.isSwapEnable()) revert Pool_SwapDisabled();
     if (!config.isAcceptToken(tokenIn)) revert Pool_BadArgument();
     if (!config.isAcceptToken(tokenOut)) revert Pool_BadArgument();
     if (tokenIn == tokenOut) revert Pool_BadArgument();
@@ -284,7 +286,7 @@ contract Pool is Constants, ReentrancyGuard {
     _increaseUsdDebt(tokenIn, usdDebt);
 
     _decreasePoolLiquidity(tokenOut, amountOut);
-    _decreaseUsdDebt(tokenOut, amountOutAfterFee);
+    _decreaseUsdDebt(tokenOut, usdDebt);
 
     // Buffer check
     if (liquidityOf[tokenOut] < bufferOf[tokenOut]) revert Pool_Buffer();
@@ -316,7 +318,7 @@ contract Pool is Constants, ReentrancyGuard {
   ) internal returns (uint256) {
     uint256 fee = (amount * feeBps) / BPS;
     uint256 amountAfterFee = amount - fee;
-    feeReserves[token] += fee;
+    feeReserveOf[token] += fee;
 
     emit CollectSwapFee(token, fee * tokenPriceUsd, fee);
 
@@ -339,7 +341,6 @@ contract Pool is Constants, ReentrancyGuard {
 
   function _increaseUsdDebt(address token, uint256 amount) internal {
     usdDebtOf[token] += amount;
-    totalUsdDebt += amount;
 
     // SLOAD
     uint256 newUsdDebt = usdDebtOf[token];
@@ -355,15 +356,13 @@ contract Pool is Constants, ReentrancyGuard {
 
   function _decreaseUsdDebt(address token, uint256 amount) internal {
     uint256 usdDebt = usdDebtOf[token];
-    if (usdDebt < amount) {
+    if (usdDebt <= amount) {
       usdDebtOf[token] = 0;
-      totalUsdDebt -= amount;
       emit DecreaseUsdDebt(token, usdDebt);
       return;
     }
 
     usdDebtOf[token] = usdDebt - amount;
-    totalUsdDebt -= amount;
 
     emit DecreaseUsdDebt(token, amount);
   }
@@ -404,6 +403,8 @@ contract Pool is Constants, ReentrancyGuard {
     _increaseUsdDebt(token, usdDebt);
     _increasePoolLiquidity(token, amountAfterDepositFee);
 
+    totalUsdDebt += usdDebt;
+
     emit JoinPool(receiver, token, amount, usdDebt, feeBps);
 
     return usdDebt;
@@ -426,6 +427,8 @@ contract Pool is Constants, ReentrancyGuard {
 
     _decreaseUsdDebt(token, usdValue);
     _decreasePoolLiquidity(token, amountOut);
+
+    totalUsdDebt -= usdValue;
 
     uint256 burnFeeBps = poolMath.getRemoveLiquidityFeeBps(
       Pool(address(this)),

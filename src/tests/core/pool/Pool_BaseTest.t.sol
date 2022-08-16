@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.14;
 
-import { BaseTest, console, PoolConfig, PoolMath, PoolOracle, Pool } from "../../base/BaseTest.sol";
+import { BaseTest, console, stdError, PoolConfig, PoolMath, PoolOracle, Pool } from "../../base/BaseTest.sol";
 
 abstract contract Pool_BaseTest is BaseTest {
   PoolConfig internal poolConfig;

@@ -5,6 +5,7 @@ import { DSTest } from "./DSTest.sol";
 
 import { VM } from "../utils/VM.sol";
 import { console } from "../utils/console.sol";
+import { stdError } from "../utils/stdError.sol";
 
 import { Constants as CoreConstants } from "../../core/Constants.sol";
 
@@ -41,6 +42,7 @@ contract BaseTest is DSTest, CoreConstants {
   MockErc20 internal wbtc;
   MockErc20 internal dai;
   MockErc20 internal usdc;
+  MockErc20 internal randomErc20;
 
   MockChainlinkPriceFeed internal maticPriceFeed;
   MockChainlinkPriceFeed internal wethPriceFeed;
@@ -54,6 +56,7 @@ contract BaseTest is DSTest, CoreConstants {
     wbtc = deployMockErc20("Wrapped Bitcoin", "WBTC", 8);
     dai = deployMockErc20("DAI Stablecoin", "DAI", 18);
     usdc = deployMockErc20("USD Coin", "USDC", 6);
+    randomErc20 = deployMockErc20("Random ERC20", "RAND", 18);
 
     maticPriceFeed = deployMockChainlinkPriceFeed();
     wethPriceFeed = deployMockChainlinkPriceFeed();
@@ -108,6 +111,53 @@ contract BaseTest is DSTest, CoreConstants {
     });
 
     return (tokens, priceFeedInfo);
+  }
+
+  function buildDefaultSetTokenConfigInput()
+    internal
+    view
+    returns (address[] memory, PoolConfig.TokenConfig[] memory)
+  {
+    address[] memory tokens = new address[](3);
+    tokens[0] = address(dai);
+    tokens[1] = address(wbtc);
+    tokens[2] = address(matic);
+
+    PoolConfig.TokenConfig[] memory tokenConfigs = new PoolConfig.TokenConfig[](
+      3
+    );
+    tokenConfigs[0] = PoolConfig.TokenConfig({
+      accept: true,
+      isStable: true,
+      isShortable: false,
+      decimals: dai.decimals(),
+      weight: 10000,
+      minProfitBps: 75,
+      usdDebtCeiling: 0,
+      shortCeiling: 0
+    });
+    tokenConfigs[1] = PoolConfig.TokenConfig({
+      accept: true,
+      isStable: false,
+      isShortable: true,
+      decimals: wbtc.decimals(),
+      weight: 10000,
+      minProfitBps: 75,
+      usdDebtCeiling: 0,
+      shortCeiling: 0
+    });
+    tokenConfigs[2] = PoolConfig.TokenConfig({
+      accept: true,
+      isStable: false,
+      isShortable: true,
+      decimals: matic.decimals(),
+      weight: 10000,
+      minProfitBps: 75,
+      usdDebtCeiling: 0,
+      shortCeiling: 0
+    });
+
+    return (tokens, tokenConfigs);
   }
 
   function deployMockErc20(
