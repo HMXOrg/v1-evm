@@ -3,7 +3,7 @@ pragma solidity 0.8.14;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import { ChainlinkPriceFeedInterface } from "../interfaces/ChainlinkPriceFeedInterface.sol";
+import { ChainlinkPriceFeedInterface } from "../interfaces/ChainLinkPriceFeedInterface.sol";
 import { Constants } from "./Constants.sol";
 
 import { console } from "../tests/utils/console.sol";

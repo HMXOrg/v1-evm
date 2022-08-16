@@ -8,7 +8,7 @@ import { console } from "../utils/console.sol";
 
 import { Constants as CoreConstants } from "../../core/Constants.sol";
 
-import { MockErc20 } from "../mocks/MockErc20.sol";
+import { MockErc20 } from "../mocks/MockERC20.sol";
 import { MockChainlinkPriceFeed } from "../mocks/MockChainlinkPriceFeed.sol";
 
 import { PoolOracle } from "../../core/PoolOracle.sol";
