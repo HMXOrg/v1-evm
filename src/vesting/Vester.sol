@@ -1,186 +1,192 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.14;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-import { Math } from "../utils/Math.sol";
+import {Math} from "../utils/Math.sol";
 
 contract Vester is ReentrancyGuard {
-  using SafeERC20 for IERC20;
+    using SafeERC20 for IERC20;
 
-  uint256 private constant YEAR = 365 days;
+    uint256 private constant YEAR = 365 days;
 
-  // ---------------------
-  //       Events
-  // ---------------------
+    // ---------------------
+    //       Events
+    // ---------------------
 
-  event Vest(
-    address indexed owner,
-    uint256 indexed itemIndex,
-    uint256 amount,
-    uint256 startTime,
-    uint256 endTime
-  );
-
-  event Claim(
-    address indexed owner,
-    uint256 indexed itemIndex,
-    uint256 vestedAmount,
-    uint256 unusedAmount
-  );
-
-  event Cancel(
-    address indexed owner,
-    uint256 indexed itemIndex,
-    uint256 returnAmount
-  );
-
-  // ---------------------
-  //       Errors
-  // ---------------------
-  error BadArgument();
-  error ExceedMaxDuration();
-  error Unauthorized();
-  error Claimed();
-  error HasNotCompleted();
-  error HasCompleted();
-
-  // ---------------------
-  //       Structs
-  // ---------------------
-  struct Item {
-    address owner;
-    bool hasClaimed;
-    uint256 amount;
-    uint256 startTime;
-    uint256 endTime;
-  }
-
-  // ---------------------
-  //       States
-  // ---------------------
-  address public esP88;
-  address public p88;
-
-  address public vestedEsp88Destination;
-  address public unusedEsp88Destination;
-
-  Item[] public items;
-
-  constructor(
-    address esP88Address,
-    address p88Address,
-    address vestedEsp88DestinationAddress,
-    address unusedEsp88DestinationAddress
-  ) {
-    esP88 = esP88Address;
-    p88 = p88Address;
-    vestedEsp88Destination = vestedEsp88DestinationAddress;
-    unusedEsp88Destination = unusedEsp88DestinationAddress;
-  }
-
-  function vestFor(
-    address account,
-    uint256 amount,
-    uint256 duration
-  ) external nonReentrant {
-    if (amount == 0) revert BadArgument();
-    if (duration > YEAR) revert ExceedMaxDuration();
-
-    Item memory item = Item({
-      owner: account,
-      amount: amount,
-      startTime: block.timestamp,
-      endTime: block.timestamp + duration,
-      hasClaimed: false
-    });
-
-    items.push(item);
-
-    IERC20(esP88).safeTransferFrom(msg.sender, address(this), amount);
-
-    emit Vest(
-      item.owner,
-      items.length - 1,
-      amount,
-      item.startTime,
-      item.endTime
+    event Vest(
+        address indexed owner,
+        uint256 indexed itemIndex,
+        uint256 amount,
+        uint256 startTime,
+        uint256 endTime
     );
-  }
 
-  function claimFor(address account, uint256 itemIndex) external nonReentrant {
-    _claimFor(account, itemIndex);
-  }
+    event Claim(
+        address indexed owner,
+        uint256 indexed itemIndex,
+        uint256 vestedAmount,
+        uint256 unusedAmount
+    );
 
-  function claimFor(address account, uint256[] memory itemIndexes)
-    external
-    nonReentrant
-  {
-    for (uint256 i = 0; i < itemIndexes.length; i++) {
-      _claimFor(account, itemIndexes[i]);
+    event Cancel(
+        address indexed owner,
+        uint256 indexed itemIndex,
+        uint256 returnAmount
+    );
+
+    // ---------------------
+    //       Errors
+    // ---------------------
+    error BadArgument();
+    error ExceedMaxDuration();
+    error Unauthorized();
+    error Claimed();
+    error HasNotCompleted();
+    error HasCompleted();
+
+    // ---------------------
+    //       Structs
+    // ---------------------
+    struct Item {
+        address owner;
+        bool hasClaimed;
+        uint256 amount;
+        uint256 startTime;
+        uint256 endTime;
     }
-  }
 
-  function _claimFor(address account, uint256 itemIndex) internal {
-    Item storage item = items[itemIndex];
+    // ---------------------
+    //       States
+    // ---------------------
+    address public esP88;
+    address public p88;
 
-    if (item.owner != account) revert Unauthorized();
-    if (item.hasClaimed) revert Claimed();
-    if (item.endTime > block.timestamp) revert HasNotCompleted();
+    address public vestedEsp88Destination;
+    address public unusedEsp88Destination;
 
-    item.hasClaimed = true;
+    Item[] public items;
 
-    uint256 claimable = getUnlockAmount(
-      item.amount,
-      item.endTime - item.startTime
-    );
+    constructor(
+        address esP88Address,
+        address p88Address,
+        address vestedEsp88DestinationAddress,
+        address unusedEsp88DestinationAddress
+    ) {
+        esP88 = esP88Address;
+        p88 = p88Address;
+        vestedEsp88Destination = vestedEsp88DestinationAddress;
+        unusedEsp88Destination = unusedEsp88DestinationAddress;
+    }
 
-    IERC20(p88).safeTransfer(account, claimable);
+    function vestFor(
+        address account,
+        uint256 amount,
+        uint256 duration
+    ) external nonReentrant {
+        if (amount == 0) revert BadArgument();
+        if (duration > YEAR) revert ExceedMaxDuration();
 
-    IERC20(esP88).safeTransfer(vestedEsp88Destination, claimable);
+        Item memory item = Item({
+            owner: account,
+            amount: amount,
+            startTime: block.timestamp,
+            endTime: block.timestamp + duration,
+            hasClaimed: false
+        });
 
-    IERC20(esP88).safeTransfer(unusedEsp88Destination, item.amount - claimable);
+        items.push(item);
 
-    emit Claim(item.owner, itemIndex, claimable, item.amount - claimable);
-  }
+        IERC20(esP88).safeTransferFrom(msg.sender, address(this), amount);
 
-  function abort(uint256 itemIndex) external nonReentrant {
-    Item storage item = items[itemIndex];
+        emit Vest(
+            item.owner,
+            items.length - 1,
+            amount,
+            item.startTime,
+            item.endTime
+        );
+    }
 
-    if (msg.sender != item.owner) revert Unauthorized();
-    if (item.hasClaimed) revert Claimed();
+    function claimFor(address account, uint256 itemIndex)
+        external
+        nonReentrant
+    {
+        _claimFor(account, itemIndex);
+    }
 
-    uint256 returnAmount = item.amount;
+    function claimFor(address account, uint256[] memory itemIndexes)
+        external
+        nonReentrant
+    {
+        for (uint256 i = 0; i < itemIndexes.length; i++) {
+            _claimFor(account, itemIndexes[i]);
+        }
+    }
 
-    item.owner = address(0);
-    item.amount = 0;
-    item.startTime = 0;
-    item.endTime = 0;
-    item.hasClaimed = true;
+    function _claimFor(address account, uint256 itemIndex) internal {
+        Item storage item = items[itemIndex];
 
-    IERC20(esP88).safeTransfer(msg.sender, returnAmount);
+        if (item.owner != account) revert Unauthorized();
+        if (item.hasClaimed) revert Claimed();
+        if (item.endTime > block.timestamp) revert HasNotCompleted();
 
-    emit Cancel(msg.sender, itemIndex, returnAmount);
-  }
+        item.hasClaimed = true;
 
-  function getUnlockAmount(uint256 amount, uint256 duration)
-    public
-    pure
-    returns (uint256)
-  {
-    // x^1.5 model where x is the ratio of duration over MAX_DURATION, seconds in year
-    // amount * (duration/MAX_DURATION) * sqrt(duration/MAX_DURATION)
-    uint256 ratioX18 = Math.divWadDown(duration, YEAR);
+        uint256 claimable = getUnlockAmount(
+            item.amount,
+            item.endTime - item.startTime
+        );
 
-    // Sqrt will result in 1e(18/2), bump back to 1e18
-    uint256 sqrtRatio = Math.sqrt(ratioX18) * 1e9;
+        IERC20(p88).safeTransfer(account, claimable);
 
-    return Math.mulWadDown(amount, (Math.mulWadDown(ratioX18, sqrtRatio)));
-  }
+        IERC20(esP88).safeTransfer(vestedEsp88Destination, claimable);
 
-  function nextItemId() external view returns (uint256) {
-    return items.length;
-  }
+        IERC20(esP88).safeTransfer(
+            unusedEsp88Destination,
+            item.amount - claimable
+        );
+
+        emit Claim(item.owner, itemIndex, claimable, item.amount - claimable);
+    }
+
+    function abort(uint256 itemIndex) external nonReentrant {
+        Item storage item = items[itemIndex];
+
+        if (msg.sender != item.owner) revert Unauthorized();
+        if (item.hasClaimed) revert Claimed();
+
+        uint256 returnAmount = item.amount;
+
+        item.owner = address(0);
+        item.amount = 0;
+        item.startTime = 0;
+        item.endTime = 0;
+        item.hasClaimed = true;
+
+        IERC20(esP88).safeTransfer(msg.sender, returnAmount);
+
+        emit Cancel(msg.sender, itemIndex, returnAmount);
+    }
+
+    function getUnlockAmount(uint256 amount, uint256 duration)
+        public
+        pure
+        returns (uint256)
+    {
+        // x^1.5 model where x is the ratio of duration over MAX_DURATION, seconds in year
+        // amount * (duration/MAX_DURATION) * sqrt(duration/MAX_DURATION)
+        uint256 ratioX18 = Math.divWadDown(duration, YEAR);
+
+        // Sqrt will result in 1e(18/2), bump back to 1e18
+        uint256 sqrtRatio = Math.sqrt(ratioX18) * 1e9;
+
+        return Math.mulWadDown(amount, (Math.mulWadDown(ratioX18, sqrtRatio)));
+    }
+
+    function nextItemId() external view returns (uint256) {
+        return items.length;
+    }
 }
