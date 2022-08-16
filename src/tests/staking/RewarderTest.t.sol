@@ -27,13 +27,13 @@ contract RewarderTest is BaseTest {
     rewardToken.approve(address(rewarder), 2 * 1e12 ether);
   }
 
-  function test_WhenRewarderIsInit_ShouldBeCorrectlyInit() external {
+  function testCorrectness_WhenRewarderIsInit() external {
     assertEq(rewarder.name(), "REWRewarder");
     assertEq(rewarder.rewardToken(), address(rewardToken));
     assertEq(rewarder.lastRewardTime(), block.timestamp);
   }
 
-  function test_WhenRewarderOnDepositIsHooked_ShouldWorkCorrectly() external {
+  function testCorrectness_WhenRewarderOnDepositIsHooked() external {
     // feed and amount of token
     // rewardPerSec ~= 0.033068783068783068
     rewarder.feed(20000 ether, 7 days);
@@ -64,7 +64,7 @@ contract RewarderTest is BaseTest {
     assertEq(rewarder.userRewardDebts(ALICE), 315.205627705442 ether);
   }
 
-  function test_WhenAliceAndBobDeposit_ShouldHarvestTokenCorrectly() external {
+  function testCorrectness_WhenAliceAndBobDeposit() external {
     // feed and amount of token
     rewarder.feed(20000 ether, 10 days);
 
@@ -87,9 +87,7 @@ contract RewarderTest is BaseTest {
     assertEq(rewardToken.balanceOf(BOB), 4999.999999999990000000 ether);
   }
 
-  function test_WhenAliceAndBobDeposit_ThenAliceWithdraw_ShouldHarvestTokenCorrectly()
-    external
-  {
+  function testCorrectness_WhenAliceAndBobDeposit_ThenAliceWithdraw() external {
     // feed and amount of token
     rewarder.feed(20000 ether, 20 days);
 
@@ -116,7 +114,7 @@ contract RewarderTest is BaseTest {
     assertEq(rewardToken.balanceOf(BOB), 9999.999999999980000000 ether);
   }
 
-  function test_WhenAliceAndBobDepositSimpultaneously_ThenBothWithdrawSimpultaneously_ShouldHarvestTokenEqually()
+  function testCorrectness_WhenAliceAndBobDepositSimpultaneously_ThenBothWithdrawSimpultaneously()
     external
   {
     // feed and amount of token
@@ -134,7 +132,7 @@ contract RewarderTest is BaseTest {
     mockStaking.harvest(address(rewarder), BOB);
   }
 
-  function test_WhenAliceDeposit_ThenWithdraw_ThenRedeposit_ShouldHarvestTokenCorrectly()
+  function testCorrectness_WhenAliceDeposit_ThenWithdraw_ThenRedeposit()
     external
   {
     // feed and amount of token
@@ -159,9 +157,7 @@ contract RewarderTest is BaseTest {
     assertEq(rewardToken.balanceOf(ALICE), 9999.999999999980000000 ether);
   }
 
-  function test_WhenFeedTokenMultipleTimes_AliceShouldHarvestTokenCorrectly()
-    external
-  {
+  function test_WhenFeedTokenMultipleTimes() external {
     // DAY#0
     // feed and amount of token
     rewarder.feed(20000 ether, 20 days);
@@ -185,7 +181,7 @@ contract RewarderTest is BaseTest {
     assertEq(rewardToken.balanceOf(ALICE), 24679.999999999980000000 ether);
   }
 
-  function testFuzzy_WhenFeedTokenMultipleTimes_WithAliceAndBobDepositAndWithdraw_BothShouldHarvestTokenCorrectly(
+  function testCorrectness_WhenFeedTokenMultipleTimes_WithAliceAndBobDeposit_ThenAliceWithdraw(
     uint256 feedAmount1,
     uint256 feedAmount2
   ) external {
