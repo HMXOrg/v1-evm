@@ -44,19 +44,25 @@ contract AdHocMintRewarder is IRewarder {
   }
 
   function onDeposit(address user, uint256 shareAmount) external {
+    // Accumulate user reward
     userAccRewards[user] = userAccRewards[user] + _calculateUserAccReward(user);
     userLastRewards[user] = block.timestamp.toUint64();
     emit LogOnDeposit(user, shareAmount);
   }
 
   function onWithdraw(address user, uint256 shareAmount) external {
-    userAccRewards[user] = userAccRewards[user] + _calculateUserAccReward(user);
+    // Reset user reward
+    // The rule is whenever withdraw occurs, no matter the size, reward calculation should bet started over.
+    userAccRewards[user] = 0;
     userLastRewards[user] = block.timestamp.toUint64();
     emit LogOnWithdraw(user, shareAmount);
   }
 
   function onHarvest(address user) external {
     uint256 pendingRewardAmount = _pendingReward(user);
+
+    // Reset user reward accumulation.
+    // The next action will start accum reward from zero again.
     userAccRewards[user] = 0;
     userLastRewards[user] = block.timestamp.toUint64();
 
@@ -72,6 +78,7 @@ contract AdHocMintRewarder is IRewarder {
   }
 
   function _pendingReward(address user) internal view returns (uint256) {
+    // (accumulated reward since the last action) + (jotted reward from the past)
     return _calculateUserAccReward(user) + userAccRewards[user];
   }
 
