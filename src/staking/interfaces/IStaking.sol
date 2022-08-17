@@ -1,6 +1,20 @@
 pragma solidity 0.8.14;
 
 interface IStaking {
+  function deposit(
+    address to,
+    address token,
+    uint256 amount
+  ) external;
+
+  function withdraw(
+    address to,
+    address token,
+    uint256 amount
+  ) external;
+
+  function harvest() external;
+
   function calculateTotalShare(address rewarder)
     external
     view

@@ -4,7 +4,7 @@ pragma solidity 0.8.14;
 import { IRewarder } from "../../staking/interfaces/IRewarder.sol";
 import { IStaking } from "../../staking/interfaces/IStaking.sol";
 
-contract MockStaking is IStaking {
+contract MockStaking {
   uint256 totalShare;
   mapping(address => uint256) shares;
 
