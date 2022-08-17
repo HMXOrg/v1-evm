@@ -29,14 +29,16 @@ contract AdHocMintRewarderTest is BaseTest {
     assertEq(rewarder.rewardToken(), address(rewardToken));
   }
 
-  function testCorrectness_WhenRewarderOnDepositIsHookedMulitpleTimes(
+  function testCorrectness_WhenDepositMulitpleTimes_AndHarvestMultipleTimes(
     uint256 depositAmount1,
     uint256 depositAmount2,
-    uint256 depositAmount3
+    uint256 depositAmount3,
+    uint256 depositAmount4
   ) external {
     vm.assume(depositAmount1 < 1e12 ether);
     vm.assume(depositAmount2 < 1e12 ether);
     vm.assume(depositAmount3 < 1e12 ether);
+    vm.assume(depositAmount4 < 1e12 ether);
 
     uint256 accReward = 0;
     uint256 totalDeposit = 0;
@@ -79,9 +81,33 @@ contract AdHocMintRewarderTest is BaseTest {
     accReward += (totalDeposit * 365 days) / 365 days;
     assertEq(rewarder.userLastRewards(ALICE), block.timestamp);
     assertEq(rewardToken.balanceOf(ALICE), accReward);
+    accReward = 0;
+
+    // DAY#460
+    // ALICE deposit again
+    vm.warp(block.timestamp + 5 days);
+    mockStaking.deposit(address(rewarder), ALICE, depositAmount4);
+
+    accReward += (totalDeposit * 5 days) / 365 days;
+    totalDeposit += depositAmount4;
+    assertEq(rewarder.userLastRewards(ALICE), block.timestamp);
+    assertEq(rewarder.userAccRewards(ALICE), accReward);
+
+    // DAY#478
+    // ALICE wants to harvest
+    vm.warp(block.timestamp + 18 days);
+    {
+      uint256 balanceBefore = rewardToken.balanceOf(ALICE);
+      mockStaking.harvest(address(rewarder), ALICE);
+      uint256 balanceAfter = rewardToken.balanceOf(ALICE);
+
+      accReward += (totalDeposit * 18 days) / 365 days;
+      assertEq(rewarder.userLastRewards(ALICE), block.timestamp);
+      assertEq(balanceAfter - balanceBefore, accReward);
+    }
   }
 
-  function testCorrectness_WhenOnDepositIsHooked_ThenRewarderOnWithdrawIsHooked_ThenOnDepositIsHookedAgain(
+  function testCorrectness_WhenDeposit_ThenWithdraw_ThenDepositAgain(
     uint256 depositAmount1,
     uint256 withdrawAmount,
     uint256 depositAmount2
