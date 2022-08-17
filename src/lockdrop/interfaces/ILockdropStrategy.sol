@@ -2,7 +2,7 @@
 pragma solidity 0.8.14;
 
 interface ILockdropStrategy {
-  function simpleStrategyExecute(uint256 _tokenAmount, address _tokenAddress)
+  function execute(uint256 tokenAmount, address tokenAddress)
     external
     returns (uint256);
 }
