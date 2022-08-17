@@ -27,10 +27,10 @@ contract Pool_AddLiquidity is Pool_BaseTest {
     // ------- Alice session -------
     // Alice as a liquidity provider for DAI
     vm.startPrank(ALICE);
-    dai.approve(address(pool), type(uint256).max);
 
     // Perform add liquidity
-    pool.addLiquidity(address(dai), 100 ether, ALICE, 99 ether);
+    dai.transfer(address(pool), 100 ether);
+    pool.addLiquidity(ALICE, address(dai), ALICE);
 
     // After Alice added DAI liquidity, the following criteria needs to satisfy:
     // 1. DAI balance of Alice should be 0
@@ -64,10 +64,10 @@ contract Pool_AddLiquidity is Pool_BaseTest {
 
     // ------- Bob session -------
     vm.startPrank(BOB);
-    matic.approve(address(pool), type(uint256).max);
 
     // Perform add liquidity
-    pool.addLiquidity(address(matic), 1 ether, BOB, 297.6 ether);
+    matic.transfer(address(pool), 1 ether);
+    pool.addLiquidity(BOB, address(matic), BOB);
 
     // After Bob added MATIC liquidity, the following criteria needs to satisfy:
     // 1. MATIC balance of Bob should be 0
@@ -107,10 +107,10 @@ contract Pool_AddLiquidity is Pool_BaseTest {
 
     // ------- Cat session -------
     vm.startPrank(CAT);
-    wbtc.approve(address(pool), type(uint256).max);
 
     // Perform add liquidity
-    pool.addLiquidity(address(wbtc), 1000000, CAT, 396 ether);
+    wbtc.transfer(address(pool), 1000000);
+    pool.addLiquidity(CAT, address(wbtc), CAT);
 
     // After Cat added WBTC liquidity, the following criteria needs to satisfy:
     // 1. WBTC balance of Cat should be 0
@@ -142,10 +142,10 @@ contract Pool_AddLiquidity is Pool_BaseTest {
     // ------- Alice session -------
     // Alice as a liquidity provider for DAI
     vm.startPrank(ALICE);
-    dai.approve(address(pool), type(uint256).max);
 
     // Perform add liquidity
-    pool.addLiquidity(address(dai), 100 ether, ALICE, 99 ether);
+    dai.transfer(address(pool), 100 ether);
+    pool.addLiquidity(ALICE, address(dai), ALICE);
 
     // After Alice added DAI liquidity, the following criteria needs to satisfy:
     // 1. DAI balance of Alice should be 0
@@ -179,10 +179,10 @@ contract Pool_AddLiquidity is Pool_BaseTest {
 
     // ------- Bob session -------
     vm.startPrank(BOB);
-    matic.approve(address(pool), type(uint256).max);
 
     // Perform add liquidity
-    pool.addLiquidity(address(matic), 1 ether, BOB, 297.6 ether);
+    matic.transfer(address(pool), 1 ether);
+    pool.addLiquidity(BOB, address(matic), BOB);
 
     // After Bob added MATIC liquidity, the following criteria needs to satisfy:
     // 1. MATIC balance of Bob should be 0
@@ -223,10 +223,10 @@ contract Pool_AddLiquidity is Pool_BaseTest {
 
     // ------- Cat session -------
     vm.startPrank(CAT);
-    wbtc.approve(address(pool), type(uint256).max);
 
     // Perform add liquidity
-    pool.addLiquidity(address(wbtc), 1000000, CAT, 396 ether);
+    wbtc.transfer(address(pool), 1000000);
+    pool.addLiquidity(CAT, address(wbtc), CAT);
 
     // After Cat added WBTC liquidity, the following criteria needs to satisfy:
     // 1. WBTC balance of Cat should be 0

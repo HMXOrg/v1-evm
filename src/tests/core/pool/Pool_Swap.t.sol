@@ -17,12 +17,12 @@ contract Pool_SwapTest is Pool_BaseTest {
 
   function testRevert_WhenTokenInIsRandomErc20() external {
     vm.expectRevert(abi.encodeWithSignature("Pool_BadArgument()"));
-    pool.swap(address(randomErc20), address(dai), 1, 0, address(this));
+    pool.swap(address(randomErc20), address(dai), 0, address(this));
   }
 
   function testRevert_WhenTokenOutIsRandomErc20() external {
     vm.expectRevert(abi.encodeWithSignature("Pool_BadArgument()"));
-    pool.swap(address(dai), address(randomErc20), 1, 0, address(this));
+    pool.swap(address(dai), address(randomErc20), 0, address(this));
   }
 
   function testRevert_WhenSwapIsDisabled() external {
@@ -30,17 +30,17 @@ contract Pool_SwapTest is Pool_BaseTest {
     pool.config().setIsSwapEnable(false);
 
     vm.expectRevert(abi.encodeWithSignature("Pool_SwapDisabled()"));
-    pool.swap(address(dai), address(wbtc), 1, 0, address(this));
+    pool.swap(address(dai), address(wbtc), 0, address(this));
   }
 
   function testRevert_WhenTokenInTokenOutSame() external {
     vm.expectRevert(abi.encodeWithSignature("Pool_BadArgument()"));
-    pool.swap(address(dai), address(dai), 1, 0, address(this));
+    pool.swap(address(dai), address(dai), 0, address(this));
   }
 
   function testRevert_WhenAmountInZero() external {
     vm.expectRevert(abi.encodeWithSignature("Pool_BadArgument()"));
-    pool.swap(address(dai), address(wbtc), 0, 0, address(this));
+    pool.swap(address(dai), address(wbtc), 0, address(this));
   }
 
   function testRevert_WhenOverUsdDebtCeiling() external {
@@ -51,12 +51,12 @@ contract Pool_SwapTest is Pool_BaseTest {
     dai.mint(address(this), 200000 ether);
     wbtc.mint(address(this), 10 ether);
 
-    dai.approve(address(pool), type(uint256).max);
-    wbtc.approve(address(pool), type(uint256).max);
-
     // Perform add liquidity
-    pool.addLiquidity(address(dai), 200000 ether, address(this), 199400 ether);
-    pool.addLiquidity(address(wbtc), 10 ether, address(this), 598200 ether);
+    dai.transfer(address(pool), 200000 ether);
+    pool.addLiquidity(address(this), address(dai), address(this));
+
+    wbtc.transfer(address(pool), 10 ether);
+    pool.addLiquidity(address(this), address(wbtc), address(this));
 
     // Set DAI's debt ceiling to be 200100 USD
     address[] memory tokens = new address[](1);
@@ -79,10 +79,11 @@ contract Pool_SwapTest is Pool_BaseTest {
 
     // Mint more DAI
     dai.mint(address(this), 701 ether);
+    dai.transfer(address(pool), 701 ether);
 
     // Try to swap that will exceed the debt ceiling
     vm.expectRevert(abi.encodeWithSignature("Pool_OverUsdDebtCeiling()"));
-    pool.swap(address(dai), address(wbtc), 701 ether, 0, address(this));
+    pool.swap(address(dai), address(wbtc), 0, address(this));
   }
 
   function testRevert_WhenLiquidityLessThanBuffer() external {
@@ -97,8 +98,10 @@ contract Pool_SwapTest is Pool_BaseTest {
     wbtc.approve(address(pool), type(uint256).max);
 
     // Perform add liquidity
-    pool.addLiquidity(address(dai), 200000 ether, address(this), 199400 ether);
-    pool.addLiquidity(address(wbtc), 10 * 10**8, address(this), 598200 ether);
+    dai.transfer(address(pool), 200000 ether);
+    pool.addLiquidity(address(this), address(dai), address(this));
+    wbtc.transfer(address(pool), 10 * 10**8);
+    pool.addLiquidity(address(this), address(wbtc), address(this));
 
     // Set WBTC's liquidity buffer to be 9.97 WBTC
     address[] memory tokens = new address[](1);
@@ -120,9 +123,10 @@ contract Pool_SwapTest is Pool_BaseTest {
     poolConfig.setTokenConfigs(tokens, tokenConfigs);
 
     dai.mint(address(this), 1 ether);
+    dai.transfer(address(pool), 1 ether);
 
     vm.expectRevert(abi.encodeWithSignature("Pool_LiquidityBuffer()"));
-    pool.swap(address(dai), address(wbtc), 1 ether, 0, address(this));
+    pool.swap(address(dai), address(wbtc), 0, address(this));
   }
 
   function testCorrectness_WhenSwapSuccess() external {
@@ -136,18 +140,17 @@ contract Pool_SwapTest is Pool_BaseTest {
     // ------- Alice session START -------
     vm.startPrank(ALICE);
 
-    matic.approve(address(pool), type(uint256).max);
-    wbtc.approve(address(pool), type(uint256).max);
-
     // Alice add liquidity 200 MATIC (~$60,000)
-    pool.addLiquidity(address(matic), 200 ether, ALICE, 59820 ether);
+    matic.transfer(address(pool), 200 ether);
+    pool.addLiquidity(ALICE, address(matic), ALICE);
 
     // Alice add 200 MATIC as liquidity to the pool, the following condition is expected:
     // 1. Pool should have 200 * (1-0.003) * 300 = 59820 USD in AUM
     assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 59820 ether);
 
     // Alice add liquidity 1 WBTC (~$60,000)
-    pool.addLiquidity(address(wbtc), 1 * 10**8, ALICE, 59820 ether);
+    wbtc.transfer(address(pool), 1 * 10**8);
+    pool.addLiquidity(ALICE, address(wbtc), ALICE);
 
     // Alice add another 1 WBTC as liquidity to the pool, the following condition is expected:
     // 1. Pool should have 59,820 + (1 * (1-0.003) * 60000) = 119,640 USD in AUM
@@ -191,10 +194,9 @@ contract Pool_SwapTest is Pool_BaseTest {
     // ------- Bob session START -------
     vm.startPrank(BOB);
 
-    matic.approve(address(pool), type(uint256).max);
-
     // Bob swap 100 MATIC for WBTC
-    pool.swap(address(matic), address(wbtc), 100 ether, 0, BOB);
+    matic.transfer(address(pool), 100 ether);
+    pool.swap(address(matic), address(wbtc), 0, BOB);
 
     // After Bob swap, the following condition is expected:
     // 1. Pool should have 159520 + (100 * 400) - ((100 * 400 / 100000) * 80000) = 167520 USD in AUM
@@ -228,25 +230,25 @@ contract Pool_SwapTest is Pool_BaseTest {
     vm.warp(block.timestamp + 1 days + 1);
 
     // Alice remove 50000 USD worth of PLP from the pool with MATIC as tokenOut
-    pool.removeLiquidity(
-      address(matic),
+    pool.plp().transfer(
+      address(pool),
       (50_000 ether * pool.plp().totalSupply()) /
-        pool.poolMath().getAum18(pool, MinMax.MIN),
-      ALICE,
-      99.7 ether
+        pool.poolMath().getAum18(pool, MinMax.MIN)
     );
+    pool.removeLiquidity(ALICE, address(matic), ALICE);
+
+    assertEq(pool.plp().balanceOf(address(pool)), 0);
 
     // Alice expected to get 50000 / 500 * (1-0.003) = 99.7 MATIC
     assertEq(matic.balanceOf(ALICE), 99.7 ether);
 
     // Alice remove 50000 USD worth of PLP from the pool with WBTC as tokenOut
-    pool.removeLiquidity(
-      address(wbtc),
+    pool.plp().transfer(
+      address(pool),
       (50_000 ether * pool.plp().totalSupply()) /
-        pool.poolMath().getAum18(pool, MinMax.MIN),
-      ALICE,
-      0.4985 * 10**8
+        pool.poolMath().getAum18(pool, MinMax.MIN)
     );
+    pool.removeLiquidity(ALICE, address(wbtc), ALICE);
 
     // Alice expected to get 50000 / 100000 * (1-0.003) = 0.4985 WBTC
     assertEq(wbtc.balanceOf(ALICE), 0.4985 * 10**8);
@@ -255,7 +257,8 @@ contract Pool_SwapTest is Pool_BaseTest {
     // Pool doesn't has any liquidity left, so this should revert
     uint256 plpNeeded = (10_000 ether * pool.plp().totalSupply()) /
       pool.poolMath().getAum18(pool, MinMax.MIN);
+    pool.plp().transfer(address(pool), plpNeeded);
     vm.expectRevert(stdError.arithmeticError);
-    pool.removeLiquidity(address(wbtc), plpNeeded, ALICE, 0);
+    pool.removeLiquidity(ALICE, address(wbtc), ALICE);
   }
 }

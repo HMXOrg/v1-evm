@@ -187,4 +187,40 @@ contract PoolMath is Constants {
     // Return the highest feeBps.
     return feeBpsIn > feeBpsOut ? feeBpsIn : feeBpsOut;
   }
+
+  // ---------------
+  // Margin Fee Math
+  // ---------------
+
+  function getFundingFee(
+    Pool pool,
+    address, /* account */
+    address collateralToken,
+    address, /* indexToken */
+    Exposure, /* exposure */
+    uint256 size,
+    uint256 entryFundingRate
+  ) public view returns (uint256) {
+    if (size == 0) return 0;
+
+    uint256 fundingRate = pool.sumFundingRateOf(collateralToken) -
+      entryFundingRate;
+    if (fundingRate == 0) return 0;
+
+    return (size * fundingRate) / FUNDING_RATE_PRECISION;
+  }
+
+  function getPositionFee(
+    Pool pool,
+    address, /* account */
+    address, /* collateralToken */
+    address, /* indexToken */
+    Exposure, /* exposure */
+    uint256 sizeDelta
+  ) external view returns (uint256) {
+    if (sizeDelta == 0) return 0;
+    uint256 afterFeeUsd = (sizeDelta * (BPS - pool.config().marginFeeBps())) /
+      BPS;
+    return sizeDelta - afterFeeUsd;
+  }
 }

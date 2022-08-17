@@ -9,6 +9,9 @@ contract PoolConfig is Ownable {
 
   error PoolConfig_BadArguments();
 
+  // --------------------
+  // Token Configurations
+  // --------------------
   struct TokenConfig {
     bool accept;
     bool isStable;
@@ -39,6 +42,7 @@ contract PoolConfig is Ownable {
   uint64 public stableTaxBps;
   uint64 public swapFeeBps;
   uint64 public stableSwapFeeBps;
+  uint64 public marginFeeBps;
 
   // -----
   // Misc.
@@ -48,6 +52,8 @@ contract PoolConfig is Ownable {
   bool public isDynamicFeeEnable;
   bool public isSwapEnable;
   bool public isLeverageEnable;
+
+  address public router;
 
   event DeleteTokenConfig(address token);
   event SetIsDynamicFeeEnable(
@@ -82,6 +88,7 @@ contract PoolConfig is Ownable {
     bool newIsLeverageEnable
   );
   event SetIsSwapEnable(bool prevIsSwapEnable, bool newIsSwapEnable);
+  event SetRouter(address prevRouter, address newRouter);
 
   constructor(
     uint64 _fundingInterval,
@@ -107,6 +114,7 @@ contract PoolConfig is Ownable {
     // Fee
     stableSwapFeeBps = 4; // 0.04%
     swapFeeBps = 30; // 0.3%
+    marginFeeBps = 10; // 0.1%
   }
 
   function setIsDynamicFeeEnable(bool newIsDynamicFeeEnable)
@@ -197,6 +205,11 @@ contract PoolConfig is Ownable {
         ++i;
       }
     }
+  }
+
+  function setRouter(address newRouter) external onlyOwner {
+    emit SetRouter(router, newRouter);
+    router = newRouter;
   }
 
   function deleteTokenConfig(address token) external onlyOwner {
