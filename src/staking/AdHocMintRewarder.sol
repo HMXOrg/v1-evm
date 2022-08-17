@@ -22,6 +22,9 @@ contract AdHocMintRewarder is IRewarder {
   mapping(address => uint64) public userLastRewards;
   mapping(address => uint256) public userAccRewards;
 
+  // For compatability only, no calculation usage on chain
+  uint256 public rewardRate = 31709791983 wei; // = 1 ether / 365 days
+
   // Events
   event LogOnDeposit(address indexed user, uint256 shareAmount);
   event LogOnWithdraw(address indexed user, uint256 shareAmount);
@@ -37,7 +40,6 @@ contract AdHocMintRewarder is IRewarder {
     // Sanity check
     IERC20(rewardToken_).totalSupply();
     IStaking(staking_).isRewarder(address(this));
-
     name = name_;
     rewardToken = rewardToken_;
     staking = staking_;
@@ -45,7 +47,7 @@ contract AdHocMintRewarder is IRewarder {
 
   function onDeposit(address user, uint256 shareAmount) external {
     // Accumulate user reward
-    userAccRewards[user] = userAccRewards[user] + _calculateUserAccReward(user);
+    userAccRewards[user] += _calculateUserAccReward(user);
     userLastRewards[user] = block.timestamp.toUint64();
     emit LogOnDeposit(user, shareAmount);
   }
