@@ -37,13 +37,13 @@ contract Vester_Vest is Vester_BaseTest {
         assertFalse(hasClaimed);
     }
 
-    function test_WhenZeroToken_ShouldRevert() external {
+    function testRevert_WhenZeroToken_ShouldRevert() external {
         esP88.approve(address(vester), 100 ether);
         vm.expectRevert(abi.encodeWithSignature("BadArgument()"));
         vester.vestFor(address(this), 0 ether, 31536001);
     }
 
-    function test_WhenDurationIsMoreThan1Year_ShouldRevert() external {
+    function testRevert_WhenDurationIsMoreThan1Year_ShouldRevert() external {
         esP88.approve(address(vester), 100 ether);
         vm.expectRevert(abi.encodeWithSignature("ExceedMaxDuration()"));
         vester.vestFor(address(this), 100 ether, 31536001);
