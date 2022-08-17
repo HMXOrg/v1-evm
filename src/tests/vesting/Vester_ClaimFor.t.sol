@@ -13,7 +13,7 @@ contract Vester_ClaimFor is Vester_BaseTest {
         super.setUp();
     }
 
-    function test_WhenVestHasCompleted_ShouldWork() external {
+    function testCorrectness_WhenVestHasCompleted_ShouldWork() external {
         esP88.approve(address(vester), 100 ether);
         vester.vestFor(address(this), 100 ether, 30000000);
 
@@ -32,7 +32,7 @@ contract Vester_ClaimFor is Vester_BaseTest {
         );
     }
 
-    function test_WhenAllVestHasCompleted_ShouldWork() external {
+    function testCorrectness_WhenAllVestHasCompleted_ShouldWork() external {
         uint256[] memory indexes = new uint256[](2);
 
         esP88.approve(address(vester), 100 ether);
@@ -56,7 +56,7 @@ contract Vester_ClaimFor is Vester_BaseTest {
         );
     }
 
-    function test_WhenOwnerAndDestinationAreDifferent_ShouldRevert()
+    function testRevert_WhenOwnerAndDestinationAreDifferent_ShouldRevert()
         external
     {
         esP88.approve(address(vester), 100 ether);
@@ -69,7 +69,7 @@ contract Vester_ClaimFor is Vester_BaseTest {
         vester.claimFor(address(1), userItemIndex);
     }
 
-    function test_WhenVestHasNotCompleted_ShouldRevert() external {
+    function testRevert_WhenVestHasNotCompleted_ShouldRevert() external {
         esP88.approve(address(vester), 100 ether);
         vester.vestFor(address(this), 100 ether, 31536000);
 
@@ -79,7 +79,7 @@ contract Vester_ClaimFor is Vester_BaseTest {
         vester.claimFor(address(this), userItemIndex);
     }
 
-    function test_ItemHasBeenClaimed_ShouldRevert()
+    function testRevert_ItemHasBeenClaimed_ShouldRevert()
         external
     {
         esP88.approve(address(vester), 100 ether);
