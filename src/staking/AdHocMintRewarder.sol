@@ -20,6 +20,7 @@ contract AdHocMintRewarder is IRewarder {
   // Reward calculation parameters
   uint64 constant year = 365 days;
   mapping(address => uint64) public userLastRewards;
+  mapping(address => uint256) public userAccRewards;
 
   // Events
   event LogOnDeposit(address indexed user, uint256 shareAmount);
@@ -43,16 +44,21 @@ contract AdHocMintRewarder is IRewarder {
   }
 
   function onDeposit(address user, uint256 shareAmount) external {
+    userAccRewards[user] = userAccRewards[user] + _calculateUserAccReward(user);
+    userLastRewards[user] = block.timestamp.toUint64();
     emit LogOnDeposit(user, shareAmount);
   }
 
   function onWithdraw(address user, uint256 shareAmount) external {
+    userAccRewards[user] = userAccRewards[user] + _calculateUserAccReward(user);
+    userLastRewards[user] = block.timestamp.toUint64();
     emit LogOnWithdraw(user, shareAmount);
   }
 
   function onHarvest(address user) external {
     uint256 pendingRewardAmount = _pendingReward(user);
-    userLastRewards[user] = (block.timestamp).toUint64();
+    userAccRewards[user] = 0;
+    userLastRewards[user] = block.timestamp.toUint64();
 
     if (pendingRewardAmount != 0) {
       MintableTokenInterface(rewardToken).mint(
@@ -70,6 +76,14 @@ contract AdHocMintRewarder is IRewarder {
   }
 
   function _pendingReward(address user) internal view returns (uint256) {
+    return _calculateUserAccReward(user) + userAccRewards[user];
+  }
+
+  function _calculateUserAccReward(address user)
+    internal
+    view
+    returns (uint256)
+  {
     return
       ((block.timestamp - userLastRewards[user]) * _userShare(user)) / year;
   }
