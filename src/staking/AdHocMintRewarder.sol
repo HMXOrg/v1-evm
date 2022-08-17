@@ -18,7 +18,7 @@ contract AdHocMintRewarder is IRewarder {
   address public staking;
 
   // Reward calculation parameters
-  uint64 constant year = 365 days;
+  uint64 constant YEAR = 365 days;
   mapping(address => uint64) public userLastRewards;
   mapping(address => uint256) public userAccRewards;
 
@@ -61,11 +61,7 @@ contract AdHocMintRewarder is IRewarder {
     userLastRewards[user] = block.timestamp.toUint64();
 
     if (pendingRewardAmount != 0) {
-      MintableTokenInterface(rewardToken).mint(
-        address(this),
-        pendingRewardAmount
-      );
-      IERC20(rewardToken).safeTransfer(user, pendingRewardAmount);
+      MintableTokenInterface(rewardToken).mint(user, pendingRewardAmount);
     }
 
     emit LogHarvest(user, pendingRewardAmount);
@@ -84,8 +80,9 @@ contract AdHocMintRewarder is IRewarder {
     view
     returns (uint256)
   {
+    // [100% APR] If a user stake N shares for a year, he will be rewarded with N tokens.
     return
-      ((block.timestamp - userLastRewards[user]) * _userShare(user)) / year;
+      ((block.timestamp - userLastRewards[user]) * _userShare(user)) / YEAR;
   }
 
   function _userShare(address user) private view returns (uint256) {
