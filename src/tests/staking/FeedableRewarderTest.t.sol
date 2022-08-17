@@ -154,7 +154,7 @@ contract FeedableRewarderTest is BaseTest {
     vm.warp(block.timestamp + 5 days);
     assertEq(rewardToken.balanceOf(ALICE), 0);
     mockStaking.harvest(address(rewarder), ALICE);
-    assertEq(rewardToken.balanceOf(ALICE), 9999.999999999980000000 ether);
+    assertEq(rewardToken.balanceOf(ALICE), 19999.999999999980000000 ether);
   }
 
   function test_WhenFeedTokenMultipleTimes() external {
