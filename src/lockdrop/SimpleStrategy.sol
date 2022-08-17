@@ -14,18 +14,18 @@ contract SimpleStrategy is ISimpleStrategy {
     pool = pool_;
   }
 
-  function execute(uint256 _tokenAmount, address _tokenAddress)
+  function execute(uint256 tokenAmount, address tokenAddress)
     external
     returns (uint256)
   {
     // 1. Retrive Base Token
-    IERC20(_tokenAddress).safeTransferFrom(
+    IERC20(tokenAddress).safeTransferFrom(
       msg.sender,
       address(this),
-      _tokenAmount
+      tokenAmount
     );
 
     // 2. Deposit to PLP Token to get amount of PLP
-    return pool.addLiquidity(_tokenAddress, _tokenAmount, msg.sender, 0);
+    return pool.addLiquidity(tokenAddress, tokenAmount, msg.sender, 0);
   }
 }
