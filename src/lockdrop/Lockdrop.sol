@@ -7,8 +7,12 @@ import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuar
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { ISimpleStrategy } from "./interfaces/ISimpleStrategy.sol";
+import { IStaking } from "../staking/interfaces/IStaking.sol";
+import { LockdropConfig } from "./LockdropConfig.sol";
+import { ILockdrop } from "./interfaces/ILockdrop.sol";
 
-contract Lockdrop is ReentrancyGuard, Ownable {
+contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
+
   // --- Libraries ---
   using SafeERC20 for IERC20;
 
@@ -39,19 +43,18 @@ contract Lockdrop is ReentrancyGuard, Ownable {
   // --- States ---
   ISimpleStrategy public strategy;
   IERC20 public lockdropToken; // lockdrop token address
-  uint256 public startLockTimestamp; // timestamp for starting lockdrop event
-  uint256 public endLockTimestamp; // timestamp for deposit period after start lockdrop event
-  uint256 public withdrawalTimestamp; // timestamp for withdraw period after start lockdrop event
+  LockdropConfig public lockdropConfig;
   uint256 public totalAmount; // total amount of token
-  uint256 public PLPAmount;
+  uint256 public plpAmount;
+
   mapping(address => LockdropState) public LockdropStates;
 
   // --- Modifiers ---
   /// @dev Only able to proceed during deposit period
   modifier onlyInDepositPeriod() {
     if (
-      block.timestamp < startLockTimestamp ||
-      block.timestamp > withdrawalTimestamp
+      block.timestamp < lockdropConfig.startLockTimestamp() ||
+      block.timestamp > lockdropConfig.withdrawalTimestamp()
     ) revert LockDrop_NotInDepositPeriod();
     _;
   }
@@ -60,22 +63,20 @@ contract Lockdrop is ReentrancyGuard, Ownable {
   /// @dev Only able to proceed during withdrawal window
   modifier onlyInWithdrawalPeriod() {
     if (
-      block.timestamp < withdrawalTimestamp ||
-      block.timestamp > withdrawalTimestamp
+      block.timestamp < lockdropConfig.withdrawalTimestamp() ||
+      block.timestamp > lockdropConfig.withdrawalTimestamp()
     ) revert LockDrop_NotInWithdrawalPeriod();
     _;
   }
 
-  constructor(address _lockdropToken, uint256 _startLockTimestamp, ISimpleStrategy _strategy) {
+  constructor(address _lockdropToken, uint256 _startLockTimestamp, ISimpleStrategy _strategy, LockdropConfig _lockdropConfig) {
     if (_lockdropToken == address(0)) revert LockDrop_ZeroAddressNotAllowed();
     if (block.timestamp > _startLockTimestamp)
       revert LockDrop_InvalidStartLockTimestamp();
 
     strategy = _strategy;
     lockdropToken = IERC20(_lockdropToken);
-    startLockTimestamp = _startLockTimestamp;
-    endLockTimestamp = _startLockTimestamp + (7 days); // 7 days in second
-    withdrawalTimestamp = _startLockTimestamp + (5 days); // 5 days in second
+    lockdropConfig = _lockdropConfig;
   }
 
   /// @dev User lock ERC20 Token
@@ -101,17 +102,21 @@ contract Lockdrop is ReentrancyGuard, Ownable {
     emit LogLockToken(msg.sender, _token, _amount, _lockPeriod);
   }
 
-  function withdrawToken() external onlyInWithdrawalPeriod {
+  function withdrawLockToken(uint256 _amount, address _user) external onlyInWithdrawalPeriod {
+
+  }
+
+  function claimAllReward(address _user) external {
 
   }
 
   function mintPLP() external {
-    PLPAmount = strategy.execute(totalAmount, address(lockdropToken));
+    plpAmount = strategy.execute(totalAmount, address(lockdropToken));
     stakePLP();
   }
 
   function stakePLP() internal {
-    if (PLPAmount == 0) revert Lockdrop_NoPLPToStake();
-
+    if (plpAmount == 0) revert Lockdrop_NoPLPToStake();
+    // stakingPLP.deposit(address(plpStaking), , plpAmount);
   }
 }

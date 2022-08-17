@@ -99,7 +99,7 @@ contract LockdropTest is BaseTest {
     lockdrop.mintPLP();
     assertEq(mockERC20.balanceOf(address(lockdrop)), 0);
     assertEq(mockERC20.balanceOf(address(strategy)), 45);
-    assertEq(lockdrop.PLPAmount(), 20);
+    assertEq(lockdrop.plpAmount(), 20);
     vm.stopPrank();
   }
 }
