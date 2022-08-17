@@ -3,6 +3,7 @@ pragma solidity 0.8.14;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
 import { IRewarder } from "./interfaces/IRewarder.sol";
 import { IStaking } from "./interfaces/IStaking.sol";
 import { MintableTokenInterface } from "../interfaces/MintableTokenInterface.sol";
