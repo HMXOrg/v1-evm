@@ -14,7 +14,7 @@ contract Vester_Abort is Vester_BaseTest {
         super.setUp();
     }
 
-    function test_WhenVestHasNotCompleted_ShouldWork() external {
+    function testCorrectness_WhenVestHasNotCompleted_ShouldWork() external {
         esP88.approve(address(vester), 100 ether);
         vester.vestFor(address(this), 100 ether, 31536000);
 
@@ -25,7 +25,7 @@ contract Vester_Abort is Vester_BaseTest {
         assertEq(esP88.balanceOf(address(this)), 100 ether);
     }
 
-    function test_WhenCalledFromNonOwner_ShouldRevert() external {
+    function testCorrectness_WhenCalledFromNonOwner_ShouldRevert() external {
         esP88.approve(address(vester), 100 ether);
         vester.vestFor(address(this), 100 ether, 31536000);
 
@@ -36,7 +36,7 @@ contract Vester_Abort is Vester_BaseTest {
         vester.abort(userItemIndex);
     }
 
-    function test_WhenVestHasCompletedButNotClaimed_ShouldWork() external {
+    function testCorrectness_WhenVestHasCompletedButNotClaimed_ShouldWork() external {
         esP88.approve(address(vester), 100 ether);
         vester.vestFor(address(this), 100 ether, 31536000);
 
@@ -48,7 +48,7 @@ contract Vester_Abort is Vester_BaseTest {
         assertEq(esP88.balanceOf(address(this)), 100 ether);
     }
 
-    function test_WhenAlreadyClaimed_ShouldRevert() external {
+    function testRevert_WhenAlreadyClaimed_ShouldRevert() external {
         esP88.approve(address(vester), 100 ether);
         vester.vestFor(address(this), 100 ether, 31536000);
 

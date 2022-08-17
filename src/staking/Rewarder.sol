@@ -32,12 +32,13 @@ contract Rewarder is IRewarder {
   event LogHarvest(address indexed user, uint256 pendingRewardAmount);
   event LogUpdateRewardCalculationParams(
     uint64 lastRewardTime,
-    uint256 totalShareAmount,
     uint256 accRewardPerShare
   );
 
   // Error
-  error Rewarder_rewardRateHasNotExpired();
+  error RewarderError_FeedAmountDecayed();
+
+  // TODO: add ACL
 
   constructor(
     string memory name_,
@@ -91,37 +92,71 @@ contract Rewarder is IRewarder {
     emit LogHarvest(user, pendingRewardAmount);
   }
 
-  function feed(uint256 feedAmount, uint256 periodInSecond) external {
-    if (block.timestamp < rewardRateExpiredAt)
-      revert Rewarder_rewardRateHasNotExpired();
+  function pendingReward(address user) external view returns (uint256) {
+    int256 accumulatedRewards = ((_userShare(user) *
+      _calculateAccRewardPerShare()) / ACC_REWARD_PRECISION).toInt256();
 
+    if (accumulatedRewards < userRewardDebts[user]) return 0;
+    return (accumulatedRewards - userRewardDebts[user]).toUint256();
+  }
+
+  function feed(uint256 feedAmount, uint256 duration) external {
+    _feed(feedAmount, duration);
+  }
+
+  function feedWithExpiredAt(uint256 feedAmount, uint256 expiredAt) external {
+    _feed(feedAmount, expiredAt - block.timestamp);
+  }
+
+  function _feed(uint256 feedAmount, uint256 duration) internal {
     _updateRewardCalculationParams();
-    IERC20(rewardToken).safeTransferFrom(msg.sender, address(this), feedAmount);
-    rewardRate = feedAmount / periodInSecond;
-    rewardRateExpiredAt = block.timestamp + periodInSecond;
+
+    {
+      // Transfer token, with decay check
+      uint256 balanceBefore = IERC20(rewardToken).balanceOf(address(this));
+      IERC20(rewardToken).safeTransferFrom(
+        msg.sender,
+        address(this),
+        feedAmount
+      );
+
+      if (
+        IERC20(rewardToken).balanceOf(address(this)) - balanceBefore !=
+        feedAmount
+      ) revert RewarderError_FeedAmountDecayed();
+    }
+
+    uint256 leftOverReward = rewardRateExpiredAt > block.timestamp
+      ? (rewardRateExpiredAt - block.timestamp) * rewardRate
+      : 0;
+    uint256 totalRewardAmount = leftOverReward + feedAmount;
+
+    rewardRate = totalRewardAmount / duration;
+    rewardRateExpiredAt = block.timestamp + duration;
   }
 
   function _updateRewardCalculationParams() internal {
-    uint256 totalShare = _totalShare();
     if (block.timestamp > lastRewardTime) {
-      if (totalShare > 0) {
-        uint256 _rewards = _timePast() * rewardRate;
-
-        accRewardPerShare =
-          accRewardPerShare +
-          ((_rewards * ACC_REWARD_PRECISION) / totalShare).toUint128();
-      }
-
+      accRewardPerShare = _calculateAccRewardPerShare();
       lastRewardTime = block.timestamp.toUint64();
-      emit LogUpdateRewardCalculationParams(
-        lastRewardTime,
-        totalShare,
-        accRewardPerShare
-      );
+      emit LogUpdateRewardCalculationParams(lastRewardTime, accRewardPerShare);
     }
   }
 
+  function _calculateAccRewardPerShare() internal view returns (uint128) {
+    uint256 totalShare = _totalShare();
+    if (block.timestamp > lastRewardTime && totalShare > 0) {
+      uint256 _rewards = _timePast() * rewardRate;
+      return
+        accRewardPerShare +
+        ((_rewards * ACC_REWARD_PRECISION) / totalShare).toUint128();
+    }
+    return accRewardPerShare;
+  }
+
   function _timePast() private view returns (uint256) {
+    // Prevent timePast to go over intended reward distribution period.
+    // On the other hand, prevent insufficient reward when harvest.
     if (block.timestamp < rewardRateExpiredAt) {
       return block.timestamp - lastRewardTime;
     } else {

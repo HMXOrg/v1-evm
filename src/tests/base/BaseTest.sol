@@ -5,6 +5,7 @@ import { DSTest } from "./DSTest.sol";
 
 import { VM } from "../utils/VM.sol";
 import { console } from "../utils/console.sol";
+import { math } from "../utils/math.sol";
 
 import { Constants as CoreConstants } from "../../core/Constants.sol";
 
