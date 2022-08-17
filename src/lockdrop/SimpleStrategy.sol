@@ -13,7 +13,7 @@ contract SimpleStrategy {
     pool = pool_;
   }
 
-  function execute(uint256 _tokenAmount, address _tokenAddress)
+  function simpleStrategyExecute(uint256 _tokenAmount, address _tokenAddress)
     external
     returns (uint256)
   {
