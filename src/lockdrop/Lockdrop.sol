@@ -6,7 +6,7 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { ISimpleStrategy } from "./interfaces/ISimpleStrategy.sol";
+import { ILockdropStrategy } from "./interfaces/ILockdropStrategy.sol";
 import { IStaking } from "../staking/interfaces/IStaking.sol";
 import { LockdropConfig } from "./LockdropConfig.sol";
 import { ILockdrop } from "./interfaces/ILockdrop.sol";
@@ -18,20 +18,30 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
 
   // --- Events ---
   event LogLockToken(
-    address indexed account,
+    address indexed user,
     address token,
     uint256 amount,
     uint256 lockPeriod
   );
 
+  event LogWithdrawLockToken(
+    address indexed user, 
+    address token, 
+    uint256 amount, 
+    uint256 remainingAmount
+  );
+
   // --- Custom Errors ---
-  error LockDrop_ZeroAddressNotAllowed();
-  error LockDrop_InvalidStartLockTimestamp();
-  error LockDrop_InvalidLockPeriod();
-  error LockDrop_MismatchToken();
-  error LockDrop_NotInDepositPeriod();
-  error LockDrop_NotInWithdrawalPeriod();
+  error Lockdrop_ZeroAmountNotAllowed();
+  error Lockdrop_ZeroAddressNotAllowed();
+  error Lockdrop_InvalidStartLockTimestamp();
+  error Lockdrop_InvalidLockPeriod();
+  error Lockdrop_MismatchToken();
+  error Lockdrop_NotInDepositPeriod();
+  error Lockdrop_NotInWithdrawalPeriod();
   error Lockdrop_NoPLPToStake();
+  error Lockdrop_InsufficientBalance();
+  error Lockdrop_NotPassLockdropPeriod();
 
   // --- Structs ---
 
@@ -41,13 +51,13 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   }
 
   // --- States ---
-  ISimpleStrategy public strategy;
+  IStaking public stakingPLP;
+  ILockdropStrategy public strategy;
   IERC20 public lockdropToken; // lockdrop token address
   LockdropConfig public lockdropConfig;
   uint256 public totalAmount; // total amount of token
-  uint256 public plpAmount;
 
-  mapping(address => LockdropState) public LockdropStates;
+  mapping(address => LockdropState) public lockdropStates;
 
   // --- Modifiers ---
   /// @dev Only able to proceed during deposit period
@@ -55,24 +65,30 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     if (
       block.timestamp < lockdropConfig.startLockTimestamp() ||
       block.timestamp > lockdropConfig.withdrawalTimestamp()
-    ) revert LockDrop_NotInDepositPeriod();
+    ) revert Lockdrop_NotInDepositPeriod();
     _;
   }
 
 
-  /// @dev Only able to proceed during withdrawal window
+  /// @dev Only able to proceed during withdrawal period
   modifier onlyInWithdrawalPeriod() {
     if (
       block.timestamp < lockdropConfig.withdrawalTimestamp() ||
-      block.timestamp > lockdropConfig.withdrawalTimestamp()
-    ) revert LockDrop_NotInWithdrawalPeriod();
+      block.timestamp > lockdropConfig.endLockTimestamp()
+    ) revert Lockdrop_NotInWithdrawalPeriod();
     _;
   }
 
-  constructor(address _lockdropToken, uint256 _startLockTimestamp, ISimpleStrategy _strategy, LockdropConfig _lockdropConfig) {
-    if (_lockdropToken == address(0)) revert LockDrop_ZeroAddressNotAllowed();
-    if (block.timestamp > _startLockTimestamp)
-      revert LockDrop_InvalidStartLockTimestamp();
+  /// @dev Only able to procees after lockdrop period
+  modifier onlyAfterLockdropPeriod() {
+    if (block.timestamp < lockdropConfig.endLockTimestamp()) revert Lockdrop_NotPassLockdropPeriod();
+    _;
+  }
+
+  constructor(address _lockdropToken, ILockdropStrategy _strategy, LockdropConfig _lockdropConfig) {
+    if (_lockdropToken == address(0)) revert Lockdrop_ZeroAddressNotAllowed();
+    if (block.timestamp > _lockdropConfig.startLockTimestamp())
+      revert Lockdrop_InvalidStartLockTimestamp();
 
     strategy = _strategy;
     lockdropToken = IERC20(_lockdropToken);
@@ -88,13 +104,13 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     uint256 _amount,
     uint256 _lockPeriod
   ) external onlyInDepositPeriod {
-    if (_amount == 0) revert LockDrop_ZeroAddressNotAllowed();
-    if (_lockPeriod < (7 days)) revert LockDrop_InvalidLockPeriod(); // Less than 1 week
-    if (_lockPeriod > (7 days * 52)) revert LockDrop_InvalidLockPeriod(); // More than 52 weeks
-    if (_token != address(lockdropToken)) revert LockDrop_MismatchToken(); // Mismatch token address
+    if (_amount == 0) revert Lockdrop_ZeroAmountNotAllowed();
+    if (_lockPeriod < (7 days)) revert Lockdrop_InvalidLockPeriod(); // Less than 1 week
+    if (_lockPeriod > (7 days * 52)) revert Lockdrop_InvalidLockPeriod(); // More than 52 weeks
+    if (_token != address(lockdropToken)) revert Lockdrop_MismatchToken(); // Mismatch token address
 
     IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
-    LockdropStates[msg.sender] = LockdropState({
+    lockdropStates[msg.sender] = LockdropState({
       lockdropTokenAmount: _amount,
       lockPeriod: _lockPeriod
     });
@@ -103,20 +119,23 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   }
 
   function withdrawLockToken(uint256 _amount, address _user) external onlyInWithdrawalPeriod {
-
+    if (_amount == 0) revert Lockdrop_ZeroAmountNotAllowed();
+    if (_amount > lockdropStates[_user].lockdropTokenAmount) revert Lockdrop_InsufficientBalance();
+    
+    IERC20(address(lockdropToken)).safeTransfer(msg.sender, _amount);
+    lockdropStates[_user].lockdropTokenAmount -= _amount;
+    totalAmount -= _amount; 
+    if (lockdropStates[_user].lockdropTokenAmount == 0) {
+      delete lockdropStates[_user];
+    }
+    emit LogWithdrawLockToken(_user, address(lockdropToken), _amount, lockdropStates[_user].lockdropTokenAmount);
   }
 
   function claimAllReward(address _user) external {
 
   }
 
-  function mintPLP() external {
-    plpAmount = strategy.execute(totalAmount, address(lockdropToken));
-    stakePLP();
-  }
-
-  function stakePLP() internal {
-    if (plpAmount == 0) revert Lockdrop_NoPLPToStake();
-    // stakingPLP.deposit(address(plpStaking), , plpAmount);
+  function stakePLP() external onlyAfterLockdropPeriod {
+    lockdropConfig.plpStaking().deposit(address(this), lockdropConfig.plpTokenAddress(), strategy.execute(totalAmount, address(lockdropToken)));
   }
 }
