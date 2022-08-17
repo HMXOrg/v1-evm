@@ -40,7 +40,7 @@ contract RewarderTest is BaseTest {
 
     // time has not pass, acc reward = 0, reward debt = 0
     assertEq(rewarder.lastRewardTime(), block.timestamp);
-    assertEq(rewarder.accRewardPerShare(), 0);
+    assertEq(rewarder.accRewardPerShare(), 1);
     assertEq(rewarder.userRewardDebts(ALICE), 0);
     mockStaking.deposit(address(rewarder), ALICE, 88 ether);
     assertEq(rewarder.lastRewardTime(), block.timestamp);
