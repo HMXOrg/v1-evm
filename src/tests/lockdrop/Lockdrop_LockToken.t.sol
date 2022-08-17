@@ -24,7 +24,7 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     // After Alice lock the ERC20 token, the following criteria needs to satisfy:
     // 1. Balance of Alices' ERC20 token should be 4
     // 2. The amount of Alices' lockdrop token should be 16
-    // 3. The number of lockdrop token should be 604900
+    // 3. The number of lock period should be 604900
     // 4. The total amount of lock token should be 16
     assertEq(mockERC20.balanceOf(ALICE), 4);
     assertEq(aliceLockdropTokenAmount, 16);
@@ -43,7 +43,7 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     // After Bob lock the ERC20 token, the following criteria needs to satisfy:
     // 1. Balance of Bobs' ERC20 token should be 20
     // 2. The amount of Bobs' lockdrop token should be 10
-    // 3. The number of lockdrop token should be 704900
+    // 3. The number of lock period should be 704900
     // 4. The total amount of lock token should be 16 + 10 = 26
     assertEq(mockERC20.balanceOf(BOB), 20);
     assertEq(bobLockdropTokenAmount, 10);
@@ -61,13 +61,13 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     vm.stopPrank();
   }
 
-  function testRevert_LockdropLockToken_ExceedDepositAndWithdrawPeriod()
+  function testRevert_LockdropLockToken_ExceedLockdropPeriod()
     external
   {
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
-    vm.warp(535000);
+    vm.warp(705000);
     vm.expectRevert(abi.encodeWithSignature("Lockdrop_NotInDepositPeriod()"));
     lockdrop.lockToken(address(mockERC20), 16, 604900);
     vm.stopPrank();
