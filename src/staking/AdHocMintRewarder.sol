@@ -54,7 +54,7 @@ contract AdHocMintRewarder is IRewarder {
 
   function onWithdraw(address user, uint256 shareAmount) external {
     // Reset user reward
-    // The rule is whenever withdraw occurs, no matter the size, reward calculation should bet started over.
+    // The rule is whenever withdraw occurs, no matter the size, reward calculation should restart.
     userAccRewards[user] = 0;
     userLastRewards[user] = block.timestamp.toUint64();
     emit LogOnWithdraw(user, shareAmount);
