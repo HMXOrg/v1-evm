@@ -16,7 +16,13 @@ import { PoolOracle } from "../../core/PoolOracle.sol";
 import { PoolConfig } from "../../core/PoolConfig.sol";
 import { PoolMath } from "../../core/PoolMath.sol";
 import { PLP } from "../../tokens/PLP.sol";
+import { P88 } from "../../tokens/P88.sol";
+import { EsP88 } from "../../tokens/EsP88.sol";
+import { DragonPoint } from "../../tokens/DragonPoint.sol";
 import { Pool } from "../../core/Pool.sol";
+import { PLPStaking } from "../../staking/PLPStaking.sol";
+import { DragonStaking } from "../../staking/DragonStaking.sol";
+import { Rewarder } from "../../staking/Rewarder.sol";
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
@@ -130,6 +136,18 @@ contract BaseTest is DSTest, CoreConstants {
     return new PLP();
   }
 
+  function deployP88() internal returns (P88) {
+    return new P88();
+  }
+
+  function deployEsP88() internal returns (EsP88) {
+    return new EsP88();
+  }
+
+  function deployDragonPoint() internal returns (DragonPoint) {
+    return new DragonPoint();
+  }
+
   function deployPoolOracle(uint80 roundDepth) internal returns (PoolOracle) {
     return new PoolOracle(roundDepth);
   }
@@ -177,5 +195,24 @@ contract BaseTest is DSTest, CoreConstants {
     plp.setMinter(address(pool), true);
 
     return (poolOracle, poolConfig, poolMath, pool);
+  }
+
+  function deployPLPStaking() internal returns (PLPStaking) {
+    return new PLPStaking();
+  }
+
+  function deployDragonStaking(address dragonPointToken)
+    internal
+    returns (DragonStaking)
+  {
+    return new DragonStaking(dragonPointToken);
+  }
+
+  function deployRewarder(
+    string memory name,
+    address rewardToken,
+    address staking
+  ) internal returns (Rewarder) {
+    return new Rewarder(name, rewardToken, staking);
   }
 }

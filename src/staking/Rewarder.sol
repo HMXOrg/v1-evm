@@ -36,7 +36,7 @@ contract Rewarder is IRewarder {
   );
 
   // Error
-  error RewarderError_FeedAmountDecayed();
+  error FeedableRewarderError_FeedAmountDecayed();
 
   // TODO: add ACL
 
@@ -93,8 +93,10 @@ contract Rewarder is IRewarder {
   }
 
   function pendingReward(address user) external view returns (uint256) {
+    uint256 projectedAccRewardPerShare = accRewardPerShare +
+      _calculateAccRewardPerShare(_totalShare());
     int256 accumulatedRewards = ((_userShare(user) *
-      _calculateAccRewardPerShare()) / ACC_REWARD_PRECISION).toInt256();
+      projectedAccRewardPerShare) / ACC_REWARD_PRECISION).toInt256();
 
     if (accumulatedRewards < userRewardDebts[user]) return 0;
     return (accumulatedRewards - userRewardDebts[user]).toUint256();
@@ -123,7 +125,7 @@ contract Rewarder is IRewarder {
       if (
         IERC20(rewardToken).balanceOf(address(this)) - balanceBefore !=
         feedAmount
-      ) revert RewarderError_FeedAmountDecayed();
+      ) revert FeedableRewarderError_FeedAmountDecayed();
     }
 
     uint256 leftOverReward = rewardRateExpiredAt > block.timestamp
@@ -136,22 +138,24 @@ contract Rewarder is IRewarder {
   }
 
   function _updateRewardCalculationParams() internal {
-    if (block.timestamp > lastRewardTime) {
-      accRewardPerShare = _calculateAccRewardPerShare();
+    uint256 totalShare = _totalShare();
+    if (block.timestamp > lastRewardTime && totalShare > 0) {
+      accRewardPerShare += _calculateAccRewardPerShare(totalShare);
       lastRewardTime = block.timestamp.toUint64();
       emit LogUpdateRewardCalculationParams(lastRewardTime, accRewardPerShare);
     }
   }
 
-  function _calculateAccRewardPerShare() internal view returns (uint128) {
-    uint256 totalShare = _totalShare();
-    if (block.timestamp > lastRewardTime && totalShare > 0) {
+  function _calculateAccRewardPerShare(uint256 totalShare)
+    internal
+    view
+    returns (uint128)
+  {
+    if (totalShare > 0) {
       uint256 _rewards = _timePast() * rewardRate;
-      return
-        accRewardPerShare +
-        ((_rewards * ACC_REWARD_PRECISION) / totalShare).toUint128();
+      return ((_rewards * ACC_REWARD_PRECISION) / totalShare).toUint128();
     }
-    return accRewardPerShare;
+    return 0;
   }
 
   function _timePast() private view returns (uint256) {
@@ -159,8 +163,10 @@ contract Rewarder is IRewarder {
     // On the other hand, prevent insufficient reward when harvest.
     if (block.timestamp < rewardRateExpiredAt) {
       return block.timestamp - lastRewardTime;
-    } else {
+    } else if (rewardRateExpiredAt > lastRewardTime) {
       return rewardRateExpiredAt - lastRewardTime;
+    } else {
+      return 0;
     }
   }
 
