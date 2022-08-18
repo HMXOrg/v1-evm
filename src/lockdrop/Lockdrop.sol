@@ -119,7 +119,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     emit LogLockToken(msg.sender, _token, _amount, _lockPeriod);
   }
 
-  /// @dev Users withdraw their ERC20 Token, should be in a valid withdraw period (last 2 days)
+  /// @dev Users withdraw their ERC20 Token within lockdrop period, should be in a valid withdraw period (last 2 days)
   /// @param _amount Number of token that user wants to withdraw
   /// @param _user Address of the user that wants to withdraw
   function withdrawLockToken(uint256 _amount, address _user)
@@ -142,6 +142,13 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
       _amount,
       lockdropStates[_user].lockdropTokenAmount
     );
+  }
+
+  function withdrawAll(address _user) external {
+  }
+
+  function claimAllP88(address _user) external {
+
   }
 
   /// @dev Users can claim all their reward
