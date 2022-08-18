@@ -13,7 +13,8 @@ abstract contract BaseStaking is IStaking, Ownable {
 
   error Staking_UnknownStakingToken();
   error Staking_InsufficientTokenAmount();
-  error Staking_CompounderIsNotSet();
+  error Staking_NotRewarder();
+  error Staking_NotCompounder();
 
   mapping(address => mapping(address => uint256)) public userTokenAmount;
   mapping(address => bool) public isRewarder;
@@ -138,6 +139,10 @@ abstract contract BaseStaking is IStaking, Ownable {
   function harvest(address[] memory rewarders) external {
     uint256 length = rewarders.length;
     for (uint256 i = 0; i < length; ) {
+      if (!isRewarder[rewarders[i]]) {
+        revert Staking_NotRewarder();
+      }
+
       IRewarder(rewarders[i]).onHarvest(msg.sender, msg.sender);
 
       unchecked {
@@ -149,10 +154,14 @@ abstract contract BaseStaking is IStaking, Ownable {
   function harvestToCompounder(address user, address[] memory rewarders)
     external
   {
-    if (compounder == address(0)) revert Staking_CompounderIsNotSet();
+    if (compounder != msg.sender) revert Staking_NotCompounder();
 
     uint256 length = rewarders.length;
     for (uint256 i = 0; i < length; ) {
+      if (!isRewarder[rewarders[i]]) {
+        revert Staking_NotRewarder();
+      }
+
       IRewarder(rewarders[i]).onHarvest(user, compounder);
 
       unchecked {
