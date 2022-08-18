@@ -137,32 +137,28 @@ abstract contract BaseStaking is IStaking, Ownable {
   ) internal virtual {}
 
   function harvest(address[] memory rewarders) external {
-    uint256 length = rewarders.length;
-    for (uint256 i = 0; i < length; ) {
-      if (!isRewarder[rewarders[i]]) {
-        revert Staking_NotRewarder();
-      }
-
-      IRewarder(rewarders[i]).onHarvest(msg.sender, msg.sender);
-
-      unchecked {
-        ++i;
-      }
-    }
+    _harvestFor(msg.sender, msg.sender, rewarders);
   }
 
   function harvestToCompounder(address user, address[] memory rewarders)
     external
   {
     if (compounder != msg.sender) revert Staking_NotCompounder();
+    _harvestFor(user, compounder, rewarders);
+  }
 
+  function _harvestFor(
+    address user,
+    address receiver,
+    address[] memory rewarders
+  ) internal {
     uint256 length = rewarders.length;
     for (uint256 i = 0; i < length; ) {
       if (!isRewarder[rewarders[i]]) {
         revert Staking_NotRewarder();
       }
 
-      IRewarder(rewarders[i]).onHarvest(user, compounder);
+      IRewarder(rewarders[i]).onHarvest(user, receiver);
 
       unchecked {
         ++i;
