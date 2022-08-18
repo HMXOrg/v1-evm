@@ -163,8 +163,10 @@ contract FeedableRewarder is IRewarder {
     // On the other hand, prevent insufficient reward when harvest.
     if (block.timestamp < rewardRateExpiredAt) {
       return block.timestamp - lastRewardTime;
-    } else {
+    } else if (rewardRateExpiredAt > lastRewardTime) {
       return rewardRateExpiredAt - lastRewardTime;
+    } else {
+      return 0;
     }
   }
 
