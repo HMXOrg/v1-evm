@@ -7,6 +7,11 @@ import { Constants } from "./Constants.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract PoolMath is Constants {
+  error PoolMath_FeeExceedCollateral();
+  error PoolMath_LiquidationFeeExceedCollateral();
+  error PoolMath_LossesExceedCollateral();
+  error PoolMath_MaxLeverageExceed();
+
   enum LiquidityDirection {
     ADD,
     REMOVE
@@ -192,6 +197,15 @@ contract PoolMath is Constants {
   // Margin Fee Math
   // ---------------
 
+  function getEntryFundingRate(
+    Pool pool,
+    address collateralToken,
+    address, /* indexToken */
+    Exposure /* exposure */
+  ) external view returns (uint256) {
+    return pool.sumFundingRateOf(collateralToken);
+  }
+
   function getFundingFee(
     Pool pool,
     address, /* account */
@@ -217,10 +231,85 @@ contract PoolMath is Constants {
     address, /* indexToken */
     Exposure, /* exposure */
     uint256 sizeDelta
-  ) external view returns (uint256) {
+  ) public view returns (uint256) {
     if (sizeDelta == 0) return 0;
     uint256 afterFeeUsd = (sizeDelta * (BPS - pool.config().marginFeeBps())) /
       BPS;
     return sizeDelta - afterFeeUsd;
+  }
+
+  // ----------------
+  // Liquidation Math
+  // ----------------
+  function checkLiquidation(
+    Pool pool,
+    address account,
+    address collateralToken,
+    address indexToken,
+    Exposure exposure,
+    bool isRevertWhenError
+  ) external view returns (uint256, uint256) {
+    Pool.Position memory position = pool.getPosition(
+      account,
+      collateralToken,
+      indexToken,
+      exposure
+    );
+
+    (bool isProfit, uint256 delta) = pool.getDelta(
+      indexToken,
+      position.size,
+      position.averagePrice,
+      exposure,
+      position.lastIncreasedTime
+    );
+    uint256 marginFee = getFundingFee(
+      pool,
+      account,
+      collateralToken,
+      indexToken,
+      exposure,
+      position.size,
+      position.entryFundingRate
+    );
+    marginFee += getPositionFee(
+      pool,
+      account,
+      collateralToken,
+      indexToken,
+      exposure,
+      position.size
+    );
+
+    if (!isProfit && position.collateral < delta) {
+      if (isRevertWhenError) revert PoolMath_LossesExceedCollateral();
+      return (1, marginFee);
+    }
+
+    uint256 remainingCollateral = position.collateral;
+    if (!isProfit) {
+      remainingCollateral -= delta;
+    }
+
+    if (remainingCollateral < marginFee) {
+      if (isRevertWhenError) revert PoolMath_FeeExceedCollateral();
+      // Cap the fee to the remainingCollateral.
+      return (1, remainingCollateral);
+    }
+
+    if (remainingCollateral < marginFee + pool.config().liquidationFeeUsd()) {
+      if (isRevertWhenError) revert PoolMath_LiquidationFeeExceedCollateral();
+      // Cap the fee to the margin fee
+      return (1, marginFee);
+    }
+
+    if (
+      remainingCollateral * pool.config().maxLeverage() < position.size * BPS
+    ) {
+      if (isRevertWhenError) revert PoolMath_MaxLeverageExceed();
+      return (2, marginFee);
+    }
+
+    return (0, marginFee);
   }
 }

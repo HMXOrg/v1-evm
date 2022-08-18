@@ -7,7 +7,12 @@ import { LinkedList } from "../libraries/LinkedList.sol";
 contract PoolConfig is Ownable {
   using LinkedList for LinkedList.List;
 
-  error PoolConfig_BadArguments();
+  error PoolConfig_BadArgument();
+
+  // ---------
+  // Constants
+  // ---------
+  uint256 public constant MAX_LIQUIDATION_FEE_USD = 100 * 10**30;
 
   // --------------------
   // Token Configurations
@@ -27,6 +32,14 @@ contract PoolConfig is Ownable {
   mapping(address => TokenConfig) public tokenMetas;
   uint256 public totalTokenWeight;
 
+  uint256 public maxLeverage;
+
+  // --------------------------
+  // Liquidation configurations
+  // --------------------------
+  /// @notice liquidation fee in USD with 1e30 precision
+  uint256 public liquidationFeeUsd;
+
   // ---------------------------
   // Funding rate configurations
   // ---------------------------
@@ -34,9 +47,9 @@ contract PoolConfig is Ownable {
   uint64 public stableFundingRateFactor;
   uint64 public fundingRateFactor;
 
-  // ------------------
-  // Fee configurations
-  // ------------------
+  // ----------------------
+  // Fee bps configurations
+  // ----------------------
   uint64 public mintBurnFeeBps;
   uint64 public taxBps;
   uint64 public stableTaxBps;
@@ -73,6 +86,10 @@ contract PoolConfig is Ownable {
     uint64 prevStableFundingRateFactor,
     uint64 newStableFundingRateFactor
   );
+  event SetLiquidationFeeUsd(
+    uint256 prevLiquidationFeeUsd,
+    uint256 newLiquidationFeeUsd
+  );
   event SetLiquidityCoolDownDuration(
     uint256 prevCoolDownPeriod,
     uint256 newCoolDownPeriod
@@ -106,10 +123,12 @@ contract PoolConfig is Ownable {
     stableFundingRateFactor = _stableFundingRateFactor;
     fundingRateFactor = _fundingRateFactor;
     liquidityCoolDownDuration = _liquidityCoolDownDuration;
+    maxLeverage = 88 * 10000; // Max leverage at 88x
 
     // toggle
     isDynamicFeeEnable = false;
     isSwapEnable = true;
+    isLeverageEnable = true;
 
     // Fee
     stableSwapFeeBps = 4; // 0.04%
@@ -153,6 +172,17 @@ contract PoolConfig is Ownable {
     stableFundingRateFactor = newStableFundingRateFactor;
   }
 
+  function setLiquidationFeeUsd(uint256 newLiquidationFeeUsd)
+    external
+    onlyOwner
+  {
+    if (newLiquidationFeeUsd > MAX_LIQUIDATION_FEE_USD)
+      revert PoolConfig_BadArgument();
+
+    emit SetLiquidationFeeUsd(liquidationFeeUsd, newLiquidationFeeUsd);
+    liquidationFeeUsd = newLiquidationFeeUsd;
+  }
+
   function setLiquidityCoolDownDuration(uint64 newLiquidityCoolDownPeriod)
     external
     onlyOwner
@@ -186,11 +216,11 @@ contract PoolConfig is Ownable {
     address[] calldata tokens,
     TokenConfig[] calldata configs
   ) external onlyOwner {
-    if (tokens.length != configs.length) revert PoolConfig_BadArguments();
+    if (tokens.length != configs.length) revert PoolConfig_BadArgument();
 
     for (uint256 i = 0; i < tokens.length; ) {
       // Enforce that accept must be true
-      if (!configs[i].accept) revert PoolConfig_BadArguments();
+      if (!configs[i].accept) revert PoolConfig_BadArgument();
 
       // If tokenMetas.accept previously false, then it is a new token to be added.
       if (!tokenMetas[tokens[i]].accept) allowTokens.add(tokens[i]);
@@ -263,7 +293,7 @@ contract PoolConfig is Ownable {
     return tokenMetas[token].shortCeiling;
   }
 
-  function shouldAccrueFundingRate(
+  function shouldUpdateFundingRate(
     address, /* collateralToken */
     address /* indexToken */
   ) external pure returns (bool) {
