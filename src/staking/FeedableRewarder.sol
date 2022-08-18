@@ -75,7 +75,7 @@ contract FeedableRewarder is IRewarder {
     emit LogOnWithdraw(user, shareAmount);
   }
 
-  function onHarvest(address user) external {
+  function onHarvest(address user, address receiver) external {
     _updateRewardCalculationParams();
 
     int256 accumulatedRewards = ((_userShare(user) * accRewardPerShare) /
@@ -86,7 +86,7 @@ contract FeedableRewarder is IRewarder {
     userRewardDebts[user] = accumulatedRewards;
 
     if (pendingRewardAmount != 0) {
-      IERC20(rewardToken).safeTransfer(user, pendingRewardAmount);
+      IERC20(rewardToken).safeTransfer(receiver, pendingRewardAmount);
     }
 
     emit LogHarvest(user, pendingRewardAmount);

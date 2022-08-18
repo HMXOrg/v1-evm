@@ -61,7 +61,7 @@ contract AdHocMintRewarder is IRewarder {
     emit LogOnWithdraw(user, shareAmount);
   }
 
-  function onHarvest(address user) external {
+  function onHarvest(address user, address receiver) external {
     uint256 pendingRewardAmount = _pendingReward(user);
 
     // Reset user reward accumulation.
@@ -70,7 +70,7 @@ contract AdHocMintRewarder is IRewarder {
     userLastRewards[user] = block.timestamp.toUint64();
 
     if (pendingRewardAmount != 0) {
-      MintableTokenInterface(rewardToken).mint(user, pendingRewardAmount);
+      MintableTokenInterface(rewardToken).mint(receiver, pendingRewardAmount);
     }
 
     emit LogHarvest(user, pendingRewardAmount);
