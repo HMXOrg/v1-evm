@@ -22,7 +22,7 @@ import { DragonPoint } from "../../tokens/DragonPoint.sol";
 import { Pool } from "../../core/Pool.sol";
 import { PLPStaking } from "../../staking/PLPStaking.sol";
 import { DragonStaking } from "../../staking/DragonStaking.sol";
-import { Rewarder } from "../../staking/Rewarder.sol";
+import { FeedableRewarder } from "../../staking/FeedableRewarder.sol";
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
@@ -208,11 +208,11 @@ contract BaseTest is DSTest, CoreConstants {
     return new DragonStaking(dragonPointToken);
   }
 
-  function deployRewarder(
+  function deployFeedableRewarder(
     string memory name,
     address rewardToken,
     address staking
-  ) internal returns (Rewarder) {
-    return new Rewarder(name, rewardToken, staking);
+  ) internal returns (FeedableRewarder) {
+    return new FeedableRewarder(name, rewardToken, staking);
   }
 }
