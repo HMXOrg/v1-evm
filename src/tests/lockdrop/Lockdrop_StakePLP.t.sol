@@ -25,11 +25,12 @@ contract Lockdrop_StakePLP is Lockdrop_BaseTest {
     vm.warp(120000);
     lockdrop.lockToken(address(mockERC20), 16, 604900);
     vm.stopPrank();
-    (uint256 lockdropTokenAmountAlice, uint256 lockPeriodAlice) = lockdrop
+    (uint256 alicelockdropTokenAmount, uint256 alicelockPeriod) = lockdrop
       .lockdropStates(ALICE);
-    assertEq(lockdropTokenAmountAlice, 16);
-    assertEq(lockPeriodAlice, 604900);
     assertEq(mockERC20.balanceOf(ALICE), 4);
+    assertEq(alicelockdropTokenAmount, 16);
+    assertEq(alicelockPeriod, 604900);
+    assertEq(lockdrop.totalAmount(), 16);
 
     vm.startPrank(BOB, BOB);
     mockERC20.mint(BOB, 30);
@@ -38,12 +39,13 @@ contract Lockdrop_StakePLP is Lockdrop_BaseTest {
     vm.warp(130000);
     lockdrop.lockToken(address(mockERC20), 29, 605000);
     vm.stopPrank();
-    (uint256 lockdropTokenAmountBob, uint256 lockPeriodBob) = lockdrop
+    (uint256 boblockdropTokenAmount, uint256 boblockPeriod) = lockdrop
       .lockdropStates(BOB);
-    assertEq(lockdropTokenAmountBob, 29);
-    assertEq(lockPeriodBob, 605000);
+    assertEq(boblockdropTokenAmount, 29);
+    assertEq(boblockPeriod, 605000);
     assertEq(mockERC20.balanceOf(BOB), 1);
 
+    // After the lockdrop period ends, owner can stake PLP
     vm.startPrank(address(lockdrop), address(lockdrop));
     vm.warp(704900);
     mockERC20.approve(address(strategy), 45);

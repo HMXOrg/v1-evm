@@ -6,7 +6,6 @@ import { Lockdrop_BaseTest, console } from "./Lockdrop_BaseTest.t.sol";
 contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
   function setUp() public override {
     super.setUp();
-    
   }
 
   function testCorrectness_LockdropWithdrawLockToken() external {
@@ -38,7 +37,6 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     assertEq(alicelockPeriod, 604900);
     assertEq(lockdrop.totalAmount(), 11);
 
-
     vm.warp(553000);
     lockdrop.withdrawLockToken(11, ALICE);
     (alicelockdropTokenAmount, alicelockPeriod) = lockdrop.lockdropStates(
@@ -54,7 +52,9 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     vm.stopPrank();
   }
 
-  function testRevert_LockdropWithdrawLockToken_BeforeWithdrawPeriod() external {
+  function testRevert_LockdropWithdrawLockToken_BeforeWithdrawPeriod()
+    external
+  {
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
@@ -68,12 +68,16 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     assertEq(lockdrop.totalAmount(), 16);
 
     vm.warp(130000);
-    vm.expectRevert(abi.encodeWithSignature("Lockdrop_NotInWithdrawalPeriod()"));
+    vm.expectRevert(
+      abi.encodeWithSignature("Lockdrop_NotInWithdrawalPeriod()")
+    );
     lockdrop.withdrawLockToken(5, ALICE);
     vm.stopPrank();
   }
 
-  function testRevert_LockdropWithdrawLockToken_ExceedLockdropPeriod() external {
+  function testRevert_LockdropWithdrawLockToken_ExceedLockdropPeriod()
+    external
+  {
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
@@ -88,12 +92,16 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
 
     vm.warp(705000);
     console.log(lockdropConfig.endLockTimestamp());
-    vm.expectRevert(abi.encodeWithSignature("Lockdrop_NotInWithdrawalPeriod()"));
+    vm.expectRevert(
+      abi.encodeWithSignature("Lockdrop_NotInWithdrawalPeriod()")
+    );
     lockdrop.withdrawLockToken(5, ALICE);
     vm.stopPrank();
   }
 
-  function testRevert_LockdropWithdrawLockToken_WithdrawAmountIsZero() external {
+  function testRevert_LockdropWithdrawLockToken_WithdrawAmountIsZero()
+    external
+  {
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
@@ -113,7 +121,9 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     vm.stopPrank();
   }
 
-  function testRevert_LockdropWithdrawLockToken_WithdrawAmountExceedLockAmount() external {
+  function testRevert_LockdropWithdrawLockToken_WithdrawAmountExceedLockAmount()
+    external
+  {
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);

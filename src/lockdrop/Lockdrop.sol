@@ -12,7 +12,6 @@ import { LockdropConfig } from "./LockdropConfig.sol";
 import { ILockdrop } from "./interfaces/ILockdrop.sol";
 
 contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
-
   // --- Libraries ---
   using SafeERC20 for IERC20;
 
@@ -25,9 +24,9 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   );
 
   event LogWithdrawLockToken(
-    address indexed user, 
-    address token, 
-    uint256 amount, 
+    address indexed user,
+    address token,
+    uint256 amount,
     uint256 remainingAmount
   );
 
@@ -67,7 +66,6 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     _;
   }
 
-
   /// @dev Only able to proceed during withdrawal period
   modifier onlyInWithdrawalPeriod() {
     if (
@@ -79,11 +77,16 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
 
   /// @dev Only able to procees after lockdrop period
   modifier onlyAfterLockdropPeriod() {
-    if (block.timestamp < lockdropConfig.endLockTimestamp()) revert Lockdrop_NotPassLockdropPeriod();
+    if (block.timestamp < lockdropConfig.endLockTimestamp())
+      revert Lockdrop_NotPassLockdropPeriod();
     _;
   }
 
-  constructor(address _lockdropToken, ILockdropStrategy _strategy, LockdropConfig _lockdropConfig) {
+  constructor(
+    address _lockdropToken,
+    ILockdropStrategy _strategy,
+    LockdropConfig _lockdropConfig
+  ) {
     if (_lockdropToken == address(0)) revert Lockdrop_ZeroAddressNotAllowed();
     if (block.timestamp > _lockdropConfig.startLockTimestamp())
       revert Lockdrop_InvalidStartLockTimestamp();
@@ -119,17 +122,26 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   /// @dev Users withdraw their ERC20 Token, should be in a valid withdraw period (last 2 days)
   /// @param _amount Number of token that user wants to withdraw
   /// @param _user Address of the user that wants to withdraw
-  function withdrawLockToken(uint256 _amount, address _user) external onlyInWithdrawalPeriod {
+  function withdrawLockToken(uint256 _amount, address _user)
+    external
+    onlyInWithdrawalPeriod
+  {
     if (_amount == 0) revert Lockdrop_ZeroAmountNotAllowed();
-    if (_amount > lockdropStates[_user].lockdropTokenAmount) revert Lockdrop_InsufficientBalance();
-    
+    if (_amount > lockdropStates[_user].lockdropTokenAmount)
+      revert Lockdrop_InsufficientBalance();
+
     IERC20(address(lockdropToken)).safeTransfer(msg.sender, _amount);
     lockdropStates[_user].lockdropTokenAmount -= _amount;
-    totalAmount -= _amount; 
+    totalAmount -= _amount;
     if (lockdropStates[_user].lockdropTokenAmount == 0) {
       delete lockdropStates[_user];
     }
-    emit LogWithdrawLockToken(_user, address(lockdropToken), _amount, lockdropStates[_user].lockdropTokenAmount);
+    emit LogWithdrawLockToken(
+      _user,
+      address(lockdropToken),
+      _amount,
+      lockdropStates[_user].lockdropTokenAmount
+    );
   }
 
   /// @dev Users can claim all their reward
@@ -140,6 +152,10 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
 
   /// @dev PLP token is staked after the lockdrop period
   function stakePLP() external onlyAfterLockdropPeriod {
-    lockdropConfig.plpStaking().deposit(address(this), lockdropConfig.plpTokenAddress(), strategy.execute(totalAmount, address(lockdropToken)));
+    lockdropConfig.plpStaking().deposit(
+      address(this),
+      lockdropConfig.plpTokenAddress(),
+      strategy.execute(totalAmount, address(lockdropToken))
+    );
   }
 }
