@@ -30,6 +30,8 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     uint256 remainingAmount
   );
 
+  event LogWithdrawAll(address indexed user, address token);
+
   // --- Custom Errors ---
   error Lockdrop_ZeroAmountNotAllowed();
   error Lockdrop_ZeroAddressNotAllowed();
@@ -40,6 +42,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   error Lockdrop_NotInWithdrawalPeriod();
   error Lockdrop_InsufficientBalance();
   error Lockdrop_NotPassLockdropPeriod();
+  error Lockdrop_InvalidWithdrawPeriod();
 
   // --- Structs ---
 
@@ -106,6 +109,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     uint256 _lockPeriod
   ) external onlyInDepositPeriod {
     if (_amount == 0) revert Lockdrop_ZeroAmountNotAllowed();
+    if (_token == address(0)) revert Lockdrop_ZeroAddressNotAllowed();
     if (_lockPeriod < (7 days)) revert Lockdrop_InvalidLockPeriod(); // Less than 1 week
     if (_lockPeriod > (7 days * 52)) revert Lockdrop_InvalidLockPeriod(); // More than 52 weeks
     if (_token != address(lockdropToken)) revert Lockdrop_MismatchToken(); // Mismatch token address
@@ -144,12 +148,24 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     );
   }
 
+  /// @dev Users able to withdraw all their ERC20 Token after the end of the lockdrop period + their input lock period
+  /// @param _user Address of the user that wants to withdraw
   function withdrawAll(address _user) external {
+    if (
+      block.timestamp <
+      lockdropStates[_user].lockPeriod + lockdropConfig.endLockTimestamp()
+    ) revert Lockdrop_InvalidWithdrawPeriod();
+
+    IERC20(address(lockdropToken)).safeTransfer(
+      _user,
+      lockdropStates[_user].lockdropTokenAmount
+    );
+    totalAmount -= lockdropStates[_user].lockdropTokenAmount;
+    delete lockdropStates[_user];
+    emit LogWithdrawAll(_user, address(lockdropToken));
   }
 
-  function claimAllP88(address _user) external {
-
-  }
+  function claimAllP88(address _user) external {}
 
   /// @dev Users can claim all their reward
   /// @param _user Address of the user that wants to cleam the reward
