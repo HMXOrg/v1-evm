@@ -39,7 +39,6 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   error Lockdrop_MismatchToken();
   error Lockdrop_NotInDepositPeriod();
   error Lockdrop_NotInWithdrawalPeriod();
-  error Lockdrop_NoPLPToStake();
   error Lockdrop_InsufficientBalance();
   error Lockdrop_NotPassLockdropPeriod();
 
@@ -51,7 +50,6 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   }
 
   // --- States ---
-  IStaking public stakingPLP;
   ILockdropStrategy public strategy;
   IERC20 public lockdropToken; // lockdrop token address
   LockdropConfig public lockdropConfig;
@@ -95,7 +93,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     lockdropConfig = _lockdropConfig;
   }
 
-  /// @dev User lock ERC20 Token
+  /// @dev Users can lock their ERC20 Token, should be in a valid lock period (first 5 days)
   /// @param _token Token address that user wants to lock
   /// @param _amount Number of token that user wants to lock
   /// @param _lockPeriod Number of second that user wants to lock
@@ -118,6 +116,9 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     emit LogLockToken(msg.sender, _token, _amount, _lockPeriod);
   }
 
+  /// @dev Users withdraw their ERC20 Token, should be in a valid withdraw period (last 2 days)
+  /// @param _amount Number of token that user wants to withdraw
+  /// @param _user Address of the user that wants to withdraw
   function withdrawLockToken(uint256 _amount, address _user) external onlyInWithdrawalPeriod {
     if (_amount == 0) revert Lockdrop_ZeroAmountNotAllowed();
     if (_amount > lockdropStates[_user].lockdropTokenAmount) revert Lockdrop_InsufficientBalance();
@@ -131,10 +132,13 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     emit LogWithdrawLockToken(_user, address(lockdropToken), _amount, lockdropStates[_user].lockdropTokenAmount);
   }
 
-  function claimAllReward(address _user) external {
-
+  /// @dev Users can claim all their reward
+  /// @param _user Address of the user that wants to cleam the reward
+  function claimAllReward(address _user) external onlyAfterLockdropPeriod {
+    lockdropConfig.plpStaking().harvest();
   }
 
+  /// @dev PLP token is staked after the lockdrop period
   function stakePLP() external onlyAfterLockdropPeriod {
     lockdropConfig.plpStaking().deposit(address(this), lockdropConfig.plpTokenAddress(), strategy.execute(totalAmount, address(lockdropToken)));
   }
