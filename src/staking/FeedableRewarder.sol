@@ -6,7 +6,7 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.s
 import { IRewarder } from "./interfaces/IRewarder.sol";
 import { IStaking } from "./interfaces/IStaking.sol";
 
-contract Rewarder is IRewarder {
+contract FeedableRewarder is IRewarder {
   using SafeCast for uint256;
   using SafeCast for uint128;
   using SafeCast for int256;

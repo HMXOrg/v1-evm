@@ -2,14 +2,14 @@
 pragma solidity >=0.8.4 <0.9.0;
 
 import { BaseTest } from "../base/BaseTest.sol";
-import { Rewarder } from "../../staking/Rewarder.sol";
+import { FeedableRewarder } from "../../staking/FeedableRewarder.sol";
 import { MockErc20 } from "../mocks/MockERC20.sol";
 import { MockStaking } from "../mocks/MockStaking.sol";
 import { console } from "../utils/console.sol";
 import { math } from "../utils/math.sol";
 
-contract RewarderTest is BaseTest {
-  Rewarder internal rewarder;
+contract FeedableRewarderTest is BaseTest {
+  FeedableRewarder internal rewarder;
   MockErc20 internal rewardToken;
   MockStaking internal mockStaking;
 
@@ -17,7 +17,7 @@ contract RewarderTest is BaseTest {
     mockStaking = new MockStaking();
 
     rewardToken = new MockErc20("Reward Token", "REW", 18);
-    rewarder = new Rewarder(
+    rewarder = new FeedableRewarder(
       "REWRewarder",
       address(rewardToken),
       address(mockStaking)
