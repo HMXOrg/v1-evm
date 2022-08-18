@@ -17,26 +17,28 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(120000);
-    lockdrop.lockToken(address(mockERC20), 16, 604900);
+    lockdrop.lockToken(16, 604900);
     (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod) = lockdrop
       .lockdropStates(ALICE);
     vm.stopPrank();
     // After Alice lock the ERC20 token, the following criteria needs to satisfy:
-    // 1. Balance of Alices' ERC20 token should be 4
-    // 2. The amount of Alices' lockdrop token should be 16
+    // 1. Balance of Alice's ERC20 token should be 4
+    // 2. The amount of Alice's lockdrop token should be 16
     // 3. The number of lock period should be 604900
     // 4. The total amount of lock token should be 16
+    // 5. The total P88 weight should be 16 * 604900
     assertEq(mockERC20.balanceOf(ALICE), 4);
     assertEq(aliceLockdropTokenAmount, 16);
     assertEq(aliceLockPeriod, 604900);
     assertEq(lockdrop.totalAmount(), 16);
+    assertEq(lockdrop.totalP88Weight(), 16 * 604900);
 
     // ------- Bob session -------
     vm.startPrank(BOB, BOB);
     mockERC20.mint(BOB, 30);
     mockERC20.approve(address(lockdrop), 30);
     vm.warp(130000);
-    lockdrop.lockToken(address(mockERC20), 10, 704900);
+    lockdrop.lockToken(10, 704900);
     (uint256 bobLockdropTokenAmount, uint256 bobLockPeriod) = lockdrop
       .lockdropStates(BOB);
     vm.stopPrank();
@@ -45,10 +47,12 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     // 2. The amount of Bobs' lockdrop token should be 10
     // 3. The number of lock period should be 704900
     // 4. The total amount of lock token should be 16 + 10 = 26
+    // 5. The total P88 weight should be 16 * 604900 + 10 * 704900 
     assertEq(mockERC20.balanceOf(BOB), 20);
     assertEq(bobLockdropTokenAmount, 10);
     assertEq(bobLockPeriod, 704900);
     assertEq(lockdrop.totalAmount(), 26);
+    assertEq(lockdrop.totalP88Weight(), 16 * 604900 + 10 * 704900);
   }
 
   function testRevert_LockdropLockToken_InWithdrawPeriod() external {
@@ -57,7 +61,7 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(532500);
     vm.expectRevert(abi.encodeWithSignature("Lockdrop_NotInDepositPeriod()"));
-    lockdrop.lockToken(address(mockERC20), 16, 604900);
+    lockdrop.lockToken(16, 604900);
     vm.stopPrank();
   }
 
@@ -67,7 +71,7 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(705000);
     vm.expectRevert(abi.encodeWithSignature("Lockdrop_NotInDepositPeriod()"));
-    lockdrop.lockToken(address(mockERC20), 16, 604900);
+    lockdrop.lockToken(16, 604900);
     vm.stopPrank();
   }
 
@@ -77,7 +81,7 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(130000);
     vm.expectRevert(abi.encodeWithSignature("Lockdrop_ZeroAmountNotAllowed()"));
-    lockdrop.lockToken(address(mockERC20), 0, 604900);
+    lockdrop.lockToken(0, 604900);
     vm.stopPrank();
   }
 
@@ -87,7 +91,7 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(130000);
     vm.expectRevert(abi.encodeWithSignature("Lockdrop_InvalidLockPeriod()"));
-    lockdrop.lockToken(address(mockERC20), 16, 1);
+    lockdrop.lockToken(16, 1);
     vm.stopPrank();
   }
 
@@ -97,17 +101,7 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(130000);
     vm.expectRevert(abi.encodeWithSignature("Lockdrop_InvalidLockPeriod()"));
-    lockdrop.lockToken(address(mockERC20), 16, 31622400);
-    vm.stopPrank();
-  }
-
-  function testRevert_LockdropLockToken_MismatchToken() external {
-    vm.startPrank(ALICE, ALICE);
-    mockERC20.mint(ALICE, 20);
-    mockERC20.approve(address(lockdrop), 20);
-    vm.warp(130000);
-    vm.expectRevert(abi.encodeWithSignature("Lockdrop_MismatchToken()"));
-    lockdrop.lockToken(address(mock2ERC20), 16, 604900);
+    lockdrop.lockToken(16, 31622400);
     vm.stopPrank();
   }
 }

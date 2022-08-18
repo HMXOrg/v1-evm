@@ -23,7 +23,7 @@ contract Lockdrop_StakePLP is Lockdrop_BaseTest {
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(120000);
-    lockdrop.lockToken(address(mockERC20), 16, 604900);
+    lockdrop.lockToken(16, 604900);
     vm.stopPrank();
     (uint256 alicelockdropTokenAmount, uint256 alicelockPeriod) = lockdrop
       .lockdropStates(ALICE);
@@ -37,7 +37,7 @@ contract Lockdrop_StakePLP is Lockdrop_BaseTest {
     mockERC20.approve(address(lockdrop), 30);
 
     vm.warp(130000);
-    lockdrop.lockToken(address(mockERC20), 29, 605000);
+    lockdrop.lockToken(29, 605000);
     vm.stopPrank();
     (uint256 boblockdropTokenAmount, uint256 boblockPeriod) = lockdrop
       .lockdropStates(BOB);
