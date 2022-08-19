@@ -109,7 +109,7 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     vm.stopPrank();
   }
 
-  function testRevert_LockdropLockToken_DepositeZeroToken() external {
+  function testRevert_LockdropLockToken_DepositZeroToken() external {
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);

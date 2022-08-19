@@ -3,7 +3,7 @@ pragma solidity 0.8.14;
 
 import { Lockdrop_BaseTest, console } from "./Lockdrop_BaseTest.t.sol";
 
-contract Lockdrop_ClaimAllReward is Lockdrop_BaseTest {
+contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
   function setUp() public override {
     super.setUp();
     mockP88Token.setMinter(address(lockdrop), true);
