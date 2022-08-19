@@ -12,22 +12,22 @@ contract PLPStakingTest is BaseTest {
   MockErc20 internal plp;
   MockErc20 internal p168;
 
-  MockRewarder internal PRRewarder;
+  MockRewarder internal protocolRevenueRewarder;
   MockRewarder internal esP88Rewarder;
-  MockRewarder internal PRewarder;
+  MockRewarder internal partnerRewarder;
 
   function setUp() external {
     plp = new MockErc20("PLP", "PLP", 18);
     p168 = new MockErc20("P168", "P168", 18);
 
-    PRRewarder = new MockRewarder();
+    protocolRevenueRewarder = new MockRewarder();
     esP88Rewarder = new MockRewarder();
-    PRewarder = new MockRewarder();
+    partnerRewarder = new MockRewarder();
 
     address[] memory rewarders1 = new address[](3);
-    rewarders1[0] = address(PRRewarder);
+    rewarders1[0] = address(protocolRevenueRewarder);
     rewarders1[1] = address(esP88Rewarder);
-    rewarders1[2] = address(PRewarder);
+    rewarders1[2] = address(partnerRewarder);
 
     staking = new PLPStaking();
     staking.addStakingToken(address(plp), rewarders1);
@@ -67,13 +67,19 @@ contract PLPStakingTest is BaseTest {
     assertEq(plp.balanceOf(BOB), 0);
     assertEq(staking.userTokenAmount(address(plp), BOB), 100 ether);
 
-    assertEq(staking.calculateShare(address(PRRewarder), BOB), 100 ether);
+    assertEq(
+      staking.calculateShare(address(protocolRevenueRewarder), BOB),
+      100 ether
+    );
     assertEq(staking.calculateShare(address(esP88Rewarder), BOB), 100 ether);
-    assertEq(staking.calculateShare(address(PRewarder), BOB), 100 ether);
+    assertEq(staking.calculateShare(address(partnerRewarder), BOB), 100 ether);
 
-    assertEq(staking.calculateTotalShare(address(PRRewarder)), 100 ether);
+    assertEq(
+      staking.calculateTotalShare(address(protocolRevenueRewarder)),
+      100 ether
+    );
     assertEq(staking.calculateTotalShare(address(esP88Rewarder)), 100 ether);
-    assertEq(staking.calculateTotalShare(address(PRewarder)), 100 ether);
+    assertEq(staking.calculateTotalShare(address(partnerRewarder)), 100 ether);
 
     vm.startPrank(ALICE);
     plp.approve(address(staking), 100 ether);
@@ -83,13 +89,22 @@ contract PLPStakingTest is BaseTest {
     assertEq(plp.balanceOf(ALICE), 0);
     assertEq(staking.userTokenAmount(address(plp), ALICE), 100 ether);
 
-    assertEq(staking.calculateShare(address(PRRewarder), ALICE), 100 ether);
+    assertEq(
+      staking.calculateShare(address(protocolRevenueRewarder), ALICE),
+      100 ether
+    );
     assertEq(staking.calculateShare(address(esP88Rewarder), ALICE), 100 ether);
-    assertEq(staking.calculateShare(address(PRewarder), ALICE), 100 ether);
+    assertEq(
+      staking.calculateShare(address(partnerRewarder), ALICE),
+      100 ether
+    );
 
-    assertEq(staking.calculateTotalShare(address(PRRewarder)), 200 ether);
+    assertEq(
+      staking.calculateTotalShare(address(protocolRevenueRewarder)),
+      200 ether
+    );
     assertEq(staking.calculateTotalShare(address(esP88Rewarder)), 200 ether);
-    assertEq(staking.calculateTotalShare(address(PRewarder)), 200 ether);
+    assertEq(staking.calculateTotalShare(address(partnerRewarder)), 200 ether);
   }
 
   function testRevert_NotStakingToken_WhenAliceWithdraw() external {
@@ -125,13 +140,19 @@ contract PLPStakingTest is BaseTest {
     assertEq(plp.balanceOf(BOB), 50 ether);
     assertEq(staking.userTokenAmount(address(plp), BOB), 50 ether);
 
-    assertEq(staking.calculateShare(address(PRRewarder), BOB), 50 ether);
+    assertEq(
+      staking.calculateShare(address(protocolRevenueRewarder), BOB),
+      50 ether
+    );
     assertEq(staking.calculateShare(address(esP88Rewarder), BOB), 50 ether);
-    assertEq(staking.calculateShare(address(PRewarder), BOB), 50 ether);
+    assertEq(staking.calculateShare(address(partnerRewarder), BOB), 50 ether);
 
-    assertEq(staking.calculateTotalShare(address(PRRewarder)), 150 ether);
+    assertEq(
+      staking.calculateTotalShare(address(protocolRevenueRewarder)),
+      150 ether
+    );
     assertEq(staking.calculateTotalShare(address(esP88Rewarder)), 150 ether);
-    assertEq(staking.calculateTotalShare(address(PRewarder)), 150 ether);
+    assertEq(staking.calculateTotalShare(address(partnerRewarder)), 150 ether);
 
     vm.prank(ALICE);
     staking.withdraw(ALICE, address(plp), 100 ether);
@@ -139,13 +160,19 @@ contract PLPStakingTest is BaseTest {
     assertEq(plp.balanceOf(ALICE), 100 ether);
     assertEq(staking.userTokenAmount(address(plp), ALICE), 0 ether);
 
-    assertEq(staking.calculateShare(address(PRRewarder), ALICE), 0 ether);
+    assertEq(
+      staking.calculateShare(address(protocolRevenueRewarder), ALICE),
+      0 ether
+    );
     assertEq(staking.calculateShare(address(esP88Rewarder), ALICE), 0 ether);
-    assertEq(staking.calculateShare(address(PRewarder), ALICE), 0 ether);
+    assertEq(staking.calculateShare(address(partnerRewarder), ALICE), 0 ether);
 
-    assertEq(staking.calculateTotalShare(address(PRRewarder)), 50 ether);
+    assertEq(
+      staking.calculateTotalShare(address(protocolRevenueRewarder)),
+      50 ether
+    );
     assertEq(staking.calculateTotalShare(address(esP88Rewarder)), 50 ether);
-    assertEq(staking.calculateTotalShare(address(PRewarder)), 50 ether);
+    assertEq(staking.calculateTotalShare(address(partnerRewarder)), 50 ether);
   }
 
   function testCorrectness_WhenAddStakingTokenRewarder() external {
@@ -160,9 +187,9 @@ contract PLPStakingTest is BaseTest {
     vm.stopPrank();
 
     address[] memory rewarders = new address[](3);
-    rewarders[0] = address(PRRewarder);
+    rewarders[0] = address(protocolRevenueRewarder);
     rewarders[1] = address(esP88Rewarder);
-    rewarders[2] = address(PRewarder);
+    rewarders[2] = address(partnerRewarder);
     staking.addStakingToken(address(p168), rewarders);
 
     vm.startPrank(BOB);
@@ -173,17 +200,29 @@ contract PLPStakingTest is BaseTest {
     assertEq(plp.balanceOf(BOB), 0);
     assertEq(staking.userTokenAmount(address(p168), BOB), 100 ether);
 
-    assertEq(staking.calculateShare(address(PRRewarder), BOB), 200 ether);
+    assertEq(
+      staking.calculateShare(address(protocolRevenueRewarder), BOB),
+      200 ether
+    );
     assertEq(staking.calculateShare(address(esP88Rewarder), BOB), 200 ether);
-    assertEq(staking.calculateShare(address(PRewarder), BOB), 200 ether);
+    assertEq(staking.calculateShare(address(partnerRewarder), BOB), 200 ether);
 
-    assertEq(staking.calculateShare(address(PRRewarder), ALICE), 100 ether);
+    assertEq(
+      staking.calculateShare(address(protocolRevenueRewarder), ALICE),
+      100 ether
+    );
     assertEq(staking.calculateShare(address(esP88Rewarder), ALICE), 100 ether);
-    assertEq(staking.calculateShare(address(PRewarder), ALICE), 100 ether);
+    assertEq(
+      staking.calculateShare(address(partnerRewarder), ALICE),
+      100 ether
+    );
 
-    assertEq(staking.calculateTotalShare(address(PRRewarder)), 300 ether);
+    assertEq(
+      staking.calculateTotalShare(address(protocolRevenueRewarder)),
+      300 ether
+    );
     assertEq(staking.calculateTotalShare(address(esP88Rewarder)), 300 ether);
-    assertEq(staking.calculateTotalShare(address(PRewarder)), 300 ether);
+    assertEq(staking.calculateTotalShare(address(partnerRewarder)), 300 ether);
   }
 
   function testCorrectness_WhenAddPartnerRewarder() external {
@@ -207,5 +246,53 @@ contract PLPStakingTest is BaseTest {
     assertEq(staking.calculateShare(address(P2Rewarder), BOB), 100 ether);
 
     assertEq(staking.calculateTotalShare(address(P2Rewarder)), 200 ether);
+  }
+
+  function testCorreness_WhenHarvest_WithValidRewarders() external {
+    address[] memory rewarders = new address[](4);
+    rewarders[0] = address(protocolRevenueRewarder);
+    rewarders[1] = address(esP88Rewarder);
+    rewarders[2] = address(partnerRewarder);
+    rewarders[3] = address(partnerRewarder); // with duplicate rewarder, should be ok too
+
+    vm.startPrank(ALICE);
+    staking.harvest(rewarders);
+    vm.stopPrank();
+  }
+
+  function testRevert_WhenHarvest_WithInvalidRewarders() external {
+    address[] memory rewarders = new address[](1);
+    rewarders[0] = address(88); // some random address
+
+    vm.startPrank(ALICE);
+    vm.expectRevert(abi.encodeWithSignature("Staking_NotRewarder()"));
+    staking.harvest(rewarders);
+    vm.stopPrank();
+  }
+
+  function testCorreness_WhenHarvestToCompounder_WithValidRewarders() external {
+    address[] memory rewarders = new address[](4);
+    rewarders[0] = address(protocolRevenueRewarder);
+    rewarders[1] = address(esP88Rewarder);
+    rewarders[2] = address(partnerRewarder);
+    rewarders[3] = address(partnerRewarder); // with duplicate rewarder, should be ok too
+
+    address compounder = address(99);
+    staking.setCompounder(compounder);
+
+    vm.startPrank(compounder);
+    staking.harvestToCompounder(ALICE, rewarders);
+    vm.stopPrank();
+  }
+
+  function testRevert_WhenHarvestToCompounder_BySomeRandomAccount() external {
+    address[] memory rewarders = new address[](0);
+    address compounder = address(99);
+    staking.setCompounder(compounder);
+
+    vm.startPrank(BOB);
+    vm.expectRevert(abi.encodeWithSignature("Staking_NotCompounder()"));
+    staking.harvestToCompounder(ALICE, rewarders);
+    vm.stopPrank();
   }
 }

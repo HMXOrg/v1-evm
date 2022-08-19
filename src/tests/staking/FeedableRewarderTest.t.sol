@@ -33,6 +33,39 @@ contract FeedableRewarderTest is BaseTest {
     assertEq(rewarder.lastRewardTime(), block.timestamp);
   }
 
+  function testRevert_WhenHookIsCalled_BySomeRandomGuy() external {
+    vm.startPrank(ALICE);
+
+    vm.expectRevert(
+      abi.encodeWithSignature("FeedableRewarderError_NotStakingContract()")
+    );
+    rewarder.onDeposit(BOB, 1 ether);
+
+    vm.expectRevert(
+      abi.encodeWithSignature("FeedableRewarderError_NotStakingContract()")
+    );
+    rewarder.onWithdraw(BOB, 1 ether);
+
+    vm.expectRevert(
+      abi.encodeWithSignature("FeedableRewarderError_NotStakingContract()")
+    );
+    rewarder.onHarvest(BOB, CAT);
+
+    vm.stopPrank();
+  }
+
+  function testRevert_WhenFeedIsCalled_BySomeRandomGuy() external {
+    vm.startPrank(ALICE);
+
+    vm.expectRevert("Ownable: caller is not the owner");
+    rewarder.feed(1 ether, 1 days);
+
+    vm.expectRevert("Ownable: caller is not the owner");
+    rewarder.feedWithExpiredAt(1 ether, block.timestamp + 1 days);
+
+    vm.stopPrank();
+  }
+
   function testCorrectness_WhenRewarderOnDepositIsHooked() external {
     // feed and amount of token
     // rewardPerSec ~= 0.033068783068783068

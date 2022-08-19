@@ -29,6 +29,27 @@ contract AdHocMintRewarderTest is BaseTest {
     assertEq(rewarder.rewardToken(), address(rewardToken));
   }
 
+  function testRevert_WhenHookIsCalled_BySomeRandomGuy() external {
+    vm.startPrank(ALICE);
+
+    vm.expectRevert(
+      abi.encodeWithSignature("AdHocMintRewarderError_NotStakingContract()")
+    );
+    rewarder.onDeposit(BOB, 1 ether);
+
+    vm.expectRevert(
+      abi.encodeWithSignature("AdHocMintRewarderError_NotStakingContract()")
+    );
+    rewarder.onWithdraw(BOB, 1 ether);
+
+    vm.expectRevert(
+      abi.encodeWithSignature("AdHocMintRewarderError_NotStakingContract()")
+    );
+    rewarder.onHarvest(BOB, CAT);
+
+    vm.stopPrank();
+  }
+
   function testCorrectness_WhenDepositMulitpleTimes_AndHarvestMultipleTimes(
     uint256 depositAmount1,
     uint256 depositAmount2,

@@ -29,7 +29,7 @@ contract MockStaking {
   }
 
   function harvest(address rewarder, address user) public {
-    IRewarder(rewarder).onHarvest(user);
+    IRewarder(rewarder).onHarvest(user, user);
   }
 
   function calculateTotalShare(address rewarder)
