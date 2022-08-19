@@ -1,12 +1,13 @@
 pragma solidity 0.8.14;
 
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { IRewarder } from "./interfaces/IRewarder.sol";
 import { IStaking } from "./interfaces/IStaking.sol";
 
-contract Rewarder is IRewarder {
+contract FeedableRewarder is IRewarder, Ownable {
   using SafeCast for uint256;
   using SafeCast for uint128;
   using SafeCast for int256;
@@ -36,9 +37,14 @@ contract Rewarder is IRewarder {
   );
 
   // Error
-  error RewarderError_FeedAmountDecayed();
+  error FeedableRewarderError_FeedAmountDecayed();
+  error FeedableRewarderError_NotStakingContract();
 
-  // TODO: add ACL
+  modifier onlyStakingContract() {
+    if (msg.sender != staking)
+      revert FeedableRewarderError_NotStakingContract();
+    _;
+  }
 
   constructor(
     string memory name_,
@@ -55,7 +61,10 @@ contract Rewarder is IRewarder {
     lastRewardTime = block.timestamp.toUint64();
   }
 
-  function onDeposit(address user, uint256 shareAmount) external {
+  function onDeposit(address user, uint256 shareAmount)
+    external
+    onlyStakingContract
+  {
     _updateRewardCalculationParams();
 
     userRewardDebts[user] =
@@ -65,7 +74,10 @@ contract Rewarder is IRewarder {
     emit LogOnDeposit(user, shareAmount);
   }
 
-  function onWithdraw(address user, uint256 shareAmount) external {
+  function onWithdraw(address user, uint256 shareAmount)
+    external
+    onlyStakingContract
+  {
     _updateRewardCalculationParams();
 
     userRewardDebts[user] =
@@ -75,7 +87,10 @@ contract Rewarder is IRewarder {
     emit LogOnWithdraw(user, shareAmount);
   }
 
-  function onHarvest(address user) external {
+  function onHarvest(address user, address receiver)
+    external
+    onlyStakingContract
+  {
     _updateRewardCalculationParams();
 
     int256 accumulatedRewards = ((_userShare(user) * accRewardPerShare) /
@@ -86,25 +101,30 @@ contract Rewarder is IRewarder {
     userRewardDebts[user] = accumulatedRewards;
 
     if (pendingRewardAmount != 0) {
-      IERC20(rewardToken).safeTransfer(user, pendingRewardAmount);
+      IERC20(rewardToken).safeTransfer(receiver, pendingRewardAmount);
     }
 
     emit LogHarvest(user, pendingRewardAmount);
   }
 
   function pendingReward(address user) external view returns (uint256) {
+    uint256 projectedAccRewardPerShare = accRewardPerShare +
+      _calculateAccRewardPerShare(_totalShare());
     int256 accumulatedRewards = ((_userShare(user) *
-      _calculateAccRewardPerShare()) / ACC_REWARD_PRECISION).toInt256();
+      projectedAccRewardPerShare) / ACC_REWARD_PRECISION).toInt256();
 
     if (accumulatedRewards < userRewardDebts[user]) return 0;
     return (accumulatedRewards - userRewardDebts[user]).toUint256();
   }
 
-  function feed(uint256 feedAmount, uint256 duration) external {
+  function feed(uint256 feedAmount, uint256 duration) external onlyOwner {
     _feed(feedAmount, duration);
   }
 
-  function feedWithExpiredAt(uint256 feedAmount, uint256 expiredAt) external {
+  function feedWithExpiredAt(uint256 feedAmount, uint256 expiredAt)
+    external
+    onlyOwner
+  {
     _feed(feedAmount, expiredAt - block.timestamp);
   }
 
@@ -123,7 +143,7 @@ contract Rewarder is IRewarder {
       if (
         IERC20(rewardToken).balanceOf(address(this)) - balanceBefore !=
         feedAmount
-      ) revert RewarderError_FeedAmountDecayed();
+      ) revert FeedableRewarderError_FeedAmountDecayed();
     }
 
     uint256 leftOverReward = rewardRateExpiredAt > block.timestamp
@@ -136,22 +156,24 @@ contract Rewarder is IRewarder {
   }
 
   function _updateRewardCalculationParams() internal {
-    if (block.timestamp > lastRewardTime) {
-      accRewardPerShare = _calculateAccRewardPerShare();
+    uint256 totalShare = _totalShare();
+    if (block.timestamp > lastRewardTime && totalShare > 0) {
+      accRewardPerShare += _calculateAccRewardPerShare(totalShare);
       lastRewardTime = block.timestamp.toUint64();
       emit LogUpdateRewardCalculationParams(lastRewardTime, accRewardPerShare);
     }
   }
 
-  function _calculateAccRewardPerShare() internal view returns (uint128) {
-    uint256 totalShare = _totalShare();
-    if (block.timestamp > lastRewardTime && totalShare > 0) {
+  function _calculateAccRewardPerShare(uint256 totalShare)
+    internal
+    view
+    returns (uint128)
+  {
+    if (totalShare > 0) {
       uint256 _rewards = _timePast() * rewardRate;
-      return
-        accRewardPerShare +
-        ((_rewards * ACC_REWARD_PRECISION) / totalShare).toUint128();
+      return ((_rewards * ACC_REWARD_PRECISION) / totalShare).toUint128();
     }
-    return accRewardPerShare;
+    return 0;
   }
 
   function _timePast() private view returns (uint256) {
@@ -159,8 +181,10 @@ contract Rewarder is IRewarder {
     // On the other hand, prevent insufficient reward when harvest.
     if (block.timestamp < rewardRateExpiredAt) {
       return block.timestamp - lastRewardTime;
-    } else {
+    } else if (rewardRateExpiredAt > lastRewardTime) {
       return rewardRateExpiredAt - lastRewardTime;
+    } else {
+      return 0;
     }
   }
 

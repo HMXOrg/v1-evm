@@ -2,13 +2,13 @@
 pragma solidity 0.8.14;
 
 import "./BaseStaking.sol";
-import "../tokens/MultiplierPointToken.sol";
+import "../tokens/DragonPoint.sol";
 
 contract DragonStaking is BaseStaking {
-  MultiplierPointToken public dp;
+  DragonPoint public dp;
 
   constructor(address dp_) {
-    dp = MultiplierPointToken(dp_);
+    dp = DragonPoint(dp_);
   }
 
   function _afterWithdraw(

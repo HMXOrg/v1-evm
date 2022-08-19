@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
-import { BaseTest } from "./base/BaseTest.sol";
-import { P88 } from "../tokens/P88.sol";
+import { BaseTest } from "../base/BaseTest.sol";
+import { P88 } from "../../tokens/P88.sol";
 
 contract P88Test is BaseTest {
   P88 internal p88;
@@ -12,7 +12,7 @@ contract P88Test is BaseTest {
   }
 
   function testCorrectness_init() external {
-    assertEq(p88.name(), "P88");
+    assertEq(p88.name(), "Perp88");
     assertEq(p88.symbol(), "P88");
   }
 
@@ -31,7 +31,12 @@ contract P88Test is BaseTest {
   }
 
   function testRevert_mint() external {
-    vm.expectRevert("MintableToken: forbidden");
+    vm.expectRevert(abi.encodeWithSignature("BaseMintableToken_NotMinter()"));
     p88.mint(BOB, 88 ether);
+  }
+
+  function testRevert_burn() external {
+    vm.expectRevert(abi.encodeWithSignature("BaseMintableToken_NotMinter()"));
+    p88.burn(BOB, 88 ether);
   }
 }

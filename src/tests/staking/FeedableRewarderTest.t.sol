@@ -2,14 +2,14 @@
 pragma solidity >=0.8.4 <0.9.0;
 
 import { BaseTest } from "../base/BaseTest.sol";
-import { Rewarder } from "../../staking/Rewarder.sol";
+import { FeedableRewarder } from "../../staking/FeedableRewarder.sol";
 import { MockErc20 } from "../mocks/MockERC20.sol";
 import { MockStaking } from "../mocks/MockStaking.sol";
 import { console } from "../utils/console.sol";
 import { math } from "../utils/math.sol";
 
-contract RewarderTest is BaseTest {
-  Rewarder internal rewarder;
+contract FeedableRewarderTest is BaseTest {
+  FeedableRewarder internal rewarder;
   MockErc20 internal rewardToken;
   MockStaking internal mockStaking;
 
@@ -17,7 +17,7 @@ contract RewarderTest is BaseTest {
     mockStaking = new MockStaking();
 
     rewardToken = new MockErc20("Reward Token", "REW", 18);
-    rewarder = new Rewarder(
+    rewarder = new FeedableRewarder(
       "REWRewarder",
       address(rewardToken),
       address(mockStaking)
@@ -31,6 +31,39 @@ contract RewarderTest is BaseTest {
     assertEq(rewarder.name(), "REWRewarder");
     assertEq(rewarder.rewardToken(), address(rewardToken));
     assertEq(rewarder.lastRewardTime(), block.timestamp);
+  }
+
+  function testRevert_WhenHookIsCalled_BySomeRandomGuy() external {
+    vm.startPrank(ALICE);
+
+    vm.expectRevert(
+      abi.encodeWithSignature("FeedableRewarderError_NotStakingContract()")
+    );
+    rewarder.onDeposit(BOB, 1 ether);
+
+    vm.expectRevert(
+      abi.encodeWithSignature("FeedableRewarderError_NotStakingContract()")
+    );
+    rewarder.onWithdraw(BOB, 1 ether);
+
+    vm.expectRevert(
+      abi.encodeWithSignature("FeedableRewarderError_NotStakingContract()")
+    );
+    rewarder.onHarvest(BOB, CAT);
+
+    vm.stopPrank();
+  }
+
+  function testRevert_WhenFeedIsCalled_BySomeRandomGuy() external {
+    vm.startPrank(ALICE);
+
+    vm.expectRevert("Ownable: caller is not the owner");
+    rewarder.feed(1 ether, 1 days);
+
+    vm.expectRevert("Ownable: caller is not the owner");
+    rewarder.feedWithExpiredAt(1 ether, block.timestamp + 1 days);
+
+    vm.stopPrank();
   }
 
   function testCorrectness_WhenRewarderOnDepositIsHooked() external {
@@ -154,7 +187,7 @@ contract RewarderTest is BaseTest {
     vm.warp(block.timestamp + 5 days);
     assertEq(rewardToken.balanceOf(ALICE), 0);
     mockStaking.harvest(address(rewarder), ALICE);
-    assertEq(rewardToken.balanceOf(ALICE), 9999.999999999980000000 ether);
+    assertEq(rewardToken.balanceOf(ALICE), 19999.999999999980000000 ether);
   }
 
   function test_WhenFeedTokenMultipleTimes() external {
