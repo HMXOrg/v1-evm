@@ -20,7 +20,7 @@ contract WFeedableRewarder is FeedableRewarder {
     address staking_
   ) FeedableRewarder(name_, rewardToken_, staking_) {
     // Sanity check. Ensure that the rewardToken is wrappable.
-    IWNative(rewardToken).deposit();
+    IWNative(rewardToken).deposit{ value: 0 }();
   }
 
   function _harvestToken(address receiver, uint256 pendingRewardAmount)
