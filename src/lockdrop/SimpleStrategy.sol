@@ -4,9 +4,9 @@ pragma solidity 0.8.14;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { IPool } from "../interfaces/IPool.sol";
-import { ISimpleStrategy } from "./interfaces/ISimpleStrategy.sol";
+import { ILockdropStrategy } from "./interfaces/ILockdropStrategy.sol";
 
-contract SimpleStrategy is ISimpleStrategy {
+contract SimpleStrategy is ILockdropStrategy {
   using SafeERC20 for IERC20;
   IPool public pool;
 
