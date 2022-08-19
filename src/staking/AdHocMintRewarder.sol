@@ -87,7 +87,7 @@ contract AdHocMintRewarder is IRewarder, Ownable {
     userLastRewards[user] = block.timestamp.toUint64();
 
     if (pendingRewardAmount != 0) {
-      MintableTokenInterface(rewardToken).mint(receiver, pendingRewardAmount);
+      _harvestToken(receiver, pendingRewardAmount);
     }
 
     emit LogHarvest(user, pendingRewardAmount);
@@ -114,5 +114,12 @@ contract AdHocMintRewarder is IRewarder, Ownable {
 
   function _userShare(address user) private view returns (uint256) {
     return IStaking(staking).calculateShare(address(this), user);
+  }
+
+  function _harvestToken(address receiver, uint256 pendingRewardAmount)
+    internal
+    virtual
+  {
+    MintableTokenInterface(rewardToken).mint(receiver, pendingRewardAmount);
   }
 }

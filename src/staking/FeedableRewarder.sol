@@ -101,7 +101,7 @@ contract FeedableRewarder is IRewarder, Ownable {
     userRewardDebts[user] = accumulatedRewards;
 
     if (pendingRewardAmount != 0) {
-      IERC20(rewardToken).safeTransfer(receiver, pendingRewardAmount);
+      _harvestToken(receiver, pendingRewardAmount);
     }
 
     emit LogHarvest(user, pendingRewardAmount);
@@ -194,5 +194,12 @@ contract FeedableRewarder is IRewarder, Ownable {
 
   function _userShare(address user) private view returns (uint256) {
     return IStaking(staking).calculateShare(address(this), user);
+  }
+
+  function _harvestToken(address receiver, uint256 pendingRewardAmount)
+    internal
+    virtual
+  {
+    IERC20(rewardToken).safeTransfer(receiver, pendingRewardAmount);
   }
 }
