@@ -27,20 +27,13 @@ contract RewardDistributor is Ownable {
   function distributeToken(address[] calldata tokenlist) external onlyOwner {
     uint256 length = tokenlist.length;
     for (uint256 index = 0; index < length; ) {
+      uint256 tokenAmount = IERC20(tokenlist[index]).balanceOf(address(this));
+
       // Approve inToken
-      IERC20(tokenlist[index]).approve(
-        address(pool),
-        IERC20(tokenlist[index]).balanceOf(address(this))
-      );
+      IERC20(tokenlist[index]).approve(address(pool), tokenAmount);
 
       // Swap to native token
-      pool.swap(
-        tokenlist[index],
-        rewardToken,
-        IERC20(tokenlist[index]).balanceOf(address(this)),
-        0,
-        address(this)
-      );
+      pool.swap(tokenlist[index], rewardToken, tokenAmount, 0, address(this));
 
       unchecked {
         ++index;
@@ -50,15 +43,11 @@ contract RewardDistributor is Ownable {
 
   // Feed to FeedableRewarder contract
   function feedToRewarder(uint256 duration) external onlyOwner {
-    // Approve to feed inToken
-    IERC20(rewardToken).approve(
-      address(feedableRewarder),
-      IERC20(rewardToken).balanceOf(address(this))
-    );
+    uint256 rewardTokenAmount = IERC20(rewardToken).balanceOf(address(this));
 
-    feedableRewarder.feed(
-      IERC20(rewardToken).balanceOf(address(this)),
-      duration
-    );
+    // Approve to feed inToken
+    IERC20(rewardToken).approve(address(feedableRewarder), rewardTokenAmount);
+
+    feedableRewarder.feed(rewardTokenAmount, duration);
   }
 }
