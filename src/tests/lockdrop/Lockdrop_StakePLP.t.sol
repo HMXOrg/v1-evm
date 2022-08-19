@@ -9,7 +9,7 @@ contract Lockdrop_StakePLP is Lockdrop_BaseTest {
 
   function setUp() public override {
     super.setUp();
-
+    mockPLPToken.setMinter(address(lockdrop), true);
     PRRewarder = new MockRewarder();
     address[] memory rewarders1 = new address[](1);
     rewarders1[0] = address(PRRewarder);
