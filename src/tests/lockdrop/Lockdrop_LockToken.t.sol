@@ -47,12 +47,46 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     // 2. The amount of Bobs' lockdrop token should be 10
     // 3. The number of lock period should be 704900
     // 4. The total amount of lock token should be 16 + 10 = 26
-    // 5. The total P88 weight should be 16 * 604900 + 10 * 704900 
+    // 5. The total P88 weight should be 16 * 604900 + 10 * 704900
     assertEq(mockERC20.balanceOf(BOB), 20);
     assertEq(bobLockdropTokenAmount, 10);
     assertEq(bobLockPeriod, 704900);
     assertEq(lockdrop.totalAmount(), 26);
     assertEq(lockdrop.totalP88Weight(), 16 * 604900 + 10 * 704900);
+  }
+
+  function testCorrectness_LockdropAddLockAmount() external {
+    vm.startPrank(ALICE, ALICE);
+    mockERC20.mint(ALICE, 20);
+    mockERC20.approve(address(lockdrop), 20);
+    vm.warp(120000);
+    lockdrop.lockToken(16, 604900);
+    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod) = lockdrop
+      .lockdropStates(ALICE);
+    assertEq(mockERC20.balanceOf(ALICE), 4);
+    assertEq(aliceLockdropTokenAmount, 16);
+    assertEq(aliceLockPeriod, 604900);
+    assertEq(lockdrop.totalAmount(), 16);
+    assertEq(lockdrop.totalP88Weight(), 16 * 604900);
+
+    // Alice wants to lock more
+    lockdrop.addLockAmount(4);
+    vm.stopPrank();
+
+    (aliceLockdropTokenAmount, aliceLockPeriod) = lockdrop.lockdropStates(
+      ALICE
+    );
+    // After Alice add more ERC20 token, the following criteria needs to satisfy:
+    // 1. Balance of Alice's ERC20 token should be 0
+    // 2. The amount of Alice's lockdrop token should be 20
+    // 3. The number of lock period should be 604900
+    // 4. The total amount of lock token should be 20
+    // 5. The total P88 weight should be 20 * 604900
+    assertEq(mockERC20.balanceOf(ALICE), 0);
+    assertEq(aliceLockdropTokenAmount, 20);
+    assertEq(aliceLockPeriod, 604900);
+    assertEq(lockdrop.totalAmount(), 20);
+    assertEq(lockdrop.totalP88Weight(), 20 * 604900);
   }
 
   function testRevert_LockdropLockToken_InWithdrawPeriod() external {

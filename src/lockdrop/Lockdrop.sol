@@ -18,14 +18,14 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
 
   // --- Events ---
   event LogLockToken(address indexed user, uint256 amount, uint256 lockPeriod);
-
+  event LogAddLockAmount(address indexed user, uint256 amount);
+  event LogNewLockPeriod(address indexed user, uint256 lockPeriod);
   event LogWithdrawLockToken(
     address indexed user,
     address token,
     uint256 amount,
     uint256 remainingAmount
   );
-
   event LogWithdrawAll(address indexed user, address token);
 
   // --- Custom Errors ---
@@ -40,6 +40,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   error Lockdrop_NotPassLockdropPeriod();
   error Lockdrop_InvalidWithdrawPeriod();
   error Lockdrop_P88AlreadyClaimed();
+  error Lockdrop_NoPosition();
 
   // --- Structs ---
   struct LockdropState {
@@ -116,6 +117,26 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     totalAmount += _amount;
     totalP88Weight += _amount * _lockPeriod;
     emit LogLockToken(msg.sender, _amount, _lockPeriod);
+  }
+
+  function extendLockPeriod(uint256 _lockPeriod) external onlyInDepositPeriod {
+    if (_lockPeriod < (7 days) || _lockPeriod > (7 days * 52))
+      revert Lockdrop_InvalidLockPeriod(); // Less than 1 week or more than 52 weeks
+    if (lockdropStates[msg.sender].lockdropTokenAmount == 0)
+      revert Lockdrop_NoPosition();
+    lockdropStates[msg.sender].lockPeriod = _lockPeriod;
+    emit LogNewLockPeriod(msg.sender, _lockPeriod);
+  }
+
+  function addLockAmount(uint256 _amount) external onlyInDepositPeriod {
+    if (_amount == 0) revert Lockdrop_ZeroAmountNotAllowed();
+    if (lockdropStates[msg.sender].lockdropTokenAmount == 0)
+      revert Lockdrop_NoPosition();
+    lockdropToken.safeTransferFrom(msg.sender, address(this), _amount);
+    lockdropStates[msg.sender].lockdropTokenAmount += _amount;
+    totalAmount += _amount;
+    totalP88Weight += _amount * lockdropStates[msg.sender].lockPeriod;
+    emit LogAddLockAmount(msg.sender, _amount);
   }
 
   /// @dev Users withdraw their ERC20 Token within lockdrop period, should be in a valid withdraw period (last 2 days)
