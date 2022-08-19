@@ -36,9 +36,7 @@ contract RewardDistributorTest is BaseTest {
     );
   }
 
-  function testRevert_WhenSendInTheTokenToDistributor_ButNotAWhitelistDistributor()
-    external
-  {
+  function testRevert_WhenSendInTheTokenToDistributor_ButNotAnOwner() external {
     inToken1.mint(address(this), 10 ether);
     inToken2.mint(address(this), 10 ether);
 
@@ -50,11 +48,11 @@ contract RewardDistributorTest is BaseTest {
 
     //  Expect Revert
     vm.prank(ALICE);
-    vm.expectRevert();
+    vm.expectRevert("Ownable: caller is not the owner");
     rewardDistributor.distributeToken(inTokenList);
   }
 
-  function testCorrectness_WhenSendInTheTokenToDistributor_ThenDistibutorSwapTokenToNativeToken()
+  function testCorrectness_WhenSendInTheTokenToDistributor_ThenDistibutorSwapTokenToRewardToken()
     external
   {
     inToken1.mint(address(this), 10 ether);
@@ -89,7 +87,7 @@ contract RewardDistributorTest is BaseTest {
     );
   }
 
-  function testCorrectness_WhenFeedTheNativeTokenToFeedableRewarder() external {
+  function testCorrectness_WhenFeedTheRewardTokenToFeedableRewarder() external {
     inToken1.mint(address(this), 10 ether);
     inToken2.mint(address(this), 10 ether);
 
