@@ -10,25 +10,33 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.s
 import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import { Constants } from "./Constants.sol";
 
+import { console } from "../tests/utils/console.sol";
+
 contract Pool is Constants, ReentrancyGuard {
   using SafeERC20 for IERC20;
 
   error Pool_BadAmountOut();
   error Pool_BadArgument();
   error Pool_BadPositionSize();
+  error Pool_BadToken();
   error Pool_CollateralTooSmall();
+  error Pool_CollateralTokenIsStable();
+  error Pool_CollateralTokenNotStable();
   error Pool_CoolDown();
-  error Pool_FailCheckPosition();
   error Pool_Forbidden();
   error Pool_LeverageDisabled();
   error Pool_LiquidityBuffer();
   error Pool_LiquidityMismatch();
+  error Pool_IndexTokenIsStable();
+  error Pool_IndexTokenNotShortable();
   error Pool_InsufficientLiquidity();
   error Pool_InsufficientLiquidityMint();
   error Pool_OverUsdDebtCeiling();
   error Pool_OverShortCeiling();
+  error Pool_SizeSmallerThanCollateral();
   error Pool_Slippage();
   error Pool_SwapDisabled();
+  error Pool_TokenMisMatch();
 
   MintableTokenInterface public plp;
 
@@ -216,7 +224,7 @@ contract Pool is Constants, ReentrancyGuard {
     uint256 amount = _pullTokens(token);
 
     // Check
-    if (!config.isAcceptToken(token)) revert Pool_BadArgument();
+    if (!config.isAcceptToken(token)) revert Pool_BadToken();
     if (amount == 0) revert Pool_BadArgument();
 
     uint256 aum = poolMath.getAum18(Pool(address(this)), MinMax.MAX);
@@ -469,16 +477,7 @@ contract Pool is Constants, ReentrancyGuard {
     Exposure exposure
   ) external nonReentrant allowed(primaryAccount) {
     if (!config.isLeverageEnable()) revert Pool_LeverageDisabled();
-    if (Exposure.LONG == exposure) {
-      if (collateralToken != indexToken) revert Pool_BadArgument();
-      if (!config.isAcceptToken(collateralToken)) revert Pool_BadArgument();
-      if (config.isStableToken(collateralToken)) revert Pool_BadArgument();
-    } else {
-      if (!config.isAcceptToken(collateralToken)) revert Pool_BadArgument();
-      if (!config.isStableToken(collateralToken)) revert Pool_BadArgument();
-      if (config.isStableToken(indexToken)) revert Pool_BadArgument();
-      if (!config.isShortableToken(indexToken)) revert Pool_BadArgument();
-    }
+    _checkTokenInputs(collateralToken, indexToken, exposure);
     // TODO: Add validate increase position
 
     updateFundingRate(collateralToken, indexToken);
@@ -562,7 +561,7 @@ contract Pool is Constants, ReentrancyGuard {
     uint256 reserveDelta = _convertUsde30ToTokens(
       collateralToken,
       sizeDelta,
-      MinMax.MAX
+      MinMax.MIN
     );
     position.reserveAmount += reserveDelta;
     _increaseReserved(collateralToken, reserveDelta);
@@ -581,7 +580,7 @@ contract Pool is Constants, ReentrancyGuard {
       // and collateral is treated as part of the pool
       _decreasePoolLiquidity(
         collateralToken,
-        _convertUsde30ToTokens(collateralToken, vars.feeUsd, MinMax.MIN)
+        _convertUsde30ToTokens(collateralToken, vars.feeUsd, MinMax.MAX)
       );
     } else {
       if (shortSizeOf[indexToken] == 0)
@@ -619,48 +618,34 @@ contract Pool is Constants, ReentrancyGuard {
     );
   }
 
-  function _updatePoolLiquidityIncreasePosition(
-    address collateralToken,
-    address indexToken,
-    uint256 price,
-    uint256 sizeDelta,
-    uint256 collateralDelta,
-    uint256 collateralDeltaUsd,
-    uint256 feeUsd,
-    Exposure exposure
-  ) internal {
-    if (Exposure.LONG == exposure) {
-      // guaranteedUsd stores the sum of (position.size - position.collateral) for all positions
-      // if a fee is charged on the collateral then guaranteedUsd should be increased by that fee amount
-      // since (position.size - position.collateral) would have increased by `fee`
-      _increaseGuaranteedUsd(collateralToken, sizeDelta + feeUsd);
-      _decreaseGuaranteedUsd(collateralToken, collateralDeltaUsd);
-
-      // treat the deposited collateral as part of the pool
-      _increasePoolLiquidity(collateralToken, collateralDelta);
-
-      // fees need to be deducted from the pool since fees are deducted from position.collateral
-      // and collateral is treated as part of the pool
-      _decreasePoolLiquidity(
-        collateralToken,
-        _convertUsde30ToTokens(collateralToken, feeUsd, MinMax.MIN)
-      );
-    } else {
-      if (shortSizeOf[indexToken] == 0) shortAveragePriceOf[indexToken] = price;
-      else
-        shortAveragePriceOf[indexToken] = getNextShortAveragePrice(
-          indexToken,
-          price,
-          sizeDelta
-        );
-
-      _increaseShortSize(indexToken, sizeDelta);
-    }
-  }
-
   // ----------------
   // Getter functions
   // ----------------
+
+  function getRedemptionCollateral(address token)
+    public
+    view
+    returns (uint256)
+  {
+    if (config.isStableToken(token)) return liquidityOf[token];
+
+    uint256 collateral = _convertUsde30ToTokens(
+      token,
+      guaranteedUsdOf[token],
+      MinMax.MAX
+    );
+    return collateral + liquidityOf[token] - reservedOf[token];
+  }
+
+  function getRedemptionCollateralUsd(address token)
+    public
+    view
+    returns (uint256)
+  {
+    return
+      _convertTokensToUsde30(token, getRedemptionCollateral(token), MinMax.MIN);
+  }
+
   function getDelta(
     address indexToken,
     uint256 size,
@@ -764,14 +749,91 @@ contract Pool is Constants, ReentrancyGuard {
     return (nextPrice * nextSize) / divisor;
   }
 
+  struct GetPositionReturnVars {
+    uint256 size;
+    uint256 collateral;
+    uint256 averagePrice;
+    uint256 entryFundingRate;
+    uint256 reserveAmount;
+    uint256 realizedPnl;
+    bool hasProfit;
+    uint256 lastIncreasedTime;
+  }
+
+  function getPosition(
+    address primaryAccount,
+    uint256 subAccountId,
+    address collateralToken,
+    address indexToken,
+    Exposure exposure
+  ) external view returns (GetPositionReturnVars memory) {
+    return
+      getPosition(
+        getSubAccount(primaryAccount, subAccountId),
+        collateralToken,
+        indexToken,
+        exposure
+      );
+  }
+
   function getPosition(
     address account,
     address collateralToken,
     address indexToken,
     Exposure exposure
-  ) public view returns (Position memory) {
+  ) public view returns (GetPositionReturnVars memory) {
+    Position memory position = positions[
+      getPositionId(account, collateralToken, indexToken, exposure)
+    ];
+    uint256 realizedPnl = position.realizedPnl > 0
+      ? uint256(position.realizedPnl)
+      : uint256(-position.realizedPnl);
+    GetPositionReturnVars memory vars = GetPositionReturnVars({
+      size: position.size,
+      collateral: position.collateral,
+      averagePrice: position.averagePrice,
+      entryFundingRate: position.entryFundingRate,
+      reserveAmount: position.reserveAmount,
+      realizedPnl: realizedPnl,
+      hasProfit: position.realizedPnl >= 0,
+      lastIncreasedTime: position.lastIncreasedTime
+    });
+    return vars;
+  }
+
+  function getPositionDelta(
+    address account,
+    uint256 subAccountId,
+    address collateralToken,
+    address indexToken,
+    Exposure exposure
+  ) external view returns (bool, uint256) {
     return
-      positions[getPositionId(account, collateralToken, indexToken, exposure)];
+      getPositionDelta(
+        getSubAccount(account, subAccountId),
+        collateralToken,
+        indexToken,
+        exposure
+      );
+  }
+
+  function getPositionDelta(
+    address account,
+    address collateralToken,
+    address indexToken,
+    Exposure exposure
+  ) public view returns (bool, uint256) {
+    Position memory position = positions[
+      getPositionId(account, collateralToken, indexToken, exposure)
+    ];
+    return
+      getDelta(
+        indexToken,
+        position.size,
+        position.averagePrice,
+        exposure,
+        position.lastIncreasedTime
+      );
   }
 
   function getPositionId(
@@ -840,7 +902,7 @@ contract Pool is Constants, ReentrancyGuard {
     uint256 feeTokens = _convertUsde30ToTokens(
       collateralToken,
       feeUsd,
-      MinMax.MIN
+      MinMax.MAX
     );
     feeReserveOf[collateralToken] += feeTokens;
 
@@ -855,8 +917,9 @@ contract Pool is Constants, ReentrancyGuard {
     uint256 amount,
     uint256 feeBps
   ) internal returns (uint256) {
-    uint256 fee = (amount * feeBps) / BPS;
-    uint256 amountAfterFee = amount - fee;
+    uint256 amountAfterFee = (amount * (BPS - feeBps)) / BPS;
+    uint256 fee = amount - amountAfterFee;
+
     feeReserveOf[token] += fee;
 
     emit CollectSwapFee(token, fee * tokenPriceUsd, fee);
@@ -971,10 +1034,31 @@ contract Pool is Constants, ReentrancyGuard {
 
   function _checkPosition(uint256 size, uint256 collateral) internal pure {
     if (size == 0) {
-      if (collateral != 0) revert Pool_FailCheckPosition();
+      if (collateral != 0) revert Pool_SizeSmallerThanCollateral();
       return;
     }
-    if (size < collateral) revert Pool_FailCheckPosition();
+    if (size < collateral) revert Pool_SizeSmallerThanCollateral();
+  }
+
+  function _checkTokenInputs(
+    address collateralToken,
+    address indexToken,
+    Exposure exposure
+  ) internal view {
+    if (Exposure.LONG == exposure) {
+      if (collateralToken != indexToken) revert Pool_TokenMisMatch();
+      if (!config.isAcceptToken(collateralToken)) revert Pool_BadToken();
+      if (config.isStableToken(collateralToken))
+        revert Pool_CollateralTokenIsStable();
+      return;
+    }
+
+    if (!config.isAcceptToken(collateralToken)) revert Pool_BadToken();
+    if (!config.isStableToken(collateralToken))
+      revert Pool_CollateralTokenNotStable();
+    if (config.isStableToken(indexToken)) revert Pool_IndexTokenIsStable();
+    if (!config.isShortableToken(indexToken))
+      revert Pool_IndexTokenNotShortable();
   }
 
   function checkLiquidation(

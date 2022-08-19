@@ -113,7 +113,8 @@ contract PoolConfig is Ownable {
     uint64 _taxBps,
     uint64 _stableFundingRateFactor,
     uint64 _fundingRateFactor,
-    uint64 _liquidityCoolDownDuration
+    uint64 _liquidityCoolDownDuration,
+    uint256 _liquidationFeeUsd
   ) {
     allowTokens.init();
 
@@ -131,6 +132,7 @@ contract PoolConfig is Ownable {
     isLeverageEnable = true;
 
     // Fee
+    liquidationFeeUsd = _liquidationFeeUsd;
     stableSwapFeeBps = 4; // 0.04%
     swapFeeBps = 30; // 0.3%
     marginFeeBps = 10; // 0.1%

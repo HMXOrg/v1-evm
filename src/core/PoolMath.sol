@@ -6,6 +6,8 @@ import { Constants } from "./Constants.sol";
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
+import { console } from "../tests/utils/console.sol";
+
 contract PoolMath is Constants {
   error PoolMath_FeeExceedCollateral();
   error PoolMath_LiquidationFeeExceedCollateral();
@@ -249,7 +251,7 @@ contract PoolMath is Constants {
     Exposure exposure,
     bool isRevertWhenError
   ) external view returns (uint256, uint256) {
-    Pool.Position memory position = pool.getPosition(
+    Pool.GetPositionReturnVars memory position = pool.getPosition(
       account,
       collateralToken,
       indexToken,
