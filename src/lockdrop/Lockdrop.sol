@@ -124,7 +124,10 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
       revert Lockdrop_InvalidLockPeriod(); // Less than 1 week or more than 52 weeks
     if (lockdropStates[msg.sender].lockdropTokenAmount == 0)
       revert Lockdrop_NoPosition();
+    if (_lockPeriod < lockdropStates[msg.sender].lockPeriod) revert Lockdrop_InvalidLockPeriod();
+    totalP88Weight -= lockdropStates[msg.sender].lockdropTokenAmount * lockdropStates[msg.sender].lockPeriod;
     lockdropStates[msg.sender].lockPeriod = _lockPeriod;
+    totalP88Weight += lockdropStates[msg.sender].lockdropTokenAmount * _lockPeriod;
     emit LogNewLockPeriod(msg.sender, _lockPeriod);
   }
 

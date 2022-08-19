@@ -7,6 +7,10 @@ interface ILockdrop {
     uint256 _lockPeriod
   ) external;
 
+  function extendLockPeriod(uint256 _lockPeriod) external;
+
+  function addLockAmount(uint256 _amount) external;
+
   function earlyWithdrawLockedToken(uint256 _amount, address _user) external;
 
   function claimAllReward(address _user) external;
