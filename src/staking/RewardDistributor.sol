@@ -9,7 +9,6 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 contract RewardDistributor is Ownable {
   using SafeERC20 for IERC20;
 
-  address distributor;
   address public rewardToken;
   IPool public pool;
   IFeedableRewarder public feedableRewarder;
@@ -22,21 +21,12 @@ contract RewardDistributor is Ownable {
     rewardToken = rewardToken_;
     pool = pool_;
     feedableRewarder = feedableRewarder_;
-    distributor = msg.sender;
-  }
-
-  modifier onlyDistributor() {
-    require(msg.sender == distributor);
-    _;
   }
 
   // Do Swap List of Token to native token
-  function distributeToken(address[] calldata tokenlist)
-    external
-    onlyDistributor
-    onlyOwner
-  {
-    for (uint256 index = 0; index < tokenlist.length; index++) {
+  function distributeToken(address[] calldata tokenlist) external onlyOwner {
+    uint256 length = tokenlist.length;
+    for (uint256 index = 0; index < length) {
       // Approve inToken
       IERC20(tokenlist[index]).approve(
         address(pool),
@@ -51,11 +41,15 @@ contract RewardDistributor is Ownable {
         0,
         address(this)
       );
+
+      unchecked {
+        ++index;
+      }
     }
   }
 
   // Feed to FeedableRewarder contract
-  function feedToRewarder(uint256 duration) external onlyDistributor onlyOwner {
+  function feedToRewarder(uint256 duration) external onlyOwner {
     // Approve to feed inToken
     IERC20(rewardToken).approve(
       address(feedableRewarder),
