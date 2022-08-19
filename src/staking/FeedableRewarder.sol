@@ -1,12 +1,13 @@
 pragma solidity 0.8.14;
 
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { IRewarder } from "./interfaces/IRewarder.sol";
 import { IStaking } from "./interfaces/IStaking.sol";
 
-contract FeedableRewarder is IRewarder {
+contract FeedableRewarder is IRewarder, Ownable {
   using SafeCast for uint256;
   using SafeCast for uint128;
   using SafeCast for int256;
@@ -37,8 +38,13 @@ contract FeedableRewarder is IRewarder {
 
   // Error
   error FeedableRewarderError_FeedAmountDecayed();
+  error FeedableRewarderError_NotStakingContract();
 
-  // TODO: add ACL
+  modifier onlyStakingContract() {
+    if (msg.sender != staking)
+      revert FeedableRewarderError_NotStakingContract();
+    _;
+  }
 
   constructor(
     string memory name_,
@@ -55,7 +61,10 @@ contract FeedableRewarder is IRewarder {
     lastRewardTime = block.timestamp.toUint64();
   }
 
-  function onDeposit(address user, uint256 shareAmount) external {
+  function onDeposit(address user, uint256 shareAmount)
+    external
+    onlyStakingContract
+  {
     _updateRewardCalculationParams();
 
     userRewardDebts[user] =
@@ -65,7 +74,10 @@ contract FeedableRewarder is IRewarder {
     emit LogOnDeposit(user, shareAmount);
   }
 
-  function onWithdraw(address user, uint256 shareAmount) external {
+  function onWithdraw(address user, uint256 shareAmount)
+    external
+    onlyStakingContract
+  {
     _updateRewardCalculationParams();
 
     userRewardDebts[user] =
@@ -75,7 +87,10 @@ contract FeedableRewarder is IRewarder {
     emit LogOnWithdraw(user, shareAmount);
   }
 
-  function onHarvest(address user, address receiver) external {
+  function onHarvest(address user, address receiver)
+    external
+    onlyStakingContract
+  {
     _updateRewardCalculationParams();
 
     int256 accumulatedRewards = ((_userShare(user) * accRewardPerShare) /
@@ -102,11 +117,14 @@ contract FeedableRewarder is IRewarder {
     return (accumulatedRewards - userRewardDebts[user]).toUint256();
   }
 
-  function feed(uint256 feedAmount, uint256 duration) external {
+  function feed(uint256 feedAmount, uint256 duration) external onlyOwner {
     _feed(feedAmount, duration);
   }
 
-  function feedWithExpiredAt(uint256 feedAmount, uint256 expiredAt) external {
+  function feedWithExpiredAt(uint256 feedAmount, uint256 expiredAt)
+    external
+    onlyOwner
+  {
     _feed(feedAmount, expiredAt - block.timestamp);
   }
 
