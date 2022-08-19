@@ -26,7 +26,7 @@ contract RewardDistributor is Ownable {
   // Do Swap List of Token to native token
   function distributeToken(address[] calldata tokenlist) external onlyOwner {
     uint256 length = tokenlist.length;
-    for (uint256 index = 0; index < length) {
+    for (uint256 index = 0; index < length; ) {
       // Approve inToken
       IERC20(tokenlist[index]).approve(
         address(pool),
