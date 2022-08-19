@@ -24,7 +24,18 @@ contract RewardDistributorTest is BaseTest {
   function setUp() external {
     inToken1 = new MockErc20("PLP", "PLP", 18);
     inToken2 = new MockErc20("PLP", "PLP", 18);
-    rewardToken = new MockErc20("Etherium", "ETH", 18);
+    rewardToken = new MockErc20("Reward Token", "RWT", 18);
+
+    inToken1.mint(address(this), 10 ether);
+    inToken2.mint(address(this), 10 ether);
+    rewardToken.mint(address(this), 2 ether);
+
+    inTokenList.push(address(inToken1));
+    inTokenList.push(address(inToken2));
+
+    inToken1.approve(address(this), 10 ether);
+    inToken2.approve(address(this), 10 ether);
+    rewardToken.approve(address(this), 2 ether);
 
     pool = new MockPool();
     feedableRewarder = new MockFeedableRewarder(address(rewardToken));
@@ -37,15 +48,6 @@ contract RewardDistributorTest is BaseTest {
   }
 
   function testRevert_WhenSendInTheTokenToDistributor_ButNotAnOwner() external {
-    inToken1.mint(address(this), 10 ether);
-    inToken2.mint(address(this), 10 ether);
-
-    inTokenList.push(address(inToken1));
-    inTokenList.push(address(inToken2));
-
-    inToken1.approve(address(this), 10 ether);
-    inToken2.approve(address(this), 10 ether);
-
     //  Expect Revert
     vm.prank(ALICE);
     vm.expectRevert("Ownable: caller is not the owner");
@@ -55,15 +57,6 @@ contract RewardDistributorTest is BaseTest {
   function testCorrectness_WhenSendInTheTokenToDistributor_ThenDistibutorSwapTokenToRewardToken()
     external
   {
-    inToken1.mint(address(this), 10 ether);
-    inToken2.mint(address(this), 10 ether);
-
-    inTokenList.push(address(inToken1));
-    inTokenList.push(address(inToken2));
-
-    inToken1.approve(address(this), 10 ether);
-    inToken2.approve(address(this), 10 ether);
-
     IERC20(inToken1).safeTransferFrom(
       address(this),
       address(rewardDistributor),
@@ -78,9 +71,15 @@ contract RewardDistributorTest is BaseTest {
 
     assertEq(IERC20(inToken1).balanceOf(address(rewardDistributor)), 10 ether);
     assertEq(IERC20(inToken2).balanceOf(address(rewardDistributor)), 10 ether);
+    assertEq(
+      IERC20(rewardToken).balanceOf(address(rewardDistributor)),
+      0 ether
+    );
 
     rewardDistributor.distributeToken(inTokenList);
 
+    assertEq(IERC20(inToken1).balanceOf(address(rewardDistributor)), 0 ether);
+    assertEq(IERC20(inToken2).balanceOf(address(rewardDistributor)), 0 ether);
     assertEq(
       IERC20(rewardToken).balanceOf(address(rewardDistributor)),
       2 ether
@@ -88,36 +87,24 @@ contract RewardDistributorTest is BaseTest {
   }
 
   function testCorrectness_WhenFeedTheRewardTokenToFeedableRewarder() external {
-    inToken1.mint(address(this), 10 ether);
-    inToken2.mint(address(this), 10 ether);
-
-    inTokenList.push(address(inToken1));
-    inTokenList.push(address(inToken2));
-
-    inToken1.approve(address(this), 10 ether);
-    inToken2.approve(address(this), 10 ether);
-
-    IERC20(inToken1).safeTransferFrom(
+    IERC20(rewardToken).safeTransferFrom(
       address(this),
       address(rewardDistributor),
-      10 ether
+      2 ether
     );
-
-    IERC20(inToken2).safeTransferFrom(
-      address(this),
-      address(rewardDistributor),
-      10 ether
-    );
-
-    rewardDistributor.distributeToken(inTokenList);
 
     assertEq(
       IERC20(rewardToken).balanceOf(address(rewardDistributor)),
       2 ether
     );
+    assertEq(IERC20(rewardToken).balanceOf(address(feedableRewarder)), 0 ether);
 
     rewardDistributor.feedToRewarder(10 days);
 
+    assertEq(
+      IERC20(rewardToken).balanceOf(address(rewardDistributor)),
+      0 ether
+    );
     assertEq(IERC20(rewardToken).balanceOf(address(feedableRewarder)), 2 ether);
   }
 }
