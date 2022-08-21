@@ -10,19 +10,33 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.s
 import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import { Constants } from "./Constants.sol";
 
+import { console } from "../tests/utils/console.sol";
+
 contract Pool is Constants, ReentrancyGuard {
   using SafeERC20 for IERC20;
 
   error Pool_BadAmountOut();
   error Pool_BadArgument();
+  error Pool_BadPositionSize();
+  error Pool_BadToken();
+  error Pool_CollateralNotCoverFee();
+  error Pool_CollateralTokenIsStable();
+  error Pool_CollateralTokenNotStable();
   error Pool_CoolDown();
+  error Pool_Forbidden();
+  error Pool_LeverageDisabled();
   error Pool_LiquidityBuffer();
   error Pool_LiquidityMismatch();
+  error Pool_IndexTokenIsStable();
+  error Pool_IndexTokenNotShortable();
   error Pool_InsufficientLiquidity();
   error Pool_InsufficientLiquidityMint();
   error Pool_OverUsdDebtCeiling();
+  error Pool_OverShortCeiling();
+  error Pool_SizeSmallerThanCollateral();
   error Pool_Slippage();
   error Pool_SwapDisabled();
+  error Pool_TokenMisMatch();
 
   MintableTokenInterface public plp;
 
@@ -30,7 +44,7 @@ contract Pool is Constants, ReentrancyGuard {
   PoolMath public poolMath;
   PoolOracle public oracle;
 
-  mapping(address => uint256) public totals;
+  mapping(address => uint256) public totalOf;
   mapping(address => uint256) public liquidityOf;
   mapping(address => uint256) public reservedOf;
 
@@ -56,7 +70,20 @@ contract Pool is Constants, ReentrancyGuard {
   // LP
   mapping(address => uint256) public lastAddLiquidityAtOf;
 
-  event AccrueFundingRate(address token, uint256 sumFundingRate);
+  // Position
+  struct Position {
+    uint256 size;
+    uint256 collateral; // collateral value in USD
+    uint256 averagePrice;
+    uint256 entryFundingRate;
+    uint256 reserveAmount;
+    int256 realizedPnl;
+    uint256 lastIncreasedTime;
+  }
+  mapping(bytes32 => Position) public positions;
+  mapping(address => mapping(address => bool)) public approvedPlugins;
+
+  event UpdateFundingRate(address token, uint256 sumFundingRate);
   event AddLiquidity(
     address account,
     address token,
@@ -67,8 +94,12 @@ contract Pool is Constants, ReentrancyGuard {
     uint256 mintAmount
   );
   event CollectSwapFee(address token, uint256 feeUsd, uint256 fee);
+  event CollectMarginFee(address token, uint256 feeUsd, uint256 feeTokens);
+  event DecreaseGuaranteedUsd(address token, uint256 amount);
   event DecreasePoolLiquidity(address token, uint256 amount);
   event DecreaseUsdDebt(address token, uint256 amount);
+  event DecreaseReserved(address token, uint256 amount);
+  event DecreaseShortSize(address token, uint256 amount);
   event ExitPool(
     address account,
     address token,
@@ -83,8 +114,22 @@ contract Pool is Constants, ReentrancyGuard {
     uint256 usdDebt,
     uint256 mintFeeBps
   );
+  event IncreaseGuaranteedUsd(address token, uint256 amount);
   event IncreasePoolLiquidity(address token, uint256 amount);
+  event IncreasePosition(
+    bytes32 positionId,
+    address subAccount,
+    address collateralToken,
+    address indexToken,
+    uint256 collateralDeltaUsd,
+    uint256 sizeDelta,
+    Exposure exposure,
+    uint256 price,
+    uint256 feeUsd
+  );
   event IncreaseUsdDebt(address token, uint256 amount);
+  event IncreaseReserved(address token, uint256 amount);
+  event IncreaseShortSize(address token, uint256 amount);
   event RemoveLiquidity(
     address account,
     address tokenOut,
@@ -103,6 +148,16 @@ contract Pool is Constants, ReentrancyGuard {
     uint256 amountOutAfterFee,
     uint256 swapFeeBps
   );
+  event UpdatePosition(
+    bytes32 positionId,
+    uint256 size,
+    uint256 collateral,
+    uint256 averagePrice,
+    uint256 entryFundingRate,
+    uint256 reserveAmount,
+    int256 realizedPnl,
+    uint256 price
+  );
 
   constructor(
     MintableTokenInterface _plp,
@@ -116,7 +171,21 @@ contract Pool is Constants, ReentrancyGuard {
     plp = _plp;
   }
 
-  function accrueFundingRate(address collateralToken) public {
+  modifier allowed(address account) {
+    if (account != msg.sender && config.router() != msg.sender) {
+      if (!approvedPlugins[account][msg.sender]) revert Pool_Forbidden();
+    }
+    _;
+  }
+
+  // ---------------------------
+  // Pool's core functionalities
+  // ---------------------------
+  function updateFundingRate(address collateralToken, address indexToken)
+    public
+  {
+    if (!config.shouldUpdateFundingRate(collateralToken, indexToken)) return;
+
     uint256 fundingInterval = config.fundingInterval();
 
     if (lastFundingTimeOf[collateralToken] == 0) {
@@ -133,7 +202,7 @@ contract Pool is Constants, ReentrancyGuard {
       return;
     }
 
-    uint256 fundingRate = nextFundingRate(collateralToken);
+    uint256 fundingRate = getNextFundingRate(collateralToken);
     unchecked {
       sumFundingRateOf[collateralToken] =
         sumFundingRateOf[collateralToken] +
@@ -143,37 +212,33 @@ contract Pool is Constants, ReentrancyGuard {
         fundingInterval;
     }
 
-    emit AccrueFundingRate(collateralToken, sumFundingRateOf[collateralToken]);
+    emit UpdateFundingRate(collateralToken, sumFundingRateOf[collateralToken]);
   }
 
   function addLiquidity(
+    address account,
     address token,
-    uint256 amount,
-    address receiver,
-    uint256 minLiquidity
-  ) external nonReentrant returns (uint256) {
+    address receiver
+  ) external nonReentrant allowed(account) returns (uint256) {
+    // Pull tokens
+    uint256 amount = _pullTokens(token);
+
     // Check
-    if (!config.isAcceptToken(token)) revert Pool_BadArgument();
+    if (!config.isAcceptToken(token)) revert Pool_BadToken();
     if (amount == 0) revert Pool_BadArgument();
 
     uint256 aum = poolMath.getAum18(Pool(address(this)), MinMax.MAX);
     uint256 lpSupply = plp.totalSupply();
 
-    // Transfer here or ERC777s could re-enter.
-    IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
-
-    accrueFundingRate(token);
-
     uint256 usdDebt = _join(token, amount, receiver);
     uint256 mintAmount = aum == 0 ? usdDebt : (usdDebt * lpSupply) / aum;
-    if (mintAmount < minLiquidity) revert Pool_Slippage();
 
     plp.mint(receiver, mintAmount);
 
-    lastAddLiquidityAtOf[msg.sender] = block.timestamp;
+    lastAddLiquidityAtOf[account] = block.timestamp;
 
     emit AddLiquidity(
-      msg.sender,
+      account,
       token,
       amount,
       aum,
@@ -185,16 +250,62 @@ contract Pool is Constants, ReentrancyGuard {
     return mintAmount;
   }
 
+  function _join(
+    address token,
+    uint256 amount,
+    address receiver
+  ) internal returns (uint256) {
+    updateFundingRate(token, token);
+
+    uint256 price = oracle.getMinPrice(token);
+
+    uint256 tokenValueUsd = (amount * price) / PRICE_PRECISION;
+    uint8 tokenDecimals = config.tokenDecimals(token);
+    tokenValueUsd = _convertTokenDecimals(
+      tokenDecimals,
+      USD_DECIMALS,
+      tokenValueUsd
+    );
+    if (tokenValueUsd == 0) revert Pool_InsufficientLiquidityMint();
+
+    uint256 feeBps = poolMath.getAddLiquidityFeeBps(
+      Pool(address(this)),
+      token,
+      tokenValueUsd
+    );
+    uint256 amountAfterDepositFee = _collectSwapFee(
+      token,
+      price,
+      amount,
+      feeBps
+    );
+    uint256 usdDebt = _convertTokenDecimals(
+      tokenDecimals,
+      USD_DECIMALS,
+      (amountAfterDepositFee * price) / PRICE_PRECISION
+    );
+
+    _increaseUsdDebt(token, usdDebt);
+    _increasePoolLiquidity(token, amountAfterDepositFee);
+
+    totalUsdDebt += usdDebt;
+
+    emit JoinPool(receiver, token, amount, usdDebt, feeBps);
+
+    return usdDebt;
+  }
+
   function removeLiquidity(
+    address account,
     address tokenOut,
-    uint256 liquidity,
-    address receiver,
-    uint256 minAmountOut
-  ) external nonReentrant returns (uint256) {
+    address receiver
+  ) external nonReentrant allowed(account) returns (uint256) {
+    uint256 liquidity = plp.balanceOf(address(this));
+
     if (!config.isAcceptToken(tokenOut)) revert Pool_BadArgument();
     if (liquidity == 0) revert Pool_BadArgument();
     if (
-      lastAddLiquidityAtOf[msg.sender] + config.liquidityCoolDownDuration() >
+      lastAddLiquidityAtOf[account] + config.liquidityCoolDownDuration() >
       block.timestamp
     ) {
       revert Pool_CoolDown();
@@ -207,13 +318,12 @@ contract Pool is Constants, ReentrancyGuard {
     // Adjust totalUsdDebt if lpUsdValue > totalUsdDebt.
     if (totalUsdDebt < lpUsdValue) totalUsdDebt += lpUsdValue - totalUsdDebt;
     uint256 amountOut = _exit(tokenOut, lpUsdValue, receiver);
-    if (amountOut < minAmountOut) revert Pool_Slippage();
 
-    plp.burn(msg.sender, liquidity);
-    IERC20(tokenOut).transfer(receiver, amountOut);
+    plp.burn(address(this), liquidity);
+    _pushTokens(tokenOut, receiver, amountOut);
 
     emit RemoveLiquidity(
-      msg.sender,
+      account,
       tokenOut,
       liquidity,
       aum,
@@ -225,24 +335,61 @@ contract Pool is Constants, ReentrancyGuard {
     return amountOut;
   }
 
+  function _exit(
+    address token,
+    uint256 usdValue,
+    address receiver
+  ) internal returns (uint256) {
+    updateFundingRate(token, token);
+
+    uint256 tokenPrice = oracle.getMaxPrice(token);
+    uint256 amountOut = _convertTokenDecimals(
+      18,
+      config.tokenDecimals(token),
+      (usdValue * PRICE_PRECISION) / tokenPrice
+    );
+    if (amountOut == 0) revert Pool_BadAmountOut();
+
+    _decreaseUsdDebt(token, usdValue);
+    _decreasePoolLiquidity(token, amountOut);
+
+    totalUsdDebt -= usdValue;
+
+    uint256 burnFeeBps = poolMath.getRemoveLiquidityFeeBps(
+      Pool(address(this)),
+      token,
+      usdValue
+    );
+    amountOut = _collectSwapFee(
+      token,
+      oracle.getMinPrice(token),
+      amountOut,
+      burnFeeBps
+    );
+    if (amountOut == 0) revert Pool_BadAmountOut();
+
+    emit ExitPool(receiver, token, usdValue, amountOut, burnFeeBps);
+
+    return amountOut;
+  }
+
   function swap(
     address tokenIn,
     address tokenOut,
-    uint256 amountIn,
     uint256 minAmountOut,
     address receiver
   ) external nonReentrant returns (uint256) {
+    // Pull Tokens
+    uint256 amountIn = _pullTokens(tokenIn);
+
     if (!config.isSwapEnable()) revert Pool_SwapDisabled();
     if (!config.isAcceptToken(tokenIn)) revert Pool_BadArgument();
     if (!config.isAcceptToken(tokenOut)) revert Pool_BadArgument();
     if (tokenIn == tokenOut) revert Pool_BadArgument();
     if (amountIn == 0) revert Pool_BadArgument();
 
-    accrueFundingRate(tokenIn);
-    accrueFundingRate(tokenOut);
-
-    // Transfer amount in.
-    IERC20(tokenIn).safeTransferFrom(msg.sender, address(this), amountIn);
+    updateFundingRate(tokenIn, tokenIn);
+    updateFundingRate(tokenOut, tokenOut);
 
     uint256 priceIn = oracle.getMinPrice(tokenIn);
     uint256 priceOut = oracle.getMaxPrice(tokenOut);
@@ -289,7 +436,7 @@ contract Pool is Constants, ReentrancyGuard {
     if (amountOutAfterFee < minAmountOut) revert Pool_Slippage();
 
     // Transfer amount out.
-    IERC20(tokenOut).transfer(receiver, amountOutAfterFee);
+    _pushTokens(tokenOut, receiver, amountOutAfterFee);
 
     emit Swap(
       receiver,
@@ -304,20 +451,506 @@ contract Pool is Constants, ReentrancyGuard {
     return amountOutAfterFee;
   }
 
+  struct IncreasePositionLocalVars {
+    address subAccount;
+    bytes32 posId;
+    uint256 price;
+    uint256 feeUsd;
+    uint256 collateralDelta;
+    uint256 collateralDeltaUsd;
+    uint256 reserveDelta;
+  }
+
+  /// @notice Increase leverage position size.
+  /// @param primaryAccount The account that owns the position.
+  /// @param subAccountId The sub account ID of the given account.
+  /// @param collateralToken The collateral token.
+  /// @param indexToken The index token.
+  /// @param sizeDelta The size delta in USD units with 1e30 precision.
+  /// @param exposure The exposure that the position is in. Either Long or Short.
+  function increasePosition(
+    address primaryAccount,
+    uint256 subAccountId,
+    address collateralToken,
+    address indexToken,
+    uint256 sizeDelta,
+    Exposure exposure
+  ) external nonReentrant allowed(primaryAccount) {
+    if (!config.isLeverageEnable()) revert Pool_LeverageDisabled();
+    _checkTokenInputs(collateralToken, indexToken, exposure);
+    // TODO: Add validate increase position
+
+    updateFundingRate(collateralToken, indexToken);
+
+    IncreasePositionLocalVars memory vars;
+
+    vars.subAccount = getSubAccount(primaryAccount, subAccountId);
+
+    vars.posId = getPositionId(
+      vars.subAccount,
+      collateralToken,
+      indexToken,
+      exposure
+    );
+    Position storage position = positions[vars.posId];
+
+    vars.price = exposure == Exposure.LONG
+      ? oracle.getMaxPrice(indexToken)
+      : oracle.getMinPrice(indexToken);
+
+    if (position.size == 0) {
+      // If position size = 0, then it is a new position.
+      // So make average price to equal to price.
+      position.averagePrice = vars.price;
+    }
+
+    if (position.size > 0 && sizeDelta > 0) {
+      // If position size > 0, then position is existed.
+      // Need to calculate the next average price.
+      position.averagePrice = getNextAveragePrice(
+        indexToken,
+        position.size,
+        position.averagePrice,
+        exposure,
+        vars.price,
+        sizeDelta,
+        position.lastIncreasedTime
+      );
+    }
+
+    vars.feeUsd = _collectMarginFee(
+      vars.subAccount,
+      collateralToken,
+      indexToken,
+      exposure,
+      sizeDelta,
+      position.size,
+      position.entryFundingRate
+    );
+    vars.collateralDelta = _pullTokens(collateralToken);
+    vars.collateralDeltaUsd = _convertTokensToUsde30(
+      collateralToken,
+      vars.collateralDelta,
+      MinMax.MIN
+    );
+
+    position.collateral += vars.collateralDeltaUsd;
+    if (position.collateral < vars.feeUsd) revert Pool_CollateralNotCoverFee();
+
+    position.collateral -= vars.feeUsd;
+    position.entryFundingRate = poolMath.getEntryFundingRate(
+      Pool(address(this)),
+      collateralToken,
+      indexToken,
+      exposure
+    );
+    position.size += sizeDelta;
+    position.lastIncreasedTime = block.timestamp;
+
+    if (position.size == 0) revert Pool_BadPositionSize();
+    _checkPosition(position.size, position.collateral);
+    checkLiquidation(
+      vars.subAccount,
+      collateralToken,
+      indexToken,
+      exposure,
+      true
+    );
+
+    // Lock tokens in reserved to pay for profits on this position.
+    uint256 reserveDelta = _convertUsde30ToTokens(
+      collateralToken,
+      sizeDelta,
+      MinMax.MIN
+    );
+    position.reserveAmount += reserveDelta;
+    _increaseReserved(collateralToken, reserveDelta);
+
+    if (Exposure.LONG == exposure) {
+      // guaranteedUsd stores the sum of (position.size - position.collateral) for all positions
+      // if a fee is charged on the collateral then guaranteedUsd should be increased by that fee amount
+      // since (position.size - position.collateral) would have increased by `fee`
+      _increaseGuaranteedUsd(collateralToken, sizeDelta + vars.feeUsd);
+      _decreaseGuaranteedUsd(collateralToken, vars.collateralDeltaUsd);
+
+      // treat the deposited collateral as part of the pool
+      _increasePoolLiquidity(collateralToken, vars.collateralDelta);
+
+      // fees need to be deducted from the pool since fees are deducted from position.collateral
+      // and collateral is treated as part of the pool
+      _decreasePoolLiquidity(
+        collateralToken,
+        _convertUsde30ToTokens(collateralToken, vars.feeUsd, MinMax.MAX)
+      );
+    } else {
+      if (shortSizeOf[indexToken] == 0)
+        shortAveragePriceOf[indexToken] = vars.price;
+      else
+        shortAveragePriceOf[indexToken] = getNextShortAveragePrice(
+          indexToken,
+          vars.price,
+          sizeDelta
+        );
+
+      _increaseShortSize(indexToken, sizeDelta);
+    }
+
+    emit IncreasePosition(
+      vars.posId,
+      vars.subAccount,
+      collateralToken,
+      indexToken,
+      vars.collateralDeltaUsd,
+      sizeDelta,
+      exposure,
+      vars.price,
+      vars.feeUsd
+    );
+    emit UpdatePosition(
+      vars.posId,
+      position.size,
+      position.collateral,
+      position.averagePrice,
+      position.entryFundingRate,
+      position.reserveAmount,
+      position.realizedPnl,
+      vars.price
+    );
+  }
+
+  // ----------------
+  // Getter functions
+  // ----------------
+
+  function getRedemptionCollateral(address token)
+    public
+    view
+    returns (uint256)
+  {
+    if (config.isStableToken(token)) return liquidityOf[token];
+
+    uint256 collateral = _convertUsde30ToTokens(
+      token,
+      guaranteedUsdOf[token],
+      MinMax.MAX
+    );
+    return collateral + liquidityOf[token] - reservedOf[token];
+  }
+
+  function getRedemptionCollateralUsd(address token)
+    public
+    view
+    returns (uint256)
+  {
+    return
+      _convertTokensToUsde30(token, getRedemptionCollateral(token), MinMax.MIN);
+  }
+
+  function getDelta(
+    address indexToken,
+    uint256 size,
+    uint256 averagePrice,
+    Exposure exposure,
+    uint256 lastIncreasedTime
+  ) public view returns (bool, uint256) {
+    if (averagePrice == 0) revert Pool_BadArgument();
+    uint256 price = Exposure.LONG == exposure
+      ? oracle.getMinPrice(indexToken)
+      : oracle.getMaxPrice(indexToken);
+    uint256 priceDelta;
+    unchecked {
+      priceDelta = averagePrice > price
+        ? averagePrice - price
+        : price - averagePrice;
+    }
+    uint256 delta = (size * priceDelta) / averagePrice;
+
+    bool isProfit;
+    if (Exposure.LONG == exposure) {
+      isProfit = price > averagePrice;
+    } else {
+      isProfit = price < averagePrice;
+    }
+
+    uint256 minBps = block.timestamp >
+      lastIncreasedTime + config.minProfitDuration()
+      ? 0
+      : config.tokenMinProfitBps(indexToken);
+    if (isProfit && delta * BPS <= size * minBps) delta = 0;
+
+    return (isProfit, delta);
+  }
+
+  function getPoolShortDelta(address token)
+    public
+    view
+    returns (bool, uint256)
+  {
+    uint256 shortSize = shortSizeOf[token];
+    if (shortSize == 0) return (false, 0);
+
+    uint256 nextPrice = oracle.getMaxPrice(token);
+    uint256 averagePrice = shortAveragePriceOf[token];
+    uint256 priceDelta;
+    unchecked {
+      priceDelta = averagePrice > nextPrice
+        ? averagePrice - nextPrice
+        : nextPrice - averagePrice;
+    }
+    uint256 delta = (shortSize * priceDelta) / averagePrice;
+
+    return (averagePrice > nextPrice, delta);
+  }
+
+  function getNextAveragePrice(
+    address indexToken,
+    uint256 size,
+    uint256 averagePrice,
+    Exposure exposure,
+    uint256 nextPrice,
+    uint256 sizeDelta,
+    uint256 lastIncreasedTime
+  ) public view returns (uint256) {
+    (bool isProfit, uint256 delta) = getDelta(
+      indexToken,
+      size,
+      averagePrice,
+      exposure,
+      lastIncreasedTime
+    );
+    uint256 nextSize = size + sizeDelta;
+    uint256 divisor;
+    if (exposure == Exposure.LONG) {
+      divisor = isProfit ? nextSize + delta : nextSize - delta;
+    } else {
+      divisor = isProfit ? nextSize - delta : nextSize + delta;
+    }
+
+    return (nextPrice * nextSize) / divisor;
+  }
+
+  function getNextFundingRate(address token) public view returns (uint256) {
+    // SLOAD
+    uint256 fundingInterval = config.fundingInterval();
+
+    // If block.timestamp not pass the next funding time, return 0.
+    if (lastFundingTimeOf[token] + fundingInterval > block.timestamp) return 0;
+
+    uint256 intervals;
+    unchecked {
+      intervals = block.timestamp - lastFundingTimeOf[token] / fundingInterval;
+    }
+    // SLOAD
+    uint256 liquidity = liquidityOf[token];
+    if (liquidity == 0) return 0;
+
+    uint256 fundingRateFactor = config.isStableToken(token)
+      ? config.stableFundingRateFactor()
+      : config.fundingRateFactor();
+
+    return (fundingRateFactor * reservedOf[token] * intervals) / liquidity;
+  }
+
+  function getNextShortAveragePrice(
+    address indexToken,
+    uint256 nextPrice,
+    uint256 sizeDelta
+  ) public view returns (uint256) {
+    uint256 shortSize = shortSizeOf[indexToken];
+    uint256 shortAveragePrice = shortAveragePriceOf[indexToken];
+    uint256 priceDelta = shortAveragePrice > nextPrice
+      ? shortAveragePrice - nextPrice
+      : nextPrice - shortAveragePrice;
+    uint256 delta = (shortSize * priceDelta) / shortAveragePrice;
+    bool isProfit = nextPrice < shortAveragePrice;
+
+    uint256 nextSize = shortSize + sizeDelta;
+    uint256 divisor = isProfit ? nextSize - delta : nextSize + delta;
+
+    return (nextPrice * nextSize) / divisor;
+  }
+
+  struct GetPositionReturnVars {
+    uint256 size;
+    uint256 collateral;
+    uint256 averagePrice;
+    uint256 entryFundingRate;
+    uint256 reserveAmount;
+    uint256 realizedPnl;
+    bool hasProfit;
+    uint256 lastIncreasedTime;
+  }
+
+  function getPosition(
+    address primaryAccount,
+    uint256 subAccountId,
+    address collateralToken,
+    address indexToken,
+    Exposure exposure
+  ) external view returns (GetPositionReturnVars memory) {
+    return
+      getPosition(
+        getSubAccount(primaryAccount, subAccountId),
+        collateralToken,
+        indexToken,
+        exposure
+      );
+  }
+
+  function getPosition(
+    address account,
+    address collateralToken,
+    address indexToken,
+    Exposure exposure
+  ) public view returns (GetPositionReturnVars memory) {
+    Position memory position = positions[
+      getPositionId(account, collateralToken, indexToken, exposure)
+    ];
+    uint256 realizedPnl = position.realizedPnl > 0
+      ? uint256(position.realizedPnl)
+      : uint256(-position.realizedPnl);
+    GetPositionReturnVars memory vars = GetPositionReturnVars({
+      size: position.size,
+      collateral: position.collateral,
+      averagePrice: position.averagePrice,
+      entryFundingRate: position.entryFundingRate,
+      reserveAmount: position.reserveAmount,
+      realizedPnl: realizedPnl,
+      hasProfit: position.realizedPnl >= 0,
+      lastIncreasedTime: position.lastIncreasedTime
+    });
+    return vars;
+  }
+
+  function getPositionDelta(
+    address account,
+    uint256 subAccountId,
+    address collateralToken,
+    address indexToken,
+    Exposure exposure
+  ) external view returns (bool, uint256) {
+    return
+      getPositionDelta(
+        getSubAccount(account, subAccountId),
+        collateralToken,
+        indexToken,
+        exposure
+      );
+  }
+
+  function getPositionDelta(
+    address account,
+    address collateralToken,
+    address indexToken,
+    Exposure exposure
+  ) public view returns (bool, uint256) {
+    Position memory position = positions[
+      getPositionId(account, collateralToken, indexToken, exposure)
+    ];
+    return
+      getDelta(
+        indexToken,
+        position.size,
+        position.averagePrice,
+        exposure,
+        position.lastIncreasedTime
+      );
+  }
+
+  function getPositionId(
+    address account,
+    address collateralToken,
+    address indexToken,
+    Exposure exposure
+  ) public pure returns (bytes32) {
+    return
+      keccak256(
+        abi.encodePacked(account, collateralToken, indexToken, exposure)
+      );
+  }
+
+  function getSubAccount(address primary, uint256 subAccountId)
+    public
+    pure
+    returns (address)
+  {
+    if (subAccountId > 255) revert Pool_BadArgument();
+    return address(uint160(primary) ^ uint160(subAccountId));
+  }
+
+  function isSubAccountOf(address primary, address subAccount)
+    public
+    pure
+    returns (bool)
+  {
+    return (uint160(primary) | 0xFF) == (uint160(subAccount) | 0xFF);
+  }
+
+  // ------------------------
+  // Fee Collection functions
+  // ------------------------
+
+  function _collectMarginFee(
+    address account,
+    address collateralToken,
+    address indexToken,
+    Exposure exposure,
+    uint256 sizeDelta,
+    uint256 size,
+    uint256 entryFundingRate
+  ) internal returns (uint256) {
+    uint256 feeUsd = poolMath.getPositionFee(
+      Pool(address(this)),
+      account,
+      collateralToken,
+      indexToken,
+      exposure,
+      sizeDelta
+    );
+
+    uint256 fundingFeeUsd = poolMath.getFundingFee(
+      Pool(address(this)),
+      account,
+      collateralToken,
+      indexToken,
+      exposure,
+      size,
+      entryFundingRate
+    );
+
+    feeUsd += fundingFeeUsd;
+
+    uint256 feeTokens = _convertUsde30ToTokens(
+      collateralToken,
+      feeUsd,
+      MinMax.MAX
+    );
+    feeReserveOf[collateralToken] += feeTokens;
+
+    emit CollectMarginFee(collateralToken, feeUsd, feeTokens);
+
+    return feeUsd;
+  }
+
   function _collectSwapFee(
     address token,
     uint256 tokenPriceUsd,
     uint256 amount,
     uint256 feeBps
   ) internal returns (uint256) {
-    uint256 fee = (amount * feeBps) / BPS;
-    uint256 amountAfterFee = amount - fee;
+    uint256 amountAfterFee = (amount * (BPS - feeBps)) / BPS;
+    uint256 fee = amount - amountAfterFee;
+
     feeReserveOf[token] += fee;
 
     emit CollectSwapFee(token, fee * tokenPriceUsd, fee);
 
     return amountAfterFee;
   }
+
+  // ------------------------------
+  // Liquidity alteration functions
+  // ------------------------------
 
   function _increasePoolLiquidity(address token, uint256 amount) internal {
     liquidityOf[token] += amount;
@@ -360,113 +993,50 @@ contract Pool is Constants, ReentrancyGuard {
     emit DecreaseUsdDebt(token, amount);
   }
 
-  function _join(
-    address token,
-    uint256 amount,
-    address receiver
-  ) internal returns (uint256) {
-    uint256 price = oracle.getMinPrice(token);
-
-    uint256 tokenValueUsd = (amount * price) / PRICE_PRECISION;
-    uint8 tokenDecimals = config.tokenDecimals(token);
-    tokenValueUsd = _convertTokenDecimals(
-      tokenDecimals,
-      USD_DECIMALS,
-      tokenValueUsd
-    );
-    if (tokenValueUsd == 0) revert Pool_InsufficientLiquidityMint();
-
-    uint256 feeBps = poolMath.getAddLiquidityFeeBps(
-      Pool(address(this)),
-      token,
-      tokenValueUsd
-    );
-    uint256 amountAfterDepositFee = _collectSwapFee(
-      token,
-      price,
-      amount,
-      feeBps
-    );
-    uint256 usdDebt = _convertTokenDecimals(
-      tokenDecimals,
-      USD_DECIMALS,
-      (amountAfterDepositFee * price) / PRICE_PRECISION
-    );
-
-    _increaseUsdDebt(token, usdDebt);
-    _increasePoolLiquidity(token, amountAfterDepositFee);
-
-    totalUsdDebt += usdDebt;
-
-    emit JoinPool(receiver, token, amount, usdDebt, feeBps);
-
-    return usdDebt;
+  function _increaseReserved(address token, uint256 amount) internal {
+    reservedOf[token] += amount;
+    if (reservedOf[token] > liquidityOf[token])
+      revert Pool_InsufficientLiquidity();
+    emit IncreaseReserved(token, amount);
   }
 
-  function _exit(
-    address token,
-    uint256 usdValue,
-    address receiver
-  ) internal returns (uint256) {
-    accrueFundingRate(token);
-
-    uint256 tokenPrice = oracle.getMaxPrice(token);
-    uint256 amountOut = _convertTokenDecimals(
-      18,
-      config.tokenDecimals(token),
-      (usdValue * PRICE_PRECISION) / tokenPrice
-    );
-    if (amountOut == 0) revert Pool_BadAmountOut();
-
-    _decreaseUsdDebt(token, usdValue);
-    _decreasePoolLiquidity(token, amountOut);
-
-    totalUsdDebt -= usdValue;
-
-    uint256 burnFeeBps = poolMath.getRemoveLiquidityFeeBps(
-      Pool(address(this)),
-      token,
-      usdValue
-    );
-    amountOut = _collectSwapFee(
-      token,
-      oracle.getMinPrice(token),
-      amountOut,
-      burnFeeBps
-    );
-    if (amountOut == 0) revert Pool_BadAmountOut();
-
-    emit ExitPool(receiver, token, usdValue, amountOut, burnFeeBps);
-
-    return amountOut;
+  function _decreaseReserved(address token, uint256 amount) internal {
+    reservedOf[token] -= amount;
+    emit DecreaseReserved(token, amount);
   }
 
-  function mintFeeBps(address token, uint256 tokenValue)
-    internal
-    view
-    returns (uint256)
-  {}
+  function _increaseGuaranteedUsd(address token, uint256 amountUsd) internal {
+    guaranteedUsdOf[token] += amountUsd;
+    emit IncreaseGuaranteedUsd(token, amountUsd);
+  }
 
-  function nextFundingRate(address token) public view returns (uint256) {
+  function _decreaseGuaranteedUsd(address token, uint256 amountUsd) internal {
+    guaranteedUsdOf[token] -= amountUsd;
+    emit DecreaseGuaranteedUsd(token, amountUsd);
+  }
+
+  function _increaseShortSize(address token, uint256 amountUsd) internal {
     // SLOAD
-    uint256 fundingInterval = config.fundingInterval();
+    uint256 shortCeiling = config.tokenShortCeiling(token);
+    shortSizeOf[token] += amountUsd;
 
-    // If block.timestamp not pass the next funding time, return 0.
-    if (lastFundingTimeOf[token] + fundingInterval > block.timestamp) return 0;
-
-    uint256 intervals;
-    unchecked {
-      intervals = block.timestamp - lastFundingTimeOf[token] / fundingInterval;
+    if (shortCeiling != 0) {
+      if (shortSizeOf[token] > shortCeiling) revert Pool_OverShortCeiling();
     }
-    // SLOAD
-    uint256 liquidity = liquidityOf[token];
-    if (liquidity == 0) return 0;
 
-    uint256 fundingRateFactor = config.isStableToken(token)
-      ? config.stableFundingRateFactor()
-      : config.fundingRateFactor();
+    emit IncreaseShortSize(token, amountUsd);
+  }
 
-    return (fundingRateFactor * reservedOf[token] * intervals) / liquidity;
+  function _decreaseShortSize(address token, uint256 amountUsd) internal {
+    uint256 shortSize = shortSizeOf[token];
+    if (amountUsd > shortSize) {
+      shortSizeOf[token] = 0;
+      return;
+    }
+
+    shortSizeOf[token] -= amountUsd;
+
+    emit DecreaseShortSize(token, amountUsd);
   }
 
   function targetValue(address token) public view returns (uint256) {
@@ -479,6 +1049,61 @@ contract Pool is Constants, ReentrancyGuard {
       config.totalTokenWeight();
   }
 
+  /// ---------------
+  /// Check functions
+  /// ---------------
+
+  function _checkPosition(uint256 size, uint256 collateral) internal pure {
+    if (size == 0) {
+      if (collateral != 0) revert Pool_SizeSmallerThanCollateral();
+      return;
+    }
+    if (size < collateral) revert Pool_SizeSmallerThanCollateral();
+  }
+
+  function _checkTokenInputs(
+    address collateralToken,
+    address indexToken,
+    Exposure exposure
+  ) internal view {
+    if (Exposure.LONG == exposure) {
+      if (collateralToken != indexToken) revert Pool_TokenMisMatch();
+      if (!config.isAcceptToken(collateralToken)) revert Pool_BadToken();
+      if (config.isStableToken(collateralToken))
+        revert Pool_CollateralTokenIsStable();
+      return;
+    }
+
+    if (!config.isAcceptToken(collateralToken)) revert Pool_BadToken();
+    if (!config.isStableToken(collateralToken))
+      revert Pool_CollateralTokenNotStable();
+    if (config.isStableToken(indexToken)) revert Pool_IndexTokenIsStable();
+    if (!config.isShortableToken(indexToken))
+      revert Pool_IndexTokenNotShortable();
+  }
+
+  function checkLiquidation(
+    address account,
+    address collateralToken,
+    address indexToken,
+    Exposure exposure,
+    bool isRevertWhenError
+  ) public view returns (uint256, uint256) {
+    return
+      poolMath.checkLiquidation(
+        Pool(address(this)),
+        account,
+        collateralToken,
+        indexToken,
+        exposure,
+        isRevertWhenError
+      );
+  }
+
+  /// --------------------
+  /// Conversion functions
+  /// --------------------
+
   /// @notice Convert decimals
   function _convertTokenDecimals(
     uint256 fromTokenDecimals,
@@ -486,5 +1111,45 @@ contract Pool is Constants, ReentrancyGuard {
     uint256 amount
   ) internal pure returns (uint256) {
     return (amount * 10**toTokenDecimals) / 10**fromTokenDecimals;
+  }
+
+  function _convertUsde30ToTokens(
+    address token,
+    uint256 amountUsd,
+    MinMax minOrMax
+  ) internal view returns (uint256) {
+    if (amountUsd == 0) return 0;
+    return
+      (amountUsd * (10**config.tokenDecimals(token))) /
+      oracle.getPrice(token, minOrMax);
+  }
+
+  function _convertTokensToUsde30(
+    address token,
+    uint256 amountTokens,
+    MinMax minOrMax
+  ) internal view returns (uint256) {
+    if (amountTokens == 0) return 0;
+    return
+      (amountTokens * oracle.getPrice(token, minOrMax)) /
+      (10**config.tokenDecimals(token));
+  }
+
+  function _pullTokens(address token) internal returns (uint256) {
+    uint256 prevBalance = totalOf[token];
+    uint256 nextBalance = IERC20(token).balanceOf(address(this));
+
+    totalOf[token] = nextBalance;
+
+    return nextBalance - prevBalance;
+  }
+
+  function _pushTokens(
+    address token,
+    address to,
+    uint256 amount
+  ) internal {
+    IERC20(token).safeTransfer(to, amount);
+    totalOf[token] = IERC20(token).balanceOf(address(this));
   }
 }

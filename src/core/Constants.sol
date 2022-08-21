@@ -2,6 +2,11 @@
 pragma solidity 0.8.14;
 
 abstract contract Constants {
+  enum Exposure {
+    LONG,
+    SHORT
+  }
+
   enum MinMax {
     MIN,
     MAX

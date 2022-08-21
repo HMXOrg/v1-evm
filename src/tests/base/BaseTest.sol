@@ -28,6 +28,7 @@ contract BaseTest is DSTest, CoreConstants {
     uint64 stableFundingRateFactor;
     uint64 fundingRateFactor;
     uint64 liquidityCoolDownPeriod;
+    uint256 liquidationFeeUsd;
   }
 
   VM internal constant vm = VM(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
@@ -197,7 +198,8 @@ contract BaseTest is DSTest, CoreConstants {
         params.taxBps,
         params.stableFundingRateFactor,
         params.fundingRateFactor,
-        params.liquidityCoolDownPeriod
+        params.liquidityCoolDownPeriod,
+        params.liquidationFeeUsd
       );
   }
 

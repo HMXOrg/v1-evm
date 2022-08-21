@@ -108,6 +108,14 @@ contract PoolOracle is Constants, Ownable {
     return (price * (BPS - priceFeed.spreadBps)) / BPS;
   }
 
+  function getPrice(address token, MinMax minOrMax)
+    external
+    view
+    returns (uint256)
+  {
+    return _getPrice(token, minOrMax);
+  }
+
   function getMaxPrice(address token) external view returns (uint256) {
     return _getPrice(token, MinMax.MAX);
   }
