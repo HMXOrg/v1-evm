@@ -240,7 +240,7 @@ contract Pool_SwapTest is Pool_BaseTest {
     assertEq(pool.plp().balanceOf(address(pool)), 0);
 
     // Alice expected to get 50000 / 500 * (1-0.003) = 99.7 MATIC
-    assertEq(matic.balanceOf(ALICE), 99.7 ether);
+    assertEq(matic.balanceOf(ALICE), 99699999999999999999);
 
     // Alice remove 50000 USD worth of PLP from the pool with WBTC as tokenOut
     pool.plp().transfer(
@@ -251,7 +251,7 @@ contract Pool_SwapTest is Pool_BaseTest {
     pool.removeLiquidity(ALICE, address(wbtc), ALICE);
 
     // Alice expected to get 50000 / 100000 * (1-0.003) = 0.4985 WBTC
-    assertEq(wbtc.balanceOf(ALICE), 0.4985 * 10**8);
+    assertEq(wbtc.balanceOf(ALICE), 49849999);
 
     // Alice try remove 10000 USD worth of PLP from the pool with WBTC as tokenOut
     // Pool doesn't has any liquidity left, so this should revert
