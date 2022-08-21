@@ -19,7 +19,7 @@ contract Pool is Constants, ReentrancyGuard {
   error Pool_BadArgument();
   error Pool_BadPositionSize();
   error Pool_BadToken();
-  error Pool_CollateralTooSmall();
+  error Pool_CollateralNotCoverFee();
   error Pool_CollateralTokenIsStable();
   error Pool_CollateralTokenNotStable();
   error Pool_CoolDown();
@@ -495,8 +495,8 @@ contract Pool is Constants, ReentrancyGuard {
     Position storage position = positions[vars.posId];
 
     vars.price = exposure == Exposure.LONG
-      ? oracle.getMaxPrice(collateralToken)
-      : oracle.getMinPrice(collateralToken);
+      ? oracle.getMaxPrice(indexToken)
+      : oracle.getMinPrice(indexToken);
 
     if (position.size == 0) {
       // If position size = 0, then it is a new position.
@@ -535,7 +535,7 @@ contract Pool is Constants, ReentrancyGuard {
     );
 
     position.collateral += vars.collateralDeltaUsd;
-    if (position.collateral < vars.feeUsd) revert Pool_CollateralTooSmall();
+    if (position.collateral < vars.feeUsd) revert Pool_CollateralNotCoverFee();
 
     position.collateral -= vars.feeUsd;
     position.entryFundingRate = poolMath.getEntryFundingRate(
@@ -679,6 +679,27 @@ contract Pool is Constants, ReentrancyGuard {
     if (isProfit && delta * BPS <= size * minBps) delta = 0;
 
     return (isProfit, delta);
+  }
+
+  function getPoolShortDelta(address token)
+    public
+    view
+    returns (bool, uint256)
+  {
+    uint256 shortSize = shortSizeOf[token];
+    if (shortSize == 0) return (false, 0);
+
+    uint256 nextPrice = oracle.getMaxPrice(token);
+    uint256 averagePrice = shortAveragePriceOf[token];
+    uint256 priceDelta;
+    unchecked {
+      priceDelta = averagePrice > nextPrice
+        ? averagePrice - nextPrice
+        : nextPrice - averagePrice;
+    }
+    uint256 delta = (shortSize * priceDelta) / averagePrice;
+
+    return (averagePrice > nextPrice, delta);
   }
 
   function getNextAveragePrice(
