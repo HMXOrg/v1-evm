@@ -10,6 +10,7 @@ import { math } from "../utils/math.sol";
 import { Constants as CoreConstants } from "../../core/Constants.sol";
 
 import { MockErc20 } from "../mocks/MockERC20.sol";
+import { MockWNative } from "../mocks/MockWNative.sol";
 import { MockChainlinkPriceFeed } from "../mocks/MockChainlinkPriceFeed.sol";
 
 import { PoolOracle } from "../../core/PoolOracle.sol";
@@ -24,6 +25,7 @@ import { PLPStaking } from "../../staking/PLPStaking.sol";
 import { DragonStaking } from "../../staking/DragonStaking.sol";
 import { FeedableRewarder } from "../../staking/FeedableRewarder.sol";
 import { AdHocMintRewarder } from "../../staking/AdHocMintRewarder.sol";
+import { WFeedableRewarder } from "../../staking/WFeedableRewarder.sol";
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
@@ -120,6 +122,10 @@ contract BaseTest is DSTest, CoreConstants {
     });
 
     return (tokens, priceFeedInfo);
+  }
+
+  function deployMockWNative() internal returns (MockWNative) {
+    return new MockWNative();
   }
 
   function deployMockErc20(
@@ -227,5 +233,13 @@ contract BaseTest is DSTest, CoreConstants {
     address staking
   ) internal returns (AdHocMintRewarder) {
     return new AdHocMintRewarder(name, rewardToken, staking);
+  }
+
+  function deployWFeedableRewarder(
+    string memory name,
+    address rewardToken,
+    address staking
+  ) internal returns (WFeedableRewarder) {
+    return new WFeedableRewarder(name, rewardToken, staking);
   }
 }

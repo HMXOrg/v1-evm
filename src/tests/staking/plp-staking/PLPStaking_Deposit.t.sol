@@ -267,7 +267,8 @@ contract PLPStaking_Deposit is PLPStaking_BaseTest {
     // Mint 604800 esP88 to Feeder
     esP88.mint(DAVE, 604800 ether);
     // Mint 302400 revenueToken to Feeder
-    revenueToken.mint(DAVE, 302400 ether);
+    vm.deal(DAVE, 302400 ether);
+    revenueToken.deposit{ value: 302400 ether }();
     // Mint 60480 partnerToken to Feeder
     partnerAToken.mint(DAVE, 60480 ether);
     // Mint 1000 PLP to Alice

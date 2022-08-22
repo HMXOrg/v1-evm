@@ -15,7 +15,8 @@ contract PLPStaking_Harvest is PLPStaking_BaseTest {
     // Mint 604800 esP88 to Feeder
     esP88.mint(DAVE, 604800 ether);
     // Mint 302400 revenueToken to Feeder
-    revenueToken.mint(DAVE, 302400 ether);
+    vm.deal(DAVE, 302400 ether);
+    revenueToken.deposit{ value: 302400 ether }();
     // Mint 60480 partnerToken to Feeder
     partnerAToken.mint(DAVE, 60480 ether);
     // Mint 1000 PLP to Alice
@@ -90,7 +91,7 @@ contract PLPStaking_Harvest is PLPStaking_BaseTest {
     }
 
     assertEq(esP88.balanceOf(ALICE), 172800 ether);
-    assertEq(revenueToken.balanceOf(ALICE), 86400 ether);
+    assertEq(ALICE.balance, 86400 ether);
     assertEq(partnerAToken.balanceOf(ALICE), 17280 ether);
 
     assertEq(esP88Rewarder.pendingReward(ALICE), 0);
@@ -143,7 +144,7 @@ contract PLPStaking_Harvest is PLPStaking_BaseTest {
     }
 
     assertEq(esP88.balanceOf(BOB), 0);
-    assertEq(revenueToken.balanceOf(BOB), 64800 ether);
+    assertEq(BOB.balance, 64800 ether);
     assertEq(partnerAToken.balanceOf(BOB), 0);
 
     assertEq(esP88Rewarder.pendingReward(BOB), 129600 ether);
@@ -188,10 +189,10 @@ contract PLPStaking_Harvest is PLPStaking_BaseTest {
       vm.stopPrank();
     }
     assertEq(esP88.balanceOf(ALICE), 345600 ether);
-    assertEq(revenueToken.balanceOf(ALICE), 172800 ether);
+    assertEq(ALICE.balance, 172800 ether);
     assertEq(partnerAToken.balanceOf(ALICE), 34560 ether);
     assertEq(esP88.balanceOf(BOB), 259200 ether);
-    assertEq(revenueToken.balanceOf(BOB), 129600 ether);
+    assertEq(BOB.balance, 129600 ether);
     assertEq(partnerAToken.balanceOf(BOB), 25920 ether);
 
     assertEq(esP88Rewarder.pendingReward(ALICE), 0);

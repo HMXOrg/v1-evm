@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
-import { BaseTest, PLPStaking, PLP, EsP88, MockErc20, FeedableRewarder } from "../../base/BaseTest.sol";
+import { BaseTest, PLPStaking, PLP, EsP88, MockErc20, MockWNative, FeedableRewarder, WFeedableRewarder } from "../../base/BaseTest.sol";
 
 contract PLPStaking_BaseTest is BaseTest {
   PLP internal plp;
   EsP88 internal esP88;
-  MockErc20 internal revenueToken;
+  MockWNative internal revenueToken;
   MockErc20 internal partnerAToken;
   MockErc20 internal partnerBToken;
 
   PLPStaking internal plpStaking;
 
-  FeedableRewarder internal revenueRewarder;
+  WFeedableRewarder internal revenueRewarder;
   FeedableRewarder internal esP88Rewarder;
   FeedableRewarder internal partnerARewarder;
   FeedableRewarder internal partnerBRewarder;
@@ -27,15 +27,11 @@ contract PLPStaking_BaseTest is BaseTest {
     esP88 = BaseTest.deployEsP88();
     esP88.setMinter(DAVE, true);
 
-    revenueToken = BaseTest.deployMockErc20(
-      "Protocol Revenue Token",
-      "PRT",
-      18
-    );
+    revenueToken = deployMockWNative();
     partnerAToken = BaseTest.deployMockErc20("Partner A", "PA", 18);
     partnerBToken = BaseTest.deployMockErc20("Partner B", "PB", 18);
 
-    revenueRewarder = BaseTest.deployFeedableRewarder(
+    revenueRewarder = BaseTest.deployWFeedableRewarder(
       "Protocol Revenue Rewarder",
       address(revenueToken),
       address(plpStaking)
