@@ -1,0 +1,90 @@
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.8.4 <0.9.0;
+
+import { DragonStaking_BaseTest } from "./DragonStaking_BaseTest.t.sol";
+import { console } from "../../utils/console.sol";
+import { math } from "../../utils/math.sol";
+
+contract DragonStaking_Withdraw is DragonStaking_BaseTest {
+  function setUp() public override {
+    super.setUp();
+  }
+
+  function testCorrectness_WhenBurnAfterWithWithdraw() external {
+    vm.startPrank(DAVE);
+    // Mint 604800 esP88 to Feeder
+    esP88.mint(DAVE, 604800 ether);
+    // Mint 302400 revenueToken to Feeder
+    revenueToken.mint(DAVE, 302400 ether);
+    // Mint 60480 partnerToken to Feeder
+    partnerAToken.mint(DAVE, 60480 ether);
+
+    // Mint 1000 PLP to Alice
+    p88.mint(ALICE, 1000 ether);
+    // Mint 1000 PLP to Bob
+    p88.mint(BOB, 1000 ether);
+    // Mint 1000 esP88 to Alice
+    esP88.mint(ALICE, 1000 ether);
+    // Mint 1000 esP88 to Bob
+    esP88.mint(BOB, 1000 ether);
+    // Mint 1000 dragonPoint to Alice
+    dragonPoint.mint(ALICE, 1000 ether);
+    // Mint 1000 dragonPoint to Bob
+    dragonPoint.mint(BOB, 1000 ether);
+    vm.stopPrank();
+
+    vm.startPrank(DAVE);
+    revenueToken.approve(address(revenueRewarder), type(uint256).max);
+    // Feeder feed revenueToken to revenueRewarder
+    // 302400 / 7 day rewardPerSec ~= 0.5 revenueToken
+    revenueRewarder.feed(302400 ether, 7 days);
+    vm.stopPrank();
+
+    vm.startPrank(ALICE);
+    p88.approve(address(dragonStaking), type(uint256).max);
+    // Alice deposits 100 P88
+    dragonStaking.deposit(ALICE, address(p88), 100 ether);
+    vm.stopPrank();
+
+    vm.startPrank(ALICE);
+    dragonPoint.approve(address(dragonStaking), type(uint256).max);
+    // Alice deposits 100 esP88
+    dragonStaking.deposit(ALICE, address(dragonPoint), 100 ether);
+    vm.stopPrank();
+
+    vm.startPrank(BOB);
+    p88.approve(address(dragonStaking), type(uint256).max);
+    // Bob deposits 100 P88
+    dragonStaking.deposit(BOB, address(p88), 100 ether);
+    vm.stopPrank();
+
+    // after 2 days
+    vm.warp(block.timestamp + 2 days);
+
+    assertEq(revenueRewarder.pendingReward(ALICE), 57600 ether);
+    assertEq(revenueRewarder.pendingReward(BOB), 28800 ether);
+
+    // 100 * 2 days / 31536000 = 0.547945205479452054
+    assertEq(
+      dragonPointRewarder.pendingReward(ALICE),
+      0.547945205479452054 ether
+    );
+
+    vm.startPrank(ALICE);
+    // Alice withdraw 50 dragonPoint
+    dragonStaking.withdraw(ALICE, address(dragonPoint), 50 ether);
+    vm.stopPrank();
+
+    assertEq(revenueRewarder.pendingReward(ALICE), 57600 ether);
+    assertEq(revenueRewarder.pendingReward(BOB), 28800 ether);
+
+    assertEq(dragonPointRewarder.pendingReward(ALICE), 0);
+
+    vm.startPrank(BOB);
+    // Bob withdraw 100 P88
+    dragonStaking.withdraw(BOB, address(p88), 100 ether);
+    vm.stopPrank();
+
+    assertEq(dragonPointRewarder.pendingReward(BOB), 0);
+  }
+}

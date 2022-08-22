@@ -107,6 +107,16 @@ abstract contract BaseStaking is IStaking, Ownable {
     address token,
     uint256 amount
   ) external {
+    _withdraw(to, token, amount);
+    _afterWithdraw(to, token, amount);
+    emit LogWithdraw(msg.sender, to, token, amount);
+  }
+
+  function _withdraw(
+    address to,
+    address token,
+    uint256 amount
+  ) internal {
     if (!isStakingToken[token]) revert Staking_UnknownStakingToken();
     if (userTokenAmount[token][to] < amount)
       revert Staking_InsufficientTokenAmount();
@@ -121,12 +131,8 @@ abstract contract BaseStaking is IStaking, Ownable {
         ++i;
       }
     }
-
     userTokenAmount[token][to] -= amount;
     IERC20(token).safeTransfer(msg.sender, amount);
-
-    _afterWithdraw(to, token, amount);
-
     emit LogWithdraw(msg.sender, to, token, amount);
   }
 
