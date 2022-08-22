@@ -23,6 +23,7 @@ import { Pool } from "../../core/Pool.sol";
 import { PLPStaking } from "../../staking/PLPStaking.sol";
 import { DragonStaking } from "../../staking/DragonStaking.sol";
 import { FeedableRewarder } from "../../staking/FeedableRewarder.sol";
+import { AdHocMintRewarder } from "../../staking/AdHocMintRewarder.sol";
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
@@ -214,5 +215,13 @@ contract BaseTest is DSTest, CoreConstants {
     address staking
   ) internal returns (FeedableRewarder) {
     return new FeedableRewarder(name, rewardToken, staking);
+  }
+
+  function deployAdHocMintRewarder(
+    string memory name,
+    address rewardToken,
+    address staking
+  ) internal returns (AdHocMintRewarder) {
+    return new AdHocMintRewarder(name, rewardToken, staking);
   }
 }
