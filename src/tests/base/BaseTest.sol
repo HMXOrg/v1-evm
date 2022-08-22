@@ -32,7 +32,11 @@ contract BaseTest is DSTest, CoreConstants {
 
   VM internal constant vm = VM(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
 
-  address internal constant ALICE = address(1);
+  // Note: Avoid using address(1) as it is reserved for Ecrecover.
+  // ref: https://ethereum.stackexchange.com/questions/89447/how-does-ecrecover-get-compiled
+  // One pitfall is that, when transferring native token to address(1),
+  // it will revert with PRECOMPILE::ecrecover.
+  address internal constant ALICE = address(5);
   address internal constant BOB = address(2);
   address internal constant CAT = address(3);
   address internal constant DAVE = address(4);
