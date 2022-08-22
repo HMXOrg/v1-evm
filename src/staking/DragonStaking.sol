@@ -14,11 +14,10 @@ contract DragonStaking is BaseStaking {
 
   function _afterWithdraw(
     address to,
-    address token,
+    address, /*token*/
     uint256 /*amount*/
   ) internal override {
-    if (token != address(dp))
-      _withdraw(to, address(dp), userTokenAmount[address(dp)][to]);
+    _withdraw(to, address(dp), userTokenAmount[address(dp)][to]);
 
     dp.burn(to, dp.balanceOf(to));
     dragonPointRewarder.onWithdraw(to, 0);
