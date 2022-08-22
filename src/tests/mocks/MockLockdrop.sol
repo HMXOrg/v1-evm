@@ -6,47 +6,75 @@ import { MockErc20 } from "./MockERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { console } from "../utils/console.sol";
+import { MockLockdropConfig } from "./MockLockdropConfig.sol";
 
-contract MockLockdrop {
+contract MockLockdrop is ILockdrop {
   using SafeERC20 for IERC20;
 
-  uint256 lockedTokenAmount;
-  address lockedTokenAddress;
-  MockErc20 p88;
+  address internal lockeDropTokenAddress;
+  MockLockdropConfig internal lockdropConfig;
 
-  function getP88Address() external view returns (address) {
-    return address(p88);
+  constructor(address _lockdropToken, MockLockdropConfig _lockdropConfig) {
+    lockeDropTokenAddress = _lockdropToken;
+    lockdropConfig = _lockdropConfig;
   }
 
-  function withdrawLockToken(uint256 _amount, address _user) external {
-    IERC20(lockedTokenAddress).approve(address(this), _amount);
-    IERC20(lockedTokenAddress).safeTransferFrom(address(this), _user, _amount);
-  }
-
-  function claimAllReward(address _user) external {
-    IERC20(address(p88)).safeTransferFrom(
-      address(this),
-      _user,
-      IERC20(address(p88)).balanceOf(address(this))
-    );
-  }
-
-  function lockToken(
-    address _token,
-    uint256 _amount,
-    uint256 _lockPeriod
-  ) external {
-    lockedTokenAddress = _token;
-    lockedTokenAmount = _amount;
-
-    IERC20(_token).safeTransferFrom(
+  function lockToken(uint256 _amount, uint256 _lockPeriod) external {
+    IERC20(address(lockeDropTokenAddress)).safeTransferFrom(
       msg.sender,
       address(this),
-      lockedTokenAmount
+      _amount
+    );
+  }
+
+  function extendLockPeriod(uint256 _lockPeriod) external {}
+
+  function addLockAmount(uint256 _amount) external {}
+
+  function earlyWithdrawLockedToken(uint256 _amount, address _user) external {}
+
+  function claimAllReward(address _user) external {
+    lockdropConfig.p88Token().mint(address(this), 10 ether);
+    lockdropConfig.p88Token().approve(address(this), 10 ether);
+
+    lockdropConfig.plpToken().mint(address(this), 10 ether);
+    lockdropConfig.plpToken().approve(address(this), 10 ether);
+
+    IERC20(address(lockdropConfig.p88Token())).safeTransferFrom(
+      address(this),
+      _user,
+      IERC20(address(lockdropConfig.p88Token())).balanceOf(address(this))
     );
 
-    p88 = new MockErc20("P88", "P88", 18);
-    p88.mint(address(this), 20 ether);
-    p88.approve(address(this), 20 ether);
+    IERC20(address(lockdropConfig.plpToken())).safeTransferFrom(
+      address(this),
+      _user,
+      IERC20(address(lockdropConfig.plpToken())).balanceOf(address(this))
+    );
+  }
+
+  function stakePLP() external {}
+
+  function withdrawAll(address _user) external {
+    IERC20(lockeDropTokenAddress).approve(
+      address(this),
+      IERC20(lockeDropTokenAddress).balanceOf(address(this))
+    );
+    IERC20(lockeDropTokenAddress).safeTransferFrom(
+      address(this),
+      _user,
+      IERC20(lockeDropTokenAddress).balanceOf(address(this))
+    );
+  }
+
+  function claimAllP88(address _user) external {
+    lockdropConfig.p88Token().mint(address(this), 10 ether);
+    lockdropConfig.p88Token().approve(address(this), 10 ether);
+
+    IERC20(address(lockdropConfig.p88Token())).safeTransferFrom(
+      address(this),
+      _user,
+      IERC20(address(lockdropConfig.p88Token())).balanceOf(address(this))
+    );
   }
 }
