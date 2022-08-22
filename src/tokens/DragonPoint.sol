@@ -19,8 +19,7 @@ contract DragonPoint is BaseMintableToken {
     address to,
     uint256 amount
   ) internal virtual override {
-    if (!(isTransferrer[from] && isTransferrer[to]))
-      revert DragonPoint_isNotTransferrable();
+    if (!isTransferrer[msg.sender]) revert DragonPoint_isNotTransferrable();
 
     super._transfer(from, to, amount);
   }
