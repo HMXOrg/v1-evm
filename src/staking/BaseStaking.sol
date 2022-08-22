@@ -13,13 +13,16 @@ abstract contract BaseStaking is IStaking, Ownable {
 
   error Staking_UnknownStakingToken();
   error Staking_InsufficientTokenAmount();
+  error Staking_NotRewarder();
+  error Staking_NotCompounder();
 
   mapping(address => mapping(address => uint256)) public userTokenAmount;
-  address[] public rewarders;
   mapping(address => bool) public isRewarder;
   mapping(address => bool) public isStakingToken;
   mapping(address => address[]) public stakingTokenRewarders;
   mapping(address => address[]) public rewarderStakingTokens;
+
+  address public compounder;
 
   event LogDeposit(
     address indexed caller,
@@ -68,8 +71,11 @@ abstract contract BaseStaking is IStaking, Ownable {
     isStakingToken[newToken] = true;
     if (!isRewarder[newRewarder]) {
       isRewarder[newRewarder] = true;
-      rewarders.push(newRewarder);
     }
+  }
+
+  function setCompounder(address compounder_) external onlyOwner {
+    compounder = compounder_;
   }
 
   function deposit(
@@ -136,10 +142,29 @@ abstract contract BaseStaking is IStaking, Ownable {
     uint256 amount
   ) internal virtual {}
 
-  function harvest() external {
+  function harvest(address[] memory rewarders) external {
+    _harvestFor(msg.sender, msg.sender, rewarders);
+  }
+
+  function harvestToCompounder(address user, address[] memory rewarders)
+    external
+  {
+    if (compounder != msg.sender) revert Staking_NotCompounder();
+    _harvestFor(user, compounder, rewarders);
+  }
+
+  function _harvestFor(
+    address user,
+    address receiver,
+    address[] memory rewarders
+  ) internal {
     uint256 length = rewarders.length;
     for (uint256 i = 0; i < length; ) {
-      IRewarder(rewarders[i]).onHarvest(msg.sender);
+      if (!isRewarder[rewarders[i]]) {
+        revert Staking_NotRewarder();
+      }
+
+      IRewarder(rewarders[i]).onHarvest(user, receiver);
 
       unchecked {
         ++i;

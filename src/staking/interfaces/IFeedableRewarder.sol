@@ -1,6 +1,6 @@
 pragma solidity 0.8.14;
 
-interface IRewarder {
+interface IFeedableRewarder {
   function name() external view returns (string memory);
 
   function rewardRate() external view returns (uint256);
@@ -9,5 +9,7 @@ interface IRewarder {
 
   function onWithdraw(address user, uint256 shareAmount) external;
 
-  function onHarvest(address user, address receiver) external;
+  function onHarvest(address user) external;
+
+  function feed(uint256 feedAmount, uint256 duration) external;
 }

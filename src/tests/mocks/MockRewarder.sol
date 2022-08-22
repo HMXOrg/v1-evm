@@ -12,5 +12,5 @@ contract MockRewarder is IRewarder {
 
   function onWithdraw(address user, uint256 shareAmount) external {}
 
-  function onHarvest(address user) external {}
+  function onHarvest(address user, address receiver) external {}
 }

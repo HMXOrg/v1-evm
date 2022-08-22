@@ -13,7 +13,7 @@ interface IStaking {
     uint256 amount
   ) external;
 
-  function harvest() external;
+  function harvest(address[] memory rewarders) external;
 
   function calculateTotalShare(address rewarder)
     external

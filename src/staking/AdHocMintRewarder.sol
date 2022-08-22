@@ -1,5 +1,6 @@
 pragma solidity 0.8.14;
 
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -8,7 +9,7 @@ import { IRewarder } from "./interfaces/IRewarder.sol";
 import { IStaking } from "./interfaces/IStaking.sol";
 import { MintableTokenInterface } from "../interfaces/MintableTokenInterface.sol";
 
-contract AdHocMintRewarder is IRewarder {
+contract AdHocMintRewarder is IRewarder, Ownable {
   using SafeCast for uint256;
   using SafeCast for uint128;
   using SafeCast for int256;
@@ -32,6 +33,13 @@ contract AdHocMintRewarder is IRewarder {
   event LogHarvest(address indexed user, uint256 pendingRewardAmount);
 
   // Error
+  error AdHocMintRewarderError_NotStakingContract();
+
+  modifier onlyStakingContract() {
+    if (msg.sender != staking)
+      revert AdHocMintRewarderError_NotStakingContract();
+    _;
+  }
 
   constructor(
     string memory name_,
@@ -46,14 +54,20 @@ contract AdHocMintRewarder is IRewarder {
     staking = staking_;
   }
 
-  function onDeposit(address user, uint256 shareAmount) external {
+  function onDeposit(address user, uint256 shareAmount)
+    external
+    onlyStakingContract
+  {
     // Accumulate user reward
     userAccRewards[user] += _calculateUserAccReward(user);
     userLastRewards[user] = block.timestamp.toUint64();
     emit LogOnDeposit(user, shareAmount);
   }
 
-  function onWithdraw(address user, uint256 shareAmount) external {
+  function onWithdraw(address user, uint256 shareAmount)
+    external
+    onlyStakingContract
+  {
     // Reset user reward
     // The rule is whenever withdraw occurs, no matter the size, reward calculation should restart.
     userAccRewards[user] = 0;
@@ -61,7 +75,10 @@ contract AdHocMintRewarder is IRewarder {
     emit LogOnWithdraw(user, shareAmount);
   }
 
-  function onHarvest(address user) external {
+  function onHarvest(address user, address receiver)
+    external
+    onlyStakingContract
+  {
     uint256 pendingRewardAmount = _pendingReward(user);
 
     // Reset user reward accumulation.
@@ -70,7 +87,7 @@ contract AdHocMintRewarder is IRewarder {
     userLastRewards[user] = block.timestamp.toUint64();
 
     if (pendingRewardAmount != 0) {
-      MintableTokenInterface(rewardToken).mint(user, pendingRewardAmount);
+      MintableTokenInterface(rewardToken).mint(receiver, pendingRewardAmount);
     }
 
     emit LogHarvest(user, pendingRewardAmount);
