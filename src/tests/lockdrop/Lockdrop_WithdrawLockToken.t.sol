@@ -17,11 +17,13 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
   }
 
   // ------ earlyWithdrawLockedToken ------
-  function testCorrectness_LockdropEarlyWithdrawLockToken() external {
+  function testCorrectness_LockdropEarlyWithdrawLockToken_WithdrawWithinFirst3Days()
+    external
+  {
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
-    vm.warp(120000);
+    vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
     lockdrop.lockToken(16, 604900);
     (uint256 alicelockdropTokenAmount, uint256 alicelockPeriod) = lockdrop
       .lockdropStates(ALICE);
@@ -32,12 +34,47 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     assertEq(lockdrop.totalP88Weight(), 16 * 604900);
 
     // Withdraw timestamp
-    vm.warp(533000);
+    vm.warp(lockdropConfig.startLockTimestamp() + 2 days);
     lockdrop.earlyWithdrawLockedToken(5, ALICE);
     (alicelockdropTokenAmount, alicelockPeriod) = lockdrop.lockdropStates(
       ALICE
     );
-    // After Alice withdraw the ERC20 token, the following criteria needs to satisfy:
+    // After Alice withdraw the ERC20 token from the first 3 days, the following criteria needs to satisfy:
+    // 1. Balance of Alice's ERC20 token should be 9
+    // 2. The amount of Alice's lockdrop token should be 11
+    // 3. The number of lock period should be 604900
+    // 4. The total amount of lock token should be 11
+    assertEq(mockERC20.balanceOf(ALICE), 9);
+    assertEq(alicelockdropTokenAmount, 11);
+    assertEq(alicelockPeriod, 604900);
+    assertEq(lockdrop.totalAmount(), 11);
+    assertEq(lockdrop.totalP88Weight(), 11 * 604900);
+    vm.stopPrank();
+  }
+
+  function testCorrectness_LockdropEarlyWithdrawLockToken_MultipleWithdrawWithinFirst3Days()
+    external
+  {
+    vm.startPrank(ALICE, ALICE);
+    mockERC20.mint(ALICE, 20);
+    mockERC20.approve(address(lockdrop), 20);
+    vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
+    lockdrop.lockToken(16, 604900);
+    (uint256 alicelockdropTokenAmount, uint256 alicelockPeriod) = lockdrop
+      .lockdropStates(ALICE);
+    assertEq(mockERC20.balanceOf(ALICE), 4);
+    assertEq(alicelockdropTokenAmount, 16);
+    assertEq(alicelockPeriod, 604900);
+    assertEq(lockdrop.totalAmount(), 16);
+    assertEq(lockdrop.totalP88Weight(), 16 * 604900);
+
+    // Withdraw timestamp
+    vm.warp(lockdropConfig.startLockTimestamp() + 2 days);
+    lockdrop.earlyWithdrawLockedToken(5, ALICE);
+    (alicelockdropTokenAmount, alicelockPeriod) = lockdrop.lockdropStates(
+      ALICE
+    );
+    // After Alice withdraw the ERC20 token within the first 3 days, the following criteria needs to satisfy:
     // 1. Balance of Alice's ERC20 token should be 9
     // 2. The amount of Alice's lockdrop token should be 11
     // 3. The number of lock period should be 604900
@@ -48,12 +85,12 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     assertEq(lockdrop.totalAmount(), 11);
     assertEq(lockdrop.totalP88Weight(), 11 * 604900);
 
-    vm.warp(553000);
+    vm.warp(lockdropConfig.startLockTimestamp() + 3 days);
     lockdrop.earlyWithdrawLockedToken(11, ALICE);
     (alicelockdropTokenAmount, alicelockPeriod) = lockdrop.lockdropStates(
       ALICE
     );
-    // After Alice withdraw all of her ERC20 token, the following criteria needs to satisfy:
+    // After Alice withdraw all of her ERC20 token within the first 3 days, the following criteria needs to satisfy:
     // 1. Balance of Alice's ERC20 token should be 20
     // 2. Alice is now deleted from lockdropStates so her lock token amount is 0
     // 3. Alice is now deleted from lockdropStates so her lock period is 0
@@ -63,7 +100,41 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     vm.stopPrank();
   }
 
-  function testRevert_LockdropEarlyWithdrawLockToken_BeforeWithdrawPeriod()
+  function testCorrectness_LockdropEarlyWithdrawLockToken_WithdrawDay4First12Hours()
+    external
+  {
+    vm.startPrank(ALICE, ALICE);
+    mockERC20.mint(ALICE, 20);
+    mockERC20.approve(address(lockdrop), 20);
+    vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
+    lockdrop.lockToken(16, 604900);
+    (uint256 alicelockdropTokenAmount, uint256 alicelockPeriod) = lockdrop
+      .lockdropStates(ALICE);
+    assertEq(mockERC20.balanceOf(ALICE), 4);
+    assertEq(alicelockdropTokenAmount, 16);
+    assertEq(alicelockPeriod, 604900);
+    assertEq(lockdrop.totalAmount(), 16);
+    assertEq(lockdrop.totalP88Weight(), 16 * 604900);
+
+    // Withdraw timestamp
+    vm.warp(lockdropConfig.startLockTimestamp() + 4 days + 2 hours);
+    lockdrop.earlyWithdrawLockedToken(5, ALICE);
+    (alicelockdropTokenAmount, alicelockPeriod) = lockdrop.lockdropStates(
+      ALICE
+    );
+    // After Alice withdraw the ERC20 token on day 4 in the first 12 hours, the following criteria needs to satisfy:
+    // 1. Balance of Alice's ERC20 token should be 9
+    // 2. The amount of Alice's lockdrop token should be 11
+    // 3. The number of lock period should be 604900
+    // 4. The total amount of lock token should be 11
+    assertEq(mockERC20.balanceOf(ALICE), 9);
+    assertEq(alicelockdropTokenAmount, 11);
+    assertEq(alicelockPeriod, 604900);
+    assertEq(lockdrop.totalAmount(), 11);
+    assertEq(lockdrop.totalP88Weight(), 11 * 604900);
+  }
+
+  function testCorrectness_LockdropEarlyWithdrawLockToken_WithdrawDay4Last12Hours()
     external
   {
     vm.startPrank(ALICE, ALICE);
@@ -79,12 +150,22 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     assertEq(lockdrop.totalAmount(), 16);
     assertEq(lockdrop.totalP88Weight(), 16 * 604900);
 
-    vm.warp(130000);
-    vm.expectRevert(
-      abi.encodeWithSignature("Lockdrop_NotInWithdrawalPeriod()")
+    // Withdraw timestamp: Day 4 after 12 hours
+    vm.warp(lockdropConfig.startLockTimestamp() + 4 days + 18 hours);
+    lockdrop.earlyWithdrawLockedToken(4, ALICE);
+    (alicelockdropTokenAmount, alicelockPeriod) = lockdrop.lockdropStates(
+      ALICE
     );
-    lockdrop.earlyWithdrawLockedToken(5, ALICE);
-    vm.stopPrank();
+    // After Alice withdraw the ERC20 token on day 4 in the last 12 hours, the following criteria needs to satisfy:
+    // 1. Balance of Alice's ERC20 token should be 8
+    // 2. The amount of Alice's lockdrop token should be 12
+    // 3. The number of lock period should be 604900
+    // 4. The total amount of lock token should be 12
+    assertEq(mockERC20.balanceOf(ALICE), 8);
+    assertEq(alicelockdropTokenAmount, 12);
+    assertEq(alicelockPeriod, 604900);
+    assertEq(lockdrop.totalAmount(), 12);
+    assertEq(lockdrop.totalP88Weight(), 12 * 604900);
   }
 
   function testRevert_LockdropEarlyWithdrawLockToken_ExceedLockdropPeriod()
@@ -93,7 +174,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
-    vm.warp(120000);
+    vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
     lockdrop.lockToken(16, 604900);
     (uint256 alicelockdropTokenAmount, uint256 alicelockPeriod) = lockdrop
       .lockdropStates(ALICE);
@@ -103,10 +184,58 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     assertEq(lockdrop.totalAmount(), 16);
     assertEq(lockdrop.totalP88Weight(), 16 * 604900);
 
-    vm.warp(705000);
-    vm.expectRevert(
-      abi.encodeWithSignature("Lockdrop_NotInWithdrawalPeriod()")
-    );
+    vm.warp(lockdropConfig.startLockTimestamp() + 6 days);
+    vm.expectRevert(abi.encodeWithSignature("Lockdrop_NotInLockdropPeriod()"));
+    lockdrop.earlyWithdrawLockedToken(5, ALICE);
+    vm.stopPrank();
+  }
+
+  function testRevert_LockdropEarlyWithdrawLockToken_WithdrawDay4First12HoursInvalidAmount()
+    external
+  {
+    vm.startPrank(ALICE, ALICE);
+    mockERC20.mint(ALICE, 20);
+    mockERC20.approve(address(lockdrop), 20);
+    vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
+
+    lockdrop.lockToken(16, 604900);
+    (uint256 alicelockdropTokenAmount, uint256 alicelockPeriod) = lockdrop
+      .lockdropStates(ALICE);
+    assertEq(mockERC20.balanceOf(ALICE), 4);
+    assertEq(alicelockdropTokenAmount, 16);
+    assertEq(alicelockPeriod, 604900);
+    assertEq(lockdrop.totalAmount(), 16);
+    assertEq(lockdrop.totalP88Weight(), 16 * 604900);
+
+    // Withdraw timestamp
+    vm.warp(lockdropConfig.startLockTimestamp() + 4 days + 2 hours);
+    // Withdraw more than 50%
+    vm.expectRevert(abi.encodeWithSignature("Lockdrop_InvalidAmount()"));
+    lockdrop.earlyWithdrawLockedToken(10, ALICE);
+    vm.stopPrank();
+  }
+
+  function testRevert_LockdropEarlyWithdrawLockToken_WithdrawDay4Last12HoursInvalidAmount()
+    external
+  {
+    vm.startPrank(ALICE, ALICE);
+    mockERC20.mint(ALICE, 20);
+    mockERC20.approve(address(lockdrop), 20);
+    vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
+
+    lockdrop.lockToken(16, 604900);
+    (uint256 alicelockdropTokenAmount, uint256 alicelockPeriod) = lockdrop
+      .lockdropStates(ALICE);
+    assertEq(mockERC20.balanceOf(ALICE), 4);
+    assertEq(alicelockdropTokenAmount, 16);
+    assertEq(alicelockPeriod, 604900);
+    assertEq(lockdrop.totalAmount(), 16);
+    assertEq(lockdrop.totalP88Weight(), 16 * 604900);
+
+    // Withdraw timestamp: Day 4 after 12 hours
+    vm.warp(lockdropConfig.startLockTimestamp() + 4 days + 18 hours);
+    // Withdraw more than valid amount
+    vm.expectRevert(abi.encodeWithSignature("Lockdrop_InvalidAmount()"));
     lockdrop.earlyWithdrawLockedToken(5, ALICE);
     vm.stopPrank();
   }
@@ -117,7 +246,8 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
-    vm.warp(120000);
+    vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
+
     lockdrop.lockToken(16, 604900);
     (uint256 alicelockdropTokenAmount, uint256 alicelockPeriod) = lockdrop
       .lockdropStates(ALICE);
@@ -127,7 +257,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     assertEq(lockdrop.totalAmount(), 16);
     assertEq(lockdrop.totalP88Weight(), 16 * 604900);
 
-    vm.warp(533000);
+    vm.warp(lockdropConfig.startLockTimestamp() + 3 days);
     vm.expectRevert(abi.encodeWithSignature("Lockdrop_ZeroAmountNotAllowed()"));
     lockdrop.earlyWithdrawLockedToken(0, ALICE);
     vm.stopPrank();
@@ -139,7 +269,8 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
-    vm.warp(120000);
+    vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
+
     lockdrop.lockToken(16, 604900);
     (uint256 alicelockdropTokenAmount, uint256 alicelockPeriod) = lockdrop
       .lockdropStates(ALICE);
@@ -149,7 +280,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     assertEq(lockdrop.totalAmount(), 16);
     assertEq(lockdrop.totalP88Weight(), 16 * 604900);
 
-    vm.warp(533000);
+    vm.warp(lockdropConfig.startLockTimestamp() + 3 days);
     vm.expectRevert(abi.encodeWithSignature("Lockdrop_InsufficientBalance()"));
     lockdrop.earlyWithdrawLockedToken(20, ALICE);
     vm.stopPrank();
@@ -160,7 +291,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
-    vm.warp(120000);
+    vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
     lockdrop.lockToken(16, 604900);
     (uint256 alicelockdropTokenAmount, uint256 alicelockPeriod) = lockdrop
       .lockdropStates(ALICE);
@@ -171,7 +302,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     assertEq(lockdrop.totalP88Weight(), 16 * 604900);
     vm.stopPrank();
 
-    vm.warp(704800 + 605000);
+    vm.warp(7 days + 604900);
     vm.startPrank(address(lockdrop), address(lockdrop));
     mockPLPToken.mint(address(lockdrop), 20);
     mockERC20.approve(address(strategy), 100);
@@ -205,7 +336,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
-    vm.warp(120000);
+    vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
     lockdrop.lockToken(16, 604900);
     (uint256 alicelockdropTokenAmount, uint256 alicelockPeriod) = lockdrop
       .lockdropStates(ALICE);
@@ -216,7 +347,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     assertEq(lockdrop.totalP88Weight(), 16 * 604900);
 
     vm.expectRevert(
-      abi.encodeWithSignature("Lockdrop_InvalidWithdrawPeriod()")
+      abi.encodeWithSignature("Lockdrop_InvalidWithdrawAllPeriod()")
     );
     lockdrop.withdrawAll(ALICE);
   }

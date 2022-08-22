@@ -16,7 +16,7 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
-    vm.warp(120000);
+    vm.warp(lockdropConfig.startLockTimestamp() + 4 hours);
     lockdrop.lockToken(16, 604900);
     (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod) = lockdrop
       .lockdropStates(ALICE);
@@ -37,7 +37,7 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     vm.startPrank(BOB, BOB);
     mockERC20.mint(BOB, 30);
     mockERC20.approve(address(lockdrop), 30);
-    vm.warp(130000);
+    vm.warp(lockdropConfig.startLockTimestamp() + 5 hours);
     lockdrop.lockToken(10, 704900);
     (uint256 bobLockdropTokenAmount, uint256 bobLockPeriod) = lockdrop
       .lockdropStates(BOB);
@@ -59,7 +59,7 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
-    vm.warp(120000);
+    vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
     lockdrop.lockToken(16, 604900);
     (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod) = lockdrop
       .lockdropStates(ALICE);
@@ -93,7 +93,7 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
-    vm.warp(120000);
+    vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
     lockdrop.lockToken(16, 604900);
     (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod) = lockdrop
       .lockdropStates(ALICE);
@@ -106,7 +106,7 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     // Alice wants to extend her lock period
     lockdrop.extendLockPeriod(800000);
     vm.stopPrank();
-     (aliceLockdropTokenAmount, aliceLockPeriod) = lockdrop.lockdropStates(
+    (aliceLockdropTokenAmount, aliceLockPeriod) = lockdrop.lockdropStates(
       ALICE
     );
 
@@ -123,21 +123,12 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     assertEq(lockdrop.totalP88Weight(), 16 * 800000);
   }
 
-  function testRevert_LockdropLockToken_InWithdrawPeriod() external {
-    vm.startPrank(ALICE, ALICE);
-    mockERC20.mint(ALICE, 20);
-    mockERC20.approve(address(lockdrop), 20);
-    vm.warp(532500);
-    vm.expectRevert(abi.encodeWithSignature("Lockdrop_NotInDepositPeriod()"));
-    lockdrop.lockToken(16, 604900);
-  }
-
   function testRevert_LockdropLockToken_ExceedLockdropPeriod() external {
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
-    vm.warp(705000);
-    vm.expectRevert(abi.encodeWithSignature("Lockdrop_NotInDepositPeriod()"));
+    vm.warp(lockdropConfig.startLockTimestamp() + 7 days);
+    vm.expectRevert(abi.encodeWithSignature("Lockdrop_NotInLockdropPeriod()"));
     lockdrop.lockToken(16, 604900);
     vm.stopPrank();
   }
@@ -146,7 +137,7 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
-    vm.warp(130000);
+    vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
     vm.expectRevert(abi.encodeWithSignature("Lockdrop_ZeroAmountNotAllowed()"));
     lockdrop.lockToken(0, 604900);
     vm.stopPrank();
@@ -156,7 +147,7 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
-    vm.warp(130000);
+    vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
     vm.expectRevert(abi.encodeWithSignature("Lockdrop_InvalidLockPeriod()"));
     lockdrop.lockToken(16, 1);
     vm.stopPrank();
@@ -166,7 +157,7 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
-    vm.warp(130000);
+    vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
     vm.expectRevert(abi.encodeWithSignature("Lockdrop_InvalidLockPeriod()"));
     lockdrop.lockToken(16, 31622400);
     vm.stopPrank();

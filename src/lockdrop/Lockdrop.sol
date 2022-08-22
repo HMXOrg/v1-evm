@@ -33,13 +33,13 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   error Lockdrop_ZeroP88WeightNotAllowed();
   error Lockdrop_InvalidStartLockTimestamp();
   error Lockdrop_InvalidLockPeriod();
-  error Lockdrop_NotInDepositPeriod();
-  error Lockdrop_NotInWithdrawalPeriod();
+  error Lockdrop_InvalidWithdrawAllPeriod();
+  error Lockdrop_NotInLockdropPeriod();
   error Lockdrop_InsufficientBalance();
   error Lockdrop_NotPassLockdropPeriod();
-  error Lockdrop_InvalidWithdrawPeriod();
   error Lockdrop_P88AlreadyClaimed();
   error Lockdrop_NoPosition();
+  error Lockdrop_InvalidAmount();
 
   // --- Structs ---
   struct LockdropState {
@@ -60,21 +60,10 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   mapping(address => bool) public claimP88;
 
   // --- Modifiers ---
-  /// @dev Only able to proceed during deposit period
-  modifier onlyInDepositPeriod() {
-    if (
-      block.timestamp < lockdropConfig.startLockTimestamp() ||
-      block.timestamp > lockdropConfig.withdrawalTimestamp()
-    ) revert Lockdrop_NotInDepositPeriod();
-    _;
-  }
-
-  /// @dev Only able to proceed during withdrawal period
-  modifier onlyInEarlyWithdrawalPeriod() {
-    if (
-      block.timestamp < lockdropConfig.withdrawalTimestamp() ||
-      block.timestamp > lockdropConfig.endLockTimestamp()
-    ) revert Lockdrop_NotInWithdrawalPeriod();
+  /// @dev Only in lockdrop period
+  modifier onlyInLockdropPeriod() {
+    if (block.timestamp > lockdropConfig.endLockTimestamp())
+      revert Lockdrop_NotInLockdropPeriod();
     _;
   }
 
@@ -100,12 +89,12 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     lockdropConfig = _lockdropConfig;
   }
 
-  /// @dev Users can lock their ERC20 Token, should be in a valid lock period (first 5 days)
+  /// @dev Users can lock their ERC20 Token during the lockdrop period
   /// @param _amount Number of token that user wants to lock
   /// @param _lockPeriod Number of second that user wants to lock
   function lockToken(uint256 _amount, uint256 _lockPeriod)
     external
-    onlyInDepositPeriod
+    onlyInLockdropPeriod
   {
     if (_amount == 0) revert Lockdrop_ZeroAmountNotAllowed();
     if (_lockPeriod < (7 days) || _lockPeriod > (7 days * 52))
@@ -120,9 +109,11 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     emit LogLockToken(msg.sender, _amount, _lockPeriod);
   }
 
+  /// @dev Users can extend their lock period during the lockdrop period
+  /// @param _newLockPeriod New number of second that user wants to lock
   function extendLockPeriod(uint256 _newLockPeriod)
     external
-    onlyInDepositPeriod
+    onlyInLockdropPeriod
   {
     if (_newLockPeriod > (7 days * 52)) revert Lockdrop_InvalidLockPeriod(); // Less than 1 week or more than 52 weeks
     if (lockdropStates[msg.sender].lockdropTokenAmount == 0)
@@ -136,7 +127,9 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     emit LogNewLockPeriod(msg.sender, _newLockPeriod);
   }
 
-  function addLockAmount(uint256 _amount) external onlyInDepositPeriod {
+  /// @dev Users can add more lock amount during the lockdrop period
+  /// @param _amount Number of lock token that user want to add
+  function addLockAmount(uint256 _amount) external onlyInLockdropPeriod {
     if (_amount == 0) revert Lockdrop_ZeroAmountNotAllowed();
     if (lockdropStates[msg.sender].lockdropTokenAmount == 0)
       revert Lockdrop_NoPosition();
@@ -147,16 +140,29 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     emit LogAddLockAmount(msg.sender, _amount);
   }
 
-  /// @dev Users withdraw their ERC20 Token within lockdrop period, should be in a valid withdraw period (last 2 days)
+  /// @dev Users withdraw their ERC20 Token within lockdrop period and decaying period
   /// @param _amount Number of token that user wants to withdraw
   /// @param _user Address of the user that wants to withdraw
   function earlyWithdrawLockedToken(uint256 _amount, address _user)
     external
-    onlyInEarlyWithdrawalPeriod
+    onlyInLockdropPeriod
   {
+    uint256 lockdropTokenAmount = lockdropStates[_user].lockdropTokenAmount;
     if (_amount == 0) revert Lockdrop_ZeroAmountNotAllowed();
-    if (_amount > lockdropStates[_user].lockdropTokenAmount)
-      revert Lockdrop_InsufficientBalance();
+    if (_amount > lockdropTokenAmount) revert Lockdrop_InsufficientBalance();
+    if (
+      block.timestamp >= lockdropConfig.withdrawalTimestamp() &&
+      block.timestamp <= lockdropConfig.withdrawalTimestampDecay() &&
+      _amount > (lockdropTokenAmount / 2)
+    ) revert Lockdrop_InvalidAmount();
+    if (
+      block.timestamp >= lockdropConfig.withdrawalTimestampDecay() &&
+      _amount >
+      (((lockdropConfig.decayStartPercentage() *
+        (lockdropConfig.endLockTimestamp() - block.timestamp)) /
+        lockdropConfig.startTimeDecay()) * lockdropTokenAmount) /
+        100
+    ) revert Lockdrop_InvalidAmount();
 
     lockdropStates[_user].lockdropTokenAmount -= _amount;
     totalAmount -= _amount;
@@ -164,6 +170,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     if (lockdropStates[_user].lockdropTokenAmount == 0) {
       delete lockdropStates[_user];
     }
+
     lockdropToken.safeTransfer(msg.sender, _amount);
     emit LogWithdrawLockToken(
       _user,
@@ -179,7 +186,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     if (
       block.timestamp <
       lockdropStates[_user].lockPeriod + lockdropConfig.endLockTimestamp()
-    ) revert Lockdrop_InvalidWithdrawPeriod();
+    ) revert Lockdrop_InvalidWithdrawAllPeriod();
     uint256 userPLPTokenAmount = (lockdropStates[_user].lockdropTokenAmount *
       totalPLPAmount) / totalAmount;
     totalPLPAmount -= userPLPTokenAmount;
