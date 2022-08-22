@@ -8,28 +8,45 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.s
 import { IStaking } from "./interfaces/IStaking.sol";
 import { IRewarder } from "./interfaces/IRewarder.sol";
 
-contract compounder is Ownable {
+contract Compounder is Ownable {
   using SafeERC20 for IERC20;
 
-  address[] compoundTokens;
+  address[] tokens;
   mapping(address => bool) isCompoundTokens;
   address compoundPool;
 
-  constructor(address compoundPool_, address[] memory compoundTokens_) {
+  constructor(
+    address compoundPool_,
+    address[] memory compoundTokens_,
+    bool[] memory isCompoundTokens_
+  ) {
     compoundPool = compoundPool_;
-    addCompoundToken(compoundTokens_);
+    addToken(compoundTokens_, isCompoundTokens_);
   }
 
-  function addCompoundToken(address[] memory tokens) public onlyOwner {
-    uint256 length = tokens.length;
+  function addToken(
+    address[] memory newTokens,
+    bool[] memory newIsCompoundTokens
+  ) public onlyOwner {
+    uint256 length = newTokens.length;
     for (uint256 i = 0; i < length; ) {
-      compoundTokens.push(tokens[i]);
-      isCompoundTokens[tokens[i]] = true;
+      tokens.push(newTokens[i]);
+      isCompoundTokens[tokens[i]] = newIsCompoundTokens[i];
+
+      if (newIsCompoundTokens[i])
+        IERC20(newTokens[i]).approve(compoundPool, type(uint256).max);
 
       unchecked {
         ++i;
       }
     }
+  }
+
+  function setCompoundToken(address token, bool isCompoundToken)
+    public
+    onlyOwner
+  {
+    isCompoundTokens[token] = isCompoundToken;
   }
 
   function claimAll(address[] memory pools, address[][] memory rewarders)
@@ -60,19 +77,23 @@ contract compounder is Ownable {
     }
 
     {
-      uint256 length = compoundTokens.length;
+      uint256 length = tokens.length;
       for (uint256 i = 0; i < length; ) {
-        uint256 amount = IERC20(compoundTokens[i]).balanceOf(address(this));
-        if (isCompoundTokens[compoundTokens[i]]) {
-          IStaking(compoundPool).deposit(msg.sender, compoundTokens[i], amount);
+        uint256 amount = IERC20(tokens[i]).balanceOf(address(this));
+        if (isCompoundTokens[tokens[i]]) {
+          IStaking(compoundPool).deposit(msg.sender, tokens[i], amount);
         } else {
-          IERC20(compoundTokens[i]).safeTransfer(msg.sender, amount);
+          IERC20(tokens[i]).safeTransfer(msg.sender, amount);
         }
 
         unchecked {
           ++i;
         }
       }
+
+      payable(msg.sender).transfer(address(this).balance);
     }
   }
+
+  receive() external payable {}
 }
