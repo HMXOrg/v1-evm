@@ -30,7 +30,6 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
 
   // --- Custom Errors ---
   error Lockdrop_ZeroAmountNotAllowed();
-  error Lockdrop_ZeroAddressNotAllowed();
   error Lockdrop_ZeroP88WeightNotAllowed();
   error Lockdrop_InvalidStartLockTimestamp();
   error Lockdrop_InvalidLockPeriod();
@@ -55,6 +54,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   uint256 public totalAmount; // total amount of token
   uint256 public totalP88Weight; // Sum of amount * lockPeriod
   uint256 public totalP88;
+  uint256 public totalPLPAmount;
 
   mapping(address => LockdropState) public lockdropStates;
   mapping(address => bool) public claimP88;
@@ -70,7 +70,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   }
 
   /// @dev Only able to proceed during withdrawal period
-  modifier onlyInWithdrawalPeriod() {
+  modifier onlyInEarlyWithdrawalPeriod() {
     if (
       block.timestamp < lockdropConfig.withdrawalTimestamp() ||
       block.timestamp > lockdropConfig.endLockTimestamp()
@@ -90,7 +90,8 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     ILockdropStrategy _strategy,
     LockdropConfig _lockdropConfig
   ) {
-    if (_lockdropToken == address(0)) revert Lockdrop_ZeroAddressNotAllowed();
+    // Sanity check
+    IERC20(_lockdropToken).balanceOf(address(this));
     if (block.timestamp > _lockdropConfig.startLockTimestamp())
       revert Lockdrop_InvalidStartLockTimestamp();
 
@@ -119,23 +120,30 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     emit LogLockToken(msg.sender, _amount, _lockPeriod);
   }
 
-  function extendLockPeriod(uint256 _lockPeriod) external onlyInDepositPeriod {
-    if (_lockPeriod < (7 days) || _lockPeriod > (7 days * 52))
-      revert Lockdrop_InvalidLockPeriod(); // Less than 1 week or more than 52 weeks
+  function extendLockPeriod(uint256 _newLockPeriod)
+    external
+    onlyInDepositPeriod
+  {
+    if (_newLockPeriod > (7 days * 52)) revert Lockdrop_InvalidLockPeriod(); // Less than 1 week or more than 52 weeks
     if (lockdropStates[msg.sender].lockdropTokenAmount == 0)
       revert Lockdrop_NoPosition();
-    lockdropStates[msg.sender].lockPeriod = _lockPeriod;
-    emit LogNewLockPeriod(msg.sender, _lockPeriod);
+    if (_newLockPeriod < lockdropStates[msg.sender].lockPeriod)
+      revert Lockdrop_InvalidLockPeriod();
+    totalP88Weight +=
+      lockdropStates[msg.sender].lockdropTokenAmount *
+      (_newLockPeriod - lockdropStates[msg.sender].lockPeriod);
+    lockdropStates[msg.sender].lockPeriod = _newLockPeriod;
+    emit LogNewLockPeriod(msg.sender, _newLockPeriod);
   }
 
   function addLockAmount(uint256 _amount) external onlyInDepositPeriod {
     if (_amount == 0) revert Lockdrop_ZeroAmountNotAllowed();
     if (lockdropStates[msg.sender].lockdropTokenAmount == 0)
       revert Lockdrop_NoPosition();
-    lockdropToken.safeTransferFrom(msg.sender, address(this), _amount);
     lockdropStates[msg.sender].lockdropTokenAmount += _amount;
     totalAmount += _amount;
     totalP88Weight += _amount * lockdropStates[msg.sender].lockPeriod;
+    lockdropToken.safeTransferFrom(msg.sender, address(this), _amount);
     emit LogAddLockAmount(msg.sender, _amount);
   }
 
@@ -144,19 +152,19 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   /// @param _user Address of the user that wants to withdraw
   function earlyWithdrawLockedToken(uint256 _amount, address _user)
     external
-    onlyInWithdrawalPeriod
+    onlyInEarlyWithdrawalPeriod
   {
     if (_amount == 0) revert Lockdrop_ZeroAmountNotAllowed();
     if (_amount > lockdropStates[_user].lockdropTokenAmount)
       revert Lockdrop_InsufficientBalance();
 
-    lockdropToken.safeTransfer(msg.sender, _amount);
     lockdropStates[_user].lockdropTokenAmount -= _amount;
     totalAmount -= _amount;
     totalP88Weight -= _amount * lockdropStates[_user].lockPeriod;
     if (lockdropStates[_user].lockdropTokenAmount == 0) {
       delete lockdropStates[_user];
     }
+    lockdropToken.safeTransfer(msg.sender, _amount);
     emit LogWithdrawLockToken(
       _user,
       address(lockdropToken),
@@ -172,12 +180,15 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
       block.timestamp <
       lockdropStates[_user].lockPeriod + lockdropConfig.endLockTimestamp()
     ) revert Lockdrop_InvalidWithdrawPeriod();
-
-    lockdropToken.safeTransfer(
-      _user,
-      lockdropStates[_user].lockdropTokenAmount
+    uint256 userPLPTokenAmount = (lockdropStates[_user].lockdropTokenAmount *
+      totalPLPAmount) / totalAmount;
+    totalPLPAmount -= userPLPTokenAmount;
+    lockdropConfig.plpStaking().withdraw(
+      address(this),
+      address(lockdropConfig.plpToken()),
+      userPLPTokenAmount
     );
-    totalAmount -= lockdropStates[_user].lockdropTokenAmount;
+    lockdropConfig.plpToken().safeTransfer(_user, userPLPTokenAmount);
     delete lockdropStates[_user];
     emit LogWithdrawAll(_user, address(lockdropToken));
   }
@@ -185,7 +196,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   /// @dev Allocation feeder calls this function to transfer P88 to lockdrop
   /// @param _amount Number of P88 that feeder will feed
   function allocateP88(uint256 _amount) external onlyAfterLockdropPeriod {
-    totalP88 = _amount;
+    totalP88 += _amount;
     lockdropConfig.p88Token().safeTransferFrom(
       msg.sender,
       address(this),
@@ -208,18 +219,19 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     claimP88[_user] = true;
   }
 
-  /// @dev Users can claim all their reward
-  /// @param _user Address of the user that wants to claim the reward
-  function claimAllReward(address _user) external onlyAfterLockdropPeriod {
-    lockdropConfig.plpStaking().harvest();
-  }
+  // /// @dev Users can claim all their reward
+  // /// @param _user Address of the user that wants to claim the reward
+  // function claimAllReward(address _user) external onlyAfterLockdropPeriod {
+  //   lockdropConfig.plpStaking().harvest();
+  // }
 
   /// @dev PLP token is staked after the lockdrop period
   function stakePLP() external onlyAfterLockdropPeriod {
+    totalPLPAmount = strategy.execute(totalAmount, address(lockdropToken));
     lockdropConfig.plpStaking().deposit(
       address(this),
-      lockdropConfig.plpTokenAddress(),
-      strategy.execute(totalAmount, address(lockdropToken))
+      address(lockdropConfig.plpToken()),
+      totalPLPAmount
     );
   }
 }

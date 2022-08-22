@@ -89,6 +89,40 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     assertEq(lockdrop.totalP88Weight(), 20 * 604900);
   }
 
+  function testCorrectness_LockdropExtendLockPeriod() external {
+    vm.startPrank(ALICE, ALICE);
+    mockERC20.mint(ALICE, 20);
+    mockERC20.approve(address(lockdrop), 20);
+    vm.warp(120000);
+    lockdrop.lockToken(16, 604900);
+    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod) = lockdrop
+      .lockdropStates(ALICE);
+    assertEq(mockERC20.balanceOf(ALICE), 4);
+    assertEq(aliceLockdropTokenAmount, 16);
+    assertEq(aliceLockPeriod, 604900);
+    assertEq(lockdrop.totalAmount(), 16);
+    assertEq(lockdrop.totalP88Weight(), 16 * 604900);
+
+    // Alice wants to extend her lock period
+    lockdrop.extendLockPeriod(800000);
+    vm.stopPrank();
+     (aliceLockdropTokenAmount, aliceLockPeriod) = lockdrop.lockdropStates(
+      ALICE
+    );
+
+    // After Alice extend her lock period, the following criteria needs to satisfy:
+    // 1. Balance of Alice's ERC20 token should be 0
+    // 2. The amount of Alice's lockdrop token should be 20
+    // 3. The number of lock period should be 604900
+    // 4. The total amount of lock token should be 20
+    // 5. The total P88 weight should be 20 * 800000
+    assertEq(mockERC20.balanceOf(ALICE), 4);
+    assertEq(aliceLockdropTokenAmount, 16);
+    assertEq(aliceLockPeriod, 800000);
+    assertEq(lockdrop.totalAmount(), 16);
+    assertEq(lockdrop.totalP88Weight(), 16 * 800000);
+  }
+
   function testRevert_LockdropLockToken_InWithdrawPeriod() external {
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
@@ -96,7 +130,6 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     vm.warp(532500);
     vm.expectRevert(abi.encodeWithSignature("Lockdrop_NotInDepositPeriod()"));
     lockdrop.lockToken(16, 604900);
-    vm.stopPrank();
   }
 
   function testRevert_LockdropLockToken_ExceedLockdropPeriod() external {

@@ -13,31 +13,32 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.s
 import { LockdropConfig } from "../../lockdrop/LockdropConfig.sol";
 import { PLPStaking } from "../../staking/PLPStaking.sol";
 import { P88 } from "../../tokens/P88.sol";
+import { PLP } from "../../tokens/PLP.sol";
 
 abstract contract Lockdrop_BaseTest is BaseTest {
   using SafeERC20 for IERC20;
 
   Lockdrop internal lockdrop;
   MockErc20 internal mockERC20;
-  MockErc20 internal mockPLPToken;
   MockPool internal pool;
   SimpleStrategy internal strategy;
   LockdropConfig internal lockdropConfig;
   PLPStaking internal plpStaking;
   P88 internal mockP88Token;
+  PLP internal mockPLPToken;
 
   function setUp() public virtual {
     pool = new MockPool();
     strategy = new SimpleStrategy(pool);
     mockERC20 = new MockErc20("Mock Token", "MT", 18);
-    mockPLPToken = new MockErc20("PLP", "PLP", 18);
+    mockPLPToken = new PLP();
     mockP88Token = new P88();
 
     plpStaking = new PLPStaking();
     lockdropConfig = new LockdropConfig(
       100000,
       plpStaking,
-      address(mockPLPToken),
+      mockPLPToken,
       mockP88Token
     );
     lockdrop = new Lockdrop(address(mockERC20), strategy, lockdropConfig);
