@@ -10,13 +10,22 @@ import { math } from "../utils/math.sol";
 import { Constants as CoreConstants } from "../../core/Constants.sol";
 
 import { MockErc20 } from "../mocks/MockERC20.sol";
+import { MockWNative } from "../mocks/MockWNative.sol";
 import { MockChainlinkPriceFeed } from "../mocks/MockChainlinkPriceFeed.sol";
 
 import { PoolOracle } from "../../core/PoolOracle.sol";
 import { PoolConfig } from "../../core/PoolConfig.sol";
 import { PoolMath } from "../../core/PoolMath.sol";
 import { PLP } from "../../tokens/PLP.sol";
+import { P88 } from "../../tokens/P88.sol";
+import { EsP88 } from "../../tokens/EsP88.sol";
+import { DragonPoint } from "../../tokens/DragonPoint.sol";
 import { Pool } from "../../core/Pool.sol";
+import { PLPStaking } from "../../staking/PLPStaking.sol";
+import { DragonStaking } from "../../staking/DragonStaking.sol";
+import { FeedableRewarder } from "../../staking/FeedableRewarder.sol";
+import { AdHocMintRewarder } from "../../staking/AdHocMintRewarder.sol";
+import { WFeedableRewarder } from "../../staking/WFeedableRewarder.sol";
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
@@ -115,6 +124,10 @@ contract BaseTest is DSTest, CoreConstants {
     return (tokens, priceFeedInfo);
   }
 
+  function deployMockWNative() internal returns (MockWNative) {
+    return new MockWNative();
+  }
+
   function deployMockErc20(
     string memory name,
     string memory symbol,
@@ -132,6 +145,18 @@ contract BaseTest is DSTest, CoreConstants {
 
   function deployPLP() internal returns (PLP) {
     return new PLP();
+  }
+
+  function deployP88() internal returns (P88) {
+    return new P88();
+  }
+
+  function deployEsP88() internal returns (EsP88) {
+    return new EsP88();
+  }
+
+  function deployDragonPoint() internal returns (DragonPoint) {
+    return new DragonPoint();
   }
 
   function deployPoolOracle(uint80 roundDepth) internal returns (PoolOracle) {
@@ -181,5 +206,40 @@ contract BaseTest is DSTest, CoreConstants {
     plp.setMinter(address(pool), true);
 
     return (poolOracle, poolConfig, poolMath, pool);
+  }
+
+  function deployPLPStaking() internal returns (PLPStaking) {
+    return new PLPStaking();
+  }
+
+  function deployDragonStaking(address dragonPointToken)
+    internal
+    returns (DragonStaking)
+  {
+    return new DragonStaking(dragonPointToken);
+  }
+
+  function deployFeedableRewarder(
+    string memory name,
+    address rewardToken,
+    address staking
+  ) internal returns (FeedableRewarder) {
+    return new FeedableRewarder(name, rewardToken, staking);
+  }
+
+  function deployAdHocMintRewarder(
+    string memory name,
+    address rewardToken,
+    address staking
+  ) internal returns (AdHocMintRewarder) {
+    return new AdHocMintRewarder(name, rewardToken, staking);
+  }
+
+  function deployWFeedableRewarder(
+    string memory name,
+    address rewardToken,
+    address staking
+  ) internal returns (WFeedableRewarder) {
+    return new WFeedableRewarder(name, rewardToken, staking);
   }
 }
