@@ -6,7 +6,7 @@ import { BaseMintableToken } from "./base/BaseMintableToken.sol";
 contract DragonPoint is BaseMintableToken {
   mapping(address => bool) public isTransferrer;
 
-  error DragonPoint_isNotTransferrable();
+  error DragonPoint_isNotTransferrer();
 
   constructor() BaseMintableToken("Dragon Point", "DP", 18) {}
 
@@ -19,7 +19,7 @@ contract DragonPoint is BaseMintableToken {
     address to,
     uint256 amount
   ) internal virtual override {
-    if (!isTransferrer[msg.sender]) revert DragonPoint_isNotTransferrable();
+    if (!isTransferrer[msg.sender]) revert DragonPoint_isNotTransferrer();
 
     super._transfer(from, to, amount);
   }
