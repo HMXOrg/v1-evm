@@ -8,12 +8,13 @@ contract LockdropGateway is ILockdropGateway {
   // Claim All Reward Token
   // Pending for Lockdrop contract
 
-  function claimAllRewardGateway(address[] memory _lockdropList, address _user)
-    external
-  {
-    uint256 length = _lockdropList.length;
+  function claimAllStakingContractRewards(
+    address[] memory lockdropList,
+    address user
+  ) external {
+    uint256 length = lockdropList.length;
     for (uint256 index = 0; index < length; ) {
-      ILockdrop(_lockdropList[index]).claimAllReward(_user);
+      ILockdrop(lockdropList[index]).claimAllReward(user);
 
       unchecked {
         ++index;
@@ -22,12 +23,10 @@ contract LockdropGateway is ILockdropGateway {
   }
 
   // Claim All P88 Token
-  function claimAllP88Gateway(address[] memory _lockdropList, address _user)
-    external
-  {
-    uint256 length = _lockdropList.length;
+  function claimAllP88(address[] memory lockdropList, address user) external {
+    uint256 length = lockdropList.length;
     for (uint256 index = 0; index < length; ) {
-      ILockdrop(_lockdropList[index]).claimAllP88(_user);
+      ILockdrop(lockdropList[index]).claimAllP88(user);
 
       unchecked {
         ++index;
@@ -36,13 +35,12 @@ contract LockdropGateway is ILockdropGateway {
   }
 
   // Withdraw All Deposit Token
-  function withdrawAllTokenGateway(
-    address[] memory _lockdropList,
-    address _user
-  ) external {
-    uint256 length = _lockdropList.length;
+  function withdrawAllLockedToken(address[] memory lockdropList, address user)
+    external
+  {
+    uint256 length = lockdropList.length;
     for (uint256 index = 0; index < length; ) {
-      ILockdrop(_lockdropList[index]).withdrawAll(_user);
+      ILockdrop(lockdropList[index]).withdrawAll(user);
 
       unchecked {
         ++index;

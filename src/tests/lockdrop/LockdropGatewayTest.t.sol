@@ -45,7 +45,7 @@ contract LockdropGatewayTest is BaseTest {
     assertEq(IERC20(lockdropToken).balanceOf(address(lockdrop)), 10 ether);
 
     // User claim their P88 reward
-    lockdropGateway.claimAllP88Gateway(lockdropList, address(this));
+    lockdropGateway.claimAllP88(lockdropList, address(this));
 
     // Expect the user get their reward
     assertEq(IERC20(p88).balanceOf(address(this)), 10 ether);
@@ -59,7 +59,7 @@ contract LockdropGatewayTest is BaseTest {
     assertEq(IERC20(lockdropToken).balanceOf(address(lockdrop)), 10 ether);
 
     // User need to withdraw all locked tokens
-    lockdropGateway.withdrawAllTokenGateway(lockdropList, address(this));
+    lockdropGateway.withdrawAllLockedToken(lockdropList, address(this));
 
     // Expect user got return their locked token
     assertEq(IERC20(lockdropToken).balanceOf(address(this)), 10 ether);
@@ -71,7 +71,7 @@ contract LockdropGatewayTest is BaseTest {
     assertEq(IERC20(lockdropToken).balanceOf(address(lockdrop)), 10 ether);
 
     // User claim their All reward
-    lockdropGateway.claimAllRewardGateway(lockdropList, address(this));
+    lockdropGateway.claimAllStakingContractRewards(lockdropList, address(this));
 
     // Expect the user get their reward
     assertEq(IERC20(p88).balanceOf(address(this)), 10 ether);
