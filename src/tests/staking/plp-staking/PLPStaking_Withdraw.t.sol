@@ -167,7 +167,7 @@ contract PLPStaking_Withdraw is PLPStaking_BaseTest {
     assertEq(esP88Rewarder.lastRewardTime(), 691201);
   }
 
-  function testCorrectness_Deposit() external {
+  function testCorrectness_Withdraw() external {
     vm.startPrank(DAVE);
     // Mint 604800 esP88 to Feeder
     esP88.mint(DAVE, 604800 ether);
