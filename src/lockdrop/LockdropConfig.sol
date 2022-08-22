@@ -25,19 +25,19 @@ contract LockdropConfig {
   uint256 public startTimeDecay;
 
   constructor(
-    uint256 _startLockTimestamp,
-    IStaking _PLPStaking,
-    IERC20 _PLPToken,
-    IERC20 _p88Token
+    uint256 startLockTimestamp_,
+    IStaking plpStaking_,
+    IERC20 plpToken_,
+    IERC20 p88Token_
   ) {
     decayStartPercentage = 50;
     startTimeDecay = 12 hours;
-    plpStaking = _PLPStaking;
-    startLockTimestamp = _startLockTimestamp;
-    endLockTimestamp = _startLockTimestamp + (5 days);
-    withdrawalTimestamp = _startLockTimestamp + 4 days;
-    withdrawalTimestampDecay = _startLockTimestamp + 4 days + startTimeDecay;
-    plpToken = _PLPToken;
-    p88Token = _p88Token;
+    plpStaking = plpStaking_;
+    startLockTimestamp = startLockTimestamp_;
+    endLockTimestamp = startLockTimestamp_ + (5 days);
+    withdrawalTimestamp = startLockTimestamp_ + 4 days;
+    withdrawalTimestampDecay = startLockTimestamp_ + 4 days + startTimeDecay;
+    plpToken = plpToken_;
+    p88Token = p88Token_;
   }
 }

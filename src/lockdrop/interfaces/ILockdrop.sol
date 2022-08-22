@@ -2,19 +2,19 @@
 pragma solidity 0.8.14;
 
 interface ILockdrop {
-  function lockToken(uint256 _amount, uint256 _lockPeriod) external;
+  function lockToken(uint256 amount, uint256 lockPeriod) external;
 
-  function extendLockPeriod(uint256 _lockPeriod) external;
+  function extendLockPeriod(uint256 lockPeriod) external;
 
-  function addLockAmount(uint256 _amount) external;
+  function addLockAmount(uint256 amount) external;
 
-  function earlyWithdrawLockedToken(uint256 _amount, address _user) external;
+  function earlyWithdrawLockedToken(uint256 amount, address user) external;
 
-  function claimAllReward(address _user) external;
+  function claimAllReward(address user) external;
 
   function stakePLP() external;
 
-  function withdrawAll(address _user) external;
+  function withdrawAll(address user) external;
 
-  function claimAllP88(address _user) external;
+  function claimAllP88(address user) external;
 }
