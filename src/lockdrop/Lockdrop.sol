@@ -221,9 +221,9 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
 
   // /// @dev Users can claim all their reward
   // /// @param _user Address of the user that wants to claim the reward
-  // function claimAllReward(address _user) external onlyAfterLockdropPeriod {
-  //   lockdropConfig.plpStaking().harvest();
-  // }
+  function claimAllReward(address _user) external onlyAfterLockdropPeriod {
+    //   lockdropConfig.plpStaking().harvest();
+  }
 
   /// @dev PLP token is staked after the lockdrop period
   function stakePLP() external onlyAfterLockdropPeriod {
