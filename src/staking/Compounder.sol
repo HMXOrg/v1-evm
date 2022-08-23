@@ -12,17 +12,17 @@ contract Compounder is Ownable {
 
   error Compounder_InconsistentLength();
 
+  address destinationCompundPool;
   address[] tokens;
-  mapping(address => bool) isCompoundTokens;
-  address compoundPool;
+  mapping(address => bool) isCompoundableTokens;
 
   constructor(
-    address compoundPool_,
-    address[] memory compoundTokens_,
+    address destinationCompundPool_,
+    address[] memory tokens_,
     bool[] memory isCompoundTokens_
   ) {
-    compoundPool = compoundPool_;
-    addToken(compoundTokens_, isCompoundTokens_);
+    destinationCompundPool = destinationCompundPool_;
+    addToken(tokens_, isCompoundTokens_);
   }
 
   function addToken(
@@ -43,24 +43,43 @@ contract Compounder is Ownable {
     }
   }
 
+  function removeToken(address token) public onlyOwner {
+    uint256 length = tokens.length;
+
+    for (uint256 i = 0; i < length; ) {
+      if (tokens[i] == token) {
+        tokens[i] = tokens[tokens.length - 1];
+        tokens.pop();
+
+        setCompoundToken(token, false);
+        break;
+      }
+
+      unchecked {
+        ++i;
+      }
+    }
+  }
+
   function setCompoundToken(address token, bool isCompoundToken)
     public
     onlyOwner
   {
-    isCompoundTokens[token] = isCompoundToken;
+    isCompoundableTokens[token] = isCompoundToken;
 
-    if (isCompoundToken) IERC20(token).approve(compoundPool, type(uint256).max);
+    if (isCompoundToken)
+      IERC20(token).approve(destinationCompundPool, type(uint256).max);
   }
 
   function claimAll(address[] memory pools, address[][] memory rewarders)
-    public
+    external
   {
     _claimAll(pools, rewarders);
     _compoundOrTransfer(false);
   }
 
   function compound(address[] memory pools, address[][] memory rewarders)
-    public
+    external
   {
     _claimAll(pools, rewarders);
     _compoundOrTransfer(true);
@@ -71,8 +90,12 @@ contract Compounder is Ownable {
     for (uint256 i = 0; i < length; ) {
       uint256 amount = IERC20(tokens[i]).balanceOf(address(this));
       if (amount > 0) {
-        if (isCompound && isCompoundTokens[tokens[i]]) {
-          IStaking(compoundPool).deposit(msg.sender, tokens[i], amount);
+        if (isCompound && isCompoundableTokens[tokens[i]]) {
+          IStaking(destinationCompundPool).deposit(
+            msg.sender,
+            tokens[i],
+            amount
+          );
         } else {
           IERC20(tokens[i]).safeTransfer(msg.sender, amount);
         }
