@@ -19,25 +19,28 @@ contract LockdropConfig {
   IERC20 public plpToken;
   uint256 public startLockTimestamp; // timestamp for starting lockdrop event
   uint256 public endLockTimestamp; // timestamp for deposit period after start lockdrop event
-  uint256 public withdrawalTimestampDecay; // timestamp for withdraw period after start lockdrop event
-  uint256 public withdrawalTimestamp; // timestamp for withdraw period after start lockdrop event
+  uint256 public startDecayingWithdrawalTimestamp; 
+  uint256 public startRestrictedWithdrawalTimestamp; // timestamp for withdraw period after start lockdrop event
   uint256 public decayStartPercentage;
   uint256 public startTimeDecay;
+  address public allocationFeeder;
 
   constructor(
     uint256 startLockTimestamp_,
     IStaking plpStaking_,
     IERC20 plpToken_,
-    IERC20 p88Token_
+    IERC20 p88Token_,
+    address allocationFeeder_
   ) {
     decayStartPercentage = 50;
     startTimeDecay = 12 hours;
     plpStaking = plpStaking_;
     startLockTimestamp = startLockTimestamp_;
-    endLockTimestamp = startLockTimestamp_ + (5 days);
-    withdrawalTimestamp = startLockTimestamp_ + 4 days;
-    withdrawalTimestampDecay = startLockTimestamp_ + 4 days + startTimeDecay;
+    endLockTimestamp = startLockTimestamp_ + (4 days);
+    startRestrictedWithdrawalTimestamp = startLockTimestamp_ + 3 days;
+    startDecayingWithdrawalTimestamp = startLockTimestamp_ + 3 days + startTimeDecay;
     plpToken = plpToken_;
     p88Token = p88Token_;
+    allocationFeeder = allocationFeeder_;
   }
 }

@@ -15,8 +15,11 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(120000);
     lockdrop.lockToken(16, 604900);
-    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod) = lockdrop
-      .lockdropStates(ALICE);
+    (
+      uint256 aliceLockdropTokenAmount,
+      uint256 aliceLockPeriod,
+      bool aliceP88Claimed
+    ) = lockdrop.lockdropStates(ALICE);
     vm.stopPrank();
     assertEq(mockERC20.balanceOf(ALICE), 4);
     assertEq(aliceLockdropTokenAmount, 16);
@@ -26,7 +29,8 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
 
     // After lockdrop period
     // Mint P88
-    vm.warp(705000);
+    vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
+
     vm.startPrank(address(lockdrop), address(lockdrop));
     mockP88Token.mint(address(lockdrop), 100);
     mockP88Token.approve(address(lockdrop), 100);
@@ -36,14 +40,17 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     vm.startPrank(ALICE, ALICE);
     lockdrop.claimAllP88(ALICE);
     vm.stopPrank();
+
+    (aliceLockdropTokenAmount, aliceLockPeriod, aliceP88Claimed) = lockdrop
+      .lockdropStates(ALICE);
+
     // After claims her P88, the following criteria needs to satisfy:
     // 1. The amount of Alice's P88 should be 100
     // 2. The amount of lockdrop P88 should be 0
     // 3. Status of Alice claiming P88 should be true
     assertEq(mockP88Token.balanceOf(ALICE), 100);
     assertEq(mockP88Token.balanceOf(address(lockdrop)), 0);
-    assertTrue(lockdrop.claimP88(ALICE));
-
+    assertTrue(aliceP88Claimed);
   }
 
   function testCorrectness_AllocateP88_MultipleUser() external {
@@ -53,15 +60,18 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(120000);
     lockdrop.lockToken(16, 604900);
-    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod) = lockdrop
-      .lockdropStates(ALICE);
+    (
+      uint256 aliceLockdropTokenAmount,
+      uint256 aliceLockPeriod,
+      bool aliceP88Claimed
+    ) = lockdrop.lockdropStates(ALICE);
     vm.stopPrank();
     assertEq(mockERC20.balanceOf(ALICE), 4);
     assertEq(aliceLockdropTokenAmount, 16);
     assertEq(aliceLockPeriod, 604900);
     assertEq(lockdrop.totalAmount(), 16);
     assertEq(lockdrop.totalP88Weight(), 16 * 604900);
-    assertTrue(!lockdrop.claimP88(ALICE));
+    assertTrue(!aliceP88Claimed);
 
     // ------- Bob session -------
     vm.startPrank(BOB, BOB);
@@ -69,19 +79,22 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     mockERC20.approve(address(lockdrop), 30);
     vm.warp(130000);
     lockdrop.lockToken(10, 704900);
-    (uint256 bobLockdropTokenAmount, uint256 bobLockPeriod) = lockdrop
-      .lockdropStates(BOB);
+    (
+      uint256 bobLockdropTokenAmount,
+      uint256 bobLockPeriod,
+      bool bobP88Claimed
+    ) = lockdrop.lockdropStates(BOB);
     vm.stopPrank();
     assertEq(mockERC20.balanceOf(BOB), 20);
     assertEq(bobLockdropTokenAmount, 10);
     assertEq(bobLockPeriod, 704900);
     assertEq(lockdrop.totalAmount(), 26);
     assertEq(lockdrop.totalP88Weight(), 16 * 604900 + 10 * 704900);
-    assertTrue(!lockdrop.claimP88(BOB));
+    assertTrue(!bobP88Claimed);
 
     // After lockdrop period
     // Mint P88
-    vm.warp(705000);
+    vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
     vm.startPrank(address(lockdrop), address(lockdrop));
     mockP88Token.mint(address(lockdrop), 100);
     mockP88Token.approve(address(lockdrop), 100);
@@ -98,6 +111,11 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     lockdrop.claimAllP88(BOB);
     vm.stopPrank();
 
+    (bobLockdropTokenAmount, bobLockPeriod, bobP88Claimed) = lockdrop
+      .lockdropStates(BOB);
+    (aliceLockdropTokenAmount, aliceLockPeriod, aliceP88Claimed) = lockdrop
+      .lockdropStates(ALICE);
+
     // After claims her P88, the following criteria needs to satisfy:
     // 1. The amount of Alice's P88 should be 57
     // 2. The amount of Bob's P88 should be 42
@@ -107,8 +125,9 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     assertEq(mockP88Token.balanceOf(ALICE), 57);
     assertEq(mockP88Token.balanceOf(BOB), 42);
     assertEq(mockP88Token.balanceOf(address(lockdrop)), 1);
-    assertTrue(lockdrop.claimP88(ALICE));
-    assertTrue(lockdrop.claimP88(BOB));
-
+    assertTrue(aliceP88Claimed);
+    assertTrue(bobP88Claimed);
+    console.log(aliceP88Claimed);
+    console.log(bobP88Claimed);
   }
 }
