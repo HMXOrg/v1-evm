@@ -5,12 +5,12 @@ import { Compounder_BaseTest } from "./Compounder_BaseTest.t.sol";
 import { console } from "../../utils/console.sol";
 import { math } from "../../utils/math.sol";
 
-contract Compounder_Compound is Compounder_BaseTest {
+contract Compounder_ClaimAll is Compounder_BaseTest {
   function setUp() public override {
     super.setUp();
   }
 
-  function testCorrectness_Compound() external {
+  function testCorrectness_ClaimAll() external {
     vm.startPrank(DAVE);
     // Mint 1814400 esP88 to Feeder
     esP88.mint(DAVE, 1814400 ether);
@@ -89,20 +89,40 @@ contract Compounder_Compound is Compounder_BaseTest {
       rewarders[0] = rewarders1;
 
       vm.prank(ALICE);
-      // Alice compound (plpPool)
-      compounder.compound(pools, rewarders);
+      // Alice claim all (plpPool)
+      compounder.claimAll(pools, rewarders);
     }
 
     assertEq(esP88PLPPoolRewarder.pendingReward(ALICE), 0);
     assertEq(revenuePLPPoolRewarder.pendingReward(ALICE), 0);
+    assertEq(esP88DragonPoolRewarder.pendingReward(ALICE), 0);
+    assertEq(revenueDragonPoolRewarder.pendingReward(ALICE), 0);
+    assertEq(dragonPointRewarder.pendingReward(ALICE), 0);
+    assertEq(partnerADragonPoolRewarder.pendingReward(ALICE), 0);
 
-    assertEq(
-      dragonStaking.userTokenAmount(address(esP88), ALICE),
-      172800 ether
-    );
-    assertEq(dragonStaking.userTokenAmount(address(dragonPoint), ALICE), 0);
+    assertEq(esP88.balanceOf(ALICE), 172800 ether);
     assertEq(ALICE.balance, 86400 ether);
+    assertEq(dragonPoint.balanceOf(ALICE), 0);
     assertEq(partnerAToken.balanceOf(ALICE), 0);
+
+    // after 1 days
+    vm.warp(block.timestamp + 1 days);
+
+    {
+      address[] memory pools = new address[](1);
+      pools[0] = address(plpStaking);
+
+      address[] memory rewarders1 = new address[](2);
+      rewarders1[0] = address(esP88PLPPoolRewarder);
+      rewarders1[1] = address(revenuePLPPoolRewarder);
+
+      address[][] memory rewarders = new address[][](1);
+      rewarders[0] = rewarders1;
+
+      vm.prank(ALICE);
+      // Alice compound (plpPool)
+      compounder.compound(pools, rewarders);
+    }
 
     // after 2 days
     vm.warp(block.timestamp + 2 days);
@@ -112,17 +132,17 @@ contract Compounder_Compound is Compounder_BaseTest {
     // 2 days * 1 * 100 / 100 = 172800
     assertEq(revenuePLPPoolRewarder.pendingReward(ALICE), 172800 ether);
 
-    // 3 days * 1 * 172800 / 172800 = 259200
-    assertEq(esP88DragonPoolRewarder.pendingReward(ALICE), 259200 ether);
-    // 3 days * 0.5 * 172800 / 172800 = 129600
-    assertEq(revenueDragonPoolRewarder.pendingReward(ALICE), 129600 ether);
+    // 4 days * 1 * 172800 / 172800 = 345600
+    assertEq(esP88DragonPoolRewarder.pendingReward(ALICE), 345600 ether);
+    // 4 days * 0.5 * 172800 / 172800 = 172800
+    assertEq(revenueDragonPoolRewarder.pendingReward(ALICE), 172800 ether);
     // 172800 * 2 days / 1 year = 946.849315068493150684
     assertEq(
       dragonPointRewarder.pendingReward(ALICE),
       946.849315068493150684 ether
     );
-    // 3 days * 0.1 * 172800 / 172800 = 25920
-    assertEq(partnerADragonPoolRewarder.pendingReward(ALICE), 25920 ether);
+    // 4 days * 0.1 * 172800 / 172800 = 34560
+    assertEq(partnerADragonPoolRewarder.pendingReward(ALICE), 34560 ether);
 
     {
       address[] memory pools = new address[](2);
@@ -143,8 +163,8 @@ contract Compounder_Compound is Compounder_BaseTest {
       rewarders[1] = rewarders2;
 
       vm.prank(ALICE);
-      // Alice compound (plpPool, dragonPool)
-      compounder.compound(pools, rewarders);
+      // Alice claim all (plpPool, dragonPool)
+      compounder.claimAll(pools, rewarders);
     }
 
     assertEq(esP88PLPPoolRewarder.pendingReward(ALICE), 0);
@@ -155,17 +175,11 @@ contract Compounder_Compound is Compounder_BaseTest {
     assertEq(dragonPointRewarder.pendingReward(ALICE), 0);
     assertEq(partnerADragonPoolRewarder.pendingReward(ALICE), 0);
 
-    // 172800 + 345600 + 259200 = 777600
-    assertEq(
-      dragonStaking.userTokenAmount(address(esP88), ALICE),
-      777600 ether
-    );
-    assertEq(
-      dragonStaking.userTokenAmount(address(dragonPoint), ALICE),
-      946.849315068493150684 ether
-    );
-    // 86400 + 172800 = 259200
-    assertEq(ALICE.balance, 259200 ether);
-    assertEq(partnerAToken.balanceOf(ALICE), 25920 ether);
+    // 172800 + 345600 + 345600 = 864000
+    assertEq(esP88.balanceOf(ALICE), 864000 ether);
+    // 86400 + 86400 + 172800 = 345600
+    assertEq(ALICE.balance, 345600 ether);
+    assertEq(dragonPoint.balanceOf(ALICE), 946.849315068493150684 ether);
+    assertEq(partnerAToken.balanceOf(ALICE), 34560 ether);
   }
 }
