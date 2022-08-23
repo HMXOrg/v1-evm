@@ -23,14 +23,12 @@ contract LockdropConfig {
   uint256 public startRestrictedWithdrawalTimestamp; // timestamp for withdraw period after start lockdrop event
   uint256 public decayStartPercentage;
   uint256 public startTimeDecay;
-  address public allocationFeeder;
 
   constructor(
     uint256 startLockTimestamp_,
     IStaking plpStaking_,
     IERC20 plpToken_,
-    IERC20 p88Token_,
-    address allocationFeeder_
+    IERC20 p88Token_
   ) {
     decayStartPercentage = 50;
     startTimeDecay = 12 hours;
@@ -41,6 +39,5 @@ contract LockdropConfig {
     startDecayingWithdrawalTimestamp = startLockTimestamp_ + 3 days + startTimeDecay;
     plpToken = plpToken_;
     p88Token = p88Token_;
-    allocationFeeder = allocationFeeder_;
   }
 }

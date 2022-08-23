@@ -82,12 +82,6 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     _;
   }
 
-  modifier onlyAllocationFeeder() {
-    if (msg.sender != lockdropConfig.allocationFeeder())
-      revert Lockdrop_NotAllocationFeeder();
-    _;
-  }
-
   constructor(
     address lockdropToken_,
     ILockdropStrategy strategy_,
@@ -235,21 +229,16 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     emit LogWithdrawAll(user, address(lockdropToken));
   }
 
-  /// @dev Allocation feeder calls this function to transfer P88 to lockdrop
+  /// @dev Only owner can manually allocate P88
   /// @param amount Number of P88 that feeder will feed
   function allocateP88(uint256 amount)
     external
     onlyAfterLockdropPeriod
-    onlyAllocationFeeder
+    onlyOwner
   {
     // Prevent multiple call
     if (totalP88 > 0) revert Lockdrop_AlreadyAllocateP88();
     totalP88 = amount;
-    lockdropConfig.p88Token().safeTransferFrom(
-      msg.sender,
-      address(this),
-      amount
-    );
     emit LogAllocateP88(amount);
   }
 

@@ -6,7 +6,7 @@ import { Lockdrop_BaseTest, console } from "./Lockdrop_BaseTest.t.sol";
 contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
   function setUp() public override {
     super.setUp();
-    mockP88Token.setMinter(lockdropConfig.allocationFeeder(), true);
+    mockP88Token.setMinter(address(lockdrop), true);
   }
 
   // -------------------- claimAllP88 ----------------------------
@@ -32,13 +32,11 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     // Mint P88
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
 
-    // Mock address for allocation feeder
-    vm.startPrank(
-      lockdropConfig.allocationFeeder(),
-      lockdropConfig.allocationFeeder()
-    );
-    mockP88Token.mint(lockdropConfig.allocationFeeder(), 100);
-    mockP88Token.approve(address(lockdrop), 100);
+    vm.startPrank(address(lockdrop), address(lockdrop));
+    mockP88Token.mint(address(lockdrop), 100);
+    vm.stopPrank();
+
+    vm.startPrank(address(this), address(this));
     lockdrop.allocateP88(100);
     vm.stopPrank();
 
@@ -100,13 +98,11 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     // After lockdrop period
     // Mint P88
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
-    // Mock address for allocation feeder
-    vm.startPrank(
-      lockdropConfig.allocationFeeder(),
-      lockdropConfig.allocationFeeder()
-    );
-    mockP88Token.mint(lockdropConfig.allocationFeeder(), 100);
-    mockP88Token.approve(address(lockdrop), 100);
+    vm.startPrank(address(lockdrop), address(lockdrop));
+    mockP88Token.mint(address(lockdrop), 100);
+    vm.stopPrank();
+
+    vm.startPrank(address(this), address(this));
     lockdrop.allocateP88(100);
     vm.stopPrank();
 
@@ -160,13 +156,8 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     // Mint P88
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
 
-    // Mock address for allocation feeder
-    vm.startPrank(
-      lockdropConfig.allocationFeeder(),
-      lockdropConfig.allocationFeeder()
-    );
-    mockP88Token.mint(lockdropConfig.allocationFeeder(), 100);
-    mockP88Token.approve(address(lockdrop), 100);
+    vm.startPrank(address(lockdrop), address(lockdrop));
+    mockP88Token.mint(address(lockdrop), 100);
     vm.stopPrank();
 
     vm.startPrank(ALICE, ALICE);
@@ -200,13 +191,11 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     // Mint P88
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
 
-    // Mock address for allocation feeder
-    vm.startPrank(
-      lockdropConfig.allocationFeeder(),
-      lockdropConfig.allocationFeeder()
-    );
-    mockP88Token.mint(lockdropConfig.allocationFeeder(), 100);
-    mockP88Token.approve(address(lockdrop), 100);
+    vm.startPrank(address(lockdrop), address(lockdrop));
+    mockP88Token.mint(address(lockdrop), 100);
+    vm.stopPrank();
+
+    vm.startPrank(address(this), address(this));
     lockdrop.allocateP88(100);
     vm.stopPrank();
 
