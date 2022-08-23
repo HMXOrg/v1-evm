@@ -6,7 +6,6 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import { IStaking } from "./interfaces/IStaking.sol";
-import { IRewarder } from "./interfaces/IRewarder.sol";
 
 contract Compounder is Ownable {
   using SafeERC20 for IERC20;
@@ -33,12 +32,10 @@ contract Compounder is Ownable {
     uint256 length = newTokens.length;
     if (length != newIsCompoundTokens.length)
       revert Compounder_InconsistentLength();
+
     for (uint256 i = 0; i < length; ) {
       tokens.push(newTokens[i]);
-      isCompoundTokens[tokens[i]] = newIsCompoundTokens[i];
-
-      if (newIsCompoundTokens[i])
-        IERC20(newTokens[i]).approve(compoundPool, type(uint256).max);
+      setCompoundToken(tokens[i], newIsCompoundTokens[i]);
 
       unchecked {
         ++i;
@@ -51,6 +48,8 @@ contract Compounder is Ownable {
     onlyOwner
   {
     isCompoundTokens[token] = isCompoundToken;
+
+    if (isCompoundToken) IERC20(token).approve(compoundPool, type(uint256).max);
   }
 
   function claimAll(address[] memory pools, address[][] memory rewarders)
