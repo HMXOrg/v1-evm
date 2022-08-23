@@ -45,7 +45,9 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   error Lockdrop_UserAlreadyLocked();
   error Lockdrop_ZeroTotalPLPAmount();
   error Lockdrop_NotAllocationFeeder();
-  
+  error Lockdrop_ZeroTotalP88NotAllowed();
+  error Lockdrop_AlreadyAllocateP88();
+
   // --- Structs ---
   struct LockdropState {
     uint256 lockdropTokenAmount;
@@ -81,7 +83,8 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   }
 
   modifier onlyAllocationFeeder() {
-    if (msg.sender != lockdropConfig.allocationFeeder()) revert Lockdrop_NotAllocationFeeder();
+    if (msg.sender != lockdropConfig.allocationFeeder())
+      revert Lockdrop_NotAllocationFeeder();
     _;
   }
 
@@ -154,17 +157,17 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     emit LogAddLockAmount(msg.sender, amount);
   }
 
-  /// @dev Withdrawable amount calculation logic
-  /// @param user Address of user that we want to know their valid withdraw amount
-  function getEarlyWithdrawableAmount(address user) internal returns (uint256) {
+  function _getEarlyWithdrawableAmount(address user)
+    internal
+    returns (uint256)
+  {
     uint256 startRestrictedWithdrawalTimestamp = lockdropConfig
       .startRestrictedWithdrawalTimestamp();
-    if (block.timestamp < startRestrictedWithdrawalTimestamp) return 100;
-
+    uint256 lockdropTokenAmount = lockdropStates[user].lockdropTokenAmount;
+    uint256 decayPercentage = lockdropConfig.decayStartPercentage();
+    if (block.timestamp < startRestrictedWithdrawalTimestamp)
+      return lockdropTokenAmount;
     if (block.timestamp >= startRestrictedWithdrawalTimestamp) {
-      uint256 lockdropTokenAmount = lockdropStates[user].lockdropTokenAmount;
-      uint256 decayPercentage = lockdropConfig.decayStartPercentage();
-
       if (
         block.timestamp >= lockdropConfig.startDecayingWithdrawalTimestamp()
       ) {
@@ -173,8 +176,14 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
             (lockdropConfig.endLockTimestamp() - block.timestamp)) /
             lockdropConfig.startTimeDecay()) * lockdropTokenAmount) / 100;
       }
-      return (lockdropTokenAmount * decayPercentage / 100);
+      return ((lockdropTokenAmount * decayPercentage) / 100);
     }
+  }
+
+  /// @dev Withdrawable amount calculation logic
+  /// @param user Address of user that we want to know their valid withdraw amount
+  function getEarlyWithdrawableAmount(address user) external returns (uint256) {
+    return _getEarlyWithdrawableAmount(user);
   }
 
   /// @dev Users able to withdraw their ERC20 Token within lockdrop period
@@ -187,7 +196,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     uint256 lockdropTokenAmount = lockdropStates[user].lockdropTokenAmount;
     if (amount == 0) revert Lockdrop_ZeroAmountNotAllowed();
     if (amount > lockdropTokenAmount) revert Lockdrop_InsufficientBalance();
-    if (amount > getEarlyWithdrawableAmount(user))
+    if (amount > _getEarlyWithdrawableAmount(user))
       revert Lockdrop_InvalidAmount();
 
     lockdropStates[user].lockdropTokenAmount -= amount;
@@ -228,8 +237,14 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
 
   /// @dev Allocation feeder calls this function to transfer P88 to lockdrop
   /// @param amount Number of P88 that feeder will feed
-  function allocateP88(uint256 amount) external onlyAfterLockdropPeriod onlyAllocationFeeder {
-    totalP88 += amount;
+  function allocateP88(uint256 amount)
+    external
+    onlyAfterLockdropPeriod
+    onlyAllocationFeeder
+  {
+    // Prevent multiple call
+    if (totalP88 > 0) revert Lockdrop_AlreadyAllocateP88();
+    totalP88 = amount;
     lockdropConfig.p88Token().safeTransferFrom(
       msg.sender,
       address(this),
@@ -241,6 +256,9 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   /// @dev Users can claim their P88, this is a one time claim
   /// @param user Address of the user that wants to claim P88
   function claimAllP88(address user) external onlyAfterLockdropPeriod {
+    if (lockdropStates[msg.sender].lockdropTokenAmount == 0)
+      revert Lockdrop_NoPosition();
+    if (totalP88 == 0) revert Lockdrop_ZeroTotalP88NotAllowed();
     if (totalP88Weight == 0) revert Lockdrop_ZeroP88WeightNotAllowed();
     if (lockdropStates[user].p88Claimed) revert Lockdrop_P88AlreadyClaimed();
     uint256 p88Amount = (totalP88 *

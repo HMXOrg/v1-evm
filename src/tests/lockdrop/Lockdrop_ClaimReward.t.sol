@@ -9,7 +9,8 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     mockP88Token.setMinter(lockdropConfig.allocationFeeder(), true);
   }
 
-  function testCorrectness_AllocateP88_OnlyOneUser() external {
+  // -------------------- claimAllP88 ----------------------------
+  function testCorrectness_ClaimAllP88_OnlyOneUser() external {
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
@@ -32,7 +33,10 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
 
     // Mock address for allocation feeder
-    vm.startPrank(lockdropConfig.allocationFeeder(), lockdropConfig.allocationFeeder());
+    vm.startPrank(
+      lockdropConfig.allocationFeeder(),
+      lockdropConfig.allocationFeeder()
+    );
     mockP88Token.mint(lockdropConfig.allocationFeeder(), 100);
     mockP88Token.approve(address(lockdrop), 100);
     lockdrop.allocateP88(100);
@@ -45,7 +49,7 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     (aliceLockdropTokenAmount, aliceLockPeriod, aliceP88Claimed) = lockdrop
       .lockdropStates(ALICE);
 
-    // After claims her P88, the following criteria needs to satisfy:
+    // After Alice claims her P88, the following criteria needs to satisfy:
     // 1. The amount of Alice's P88 should be 100
     // 2. The amount of lockdrop P88 should be 0
     // 3. Status of Alice claiming P88 should be true
@@ -54,7 +58,7 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     assertTrue(aliceP88Claimed);
   }
 
-  function testCorrectness_AllocateP88_MultipleUser() external {
+  function testCorrectness_ClaimAllP88_MultipleUser() external {
     // ------- Alice session -------
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
@@ -97,7 +101,10 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     // Mint P88
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
     // Mock address for allocation feeder
-    vm.startPrank(lockdropConfig.allocationFeeder(), lockdropConfig.allocationFeeder());
+    vm.startPrank(
+      lockdropConfig.allocationFeeder(),
+      lockdropConfig.allocationFeeder()
+    );
     mockP88Token.mint(lockdropConfig.allocationFeeder(), 100);
     mockP88Token.approve(address(lockdrop), 100);
     lockdrop.allocateP88(100);
@@ -129,5 +136,84 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     assertEq(mockP88Token.balanceOf(address(lockdrop)), 1);
     assertTrue(aliceP88Claimed);
     assertTrue(bobP88Claimed);
+  }
+
+  function testRevert_ClaimAllP88_TotalP88NotSet() external {
+    vm.startPrank(ALICE, ALICE);
+    mockERC20.mint(ALICE, 20);
+    mockERC20.approve(address(lockdrop), 20);
+    vm.warp(120000);
+    lockdrop.lockToken(16, 604900);
+    (
+      uint256 aliceLockdropTokenAmount,
+      uint256 aliceLockPeriod,
+      bool aliceP88Claimed
+    ) = lockdrop.lockdropStates(ALICE);
+    vm.stopPrank();
+    assertEq(mockERC20.balanceOf(ALICE), 4);
+    assertEq(aliceLockdropTokenAmount, 16);
+    assertEq(aliceLockPeriod, 604900);
+    assertEq(lockdrop.totalAmount(), 16);
+    assertEq(lockdrop.totalP88Weight(), 16 * 604900);
+
+    // After lockdrop period
+    // Mint P88
+    vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
+
+    // Mock address for allocation feeder
+    vm.startPrank(
+      lockdropConfig.allocationFeeder(),
+      lockdropConfig.allocationFeeder()
+    );
+    mockP88Token.mint(lockdropConfig.allocationFeeder(), 100);
+    mockP88Token.approve(address(lockdrop), 100);
+    vm.stopPrank();
+
+    vm.startPrank(ALICE, ALICE);
+    // Haven't call allocateP88
+    vm.expectRevert(
+      abi.encodeWithSignature("Lockdrop_ZeroTotalP88NotAllowed()")
+    );
+    lockdrop.claimAllP88(ALICE);
+    vm.stopPrank();
+  }
+
+  function testRevert_ClaimAllP88_AlreadyClaimedReward() external {
+    vm.startPrank(ALICE, ALICE);
+    mockERC20.mint(ALICE, 20);
+    mockERC20.approve(address(lockdrop), 20);
+    vm.warp(120000);
+    lockdrop.lockToken(16, 604900);
+    (
+      uint256 aliceLockdropTokenAmount,
+      uint256 aliceLockPeriod,
+      bool aliceP88Claimed
+    ) = lockdrop.lockdropStates(ALICE);
+    vm.stopPrank();
+    assertEq(mockERC20.balanceOf(ALICE), 4);
+    assertEq(aliceLockdropTokenAmount, 16);
+    assertEq(aliceLockPeriod, 604900);
+    assertEq(lockdrop.totalAmount(), 16);
+    assertEq(lockdrop.totalP88Weight(), 16 * 604900);
+
+    // After lockdrop period
+    // Mint P88
+    vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
+
+    // Mock address for allocation feeder
+    vm.startPrank(
+      lockdropConfig.allocationFeeder(),
+      lockdropConfig.allocationFeeder()
+    );
+    mockP88Token.mint(lockdropConfig.allocationFeeder(), 100);
+    mockP88Token.approve(address(lockdrop), 100);
+    lockdrop.allocateP88(100);
+    vm.stopPrank();
+
+    vm.startPrank(ALICE, ALICE);
+    lockdrop.claimAllP88(ALICE);
+    vm.expectRevert(abi.encodeWithSignature("Lockdrop_P88AlreadyClaimed()"));
+    lockdrop.claimAllP88(ALICE);
+    vm.stopPrank();
   }
 }
