@@ -26,7 +26,7 @@ abstract contract Lockdrop_BaseTest is BaseTest {
   PLPStaking internal plpStaking;
   P88 internal mockP88Token;
   PLP internal mockPLPToken;
-  address internal allocationFeeder; // mock allocation feeder
+  address internal allocationFeeder;
 
   function setUp() public virtual {
     pool = new MockPool();
@@ -34,15 +34,15 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     mockERC20 = new MockErc20("Mock Token", "MT", 18);
     mockPLPToken = new PLP();
     mockP88Token = new P88();
-
     plpStaking = new PLPStaking();
-    // Mock allocation feeder address 
+    // Mock allocation feeder address: will be the address of the 0x01
+    allocationFeeder = address(0x01);
     lockdropConfig = new LockdropConfig(
       100000,
       plpStaking,
       mockPLPToken,
       mockP88Token,
-      address(0x00)
+      allocationFeeder
     );
     lockdrop = new Lockdrop(address(mockERC20), strategy, lockdropConfig);
   }

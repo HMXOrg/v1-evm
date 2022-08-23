@@ -6,7 +6,7 @@ import { Lockdrop_BaseTest, console } from "./Lockdrop_BaseTest.t.sol";
 contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
   function setUp() public override {
     super.setUp();
-    mockP88Token.setMinter(address(lockdrop), true);
+    mockP88Token.setMinter(lockdropConfig.allocationFeeder(), true);
   }
 
   function testCorrectness_AllocateP88_OnlyOneUser() external {
@@ -31,8 +31,9 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     // Mint P88
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
 
-    vm.startPrank(address(lockdrop), address(lockdrop));
-    mockP88Token.mint(address(lockdrop), 100);
+    // Mock address for allocation feeder
+    vm.startPrank(lockdropConfig.allocationFeeder(), lockdropConfig.allocationFeeder());
+    mockP88Token.mint(lockdropConfig.allocationFeeder(), 100);
     mockP88Token.approve(address(lockdrop), 100);
     lockdrop.allocateP88(100);
     vm.stopPrank();
@@ -95,8 +96,9 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     // After lockdrop period
     // Mint P88
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
-    vm.startPrank(address(lockdrop), address(lockdrop));
-    mockP88Token.mint(address(lockdrop), 100);
+    // Mock address for allocation feeder
+    vm.startPrank(lockdropConfig.allocationFeeder(), lockdropConfig.allocationFeeder());
+    mockP88Token.mint(lockdropConfig.allocationFeeder(), 100);
     mockP88Token.approve(address(lockdrop), 100);
     lockdrop.allocateP88(100);
     vm.stopPrank();
@@ -127,7 +129,5 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     assertEq(mockP88Token.balanceOf(address(lockdrop)), 1);
     assertTrue(aliceP88Claimed);
     assertTrue(bobP88Claimed);
-    console.log(aliceP88Claimed);
-    console.log(bobP88Claimed);
   }
 }
