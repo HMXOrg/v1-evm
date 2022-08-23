@@ -175,11 +175,16 @@ contract Compounder_ClaimAll is Compounder_BaseTest {
     assertEq(dragonPointRewarder.pendingReward(ALICE), 0);
     assertEq(partnerADragonPoolRewarder.pendingReward(ALICE), 0);
 
+    assertEq(
+      dragonStaking.userTokenAmount(address(dragonPoint), ALICE),
+      946.849315068493150684 ether
+    );
+
     // 172800 + 345600 + 345600 = 864000
     assertEq(esP88.balanceOf(ALICE), 864000 ether);
     // 86400 + 86400 + 172800 = 345600
     assertEq(ALICE.balance, 345600 ether);
-    assertEq(dragonPoint.balanceOf(ALICE), 946.849315068493150684 ether);
+    assertEq(dragonPoint.balanceOf(ALICE), 0);
     assertEq(partnerAToken.balanceOf(ALICE), 34560 ether);
   }
 }

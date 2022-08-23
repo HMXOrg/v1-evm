@@ -245,10 +245,11 @@ contract BaseTest is DSTest, CoreConstants {
   }
 
   function deployCompounder(
+    address dp,
     address compoundPool,
     address[] memory tokens,
     bool[] memory isCompoundTokens_
   ) internal returns (Compounder) {
-    return new Compounder(compoundPool, tokens, isCompoundTokens_);
+    return new Compounder(dp, compoundPool, tokens, isCompoundTokens_);
   }
 }
