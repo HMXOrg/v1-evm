@@ -114,6 +114,7 @@ contract Compounder_BaseTest is BaseTest {
     isCompoundTokens[1] = true;
     isCompoundTokens[2] = false;
     compounder = deployCompounder(
+      address(dragonPoint),
       address(dragonStaking),
       tokens,
       isCompoundTokens

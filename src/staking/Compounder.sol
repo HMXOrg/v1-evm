@@ -12,15 +12,18 @@ contract Compounder is Ownable {
 
   error Compounder_InconsistentLength();
 
-  address destinationCompundPool;
-  address[] tokens;
-  mapping(address => bool) isCompoundableTokens;
+  address public dp;
+  address public destinationCompundPool;
+  address[] public tokens;
+  mapping(address => bool) public isCompoundableTokens;
 
   constructor(
+    address dp_,
     address destinationCompundPool_,
     address[] memory tokens_,
     bool[] memory isCompoundTokens_
   ) {
+    dp = dp_;
     destinationCompundPool = destinationCompundPool_;
     addToken(tokens_, isCompoundTokens_);
   }
@@ -90,7 +93,10 @@ contract Compounder is Ownable {
     for (uint256 i = 0; i < length; ) {
       uint256 amount = IERC20(tokens[i]).balanceOf(address(this));
       if (amount > 0) {
-        if (isCompound && isCompoundableTokens[tokens[i]]) {
+        // always compound dragon point
+        if (
+          tokens[i] == dp || (isCompound && isCompoundableTokens[tokens[i]])
+        ) {
           IStaking(destinationCompundPool).deposit(
             msg.sender,
             tokens[i],
