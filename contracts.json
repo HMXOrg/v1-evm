@@ -1,0 +1,48 @@
+{
+  "Tokens": {
+    "P88": "0x3AC60f3F96Eab4badb5a5244Cd3A85511Cb4F31F",
+    "esP88": "0x980cDd680Ea324ABaa6C64df31fDA73e35aC6c90",
+    "PLP": "0xa80633E7B66f9Bf4eD75503A5460A645Ef06B510",
+    "DragonPoint": "0x41E01292699513Fb5b202f97b98B361BF39E7c5F",
+    "WMATIC": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270"
+  },
+  "Vester": "0x79F87112d902fCa835Df3b210fa0F9d1ACcEf131",
+  "Staking": {
+    "Compounder": "0x4B7e63B556F9c4A6b915d6e164658111b8F39FD8",
+    "PLPStaking": {
+      "address": "0x818Eb7fbaeeddA8959046439fcC4A6C7C749b412",
+      "rewarders": [
+        {
+          "name": "PLP Staking Protocol Revenue",
+          "address": "0x9552de9f1169b487c994862A6b6915E1BB279e54",
+          "rewardToken": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270"
+        },
+        {
+          "name": "PLP Staking esP88 Emission",
+          "address": "0x7d1a78D36b7D0aD18366456c467d3Ef90c581bD2",
+          "rewardToken": "0x980cDd680Ea324ABaa6C64df31fDA73e35aC6c90"
+        }
+      ]
+    },
+    "DragonStaking": {
+      "address": "0x5c0F9425AB82AD53b009f02b2C2857544E74CC86",
+      "rewarders": [
+        {
+          "name": "Dragon Staking Protocol Revenue",
+          "address": "0xE7B9e61D0a2A35F3eF9f833Fd311705c38136bdc",
+          "rewardToken": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270"
+        },
+        {
+          "name": "Dragon Staking esP88 Emission",
+          "address": "0x67284cEF8F608b64Aba0e44EC5d6cfBaFc26F758",
+          "rewardToken": "0x980cDd680Ea324ABaa6C64df31fDA73e35aC6c90"
+        },
+        {
+          "name": "Dragon Staking Dragon Point Emission",
+          "address": "0x108d83658bD43C9e427C64238EF7d79912dbb2fA",
+          "rewardToken": "0x41E01292699513Fb5b202f97b98B361BF39E7c5F"
+        }
+      ]
+    }
+  }
+}
