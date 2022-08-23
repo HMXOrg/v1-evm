@@ -138,6 +138,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     emit LogExtendLockPeriod(msg.sender, newLockPeriod);
   }
 
+
   /// @dev Users can add more lock amount during the lockdrop period
   /// @param amount Number of lock token that user wants to add
   function addLockAmount(uint256 amount) external onlyInLockdropPeriod {
