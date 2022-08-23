@@ -165,6 +165,8 @@ contract PLPStaking_Deposit is PLPStaking_BaseTest {
     plp.mint(BOB, 1000 ether);
     vm.stopPrank();
 
+    vm.warp(block.timestamp + 8 days);
+
     vm.startPrank(DAVE);
     esP88.approve(address(esP88Rewarder), type(uint256).max);
     // Feeder feed esP88 to esP88Rewarder
@@ -183,7 +185,7 @@ contract PLPStaking_Deposit is PLPStaking_BaseTest {
 
     assertEq(esP88Rewarder.accRewardPerShare(), 0);
     assertEq(esP88Rewarder.userRewardDebts(ALICE), 0);
-    assertEq(esP88Rewarder.lastRewardTime(), 1);
+    assertEq(esP88Rewarder.lastRewardTime(), 691201);
     assertEq(esP88Rewarder.pendingReward(ALICE), 604800 ether);
 
     vm.startPrank(BOB);
@@ -196,7 +198,7 @@ contract PLPStaking_Deposit is PLPStaking_BaseTest {
     assertEq(esP88Rewarder.accRewardPerShare(), 0.00604800 ether);
     assertEq(esP88Rewarder.userRewardDebts(BOB), 604800 ether);
     // 8 days
-    assertEq(esP88Rewarder.lastRewardTime(), 691201);
+    assertEq(esP88Rewarder.lastRewardTime(), 1382401);
     assertEq(esP88Rewarder.pendingReward(BOB), 0);
   }
 

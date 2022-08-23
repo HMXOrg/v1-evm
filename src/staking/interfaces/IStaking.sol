@@ -15,6 +15,9 @@ interface IStaking {
 
   function harvest(address[] memory rewarders) external;
 
+  function harvestToCompounder(address user, address[] memory rewarders)
+    external;
+
   function calculateTotalShare(address rewarder)
     external
     view

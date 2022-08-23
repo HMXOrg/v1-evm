@@ -26,6 +26,7 @@ import { DragonStaking } from "../../staking/DragonStaking.sol";
 import { FeedableRewarder } from "../../staking/FeedableRewarder.sol";
 import { AdHocMintRewarder } from "../../staking/AdHocMintRewarder.sol";
 import { WFeedableRewarder } from "../../staking/WFeedableRewarder.sol";
+import { Compounder } from "../../staking/Compounder.sol";
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
@@ -241,5 +242,13 @@ contract BaseTest is DSTest, CoreConstants {
     address staking
   ) internal returns (WFeedableRewarder) {
     return new WFeedableRewarder(name, rewardToken, staking);
+  }
+
+  function deployCompounder(
+    address compoundPool,
+    address[] memory tokens,
+    bool[] memory isCompoundTokens_
+  ) internal returns (Compounder) {
+    return new Compounder(compoundPool, tokens, isCompoundTokens_);
   }
 }

@@ -129,7 +129,8 @@ contract FeedableRewarder is IRewarder, Ownable {
   }
 
   function _feed(uint256 feedAmount, uint256 duration) internal {
-    _updateRewardCalculationParams();
+    uint256 totalShare = _totalShare();
+    _forceUpdateRewardCalculationParams(totalShare);
 
     {
       // Transfer token, with decay check
@@ -158,10 +159,14 @@ contract FeedableRewarder is IRewarder, Ownable {
   function _updateRewardCalculationParams() internal {
     uint256 totalShare = _totalShare();
     if (block.timestamp > lastRewardTime && totalShare > 0) {
-      accRewardPerShare += _calculateAccRewardPerShare(totalShare);
-      lastRewardTime = block.timestamp.toUint64();
-      emit LogUpdateRewardCalculationParams(lastRewardTime, accRewardPerShare);
+      _forceUpdateRewardCalculationParams(totalShare);
     }
+  }
+
+  function _forceUpdateRewardCalculationParams(uint256 totalShare) internal {
+    accRewardPerShare += _calculateAccRewardPerShare(totalShare);
+    lastRewardTime = block.timestamp.toUint64();
+    emit LogUpdateRewardCalculationParams(lastRewardTime, accRewardPerShare);
   }
 
   function _calculateAccRewardPerShare(uint256 totalShare)
