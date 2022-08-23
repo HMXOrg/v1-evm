@@ -11,6 +11,8 @@ import { IRewarder } from "./interfaces/IRewarder.sol";
 contract Compounder is Ownable {
   using SafeERC20 for IERC20;
 
+  error Compounder_InconsistentLength();
+
   address[] tokens;
   mapping(address => bool) isCompoundTokens;
   address compoundPool;
@@ -29,6 +31,8 @@ contract Compounder is Ownable {
     bool[] memory newIsCompoundTokens
   ) public onlyOwner {
     uint256 length = newTokens.length;
+    if (length != newIsCompoundTokens.length)
+      revert Compounder_InconsistentLength();
     for (uint256 i = 0; i < length; ) {
       tokens.push(newTokens[i]);
       isCompoundTokens[tokens[i]] = newIsCompoundTokens[i];
@@ -52,46 +56,47 @@ contract Compounder is Ownable {
   function claimAll(address[] memory pools, address[][] memory rewarders)
     public
   {
-    uint256 length = pools.length;
-    for (uint256 i = 0; i < length; ) {
-      IStaking(pools[i]).harvest(rewarders[i]);
-
-      unchecked {
-        ++i;
-      }
-    }
+    _claimAll(pools, rewarders);
+    _compoundOrTransfer(false);
   }
 
   function compound(address[] memory pools, address[][] memory rewarders)
     public
   {
-    {
-      uint256 length = pools.length;
-      for (uint256 i = 0; i < length; ) {
-        IStaking(pools[i]).harvestToCompounder(msg.sender, rewarders[i]);
+    _claimAll(pools, rewarders);
+    _compoundOrTransfer(true);
+  }
 
-        unchecked {
-          ++i;
-        }
-      }
-    }
-
-    {
-      uint256 length = tokens.length;
-      for (uint256 i = 0; i < length; ) {
-        uint256 amount = IERC20(tokens[i]).balanceOf(address(this));
-        if (isCompoundTokens[tokens[i]]) {
+  function _compoundOrTransfer(bool isCompound) internal {
+    uint256 length = tokens.length;
+    for (uint256 i = 0; i < length; ) {
+      uint256 amount = IERC20(tokens[i]).balanceOf(address(this));
+      if (amount > 0) {
+        if (isCompound && isCompoundTokens[tokens[i]]) {
           IStaking(compoundPool).deposit(msg.sender, tokens[i], amount);
         } else {
           IERC20(tokens[i]).safeTransfer(msg.sender, amount);
         }
-
-        unchecked {
-          ++i;
-        }
       }
 
-      payable(msg.sender).transfer(address(this).balance);
+      unchecked {
+        ++i;
+      }
+    }
+
+    payable(msg.sender).transfer(address(this).balance);
+  }
+
+  function _claimAll(address[] memory pools, address[][] memory rewarders)
+    internal
+  {
+    uint256 length = pools.length;
+    for (uint256 i = 0; i < length; ) {
+      IStaking(pools[i]).harvestToCompounder(msg.sender, rewarders[i]);
+
+      unchecked {
+        ++i;
+      }
     }
   }
 
