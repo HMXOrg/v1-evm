@@ -44,6 +44,7 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     rewardsTokenList.push(address(mockMatic));
 
     plpStaking = new PLPStaking();
+
     lockdropConfig = new LockdropConfig(
       100000,
       plpStaking,
@@ -60,8 +61,15 @@ abstract contract Lockdrop_BaseTest is BaseTest {
 
   function testCorrectness_WhenLockdropIsInit() external {
     assertEq(address(lockdrop.lockdropToken()), address(mockERC20));
-    assertEq(lockdropConfig.startLockTimestamp(), uint256(100000));
-    assertEq(lockdropConfig.endLockTimestamp(), uint256(704800));
-    assertEq(lockdropConfig.withdrawalTimestamp(), uint256(532000));
+    assertEq(lockdropConfig.startLockTimestamp(), 100000);
+    assertEq(lockdropConfig.endLockTimestamp(), 100000 + 4 days);
+    assertEq(
+      lockdropConfig.startRestrictedWithdrawalTimestamp(),
+      100000 + 3 days
+    );
+    assertEq(
+      lockdropConfig.startDecayingWithdrawalTimestamp(),
+      100000 + 3 days + 12 hours
+    );
   }
 }

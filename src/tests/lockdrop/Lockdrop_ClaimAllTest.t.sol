@@ -64,8 +64,11 @@ contract Lockdrop_ClaimReward is BaseTest {
     vm.warp(120000);
     lockdrop.lockToken(16 ether, 604900);
     vm.stopPrank();
-    (uint256 alicelockdropTokenAmount, uint256 alicelockPeriod) = lockdrop
-      .lockdropStates(ALICE);
+    (
+      uint256 alicelockdropTokenAmount,
+      uint256 alicelockPeriod,
+      bool aliceP88Claimed
+    ) = lockdrop.lockdropStates(ALICE);
 
     assertEq(lockdropToken.balanceOf(ALICE), 4 ether);
     assertEq(alicelockdropTokenAmount, 16 ether);
@@ -109,8 +112,11 @@ contract Lockdrop_ClaimReward is BaseTest {
     vm.warp(120000);
     lockdrop.lockToken(16 ether, 604900);
     vm.stopPrank();
-    (uint256 alicelockdropTokenAmount, uint256 alicelockPeriod) = lockdrop
-      .lockdropStates(ALICE);
+    (
+      uint256 alicelockdropTokenAmount,
+      uint256 alicelockPeriod,
+      bool aliceP88Claimed
+    ) = lockdrop.lockdropStates(ALICE);
 
     assertEq(lockdropToken.balanceOf(ALICE), 4 ether);
     assertEq(alicelockdropTokenAmount, 16 ether);
@@ -124,8 +130,11 @@ contract Lockdrop_ClaimReward is BaseTest {
     vm.warp(130000);
     lockdrop.lockToken(29 ether, 605000);
     vm.stopPrank();
-    (uint256 boblockdropTokenAmount, uint256 boblockPeriod) = lockdrop
-      .lockdropStates(BOB);
+    (
+      uint256 boblockdropTokenAmount,
+      uint256 boblockPeriod,
+      bool bobP88Claimed
+    ) = lockdrop.lockdropStates(BOB);
     assertEq(boblockdropTokenAmount, 29 ether);
     assertEq(boblockPeriod, 605000);
     assertEq(lockdropToken.balanceOf(BOB), 1 ether);
