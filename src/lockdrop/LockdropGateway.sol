@@ -26,7 +26,7 @@ contract LockdropGateway is ILockdropGateway {
     address lockdrop;
   }
 
-  mapping(address => LockdropInfo) mapTokenLockdropInfo;
+  mapping(address => LockdropInfo) public mapTokenLockdropInfo;
   address public pairTokenRouter;
 
   error LockdropGateway_UnknownTokenType();
