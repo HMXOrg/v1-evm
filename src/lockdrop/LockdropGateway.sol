@@ -19,13 +19,13 @@ contract LockdropGateway is ILockdropGateway {
     PairToken
   }
 
-  struct LockDropInfo {
+  struct LockdropInfo {
     TokenType tokenInType;
-    address lockDrop;
+    address lockdrop;
     bytes metadata;
   }
 
-  mapping(address => LockDropInfo) mapTokenLockDropInfo;
+  mapping(address => LockdropInfo) mapTokenLockdropInfo;
 
   error LockdropGateway_UnknownTokenType();
   error LockdropGateway_NotBaseToken();
@@ -83,7 +83,7 @@ contract LockdropGateway is ILockdropGateway {
     uint256 lockPeriod
   ) external {
     // Validate token, whether it is supported (whitelisted) by our contract or not
-    TokenType tokenInType = mapTokenLockDropInfo[token].tokenInType;
+    TokenType tokenInType = mapTokenLockdropInfo[token].tokenInType;
     if (tokenInType == TokenType.UninitializedToken)
       revert LockdropGateway_UninitializedToken();
 
@@ -112,10 +112,10 @@ contract LockdropGateway is ILockdropGateway {
     uint256 lockAmount,
     uint256 lockPeriod
   ) internal {
-    if (mapTokenLockDropInfo[token].tokenInType != TokenType.BaseToken)
+    if (mapTokenLockdropInfo[token].tokenInType != TokenType.BaseToken)
       revert LockdropGateway_NotBaseToken();
 
-    _lockBaseTokenAtLockDrop(token, lockAmount, lockPeriod);
+    _lockBaseTokenAtLockdrop(token, lockAmount, lockPeriod);
   }
 
   function _handleLockAToken(
@@ -123,7 +123,7 @@ contract LockdropGateway is ILockdropGateway {
     uint256 lockAmount,
     uint256 lockPeriod
   ) internal {
-    if (mapTokenLockDropInfo[token].tokenInType != TokenType.AToken)
+    if (mapTokenLockdropInfo[token].tokenInType != TokenType.AToken)
       revert LockdropGateway_NotAToken();
 
     address baseToken = IAaveAToken(token).UNDERLYING_ASSET_ADDRESS();
@@ -139,25 +139,26 @@ contract LockdropGateway is ILockdropGateway {
     uint256 lockPeriod
   ) internal {
     // TODO: implement
+    revert();
   }
 
-  function _lockBaseTokenAtLockDrop(
+  function _lockBaseTokenAtLockdrop(
     address token,
     uint256 lockAmount,
     uint256 lockPeriod
   ) internal {
-    address lockDrop = mapTokenLockDropInfo[token].lockDrop;
+    address lockdrop = mapTokenLockdropInfo[token].lockdrop;
     (uint256 currentTokenAmount, ) = ILockdrop(
-      mapTokenLockDropInfo[token].lockDrop
+      mapTokenLockdropInfo[token].lockdrop
     ).lockdropStates(msg.sender);
 
     if (lockAmount > 0)
-      IERC20(token).approve(mapTokenLockDropInfo[token].lockDrop, lockAmount);
+      IERC20(token).approve(mapTokenLockdropInfo[token].lockdrop, lockAmount);
 
     // TODO: change to lockTokenFor, addLockAmountFor, extendLockPeriodFor
     if (currentTokenAmount == 0) {
       // No lockdrop position yet, create a new one
-      ILockdrop(lockDrop).lockToken(lockAmount, lockPeriod);
+      ILockdrop(lockdrop).lockToken(lockAmount, lockPeriod);
       return;
     } else {
       // Lockdrop position is existed, update with new param
@@ -167,10 +168,10 @@ contract LockdropGateway is ILockdropGateway {
         revert LockdropGateway_NothingToDoWithPosition();
 
       if (lockAmount > 0) {
-        ILockdrop(lockDrop).addLockAmount(lockAmount);
+        ILockdrop(lockdrop).addLockAmount(lockAmount);
       }
       if (lockPeriod > 0) {
-        ILockdrop(lockDrop).extendLockPeriod(lockAmount);
+        ILockdrop(lockdrop).extendLockPeriod(lockAmount);
       }
       return;
     }
