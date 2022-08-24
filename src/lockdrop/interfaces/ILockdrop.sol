@@ -17,4 +17,9 @@ interface ILockdrop {
   function withdrawAll(address _user) external;
 
   function claimAllP88(address _user) external;
+
+  function lockdropStates(address user)
+    external
+    view
+    returns (uint256 lockdropTokenAmount, uint256 lockPeriod);
 }
