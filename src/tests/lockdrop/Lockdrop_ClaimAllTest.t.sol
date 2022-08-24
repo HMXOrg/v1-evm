@@ -98,7 +98,7 @@ contract Lockdrop_ClaimReward is BaseTest {
     assertEq(IERC20(mockPLP).balanceOf(address(mockPLPStaking)), 16 ether);
 
     vm.startPrank(ALICE, ALICE);
-    lockdrop.claimAllReward(ALICE);
+    lockdrop.claimAllRewards(ALICE);
     vm.stopPrank();
 
     assertEq(IERC20(mockMatic).balanceOf(address(ALICE)), 16 ether);
@@ -164,11 +164,11 @@ contract Lockdrop_ClaimReward is BaseTest {
     assertEq(IERC20(mockPLP).balanceOf(address(mockPLPStaking)), 45 ether);
 
     vm.startPrank(ALICE, ALICE);
-    lockdrop.claimAllReward(ALICE);
+    lockdrop.claimAllRewards(ALICE);
     vm.stopPrank();
 
     vm.startPrank(BOB, BOB);
-    lockdrop.claimAllReward(BOB);
+    lockdrop.claimAllRewards(BOB);
     vm.stopPrank();
 
     assertEq(IERC20(mockMatic).balanceOf(address(ALICE)), 16 ether);
