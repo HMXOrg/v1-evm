@@ -5,7 +5,7 @@ import { Lockdrop_BaseTest, console } from "./Lockdrop_BaseTest.t.sol";
 contract Lockdrop_AllocateP88 is Lockdrop_BaseTest {
   function setUp() public override {
     super.setUp();
-    mockP88Token.setMinter(address(lockdrop), true);
+    mockP88Token.setMinter(address(this), true);
   }
 
   function testCorrectness_AllocateP88() external {
@@ -23,6 +23,7 @@ contract Lockdrop_AllocateP88 is Lockdrop_BaseTest {
     assertEq(mockERC20.balanceOf(ALICE), 4);
     assertEq(aliceLockdropTokenAmount, 16);
     assertEq(aliceLockPeriod, 604900);
+    assertTrue(!aliceP88Claimed);
     assertEq(lockdrop.totalAmount(), 16);
     assertEq(lockdrop.totalP88Weight(), 16 * 604900);
 
@@ -30,11 +31,9 @@ contract Lockdrop_AllocateP88 is Lockdrop_BaseTest {
     // Mint P88
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
 
-    vm.startPrank(address(lockdrop), address(lockdrop));
-    mockP88Token.mint(address(lockdrop), 100);
-    vm.stopPrank();
-
     vm.startPrank(address(this), address(this));
+    mockP88Token.mint(address(this), 100);
+    mockP88Token.approve(address(lockdrop), 1000);
     lockdrop.allocateP88(100);
     vm.stopPrank();
 
@@ -58,18 +57,16 @@ contract Lockdrop_AllocateP88 is Lockdrop_BaseTest {
     assertEq(mockERC20.balanceOf(ALICE), 4);
     assertEq(aliceLockdropTokenAmount, 16);
     assertEq(aliceLockPeriod, 604900);
+    assertTrue(!aliceP88Claimed);
     assertEq(lockdrop.totalAmount(), 16);
     assertEq(lockdrop.totalP88Weight(), 16 * 604900);
 
     // After lockdrop period
     // Mint P88
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
-
-    vm.startPrank(address(lockdrop), address(lockdrop));
-    mockP88Token.mint(address(lockdrop), 100);
-    vm.stopPrank();
-
     vm.startPrank(address(this), address(this));
+    mockP88Token.mint(address(this), 100);
+    mockP88Token.approve(address(lockdrop), 1000);
     lockdrop.allocateP88(100);
     vm.expectRevert(abi.encodeWithSignature("Lockdrop_AlreadyAllocateP88()"));
     lockdrop.allocateP88(100);

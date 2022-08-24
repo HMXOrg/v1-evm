@@ -138,7 +138,6 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     emit LogExtendLockPeriod(msg.sender, newLockPeriod);
   }
 
-
   /// @dev Users can add more lock amount during the lockdrop period
   /// @param amount Number of lock token that user wants to add
   function addLockAmount(uint256 amount) external onlyInLockdropPeriod {
@@ -154,7 +153,8 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
 
   function _getEarlyWithdrawableAmount(address user)
     internal
-    returns (uint256)
+    view
+    returns (uint256 amount)
   {
     uint256 startRestrictedWithdrawalTimestamp = lockdropConfig
       .startRestrictedWithdrawalTimestamp();
@@ -177,7 +177,11 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
 
   /// @dev Withdrawable amount calculation logic
   /// @param user Address of user that we want to know their valid withdraw amount
-  function getEarlyWithdrawableAmount(address user) external returns (uint256) {
+  function getEarlyWithdrawableAmount(address user)
+    external
+    view
+    returns (uint256)
+  {
     return _getEarlyWithdrawableAmount(user);
   }
 
@@ -230,7 +234,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     emit LogWithdrawAll(user, address(lockdropToken));
   }
 
-  /// @dev Only owner can manually allocate P88
+  /// @dev Owner of the contract can allocate P88
   /// @param amount Number of P88 that feeder will feed
   function allocateP88(uint256 amount)
     external
@@ -240,6 +244,11 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     // Prevent multiple call
     if (totalP88 > 0) revert Lockdrop_AlreadyAllocateP88();
     totalP88 = amount;
+    lockdropConfig.p88Token().safeTransferFrom(
+      address(owner()),
+      address(this),
+      amount
+    );
     emit LogAllocateP88(amount);
   }
 

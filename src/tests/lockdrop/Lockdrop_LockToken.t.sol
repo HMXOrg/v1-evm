@@ -18,8 +18,11 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(lockdropConfig.startLockTimestamp() + 4 hours);
     lockdrop.lockToken(16, 604900);
-    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod, bool aliceP88Claimed) = lockdrop
-      .lockdropStates(ALICE);
+    (
+      uint256 aliceLockdropTokenAmount,
+      uint256 aliceLockPeriod,
+      bool aliceP88Claimed
+    ) = lockdrop.lockdropStates(ALICE);
     vm.stopPrank();
     // After Alice lock the ERC20 token, the following criteria needs to satisfy:
     // 1. Balance of Alice's ERC20 token should be 4
@@ -30,6 +33,7 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     assertEq(mockERC20.balanceOf(ALICE), 4);
     assertEq(aliceLockdropTokenAmount, 16);
     assertEq(aliceLockPeriod, 604900);
+    assertTrue(!aliceP88Claimed);
     assertEq(lockdrop.totalAmount(), 16);
     assertEq(lockdrop.totalP88Weight(), 16 * 604900);
 
@@ -39,8 +43,11 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     mockERC20.approve(address(lockdrop), 30);
     vm.warp(lockdropConfig.startLockTimestamp() + 5 hours);
     lockdrop.lockToken(10, 704900);
-    (uint256 bobLockdropTokenAmount, uint256 bobLockPeriod, bool bobP88Claimed) = lockdrop
-      .lockdropStates(BOB);
+    (
+      uint256 bobLockdropTokenAmount,
+      uint256 bobLockPeriod,
+      bool bobP88Claimed
+    ) = lockdrop.lockdropStates(BOB);
     vm.stopPrank();
     // After Bob lock the ERC20 token, the following criteria needs to satisfy:
     // 1. Balance of Bobs' ERC20 token should be 20
@@ -51,6 +58,7 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     assertEq(mockERC20.balanceOf(BOB), 20);
     assertEq(bobLockdropTokenAmount, 10);
     assertEq(bobLockPeriod, 704900);
+    assertTrue(!bobP88Claimed);
     assertEq(lockdrop.totalAmount(), 26);
     assertEq(lockdrop.totalP88Weight(), 16 * 604900 + 10 * 704900);
   }
@@ -61,8 +69,11 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
     lockdrop.lockToken(16, 604900);
-    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod, bool aliceP88Claimed) = lockdrop
-      .lockdropStates(ALICE);
+    (
+      uint256 aliceLockdropTokenAmount,
+      uint256 aliceLockPeriod,
+      bool aliceP88Claimed
+    ) = lockdrop.lockdropStates(ALICE);
     assertEq(mockERC20.balanceOf(ALICE), 4);
     assertEq(aliceLockdropTokenAmount, 16);
     assertEq(aliceLockPeriod, 604900);
@@ -73,9 +84,8 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     lockdrop.addLockAmount(4);
     vm.stopPrank();
 
-    (aliceLockdropTokenAmount, aliceLockPeriod, aliceP88Claimed) = lockdrop.lockdropStates(
-      ALICE
-    );
+    (aliceLockdropTokenAmount, aliceLockPeriod, aliceP88Claimed) = lockdrop
+      .lockdropStates(ALICE);
     // After Alice add more ERC20 token, the following criteria needs to satisfy:
     // 1. Balance of Alice's ERC20 token should be 0
     // 2. The amount of Alice's lockdrop token should be 20
@@ -95,8 +105,11 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
     lockdrop.lockToken(16, 604900);
-    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod, bool aliceP88Claimed) = lockdrop
-      .lockdropStates(ALICE);
+    (
+      uint256 aliceLockdropTokenAmount,
+      uint256 aliceLockPeriod,
+      bool aliceP88Claimed
+    ) = lockdrop.lockdropStates(ALICE);
     assertEq(mockERC20.balanceOf(ALICE), 4);
     assertEq(aliceLockdropTokenAmount, 16);
     assertEq(aliceLockPeriod, 604900);
@@ -106,9 +119,8 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     // Alice wants to extend her lock period
     lockdrop.extendLockPeriod(800000);
     vm.stopPrank();
-    (aliceLockdropTokenAmount, aliceLockPeriod, aliceP88Claimed) = lockdrop.lockdropStates(
-      ALICE
-    );
+    (aliceLockdropTokenAmount, aliceLockPeriod, aliceP88Claimed) = lockdrop
+      .lockdropStates(ALICE);
 
     // After Alice extend her lock period, the following criteria needs to satisfy:
     // 1. Balance of Alice's ERC20 token should be 0
