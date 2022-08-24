@@ -803,4 +803,115 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
 
     // TODO: Add more tests when decrease position is finished
   }
+
+  function testCorrectness_WhenShort_MinProfitBps() external {
+    poolConfig.setMintBurnFeeBps(4);
+    poolConfig.setMinProfitDuration(8 hours);
+
+    maticPriceFeed.setLatestAnswer(300 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    daiPriceFeed.setLatestAnswer(1 * 10**8);
+
+    // Add 100 as a liquidity
+    dai.mint(address(pool), 100 * 10**18);
+    pool.addLiquidity(address(this), address(dai), address(this));
+
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+
+    // Open a 90 USD WBTC short position with 10 DAI as a collateral
+    dai.mint(address(pool), 10 * 10**18);
+    pool.increasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      90 * 10**30,
+      Exposure.SHORT
+    );
+
+    // The following conditions need to be met:
+    // 1. Pool's AUM by min price should be:
+    // = 100 * (1-0.0004) + (90 * (40000-40000) / 40000)
+    // = 99.96 USD
+    // 2. Pool's AUM by max price should be:
+    // = 100 * (1-0.0004) + (90 * (41000-40000) / 40000)
+    // = 102.21 USD
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 99.96 * 10**18);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 102.21 * 10**18);
+
+    // Assert position
+    // 1. Position's size should be 90 USD
+    // 2. Position's collateral should be 10 * (1-0.001) = 9.91
+    // 3. Position's average price should be 40,000 USD
+    // 4. Position's entry funding rate should be: 0
+    // 5. Position's reserve amount: 90
+    // 6. Position's realized PnL should be: 0
+    // 7. Position's has realized profit should be true
+    Pool.GetPositionReturnVars memory position = pool.getPosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      Exposure.SHORT
+    );
+    assertEq(position.size, 90 * 10**30);
+    assertEq(position.collateral, 9.91 * 10**30);
+    assertEq(position.averagePrice, 40_000 * 10**30);
+    assertEq(position.entryFundingRate, 0);
+    assertEq(position.reserveAmount, 90 * 10**18);
+    assertEq(position.realizedPnl, 0 * 10**30);
+    assertTrue(position.hasProfit);
+
+    // Oracle fed WBTC to be at 40,000 * (100 - 0.75)% = 39700
+    wbtcPriceFeed.setLatestAnswer(39_700 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(39_700 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(39_700 * 10**8);
+
+    // Assert position delta
+    // Profit not pass minBps so delta is 0
+    (bool isProfit, uint256 delta) = pool.getPositionDelta(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      Exposure.SHORT
+    );
+    assertTrue(isProfit);
+    assertEq(delta, 0);
+
+    // increase time 1 hour (not pass minProfitDuration)
+    vm.warp(block.timestamp + 1 hours);
+
+    // Assert position delta again after time passed.
+    // Profit pass minBps so delta is 0
+    (isProfit, delta) = pool.getPositionDelta(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      Exposure.SHORT
+    );
+    assertTrue(isProfit);
+    assertEq(delta, 0);
+
+    // increase time 7 hours and 1 second (pass minProfitDuration)
+    vm.warp(block.timestamp + 7 hours + 1 seconds);
+
+    // Assert position delta again after time passed.
+    // Time passed minProfitDuration, so delta needs to calculate.
+    // Position's delta should be:
+    // = 90 * (40000 - 39700) / 40000
+    // = 0.675 USD
+    (isProfit, delta) = pool.getPositionDelta(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      Exposure.SHORT
+    );
+    assertTrue(isProfit);
+    assertEq(delta, 0.675 * 10**30);
+  }
 }
