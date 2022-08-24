@@ -4,9 +4,11 @@ pragma solidity 0.8.14;
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import { ILockdrop } from "./interfaces/ILockdrop.sol";
 import { IAaveAToken } from "../interfaces/IAaveAToken.sol";
 import { IAaveLendingPool } from "../interfaces/IAaveLendingPool.sol";
+import { IUniswapRouter } from "../interfaces/IUniswapRouter.sol";
+import { IUniswapPair } from "../interfaces/IUniswapPair.sol";
+import { ILockdrop } from "./interfaces/ILockdrop.sol";
 import { ILockdropGateway } from "./interfaces/ILockdropGateway.sol";
 
 contract LockdropGateway is ILockdropGateway {
@@ -22,10 +24,10 @@ contract LockdropGateway is ILockdropGateway {
   struct LockdropInfo {
     TokenType tokenInType;
     address lockdrop;
-    bytes metadata;
   }
 
   mapping(address => LockdropInfo) mapTokenLockdropInfo;
+  address public pairTokenRouter;
 
   error LockdropGateway_UnknownTokenType();
   error LockdropGateway_NotBaseToken();
@@ -34,9 +36,12 @@ contract LockdropGateway is ILockdropGateway {
   error LockdropGateway_UninitializedToken();
   error LockdropGateway_NothingToDoWithPosition();
 
+  constructor(address pairTokenRouter_) {
+    pairTokenRouter = pairTokenRouter_;
+  }
+
   // Claim All Reward Token
   // Pending for Lockdrop contract
-
   function claimAllStakingContractRewards(
     address[] memory lockdropList,
     address user
@@ -138,8 +143,26 @@ contract LockdropGateway is ILockdropGateway {
     uint256 lockAmount,
     uint256 lockPeriod
   ) internal {
-    // TODO: implement
-    revert();
+    if (mapTokenLockdropInfo[token].tokenInType != TokenType.PairToken)
+      revert LockdropGateway_NotPairToken();
+
+    address baseToken0 = IUniswapPair(token).token0();
+    address baseToken1 = IUniswapPair(token).token1();
+
+    (uint256 baseToken0Amount, uint256 baseToken1Amount) = IUniswapRouter(
+      pairTokenRouter
+    ).removeLiquidity(
+        baseToken0,
+        baseToken1,
+        lockAmount,
+        0,
+        0,
+        address(this),
+        block.timestamp
+      );
+
+    _handleLockBaseToken(baseToken0, baseToken0Amount, lockPeriod);
+    _handleLockBaseToken(baseToken1, baseToken1Amount, lockPeriod);
   }
 
   function _lockBaseTokenAtLockdrop(
