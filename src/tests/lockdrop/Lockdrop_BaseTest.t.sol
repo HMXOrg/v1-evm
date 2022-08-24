@@ -14,6 +14,7 @@ import { LockdropConfig } from "../../lockdrop/LockdropConfig.sol";
 import { PLPStaking } from "../../staking/PLPStaking.sol";
 import { P88 } from "../../tokens/P88.sol";
 import { PLP } from "../../tokens/PLP.sol";
+import { EsP88 } from "../../tokens/EsP88.sol";
 
 abstract contract Lockdrop_BaseTest is BaseTest {
   using SafeERC20 for IERC20;
@@ -26,6 +27,9 @@ abstract contract Lockdrop_BaseTest is BaseTest {
   PLPStaking internal plpStaking;
   P88 internal mockP88Token;
   PLP internal mockPLPToken;
+  EsP88 internal mockEsP88;
+  MockErc20 internal mockMatic;
+  address[] internal rewardsTokenList;
 
   function setUp() public virtual {
     pool = new MockPool();
@@ -33,6 +37,11 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     mockERC20 = new MockErc20("Mock Token", "MT", 18);
     mockPLPToken = new PLP();
     mockP88Token = new P88();
+    mockEsP88 = new EsP88();
+    mockMatic = new MockErc20("MATIC", "MATIC", 18);
+
+    rewardsTokenList.push(address(mockEsP88));
+    rewardsTokenList.push(address(mockMatic));
 
     plpStaking = new PLPStaking();
     lockdropConfig = new LockdropConfig(
@@ -41,7 +50,12 @@ abstract contract Lockdrop_BaseTest is BaseTest {
       mockPLPToken,
       mockP88Token
     );
-    lockdrop = new Lockdrop(address(mockERC20), strategy, lockdropConfig);
+    lockdrop = new Lockdrop(
+      address(mockERC20),
+      strategy,
+      lockdropConfig,
+      rewardsTokenList
+    );
   }
 
   function testCorrectness_WhenLockdropIsInit() external {

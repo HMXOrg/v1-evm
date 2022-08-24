@@ -11,6 +11,7 @@ import { IStaking } from "../staking/interfaces/IStaking.sol";
 import { LockdropConfig } from "./LockdropConfig.sol";
 import { ILockdrop } from "./interfaces/ILockdrop.sol";
 import { P88 } from "../tokens/P88.sol";
+import { console } from "../tests/utils/console.sol";
 
 contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   // --- Libraries ---
@@ -27,6 +28,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     uint256 remainingAmount
   );
   event LogWithdrawAll(address indexed user, address token);
+  event LogClaimAllToken(address indexed user, address token, uint256 amount);
 
   // --- Custom Errors ---
   error Lockdrop_ZeroAmountNotAllowed();
@@ -40,11 +42,18 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   error Lockdrop_InvalidWithdrawPeriod();
   error Lockdrop_P88AlreadyClaimed();
   error Lockdrop_NoPosition();
+  error Lockdrop_NotEnoughRewardToken(
+    uint256 userClaimedAmount,
+    uint256 actualAmount,
+    address tokenAddress
+  );
 
   // --- Structs ---
   struct LockdropState {
     uint256 lockdropTokenAmount;
     uint256 lockPeriod;
+    uint256[] accRewardPerShare; // Accume reward per share
+    uint256[] userRewardDebts; //
   }
 
   // --- States ---
@@ -55,6 +64,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   uint256 public totalP88Weight; // Sum of amount * lockPeriod
   uint256 public totalP88;
   uint256 public totalPLPAmount;
+  address[] public rewardTokens; //The index of each reward token will remain the same, for example, 0 for MATIC and 1 for esP88
 
   mapping(address => LockdropState) public lockdropStates;
   mapping(address => bool) public claimP88;
@@ -88,7 +98,8 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   constructor(
     address _lockdropToken,
     ILockdropStrategy _strategy,
-    LockdropConfig _lockdropConfig
+    LockdropConfig _lockdropConfig,
+    address[] memory _rewardTokens
   ) {
     // Sanity check
     IERC20(_lockdropToken).balanceOf(address(this));
@@ -98,6 +109,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     strategy = _strategy;
     lockdropToken = IERC20(_lockdropToken);
     lockdropConfig = _lockdropConfig;
+    rewardTokens = _rewardTokens;
   }
 
   /// @dev Users can lock their ERC20 Token, should be in a valid lock period (first 5 days)
@@ -111,9 +123,25 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     if (_lockPeriod < (7 days) || _lockPeriod > (7 days * 52))
       revert Lockdrop_InvalidLockPeriod(); // Less than 1 week or more than 52 weeks
     lockdropToken.safeTransferFrom(msg.sender, address(this), _amount);
+
+    uint256[] memory userAccRewardPerShare = new uint256[](rewardTokens.length);
+    uint256[] memory userRewardDepts = new uint256[](rewardTokens.length);
+
+    uint256 length = rewardTokens.length;
+    for (uint256 i = 0; i < length; ) {
+      userAccRewardPerShare[i] = 0;
+      userRewardDepts[i] = 0;
+
+      unchecked {
+        ++i;
+      }
+    }
+
     lockdropStates[msg.sender] = LockdropState({
       lockdropTokenAmount: _amount,
-      lockPeriod: _lockPeriod
+      lockPeriod: _lockPeriod,
+      accRewardPerShare: userAccRewardPerShare,
+      userRewardDebts: userRewardDepts
     });
     totalAmount += _amount;
     totalP88Weight += _amount * _lockPeriod;
@@ -182,7 +210,6 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     ) revert Lockdrop_InvalidWithdrawPeriod();
     uint256 userPLPTokenAmount = (lockdropStates[_user].lockdropTokenAmount *
       totalPLPAmount) / totalAmount;
-    totalPLPAmount -= userPLPTokenAmount;
     lockdropConfig.plpStaking().withdraw(
       address(this),
       address(lockdropConfig.plpToken()),
@@ -219,10 +246,103 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     claimP88[_user] = true;
   }
 
+  function updateAccPerShare(address _user, uint256[] memory claimedReward)
+    internal
+    onlyAfterLockdropPeriod
+  {
+    // User Share => PLP of user
+    uint256 userShare = (lockdropStates[_user].lockdropTokenAmount *
+      totalPLPAmount) / totalAmount;
+
+    uint256 newRwardTokenPerShare;
+
+    if (userShare == 0) {
+      return;
+    }
+
+    uint256 length = rewardTokens.length;
+    uint256 userPLPAmount = lockdropConfig.plpStaking().getUserTokenAmount(
+      address(lockdropConfig.plpToken()),
+      address(this)
+    );
+
+    for (uint256 i = 0; i < length; ) {
+      newRwardTokenPerShare = (claimedReward[i] * 1e12) / userPLPAmount;
+      lockdropStates[_user].accRewardPerShare[i] += newRwardTokenPerShare;
+
+      unchecked {
+        ++i;
+      }
+    }
+  }
+
   // /// @dev Users can claim all their reward
   // /// @param _user Address of the user that wants to claim the reward
   function claimAllReward(address _user) external onlyAfterLockdropPeriod {
-    //   lockdropConfig.plpStaking().harvest();
+    uint256 length = rewardTokens.length;
+    uint256[] memory rewardBeforeHarvest = new uint256[](length);
+    uint256[] memory rewardAfterHarvest = new uint256[](length);
+    for (uint256 i = 0; i < length; ) {
+      rewardBeforeHarvest[i] = IERC20(rewardTokens[i]).balanceOf(address(this));
+
+      unchecked {
+        ++i;
+      }
+    }
+
+    lockdropConfig.plpStaking().harvest(
+      lockdropConfig.plpStaking().getStakingTokenRewarders(
+        address(lockdropConfig.plpToken())
+      )
+    );
+
+    for (uint256 i = 0; i < length; ) {
+      rewardAfterHarvest[i] =
+        IERC20(rewardTokens[i]).balanceOf(address(this)) -
+        rewardBeforeHarvest[i];
+
+      unchecked {
+        ++i;
+      }
+    }
+
+    // Update PLP accumurate per share
+    updateAccPerShare(_user, rewardAfterHarvest);
+
+    uint256 pendingReward;
+    uint256 userShare = (lockdropStates[_user].lockdropTokenAmount *
+      totalPLPAmount) / totalAmount;
+
+    for (uint256 i = 0; i < length; ) {
+      // calculate pending reward to be received for user
+
+      pendingReward =
+        ((userShare * lockdropStates[_user].accRewardPerShare[i]) / 1e12) -
+        lockdropStates[_user].userRewardDebts[i];
+
+      // Transfer reward to user
+      uint256 actualRwardBalanceOf = IERC20(rewardTokens[i]).balanceOf(
+        address(this)
+      );
+
+      if (actualRwardBalanceOf < pendingReward) {
+        revert Lockdrop_NotEnoughRewardToken(
+          pendingReward,
+          actualRwardBalanceOf,
+          rewardTokens[i]
+        );
+      }
+      IERC20(rewardTokens[i]).safeTransfer(_user, pendingReward);
+
+      // calculate for update user reward dept per share
+      lockdropStates[_user].userRewardDebts[i] = ((userShare *
+        lockdropStates[_user].accRewardPerShare[i]) / 1e12);
+
+      emit LogClaimAllToken(_user, rewardTokens[i], pendingReward);
+      unchecked {
+        ++i;
+      }
+    }
   }
 
   /// @dev PLP token is staked after the lockdrop period
