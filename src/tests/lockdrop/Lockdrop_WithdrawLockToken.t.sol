@@ -194,7 +194,6 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     // 5. Alice is now deleted from lockdropStates so her lock period is 0
     assertEq(mockPLPToken.balanceOf(ALICE), 20);
     assertEq(mockPLPToken.balanceOf(address(lockdrop)), 0);
-    assertEq(lockdrop.totalPLPAmount(), 0);
     assertEq(alicelockdropTokenAmount, 0);
     assertEq(alicelockPeriod, 0);
   }

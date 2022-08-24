@@ -71,6 +71,10 @@ contract MockPLPStaking is IStaking {
     );
   }
 
+  function harvestToCompounder(address user, address[] memory rewarders)
+    external
+  {}
+
   function calculateTotalShare(address rewarder)
     external
     view
