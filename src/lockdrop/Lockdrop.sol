@@ -11,7 +11,6 @@ import { IStaking } from "../staking/interfaces/IStaking.sol";
 import { LockdropConfig } from "./LockdropConfig.sol";
 import { ILockdrop } from "./interfaces/ILockdrop.sol";
 import { P88 } from "../tokens/P88.sol";
-import { console } from "../tests/utils/console.sol";
 
 contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   // --- Libraries ---
