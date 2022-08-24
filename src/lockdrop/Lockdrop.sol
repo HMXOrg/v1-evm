@@ -19,7 +19,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   // --- Events ---
   event LogLockToken(address indexed user, uint256 amount, uint256 lockPeriod);
   event LogAddLockAmount(address indexed user, uint256 amount);
-  event LogNewLockPeriod(address indexed user, uint256 lockPeriod);
+  event LogExtendLockPeriod(address indexed user, uint256 lockPeriod);
   event LogWithdrawLockToken(
     address indexed user,
     address token,
@@ -27,24 +27,32 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     uint256 remainingAmount
   );
   event LogWithdrawAll(address indexed user, address token);
+  event LogAllocateP88(uint256 amount);
+  event LogClaimAllP88(address indexed user, uint256 p88Amount);
 
   // --- Custom Errors ---
   error Lockdrop_ZeroAmountNotAllowed();
   error Lockdrop_ZeroP88WeightNotAllowed();
   error Lockdrop_InvalidStartLockTimestamp();
   error Lockdrop_InvalidLockPeriod();
-  error Lockdrop_NotInDepositPeriod();
-  error Lockdrop_NotInWithdrawalPeriod();
+  error Lockdrop_InvalidWithdrawAllPeriod();
+  error Lockdrop_NotInLockdropPeriod();
   error Lockdrop_InsufficientBalance();
   error Lockdrop_NotPassLockdropPeriod();
-  error Lockdrop_InvalidWithdrawPeriod();
   error Lockdrop_P88AlreadyClaimed();
   error Lockdrop_NoPosition();
+  error Lockdrop_InvalidAmount();
+  error Lockdrop_UserAlreadyLocked();
+  error Lockdrop_ZeroTotalPLPAmount();
+  error Lockdrop_NotAllocationFeeder();
+  error Lockdrop_ZeroTotalP88NotAllowed();
+  error Lockdrop_AlreadyAllocateP88();
 
   // --- Structs ---
   struct LockdropState {
     uint256 lockdropTokenAmount;
     uint256 lockPeriod;
+    bool p88Claimed;
   }
 
   // --- States ---
@@ -55,26 +63,15 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   uint256 public totalP88Weight; // Sum of amount * lockPeriod
   uint256 public totalP88;
   uint256 public totalPLPAmount;
-
   mapping(address => LockdropState) public lockdropStates;
-  mapping(address => bool) public claimP88;
 
   // --- Modifiers ---
-  /// @dev Only able to proceed during deposit period
-  modifier onlyInDepositPeriod() {
+  /// @dev Only in lockdrop period
+  modifier onlyInLockdropPeriod() {
     if (
       block.timestamp < lockdropConfig.startLockTimestamp() ||
-      block.timestamp > lockdropConfig.withdrawalTimestamp()
-    ) revert Lockdrop_NotInDepositPeriod();
-    _;
-  }
-
-  /// @dev Only able to proceed during withdrawal period
-  modifier onlyInEarlyWithdrawalPeriod() {
-    if (
-      block.timestamp < lockdropConfig.withdrawalTimestamp() ||
       block.timestamp > lockdropConfig.endLockTimestamp()
-    ) revert Lockdrop_NotInWithdrawalPeriod();
+    ) revert Lockdrop_NotInLockdropPeriod();
     _;
   }
 
@@ -86,142 +83,194 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   }
 
   constructor(
-    address _lockdropToken,
-    ILockdropStrategy _strategy,
-    LockdropConfig _lockdropConfig
+    address lockdropToken_,
+    ILockdropStrategy strategy_,
+    LockdropConfig lockdropConfig_
   ) {
     // Sanity check
-    IERC20(_lockdropToken).balanceOf(address(this));
-    if (block.timestamp > _lockdropConfig.startLockTimestamp())
+    IERC20(lockdropToken_).balanceOf(address(this));
+    if (block.timestamp > lockdropConfig_.startLockTimestamp())
       revert Lockdrop_InvalidStartLockTimestamp();
 
-    strategy = _strategy;
-    lockdropToken = IERC20(_lockdropToken);
-    lockdropConfig = _lockdropConfig;
+    strategy = strategy_;
+    lockdropToken = IERC20(lockdropToken_);
+    lockdropConfig = lockdropConfig_;
   }
 
-  /// @dev Users can lock their ERC20 Token, should be in a valid lock period (first 5 days)
-  /// @param _amount Number of token that user wants to lock
-  /// @param _lockPeriod Number of second that user wants to lock
-  function lockToken(uint256 _amount, uint256 _lockPeriod)
+  /// @dev Users can lock their ERC20 Token during the lockdrop period
+  /// @param amount Number of token that user wants to lock
+  /// @param lockPeriod Number of second that user wants to lock
+  function lockToken(uint256 amount, uint256 lockPeriod)
     external
-    onlyInDepositPeriod
+    onlyInLockdropPeriod
   {
-    if (_amount == 0) revert Lockdrop_ZeroAmountNotAllowed();
-    if (_lockPeriod < (7 days) || _lockPeriod > (7 days * 52))
-      revert Lockdrop_InvalidLockPeriod(); // Less than 1 week or more than 52 weeks
-    lockdropToken.safeTransferFrom(msg.sender, address(this), _amount);
+    if (lockdropStates[msg.sender].lockdropTokenAmount > 0)
+      revert Lockdrop_UserAlreadyLocked();
+    if (amount == 0) revert Lockdrop_ZeroAmountNotAllowed();
+    if (lockPeriod < (7 days) || lockPeriod > (7 days * 52))
+      revert Lockdrop_InvalidLockPeriod(); // Less than 7 days or more than 364 days
     lockdropStates[msg.sender] = LockdropState({
-      lockdropTokenAmount: _amount,
-      lockPeriod: _lockPeriod
+      lockdropTokenAmount: amount,
+      lockPeriod: lockPeriod,
+      p88Claimed: false
     });
-    totalAmount += _amount;
-    totalP88Weight += _amount * _lockPeriod;
-    emit LogLockToken(msg.sender, _amount, _lockPeriod);
+    totalAmount += amount;
+    totalP88Weight += amount * lockPeriod;
+    lockdropToken.safeTransferFrom(msg.sender, address(this), amount);
+    emit LogLockToken(msg.sender, amount, lockPeriod);
   }
 
-  function extendLockPeriod(uint256 _newLockPeriod)
+  /// @dev Users can extend their lock period during the lockdrop period
+  /// @param newLockPeriod New number of second that user wants to lock
+  function extendLockPeriod(uint256 newLockPeriod)
     external
-    onlyInDepositPeriod
+    onlyInLockdropPeriod
   {
-    if (_newLockPeriod > (7 days * 52)) revert Lockdrop_InvalidLockPeriod(); // Less than 1 week or more than 52 weeks
+    if (newLockPeriod > (7 days * 52)) revert Lockdrop_InvalidLockPeriod(); // New lock period should not be more than 364 days
     if (lockdropStates[msg.sender].lockdropTokenAmount == 0)
       revert Lockdrop_NoPosition();
-    if (_newLockPeriod < lockdropStates[msg.sender].lockPeriod)
+    if (newLockPeriod < lockdropStates[msg.sender].lockPeriod)
       revert Lockdrop_InvalidLockPeriod();
     totalP88Weight +=
       lockdropStates[msg.sender].lockdropTokenAmount *
-      (_newLockPeriod - lockdropStates[msg.sender].lockPeriod);
-    lockdropStates[msg.sender].lockPeriod = _newLockPeriod;
-    emit LogNewLockPeriod(msg.sender, _newLockPeriod);
+      (newLockPeriod - lockdropStates[msg.sender].lockPeriod);
+    lockdropStates[msg.sender].lockPeriod = newLockPeriod;
+    emit LogExtendLockPeriod(msg.sender, newLockPeriod);
   }
 
-  function addLockAmount(uint256 _amount) external onlyInDepositPeriod {
-    if (_amount == 0) revert Lockdrop_ZeroAmountNotAllowed();
+  /// @dev Users can add more lock amount during the lockdrop period
+  /// @param amount Number of lock token that user wants to add
+  function addLockAmount(uint256 amount) external onlyInLockdropPeriod {
+    if (amount == 0) revert Lockdrop_ZeroAmountNotAllowed();
     if (lockdropStates[msg.sender].lockdropTokenAmount == 0)
       revert Lockdrop_NoPosition();
-    lockdropStates[msg.sender].lockdropTokenAmount += _amount;
-    totalAmount += _amount;
-    totalP88Weight += _amount * lockdropStates[msg.sender].lockPeriod;
-    lockdropToken.safeTransferFrom(msg.sender, address(this), _amount);
-    emit LogAddLockAmount(msg.sender, _amount);
+    lockdropStates[msg.sender].lockdropTokenAmount += amount;
+    totalAmount += amount;
+    totalP88Weight += amount * lockdropStates[msg.sender].lockPeriod;
+    lockdropToken.safeTransferFrom(msg.sender, address(this), amount);
+    emit LogAddLockAmount(msg.sender, amount);
   }
 
-  /// @dev Users withdraw their ERC20 Token within lockdrop period, should be in a valid withdraw period (last 2 days)
-  /// @param _amount Number of token that user wants to withdraw
-  /// @param _user Address of the user that wants to withdraw
-  function earlyWithdrawLockedToken(uint256 _amount, address _user)
-    external
-    onlyInEarlyWithdrawalPeriod
+  function _getEarlyWithdrawableAmount(address user)
+    internal
+    view
+    returns (uint256 amount)
   {
-    if (_amount == 0) revert Lockdrop_ZeroAmountNotAllowed();
-    if (_amount > lockdropStates[_user].lockdropTokenAmount)
-      revert Lockdrop_InsufficientBalance();
-
-    lockdropStates[_user].lockdropTokenAmount -= _amount;
-    totalAmount -= _amount;
-    totalP88Weight -= _amount * lockdropStates[_user].lockPeriod;
-    if (lockdropStates[_user].lockdropTokenAmount == 0) {
-      delete lockdropStates[_user];
+    uint256 startRestrictedWithdrawalTimestamp = lockdropConfig
+      .startRestrictedWithdrawalTimestamp();
+    uint256 lockdropTokenAmount = lockdropStates[user].lockdropTokenAmount;
+    uint256 decayPercentage = lockdropConfig.decayStartPercentage();
+    if (block.timestamp < startRestrictedWithdrawalTimestamp)
+      return lockdropTokenAmount;
+    if (block.timestamp >= startRestrictedWithdrawalTimestamp) {
+      if (
+        block.timestamp >= lockdropConfig.startDecayingWithdrawalTimestamp()
+      ) {
+        return
+          (((decayPercentage *
+            (lockdropConfig.endLockTimestamp() - block.timestamp)) /
+            lockdropConfig.startTimeDecay()) * lockdropTokenAmount) / 100;
+      }
+      return ((lockdropTokenAmount * decayPercentage) / 100);
     }
-    lockdropToken.safeTransfer(msg.sender, _amount);
+  }
+
+  /// @dev Withdrawable amount calculation logic
+  /// @param user Address of user that we want to know their valid withdraw amount
+  function getEarlyWithdrawableAmount(address user)
+    external
+    view
+    returns (uint256)
+  {
+    return _getEarlyWithdrawableAmount(user);
+  }
+
+  /// @dev Users able to withdraw their ERC20 Token within lockdrop period
+  /// @param amount Number of token that user wants to withdraw
+  /// @param user Address of the user that wants to withdraw
+  function earlyWithdrawLockedToken(uint256 amount, address user)
+    external
+    onlyInLockdropPeriod
+  {
+    uint256 lockdropTokenAmount = lockdropStates[user].lockdropTokenAmount;
+    if (amount == 0) revert Lockdrop_ZeroAmountNotAllowed();
+    if (amount > lockdropTokenAmount) revert Lockdrop_InsufficientBalance();
+    if (amount > _getEarlyWithdrawableAmount(user))
+      revert Lockdrop_InvalidAmount();
+
+    lockdropStates[user].lockdropTokenAmount -= amount;
+    totalAmount -= amount;
+    totalP88Weight -= amount * lockdropStates[user].lockPeriod;
+    if (lockdropStates[user].lockdropTokenAmount == 0) {
+      delete lockdropStates[user];
+    }
+
+    lockdropToken.safeTransfer(msg.sender, amount);
     emit LogWithdrawLockToken(
-      _user,
+      user,
       address(lockdropToken),
-      _amount,
-      lockdropStates[_user].lockdropTokenAmount
+      amount,
+      lockdropStates[user].lockdropTokenAmount
     );
   }
 
-  /// @dev Users able to withdraw all their ERC20 Token after the end of the lockdrop period + their input lock period
-  /// @param _user Address of the user that wants to withdraw
-  function withdrawAll(address _user) external {
+  /// @dev Users able to withdraw all their PLP Token after the end of the lockdrop period + their input lock period
+  /// @param user Address of the user that wants to withdraw
+  function withdrawAll(address user) external {
+    if (totalPLPAmount == 0) revert Lockdrop_ZeroTotalPLPAmount();
     if (
       block.timestamp <
-      lockdropStates[_user].lockPeriod + lockdropConfig.endLockTimestamp()
-    ) revert Lockdrop_InvalidWithdrawPeriod();
-    uint256 userPLPTokenAmount = (lockdropStates[_user].lockdropTokenAmount *
+      lockdropStates[user].lockPeriod + lockdropConfig.endLockTimestamp()
+    ) revert Lockdrop_InvalidWithdrawAllPeriod();
+    uint256 userPLPTokenAmount = (lockdropStates[user].lockdropTokenAmount *
       totalPLPAmount) / totalAmount;
-    totalPLPAmount -= userPLPTokenAmount;
     lockdropConfig.plpStaking().withdraw(
       address(this),
       address(lockdropConfig.plpToken()),
       userPLPTokenAmount
     );
-    lockdropConfig.plpToken().safeTransfer(_user, userPLPTokenAmount);
-    delete lockdropStates[_user];
-    emit LogWithdrawAll(_user, address(lockdropToken));
+    lockdropConfig.plpToken().safeTransfer(user, userPLPTokenAmount);
+    delete lockdropStates[user];
+    emit LogWithdrawAll(user, address(lockdropToken));
   }
 
-  /// @dev Allocation feeder calls this function to transfer P88 to lockdrop
-  /// @param _amount Number of P88 that feeder will feed
-  function allocateP88(uint256 _amount) external onlyAfterLockdropPeriod {
-    totalP88 += _amount;
+  /// @dev Owner of the contract can allocate P88
+  /// @param amount Number of P88 that feeder will feed
+  function allocateP88(uint256 amount)
+    external
+    onlyAfterLockdropPeriod
+    onlyOwner
+  {
+    // Prevent multiple call
+    if (totalP88 > 0) revert Lockdrop_AlreadyAllocateP88();
+    totalP88 = amount;
     lockdropConfig.p88Token().safeTransferFrom(
-      msg.sender,
+      address(owner()),
       address(this),
-      _amount
+      amount
     );
+    emit LogAllocateP88(amount);
   }
 
   /// @dev Users can claim their P88, this is a one time claim
-  /// @param _user Address of the user that wants to claim P88
-  function claimAllP88(address _user) external onlyAfterLockdropPeriod {
+  /// @param user Address of the user that wants to claim P88
+  function claimAllP88(address user) external onlyAfterLockdropPeriod {
+    if (lockdropStates[msg.sender].lockdropTokenAmount == 0)
+      revert Lockdrop_NoPosition();
+    if (totalP88 == 0) revert Lockdrop_ZeroTotalP88NotAllowed();
     if (totalP88Weight == 0) revert Lockdrop_ZeroP88WeightNotAllowed();
-    if (claimP88[_user]) revert Lockdrop_P88AlreadyClaimed();
-
-    lockdropConfig.p88Token().safeTransfer(
-      _user,
-      (totalP88 *
-        lockdropStates[_user].lockdropTokenAmount *
-        lockdropStates[_user].lockPeriod) / totalP88Weight
-    );
-    claimP88[_user] = true;
+    if (lockdropStates[user].p88Claimed) revert Lockdrop_P88AlreadyClaimed();
+    uint256 p88Amount = (totalP88 *
+      lockdropStates[user].lockdropTokenAmount *
+      lockdropStates[user].lockPeriod) / totalP88Weight;
+    lockdropConfig.p88Token().safeTransfer(user, p88Amount);
+    lockdropStates[user].p88Claimed = true;
+    emit LogClaimAllP88(user, p88Amount);
   }
 
   // /// @dev Users can claim all their reward
-  // /// @param _user Address of the user that wants to claim the reward
-  function claimAllReward(address _user) external onlyAfterLockdropPeriod {
+  // /// @param user Address of the user that wants to claim the reward
+  function claimAllReward(address user) external onlyAfterLockdropPeriod {
     //   lockdropConfig.plpStaking().harvest();
   }
 

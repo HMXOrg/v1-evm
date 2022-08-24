@@ -16,10 +16,13 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
-    vm.warp(120000);
+    vm.warp(lockdropConfig.startLockTimestamp() + 4 hours);
     lockdrop.lockToken(16, 604900);
-    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod) = lockdrop
-      .lockdropStates(ALICE);
+    (
+      uint256 aliceLockdropTokenAmount,
+      uint256 aliceLockPeriod,
+      bool aliceP88Claimed
+    ) = lockdrop.lockdropStates(ALICE);
     vm.stopPrank();
     // After Alice lock the ERC20 token, the following criteria needs to satisfy:
     // 1. Balance of Alice's ERC20 token should be 4
@@ -30,6 +33,7 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     assertEq(mockERC20.balanceOf(ALICE), 4);
     assertEq(aliceLockdropTokenAmount, 16);
     assertEq(aliceLockPeriod, 604900);
+    assertTrue(!aliceP88Claimed);
     assertEq(lockdrop.totalAmount(), 16);
     assertEq(lockdrop.totalP88Weight(), 16 * 604900);
 
@@ -37,10 +41,13 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     vm.startPrank(BOB, BOB);
     mockERC20.mint(BOB, 30);
     mockERC20.approve(address(lockdrop), 30);
-    vm.warp(130000);
+    vm.warp(lockdropConfig.startLockTimestamp() + 5 hours);
     lockdrop.lockToken(10, 704900);
-    (uint256 bobLockdropTokenAmount, uint256 bobLockPeriod) = lockdrop
-      .lockdropStates(BOB);
+    (
+      uint256 bobLockdropTokenAmount,
+      uint256 bobLockPeriod,
+      bool bobP88Claimed
+    ) = lockdrop.lockdropStates(BOB);
     vm.stopPrank();
     // After Bob lock the ERC20 token, the following criteria needs to satisfy:
     // 1. Balance of Bobs' ERC20 token should be 20
@@ -51,6 +58,7 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     assertEq(mockERC20.balanceOf(BOB), 20);
     assertEq(bobLockdropTokenAmount, 10);
     assertEq(bobLockPeriod, 704900);
+    assertTrue(!bobP88Claimed);
     assertEq(lockdrop.totalAmount(), 26);
     assertEq(lockdrop.totalP88Weight(), 16 * 604900 + 10 * 704900);
   }
@@ -59,10 +67,13 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
-    vm.warp(120000);
+    vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
     lockdrop.lockToken(16, 604900);
-    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod) = lockdrop
-      .lockdropStates(ALICE);
+    (
+      uint256 aliceLockdropTokenAmount,
+      uint256 aliceLockPeriod,
+      bool aliceP88Claimed
+    ) = lockdrop.lockdropStates(ALICE);
     assertEq(mockERC20.balanceOf(ALICE), 4);
     assertEq(aliceLockdropTokenAmount, 16);
     assertEq(aliceLockPeriod, 604900);
@@ -73,9 +84,8 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     lockdrop.addLockAmount(4);
     vm.stopPrank();
 
-    (aliceLockdropTokenAmount, aliceLockPeriod) = lockdrop.lockdropStates(
-      ALICE
-    );
+    (aliceLockdropTokenAmount, aliceLockPeriod, aliceP88Claimed) = lockdrop
+      .lockdropStates(ALICE);
     // After Alice add more ERC20 token, the following criteria needs to satisfy:
     // 1. Balance of Alice's ERC20 token should be 0
     // 2. The amount of Alice's lockdrop token should be 20
@@ -93,10 +103,13 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
-    vm.warp(120000);
+    vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
     lockdrop.lockToken(16, 604900);
-    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod) = lockdrop
-      .lockdropStates(ALICE);
+    (
+      uint256 aliceLockdropTokenAmount,
+      uint256 aliceLockPeriod,
+      bool aliceP88Claimed
+    ) = lockdrop.lockdropStates(ALICE);
     assertEq(mockERC20.balanceOf(ALICE), 4);
     assertEq(aliceLockdropTokenAmount, 16);
     assertEq(aliceLockPeriod, 604900);
@@ -106,9 +119,8 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     // Alice wants to extend her lock period
     lockdrop.extendLockPeriod(800000);
     vm.stopPrank();
-     (aliceLockdropTokenAmount, aliceLockPeriod) = lockdrop.lockdropStates(
-      ALICE
-    );
+    (aliceLockdropTokenAmount, aliceLockPeriod, aliceP88Claimed) = lockdrop
+      .lockdropStates(ALICE);
 
     // After Alice extend her lock period, the following criteria needs to satisfy:
     // 1. Balance of Alice's ERC20 token should be 0
@@ -123,21 +135,12 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     assertEq(lockdrop.totalP88Weight(), 16 * 800000);
   }
 
-  function testRevert_LockdropLockToken_InWithdrawPeriod() external {
-    vm.startPrank(ALICE, ALICE);
-    mockERC20.mint(ALICE, 20);
-    mockERC20.approve(address(lockdrop), 20);
-    vm.warp(532500);
-    vm.expectRevert(abi.encodeWithSignature("Lockdrop_NotInDepositPeriod()"));
-    lockdrop.lockToken(16, 604900);
-  }
-
   function testRevert_LockdropLockToken_ExceedLockdropPeriod() external {
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
-    vm.warp(705000);
-    vm.expectRevert(abi.encodeWithSignature("Lockdrop_NotInDepositPeriod()"));
+    vm.warp(lockdropConfig.startLockTimestamp() + 7 days);
+    vm.expectRevert(abi.encodeWithSignature("Lockdrop_NotInLockdropPeriod()"));
     lockdrop.lockToken(16, 604900);
     vm.stopPrank();
   }
@@ -146,7 +149,7 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
-    vm.warp(130000);
+    vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
     vm.expectRevert(abi.encodeWithSignature("Lockdrop_ZeroAmountNotAllowed()"));
     lockdrop.lockToken(0, 604900);
     vm.stopPrank();
@@ -156,7 +159,7 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
-    vm.warp(130000);
+    vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
     vm.expectRevert(abi.encodeWithSignature("Lockdrop_InvalidLockPeriod()"));
     lockdrop.lockToken(16, 1);
     vm.stopPrank();
@@ -166,7 +169,7 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     vm.startPrank(ALICE, ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
-    vm.warp(130000);
+    vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
     vm.expectRevert(abi.encodeWithSignature("Lockdrop_InvalidLockPeriod()"));
     lockdrop.lockToken(16, 31622400);
     vm.stopPrank();
