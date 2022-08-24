@@ -12,7 +12,7 @@ contract Lockdrop_StakePLP is Lockdrop_BaseTest {
   function testCorrectness_LockdropStakePLP_SuccessfullyGetPLPAmount()
     external
   {
-    vm.startPrank(ALICE, ALICE);
+    vm.startPrank(ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(120000);
@@ -27,7 +27,7 @@ contract Lockdrop_StakePLP is Lockdrop_BaseTest {
     assertEq(alicelockdropTokenAmount, 16);
     assertEq(lockdrop.totalAmount(), 16);
 
-    vm.startPrank(BOB, BOB);
+    vm.startPrank(BOB);
     mockERC20.mint(BOB, 30);
     mockERC20.approve(address(lockdrop), 30);
 
@@ -65,7 +65,7 @@ contract Lockdrop_StakePLP is Lockdrop_BaseTest {
   }
 
   function testRevert_LockdropStakePLP_MultipleStakingNotAllow() external {
-    vm.startPrank(ALICE, ALICE);
+    vm.startPrank(ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(120000);

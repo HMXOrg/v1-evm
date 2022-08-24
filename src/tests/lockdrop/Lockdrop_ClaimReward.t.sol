@@ -11,7 +11,7 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
 
   // -------------------- claimAllP88 ----------------------------
   function testCorrectness_ClaimAllP88_OnlyOneUser() external {
-    vm.startPrank(ALICE, ALICE);
+    vm.startPrank(ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(120000);
@@ -31,13 +31,13 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     // After lockdrop period
     // Mint P88
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
-    vm.startPrank(address(this), address(this));
+    vm.startPrank(address(this));
     mockP88Token.mint(address(this), 100);
     mockP88Token.approve(address(lockdrop), 1000);
     lockdrop.allocateP88(100);
     vm.stopPrank();
 
-    vm.startPrank(ALICE, ALICE);
+    vm.startPrank(ALICE);
     lockdrop.claimAllP88(ALICE);
     vm.stopPrank();
 
@@ -55,7 +55,7 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
 
   function testCorrectness_ClaimAllP88_MultipleUser() external {
     // ------- Alice session -------
-    vm.startPrank(ALICE, ALICE);
+    vm.startPrank(ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(120000);
@@ -74,7 +74,7 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     assertTrue(!aliceP88Claimed);
 
     // ------- Bob session -------
-    vm.startPrank(BOB, BOB);
+    vm.startPrank(BOB);
     mockERC20.mint(BOB, 30);
     mockERC20.approve(address(lockdrop), 30);
     vm.warp(130000);
@@ -95,19 +95,19 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     // After lockdrop period
     // Mint P88
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
-    vm.startPrank(address(this), address(this));
+    vm.startPrank(address(this));
     mockP88Token.mint(address(this), 100);
     mockP88Token.approve(address(lockdrop), 1000);
     lockdrop.allocateP88(100);
     vm.stopPrank();
 
     // Alice claims her P88
-    vm.startPrank(ALICE, ALICE);
+    vm.startPrank(ALICE);
     lockdrop.claimAllP88(ALICE);
     vm.stopPrank();
 
     // Bob claims his P88
-    vm.startPrank(BOB, BOB);
+    vm.startPrank(BOB);
     lockdrop.claimAllP88(BOB);
     vm.stopPrank();
 
@@ -130,7 +130,7 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
   }
 
   function testRevert_ClaimAllP88_TotalP88NotSet() external {
-    vm.startPrank(ALICE, ALICE);
+    vm.startPrank(ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(120000);
@@ -152,12 +152,12 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     // Mint P88
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
 
-    vm.startPrank(address(this), address(this));
+    vm.startPrank(address(this));
     mockP88Token.mint(address(this), 100);
     mockP88Token.approve(address(lockdrop), 1000);
     vm.stopPrank();
 
-    vm.startPrank(ALICE, ALICE);
+    vm.startPrank(ALICE);
     // Haven't call allocateP88
     vm.expectRevert(
       abi.encodeWithSignature("Lockdrop_ZeroTotalP88NotAllowed()")
@@ -167,7 +167,7 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
   }
 
   function testRevert_ClaimAllP88_AlreadyClaimedReward() external {
-    vm.startPrank(ALICE, ALICE);
+    vm.startPrank(ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(120000);
@@ -189,13 +189,13 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     // Mint P88
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
 
-    vm.startPrank(address(this), address(this));
+    vm.startPrank(address(this));
     mockP88Token.mint(address(this), 100);
     mockP88Token.approve(address(lockdrop), 1000);
     lockdrop.allocateP88(100);
     vm.stopPrank();
 
-    vm.startPrank(ALICE, ALICE);
+    vm.startPrank(ALICE);
     lockdrop.claimAllP88(ALICE);
     vm.expectRevert(abi.encodeWithSignature("Lockdrop_P88AlreadyClaimed()"));
     lockdrop.claimAllP88(ALICE);

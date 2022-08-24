@@ -13,7 +13,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
   function testCorrectness_LockdropEarlyWithdrawLockToken_WithdrawWithinFirst3Days()
     external
   {
-    vm.startPrank(ALICE, ALICE);
+    vm.startPrank(ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
@@ -52,7 +52,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
   function testCorrectness_LockdropEarlyWithdrawLockToken_MultipleWithdrawWithinFirst3Days()
     external
   {
-    vm.startPrank(ALICE, ALICE);
+    vm.startPrank(ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
@@ -103,7 +103,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
   function testCorrectness_LockdropEarlyWithdrawLockToken_WithdrawDay4First12Hours()
     external
   {
-    vm.startPrank(ALICE, ALICE);
+    vm.startPrank(ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
@@ -141,7 +141,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
   function testCorrectness_LockdropEarlyWithdrawLockToken_WithdrawDay4Last12Hours()
     external
   {
-    vm.startPrank(ALICE, ALICE);
+    vm.startPrank(ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
@@ -179,7 +179,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
   function testRevert_LockdropEarlyWithdrawLockToken_ExceedLockdropPeriod()
     external
   {
-    vm.startPrank(ALICE, ALICE);
+    vm.startPrank(ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
@@ -205,7 +205,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
   function testRevert_LockdropEarlyWithdrawLockToken_WithdrawDay4First12HoursInvalidAmount()
     external
   {
-    vm.startPrank(ALICE, ALICE);
+    vm.startPrank(ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
@@ -234,7 +234,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
   function testRevert_LockdropEarlyWithdrawLockToken_WithdrawDay4Last12HoursInvalidAmount()
     external
   {
-    vm.startPrank(ALICE, ALICE);
+    vm.startPrank(ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
@@ -264,7 +264,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
   function testRevert_LockdropEarlyWithdrawLockToken_WithdrawAmountIsZero()
     external
   {
-    vm.startPrank(ALICE, ALICE);
+    vm.startPrank(ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
@@ -291,7 +291,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
   function testRevert_LockdropEarlyWithdrawLockToken_WithdrawAmountExceedLockAmount()
     external
   {
-    vm.startPrank(ALICE, ALICE);
+    vm.startPrank(ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
@@ -317,7 +317,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
 
   // ------ withdrawAll ------
   function testCorrectness_LockdropWithdrawAll() external {
-    vm.startPrank(ALICE, ALICE);
+    vm.startPrank(ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
@@ -355,7 +355,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     assertEq(mockPLPToken.balanceOf(address(lockdrop)), 0);
     vm.stopPrank();
 
-    vm.startPrank(ALICE, ALICE);
+    vm.startPrank(ALICE);
     lockdrop.withdrawAll(ALICE);
     (alicelockdropTokenAmount, alicelockPeriod, aliceP88Claimed) = lockdrop
       .lockdropStates(ALICE);
@@ -377,7 +377,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
   function testRevert_LockdropWithdrawAll_WithdrawAllBeforeEndOfLockdropHaveZeroPLP()
     external
   {
-    vm.startPrank(ALICE, ALICE);
+    vm.startPrank(ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
