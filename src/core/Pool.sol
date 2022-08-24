@@ -895,6 +895,7 @@ contract Pool is Constants, ReentrancyGuard {
       lastIncreasedTime + config.minProfitDuration()
       ? 0
       : config.tokenMinProfitBps(indexToken);
+
     if (isProfit && delta * BPS <= size * minBps) delta = 0;
 
     return (isProfit, delta);

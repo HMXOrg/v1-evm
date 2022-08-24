@@ -733,5 +733,235 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
     assertEq(position.averagePrice, 0);
     assertEq(position.entryFundingRate, 0);
     assertEq(position.reserveAmount, 0);
+
+    checkPoolBalanceWithState(address(wbtc), 0);
+  }
+
+  function testCorrectness_WhenShort_WhenProfitable() external {
+    poolConfig.setMintBurnFeeBps(4);
+
+    maticPriceFeed.setLatestAnswer(300 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    daiPriceFeed.setLatestAnswer(1 * 10**8);
+
+    // Add 1,000 DAI as a liquidity to the pool
+    dai.mint(address(pool), 100 * 10**18);
+    pool.addLiquidity(address(this), address(dai), address(this));
+
+    // The following conditions need to be met:
+    // 1. Pool's AUM by min price should be:
+    // = 100 * (1-0.004) = 99.96 USD
+    // 2. Pool's AUM by max price should be:
+    // = 100 * (1-0.004) = 99.96 USD
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 99.96 * 10**18);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 99.96 * 10**18);
+
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+
+    // Open a new short position
+    dai.mint(address(pool), 10 * 10**18);
+    pool.increasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      90 * 10**30,
+      Exposure.SHORT
+    );
+
+    // The following conditions need to be met:
+    // 1. Pool's DAI liquidity should be 99.96 DAI
+    // 2. Pool should makes:
+    // = (100 * 0.0004) + (90 * 0.001)
+    // = 0.13 DAI
+    // 3. Pool's DAI reserved amount should be: 90 DAI
+    // 4. Pool's DAI guaranteed USD should be 0
+    // 5. Pool's AUM by min price should remain the same
+    // As there is no price diff between min price and short avg price:
+    // = 99.96 + (90 * (40000-40000) / 40000)
+    // = 99.96
+    // 6. Pool's AUM by max price should be:
+    // = 99.96 + (90 * (41000 - 40000) / 40000)
+    // = 102.21 USD
+    assertEq(pool.liquidityOf(address(dai)), 99.96 * 10**18);
+    assertEq(pool.feeReserveOf(address(dai)), 0.13 * 10**18);
+    assertEq(pool.reservedOf(address(dai)), 90 * 10**18);
+    assertEq(pool.guaranteedUsdOf(address(dai)), 0);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 99.96 * 10**18);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 102.21 * 10**18);
+
+    // Assert position
+    // 1. Position's size should be 90 USD
+    // 2. Position's collateral should be:
+    // = 10 - (90 * 0.001)
+    // = 9.91 USD
+    // 3. Position's average price should be:
+    // = 40000 USD
+    // 4. Position's entry funding rate should be 0.
+    // 5. Position's reserve amount should be 100 DAI.
+    // 5. Position's realized PnL should be 0.
+    // 6. Position's should profitable as realized PnL is 0.
+    Pool.GetPositionReturnVars memory position = pool.getPosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      Exposure.SHORT
+    );
+    assertEq(position.size, 90 * 10**30);
+    assertEq(position.collateral, 9.91 * 10**30);
+    assertEq(position.averagePrice, 40000 * 10**30);
+    assertEq(position.entryFundingRate, 0);
+    assertEq(position.reserveAmount, 90 * 10**18);
+    assertEq(position.realizedPnl, 0);
+    assertTrue(position.hasProfit);
+
+    // Oracle updates WBTC price to 44,000 USD
+    wbtcPriceFeed.setLatestAnswer(44_000 * 10**8);
+
+    // Assert position's delta
+    // 1. Position's delta should be:
+    // = 90 * ((40000-44000) / 40000)
+    // = -9 USD
+    // 2. Hence, position is not profitable.
+    (bool isProfit, uint256 delta) = pool.getPositionDelta(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      Exposure.SHORT
+    );
+    assertTrue(!isProfit);
+    assertEq(delta, 9 * 10**30);
+
+    // Oracle updates WBTC price to 1 USD
+    wbtcPriceFeed.setLatestAnswer(1 * 10**8);
+
+    // Assert position's delta. This shouldn't affect the delta.
+    // As when calculate position delta, we take max price.
+    (isProfit, delta) = pool.getPositionDelta(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      Exposure.SHORT
+    );
+    assertTrue(!isProfit);
+    assertEq(delta, 9 * 10**30);
+
+    // Oracle updates WBTC price to 1 USD 2 more times.
+    // This makes last 3 rounds to be [1, 1, 1].
+    // Hence the contract will use 1 USD as price when calculate delta.
+    wbtcPriceFeed.setLatestAnswer(1 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(1 * 10**8);
+
+    // Assert position's delta.
+    // 1. Position's delta should be:
+    // = 90 * ((40000 - 1) / 40000)
+    // = 89.99775 USD
+    // 2. Position should be profitable
+    (isProfit, delta) = pool.getPositionDelta(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      Exposure.SHORT
+    );
+    assertTrue(isProfit);
+    assertEq(delta, 89.99775 * 10**30);
+
+    // Assert position's leverage
+    assertEq(
+      pool.getPositionLeverage(
+        address(this),
+        address(dai),
+        address(wbtc),
+        Exposure.SHORT
+      ),
+      90817
+    );
+
+    // Assert Pool's AUM
+    // 1. Pool's AUM by min price should be:
+    // = 99.96 + (90 * (1-40000) / 40000)
+    // = 9.96225 USD
+    // 2. Pool's AUM by max price should be:
+    // = 99.96 + (90 * (1-40000) / 40000)
+    // = 9.96225 USD
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 9.96225 * 10**18);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 9.96225 * 10**18);
+
+    pool.decreasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      3 * 10**30,
+      50 * 10**30,
+      Exposure.SHORT,
+      BOB
+    );
+
+    // Assert Pool's AUM
+    // 1. Pool's DAI liquidity should be:
+    // = 99.96 - (50 * (90 * (40000 - 1) / 40000) / 90) [Realized Short Profit]
+    // = 49.96125 USD
+    // 2. Pool should makes:
+    // = 0.13 + (50 * 0.001)
+    // = 0.18 DAI
+    // 1. Pool's AUM by min price should be:
+    // = 99.96 - (90 * (40000-1) / 40000) [Short Profit]
+    // = 9.96225 USD
+    // 2. Pool's AUM by max price should be:
+    // = 99.96 - (90 * (40000-1) / 40000) [Short Profit]
+    // = 9.96225 USD
+    assertEq(pool.liquidityOf(address(dai)), 49.96125 * 10**18);
+    assertEq(pool.feeReserveOf(address(dai)), 0.18 * 10**18);
+    assertEq(pool.reservedOf(address(dai)), 40 * 10**18);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 9.96225 * 10**18);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 9.96225 * 10**18);
+
+    // Assert position
+    // 1. Position's size should be 90 - 50 = 40 USD
+    // 2. Position's collateral should be 9.91 - 3 = 6.91 USD
+    // 3. Position's average price should be 40,000 USD
+    // 4. Position's entry funding rate should be 0.
+    // 5. Position's reserve amount should be 40 USD.
+    // 6. Position's realized PnL should be:
+    // = 50 * (90 * (40000 - 1) / 40000) / 90
+    // = 49.99875 USD
+    // 7. Position's has profit
+    position = pool.getPosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      Exposure.SHORT
+    );
+    assertEq(position.size, 40 * 10**30);
+    assertEq(position.collateral, 6.91 * 10**30);
+    assertEq(position.averagePrice, 40_000 * 10**30);
+    assertEq(position.entryFundingRate, 0);
+    assertEq(position.reserveAmount, 40 * 10**18);
+    assertEq(position.realizedPnl, 49.99875 * 10**30);
+    assertTrue(position.hasProfit);
+
+    // Assert Bob's DAI balance
+    // 1. Bob's DAI balance should be:
+    // = 50 * (90 * (40000 - 1) / 40000) / 90 [Realized Profits] + 3 DAI [Removed Collateral] - (50*0.001) [Margin Fee]
+    // = 49.99875 + 3 - 0.05 = 52.94875 USD
+    assertEq(dai.balanceOf(BOB), 52.94875 * 10**18);
+
+    assertEq(
+      pool.getPositionLeverage(
+        address(this),
+        address(dai),
+        address(wbtc),
+        Exposure.SHORT
+      ),
+      57887
+    );
   }
 }
