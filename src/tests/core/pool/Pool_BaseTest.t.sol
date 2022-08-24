@@ -2,6 +2,7 @@
 pragma solidity 0.8.14;
 
 import { BaseTest, console, stdError, PoolConfig, PoolMath, PoolOracle, Pool } from "../../base/BaseTest.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 abstract contract Pool_BaseTest is BaseTest {
   PoolConfig internal poolConfig;
@@ -28,5 +29,13 @@ abstract contract Pool_BaseTest is BaseTest {
       PoolOracle.PriceFeedInfo[] memory priceFeedInfo
     ) = buildDefaultSetPriceFeedInput();
     poolOracle.setPriceFeed(tokens, priceFeedInfo);
+  }
+
+  function checkPoolBalanceWithState(address token, uint256 offset) internal {
+    uint256 balance = IERC20(token).balanceOf(address(pool));
+    assertEq(
+      balance,
+      pool.liquidityOf(token) + pool.feeReserveOf(token) + offset
+    );
   }
 }

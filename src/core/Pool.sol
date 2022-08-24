@@ -654,6 +654,29 @@ contract Pool is Constants, ReentrancyGuard {
     uint256 price;
   }
 
+  function decreasePosition(
+    address primaryAccount,
+    uint256 subAccountId,
+    address collateralToken,
+    address indexToken,
+    uint256 collateralDelta,
+    uint256 sizeDelta,
+    Exposure exposure,
+    address receiver
+  ) external nonReentrant allowed(primaryAccount) returns (uint256) {
+    return
+      _decreasePosition(
+        primaryAccount,
+        subAccountId,
+        collateralToken,
+        indexToken,
+        collateralDelta,
+        sizeDelta,
+        exposure,
+        receiver
+      );
+  }
+
   /// @notice Decrease leverage position size.
   function _decreasePosition(
     address primaryAccount,
@@ -693,7 +716,6 @@ contract Pool is Constants, ReentrancyGuard {
 
     // Perform the actual reduce collateral
     (vars.usdOut, vars.usdOutAfterFee) = _reduceCollateral(
-      position,
       vars.subAccount,
       collateralToken,
       indexToken,
@@ -1066,6 +1088,22 @@ contract Pool is Constants, ReentrancyGuard {
       );
   }
 
+  function getPositionLeverage(
+    address account,
+    address collateralToken,
+    address indexToken,
+    Exposure exposure
+  ) public view returns (uint256) {
+    bytes32 posId = getPositionId(
+      account,
+      collateralToken,
+      indexToken,
+      exposure
+    );
+    Position memory position = positions[posId];
+    return (position.size * BPS) / position.collateral;
+  }
+
   function getSubAccount(address primary, uint256 subAccountId)
     public
     pure
@@ -1245,7 +1283,6 @@ contract Pool is Constants, ReentrancyGuard {
   }
 
   function _reduceCollateral(
-    Position storage position,
     address account,
     address collateralToken,
     address indexToken,
@@ -1253,6 +1290,14 @@ contract Pool is Constants, ReentrancyGuard {
     uint256 sizeDelta,
     Exposure exposure
   ) internal returns (uint256, uint256) {
+    bytes32 posId = getPositionId(
+      account,
+      collateralToken,
+      indexToken,
+      exposure
+    );
+    Position storage position = positions[posId];
+
     ReduceCollateralLocalVars memory vars;
 
     // Collect margin fee
@@ -1336,11 +1381,7 @@ contract Pool is Constants, ReentrancyGuard {
       }
     }
 
-    emit UpdatePnL(
-      getPositionId(account, collateralToken, indexToken, exposure),
-      vars.isProfit,
-      vars.delta
-    );
+    emit UpdatePnL(posId, vars.isProfit, vars.delta);
 
     return (vars.usdOut, vars.usdOutAfterFee);
   }
