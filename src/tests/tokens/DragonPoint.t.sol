@@ -93,43 +93,12 @@ contract DragonPointTest is BaseTest {
     // Whitelist no one
     // Transfer BOB <-> ALICE
     vm.startPrank(BOB);
-    vm.expectRevert(
-      abi.encodeWithSignature("DragonPoint_isNotTransferrable()")
-    );
+    vm.expectRevert(abi.encodeWithSignature("DragonPoint_isNotTransferrer()"));
     dp.transfer(ALICE, 1 ether);
     vm.stopPrank();
 
     vm.startPrank(ALICE);
-    vm.expectRevert(
-      abi.encodeWithSignature("DragonPoint_isNotTransferrable()")
-    );
-    dp.transfer(BOB, 1 ether);
-    vm.stopPrank();
-  }
-
-  function test_WhenAliceBobTransferToken_OnlyBobWhitelisted_ShouldFail()
-    external
-  {
-    dp.setMinter(ALICE, true);
-    vm.startPrank(ALICE);
-    dp.mint(ALICE, 44 ether);
-    dp.mint(BOB, 88 ether);
-    vm.stopPrank();
-
-    // White list BOB
-    dp.setTransferrer(BOB, true);
-    // Transfer BOB <-> ALICE
-    vm.startPrank(BOB);
-    vm.expectRevert(
-      abi.encodeWithSignature("DragonPoint_isNotTransferrable()")
-    );
-    dp.transfer(ALICE, 1 ether);
-    vm.stopPrank();
-
-    vm.startPrank(ALICE);
-    vm.expectRevert(
-      abi.encodeWithSignature("DragonPoint_isNotTransferrable()")
-    );
+    vm.expectRevert(abi.encodeWithSignature("DragonPoint_isNotTransferrer()"));
     dp.transfer(BOB, 1 ether);
     vm.stopPrank();
   }
