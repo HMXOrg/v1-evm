@@ -14,6 +14,7 @@ import { LockdropConfig } from "../../lockdrop/LockdropConfig.sol";
 import { PLPStaking } from "../../staking/PLPStaking.sol";
 import { P88 } from "../../tokens/P88.sol";
 import { PLP } from "../../tokens/PLP.sol";
+import { MockRewarder } from "../mocks/MockRewarder.sol";
 
 abstract contract Lockdrop_BaseTest is BaseTest {
   using SafeERC20 for IERC20;
@@ -26,6 +27,7 @@ abstract contract Lockdrop_BaseTest is BaseTest {
   PLPStaking internal plpStaking;
   P88 internal mockP88Token;
   PLP internal mockPLPToken;
+  MockRewarder internal PRRewarder;
 
   function setUp() public virtual {
     pool = new MockPool();
@@ -41,6 +43,12 @@ abstract contract Lockdrop_BaseTest is BaseTest {
       mockPLPToken,
       mockP88Token
     );
+
+    PRRewarder = new MockRewarder();
+    address[] memory rewarders1 = new address[](1);
+    rewarders1[0] = address(PRRewarder);
+    plpStaking.addStakingToken(address(mockPLPToken), rewarders1);
+
     lockdrop = new Lockdrop(address(mockERC20), strategy, lockdropConfig);
   }
 

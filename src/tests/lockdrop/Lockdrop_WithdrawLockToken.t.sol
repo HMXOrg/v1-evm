@@ -2,18 +2,11 @@
 pragma solidity 0.8.14;
 
 import { Lockdrop_BaseTest, console } from "./Lockdrop_BaseTest.t.sol";
-import { MockRewarder } from "../mocks/MockRewarder.sol";
 
 contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
-  MockRewarder internal PRRewarder;
-
   function setUp() public override {
     super.setUp();
-    mockPLPToken.setMinter(address(lockdrop), true);
-    PRRewarder = new MockRewarder();
-    address[] memory rewarders1 = new address[](1);
-    rewarders1[0] = address(PRRewarder);
-    plpStaking.addStakingToken(address(mockPLPToken), rewarders1);
+    mockPLPToken.setMinter(address(this), true);
   }
 
   // ------ earlyWithdrawLockedToken ------
@@ -342,11 +335,24 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     vm.stopPrank();
 
     vm.warp(lockdropConfig.endLockTimestamp() + 604900);
-    vm.startPrank(address(lockdrop), address(lockdrop));
-    mockPLPToken.mint(address(lockdrop), 20);
+    // vm.startPrank(address(lockdrop), address(lockdrop));
+    // mockPLPToken.mint(address(lockdrop), 20);
+    // mockERC20.approve(address(strategy), 100);
+    // mockPLPToken.approve(address(lockdropConfig.plpStaking()), 20);
+    // lockdrop.stakePLP();
+    // vm.stopPrank();
+
+    vm.startPrank(address(lockdrop));
     mockERC20.approve(address(strategy), 100);
-    mockPLPToken.approve(address(lockdropConfig.plpStaking()), 20);
+    mockPLPToken.approve(address(lockdropConfig.plpStaking()), 100);
+    vm.stopPrank();
+
+    vm.startPrank(address(this));
+    // Owner mint PLPToken
+    mockPLPToken.mint(address(lockdrop), 20);
+    mockPLPToken.approve(address(lockdropConfig.plpStaking()), 100);
     lockdrop.stakePLP();
+    assertEq(mockPLPToken.balanceOf(address(lockdrop)), 0);
     vm.stopPrank();
 
     vm.startPrank(ALICE, ALICE);
