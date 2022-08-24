@@ -9,7 +9,7 @@ contract Lockdrop_AllocateP88 is Lockdrop_BaseTest {
   }
 
   function testCorrectness_AllocateP88() external {
-    vm.startPrank(ALICE, ALICE);
+    vm.startPrank(ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(120000);
@@ -31,7 +31,7 @@ contract Lockdrop_AllocateP88 is Lockdrop_BaseTest {
     // Mint P88
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
 
-    vm.startPrank(address(this), address(this));
+    vm.startPrank(address(this));
     mockP88Token.mint(address(this), 100);
     mockP88Token.approve(address(lockdrop), 1000);
     lockdrop.allocateP88(100);
@@ -43,7 +43,7 @@ contract Lockdrop_AllocateP88 is Lockdrop_BaseTest {
   }
 
   function testRevert_AllocateP88_CallAllocateMultipleTimes() external {
-    vm.startPrank(ALICE, ALICE);
+    vm.startPrank(ALICE);
     mockERC20.mint(ALICE, 20);
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(120000);
@@ -64,7 +64,7 @@ contract Lockdrop_AllocateP88 is Lockdrop_BaseTest {
     // After lockdrop period
     // Mint P88
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
-    vm.startPrank(address(this), address(this));
+    vm.startPrank(address(this));
     mockP88Token.mint(address(this), 100);
     mockP88Token.approve(address(lockdrop), 1000);
     lockdrop.allocateP88(100);

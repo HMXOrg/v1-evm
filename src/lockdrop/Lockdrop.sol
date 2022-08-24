@@ -29,6 +29,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   event LogWithdrawAll(address indexed user, address token);
   event LogAllocateP88(uint256 amount);
   event LogClaimAllP88(address indexed user, uint256 p88Amount);
+  event LogStakePLP(uint256 plpTokenAmount);
 
   // --- Custom Errors ---
   error Lockdrop_ZeroAmountNotAllowed();
@@ -47,6 +48,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   error Lockdrop_NotAllocationFeeder();
   error Lockdrop_ZeroTotalP88NotAllowed();
   error Lockdrop_AlreadyAllocateP88();
+  error Lockdrop_PLPAlreadyStaked();
 
   // --- Structs ---
   struct LockdropState {
@@ -275,12 +277,15 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   }
 
   /// @dev PLP token is staked after the lockdrop period
-  function stakePLP() external onlyAfterLockdropPeriod {
+  /// Recieve number of PLP after staking ERC20 Token
+  function stakePLP() external onlyAfterLockdropPeriod onlyOwner {
+    if (totalPLPAmount > 0) revert Lockdrop_PLPAlreadyStaked();
     totalPLPAmount = strategy.execute(totalAmount, address(lockdropToken));
     lockdropConfig.plpStaking().deposit(
       address(this),
       address(lockdropConfig.plpToken()),
       totalPLPAmount
     );
+    emit LogStakePLP(totalPLPAmount);
   }
 }
