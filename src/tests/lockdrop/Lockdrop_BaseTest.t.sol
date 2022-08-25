@@ -32,6 +32,7 @@ abstract contract Lockdrop_BaseTest is BaseTest {
   MockErc20 internal mockMatic;
   address[] internal rewardsTokenList;
   MockRewarder internal PRRewarder;
+  address internal mockGateway;
 
   function setUp() public virtual {
     pool = new MockPool();
@@ -46,12 +47,14 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     rewardsTokenList.push(address(mockMatic));
 
     plpStaking = new PLPStaking();
+    mockGateway = address(0x88);
 
     lockdropConfig = new LockdropConfig(
       100000,
       plpStaking,
       mockPLPToken,
-      mockP88Token
+      mockP88Token,
+      mockGateway
     );
     PRRewarder = new MockRewarder();
     address[] memory rewarders1 = new address[](1);
