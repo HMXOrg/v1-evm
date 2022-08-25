@@ -49,11 +49,6 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   error Lockdrop_NotAllocationFeeder();
   error Lockdrop_ZeroTotalP88NotAllowed();
   error Lockdrop_AlreadyAllocateP88();
-  error Lockdrop_NotEnoughRewardToken(
-    uint256 userClaimedAmount,
-    uint256 actualAmount,
-    address tokenAddress
-  );
   error Lockdrop_PLPAlreadyStaked();
   error Lockdrop_NotGateway();
   error Lockdrop_PLPNotYetStake();
@@ -418,28 +413,17 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
       // Update PLP accumurate per share
       accRewardPerShares[i] += _calculateAccPerShare(harvestedRewards[i]);
 
-      uint256 userAccumRewardPerShare = ((userShare * accRewardPerShares[i]) /
-        1e12);
+      uint256 userAccumReward = ((userShare * accRewardPerShares[i]) / 1e12);
 
       // calculate pending reward to be received for user
-      uint256 pendingReward = userAccumRewardPerShare -
+      uint256 pendingReward = userAccumReward -
         lockdropStates[user].userRewardDebts[i];
 
       // Transfer reward to user
-      uint256 rewardTokenAmount = IERC20(rewardTokens[i]).balanceOf(
-        address(this)
-      );
-      if (rewardTokenAmount < pendingReward) {
-        revert Lockdrop_NotEnoughRewardToken(
-          pendingReward,
-          rewardTokenAmount,
-          rewardTokens[i]
-        );
-      }
       IERC20(rewardTokens[i]).safeTransfer(user, pendingReward);
 
       // calculate for update user reward dept
-      lockdropStates[user].userRewardDebts[i] = userAccumRewardPerShare;
+      lockdropStates[user].userRewardDebts[i] = userAccumReward;
 
       emit LogClaimReward(user, rewardTokens[i], pendingReward);
       unchecked {
