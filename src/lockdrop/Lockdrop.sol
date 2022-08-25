@@ -308,7 +308,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
       lockdropStates[user].lockPeriod + lockdropConfig.endLockTimestamp()
     ) revert Lockdrop_InvalidWithdrawAllPeriod();
 
-    this.claimAllRewards(user);
+    _claimAllRewards(user);
 
     uint256 userPLPTokenAmount = (lockdropStates[user].lockdropTokenAmount *
       totalPLPAmount) / totalAmount;
@@ -455,6 +455,10 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     onlyAfterLockdropPeriod
     nonReentrant
   {
+    _claimAllRewards(_user);
+  }
+
+  function _claimAllRewards(address _user) internal {
     if (totalPLPAmount == 0) revert Lockdrop_PLPNotYetStake();
     uint256[] memory harvestedRewards = _harvestAll();
     _transferRewardToUser(_user, harvestedRewards);
