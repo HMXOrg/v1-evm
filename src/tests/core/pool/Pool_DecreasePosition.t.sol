@@ -964,4 +964,235 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
       57887
     );
   }
+
+  function testCorrectness_WhenShort_WhenLoss() external {
+    poolConfig.setMintBurnFeeBps(4);
+
+    maticPriceFeed.setLatestAnswer(300 * 10**8);
+    daiPriceFeed.setLatestAnswer(1 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+
+    // Add 100 DAI liquidity to the pool
+    dai.mint(address(pool), 100 * 10**18);
+    pool.addLiquidity(address(this), address(dai), address(this));
+
+    // Feed WBTC price
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+
+    // The following conditions need to be met:
+    // 1. Pool's DAI liquidity should be:
+    // = 100 * (1-0.0004)
+    // = 99.96
+    // 2. Pool should made:
+    // = 0.04 DAI
+    // 3. Pool's AUM by min price should be:
+    // = 100 * (1-0.0004)
+    // = 99.96 USD
+    // 4. Pool's AUM by max price should be:
+    // = 100 * (1-0.0004)
+    // = 99.96 USD
+    assertEq(pool.liquidityOf(address(dai)), 99.96 * 10**18);
+    assertEq(pool.feeReserveOf(address(dai)), 0.04 * 10**18);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 99.96 * 10**18);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 99.96 * 10**18);
+
+    // Open a 90 USD WBTC short position with 10 DAI as a collateral.
+    dai.mint(address(pool), 10 * 10**18);
+    pool.increasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      90 * 10**30,
+      Exposure.SHORT
+    );
+
+    // The following conditions should be met:
+    // 1. Pool's DAI liquidity should be 99.96 DAI
+    // 2. Pool should makes 0.04 + (90 * 0.001) = 0.13 DAI
+    // 3. Pool's short size should be: 90 USD
+    // 4. Pool's AUM by min price should be:
+    // = 99.96 + (90 * (40000-40000) / 40000) [Short Delta]
+    // = 99.96 USD
+    // 5. Pool's AUM by max price should be:
+    // = 99.96 - (90 * (40000-41000) / 40000) [Short Delta]
+    // = 102.21 USD
+    assertEq(pool.liquidityOf(address(dai)), 99.96 * 10**18);
+    assertEq(pool.feeReserveOf(address(dai)), 0.13 * 10**18);
+    assertEq(pool.shortSizeOf(address(wbtc)), 90 * 10**30);
+    assertEq(pool.shortAveragePriceOf(address(wbtc)), 40_000 * 10**30);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 99.96 * 10**18);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 102.21 * 10**18);
+
+    // Assert position
+    // 1. Position's size should be 90 USD
+    // 2. Position's collateral should be:
+    // = 10 - (90 * 0.001)
+    // = 9.91 USD
+    // 3. Position's average price should be 40,000 USD
+    // 4. Position's entry funding rate should be 0
+    // 5. Position's reserve amount should be: 90 DAI
+    // 6. Position's realized PnL should be: 0
+    // 7. Position's has profit true
+    Pool.GetPositionReturnVars memory position = pool.getPosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      Exposure.SHORT
+    );
+    assertEq(position.size, 90 * 10**30);
+    assertEq(position.collateral, 9.91 * 10**30);
+    assertEq(position.averagePrice, 40_000 * 10**30);
+    assertEq(position.entryFundingRate, 0);
+    assertEq(position.reserveAmount, 90 * 10**18);
+    assertEq(position.realizedPnl, 0);
+    assertTrue(position.hasProfit);
+
+    // WBTC price increase to 40,400 USD
+    wbtcPriceFeed.setLatestAnswer(40_400 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_400 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_400 * 10**8);
+
+    // Assert's position delta
+    // Position's delta should be:
+    // = 90 * (40000-40400) / 40000
+    // = -0.9 USD
+    // Pool's AUM by min price:
+    // = 99.96 + (90 * (40400-40000) / 40000) [Short Delta]
+    // = 100.86 USD
+    // Pool's AUM by max price:
+    // = 99.96 + (90 * (40400-40000) / 40000) [Short Delta]
+    // = 100.86 USD
+    (bool isProfit, uint256 delta) = pool.getPositionDelta(
+      address(this),
+      address(dai),
+      address(wbtc),
+      Exposure.SHORT
+    );
+    assertFalse(isProfit);
+    assertEq(delta, 0.9 * 10**30);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 100.86 * 10**18);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 100.86 * 10**18);
+
+    // Assert position leverage
+    assertEq(
+      pool.getPositionLeverage(
+        address(this),
+        address(dai),
+        address(wbtc),
+        Exposure.SHORT
+      ),
+      90817
+    );
+
+    // Decrease position size to 40 USD.
+    pool.decreasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      0,
+      50 * 10**30,
+      Exposure.SHORT,
+      BOB
+    );
+
+    // The following conditions should be met:
+    // 1. Pool's DAI liquidity should be:
+    // = 99.96 + (0.9 * 50 / 90) [Pool Profit from Short loss]
+    // = 100.46 DAI
+    // 2. Pool should make:
+    // = 0.13 + (50 * 0.001)
+    // = 0.18 DAI
+    // 3. Pool's DAI reserved amount should be:
+    // = 90 - 50 = 40 DAI
+    // 4. Pool's AUM by min price should be the same.
+    // 5. Pool's AUM by max price should be the same.
+    // This is due to leverage trader pays loss to the pool.
+    assertEq(pool.liquidityOf(address(dai)), 100.46 * 10**18);
+    assertEq(pool.feeReserveOf(address(dai)), 0.18 * 10**18);
+    assertEq(pool.reservedOf(address(dai)), 40 * 10**18);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 100.86 * 10**18);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 100.86 * 10**18);
+
+    // Assert position
+    // 1. Position's size should be 90 - 50 = 40 USD
+    // 2. Position's collateral should be:
+    // = 9.91 - (50 * 0.001) [Fee] - (0.9 * 50 / 90) [Loss]
+    // = 9.36 USD
+    // 3. Position's average price should be: 40000
+    // 4. Position's entry funding rate shuold be: 0
+    // 5. Position's reserve should be 90 - 50 = 40 USD
+    // 6. Position's PnL should be:
+    // = (0.9 * 50 / 90)
+    // = 0.5 USD in loss
+    // 7. Position's hasProfit should be false
+    position = pool.getPosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      Exposure.SHORT
+    );
+    assertEq(position.size, 40 * 10**30);
+    assertEq(position.collateral, 9.36 * 10**30);
+    assertEq(position.averagePrice, 40_000 * 10**30);
+    assertEq(position.entryFundingRate, 0);
+    assertEq(position.reserveAmount, 40 * 10**18);
+    assertEq(position.realizedPnl, 0.5 * 10**30);
+    assertFalse(position.hasProfit);
+
+    // Close full position and realized the loss
+    pool.decreasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      0,
+      40 * 10**30,
+      Exposure.SHORT,
+      BOB
+    );
+
+    // The following conditions need to be met:
+    // 1. Pool's DAI liquidity should be:
+    // = 100.46 + (0.4 * 40 / 40) [Pool Profit from Short loss]
+    // = 100.86 DAI
+    // 2. Pool should make:
+    // = 0.18 + (40 * 0.001)
+    // = 0.22 DAI
+    // 3. Pool's DAI reserved amount should be: 0 DAI
+    // 4. Pool's AUM by min price should be the same.
+    // 5. Pool's AUM by max price should be the same.
+    // This is due to leverage trader pays loss to the pool.
+    assertEq(pool.liquidityOf(address(dai)), 100.86 * 10**18);
+    assertEq(pool.feeReserveOf(address(dai)), 0.22 * 10**18);
+    assertEq(pool.reservedOf(address(dai)), 0);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 100.86 * 10**18);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 100.86 * 10**18);
+
+    // Assert position. Everything should be 0
+    position = pool.getPosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      Exposure.SHORT
+    );
+    assertEq(position.size, 0);
+    assertEq(position.collateral, 0);
+    assertEq(position.averagePrice, 0);
+    assertEq(position.entryFundingRate, 0);
+    assertEq(position.reserveAmount, 0);
+    assertEq(position.realizedPnl, 0);
+    assertTrue(position.hasProfit);
+
+    // Assert BOB's DAI balance
+    // Bob should get:
+    // = 9.36 - 0.4 - 0.04 = 8.92 DAI
+    assertEq(dai.balanceOf(BOB), 8.92 * 10**18);
+  }
 }
