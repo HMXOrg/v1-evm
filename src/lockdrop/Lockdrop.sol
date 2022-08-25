@@ -11,7 +11,6 @@ import { IStaking } from "../staking/interfaces/IStaking.sol";
 import { LockdropConfig } from "./LockdropConfig.sol";
 import { ILockdrop } from "./interfaces/ILockdrop.sol";
 import { P88 } from "../tokens/P88.sol";
-import { console } from "../tests/utils/console.sol";
 
 contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   // --- Libraries ---
@@ -56,6 +55,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     address tokenAddress
   );
   error Lockdrop_PLPAlreadyStaked();
+  error Lockdrop_PLPNotYetStake();
 
   // --- Structs ---
   struct LockdropState {
@@ -117,6 +117,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   function lockToken(uint256 amount, uint256 lockPeriod)
     external
     onlyInLockdropPeriod
+    nonReentrant
   {
     if (lockdropStates[msg.sender].lockdropTokenAmount > 0)
       revert Lockdrop_UserAlreadyLocked();
@@ -147,6 +148,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   function extendLockPeriod(uint256 newLockPeriod)
     external
     onlyInLockdropPeriod
+    nonReentrant
   {
     if (newLockPeriod > (7 days * 52)) revert Lockdrop_InvalidLockPeriod(); // New lock period should not be more than 364 days
     if (lockdropStates[msg.sender].lockdropTokenAmount == 0)
@@ -162,7 +164,11 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
 
   /// @dev Users can add more lock amount during the lockdrop period
   /// @param amount Number of lock token that user wants to add
-  function addLockAmount(uint256 amount) external onlyInLockdropPeriod {
+  function addLockAmount(uint256 amount)
+    external
+    onlyInLockdropPeriod
+    nonReentrant
+  {
     if (amount == 0) revert Lockdrop_ZeroAmountNotAllowed();
     if (lockdropStates[msg.sender].lockdropTokenAmount == 0)
       revert Lockdrop_NoPosition();
@@ -213,6 +219,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   function earlyWithdrawLockedToken(uint256 amount, address user)
     external
     onlyInLockdropPeriod
+    nonReentrant
   {
     uint256 lockdropTokenAmount = lockdropStates[user].lockdropTokenAmount;
     if (amount == 0) revert Lockdrop_ZeroAmountNotAllowed();
@@ -244,6 +251,9 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
       block.timestamp <
       lockdropStates[user].lockPeriod + lockdropConfig.endLockTimestamp()
     ) revert Lockdrop_InvalidWithdrawAllPeriod();
+
+    this.claimAllRewards(user);
+
     uint256 userPLPTokenAmount = (lockdropStates[user].lockdropTokenAmount *
       totalPLPAmount) / totalAmount;
     lockdropConfig.plpStaking().withdraw(
@@ -262,6 +272,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     external
     onlyAfterLockdropPeriod
     onlyOwner
+    nonReentrant
   {
     // Prevent multiple call
     if (totalP88 > 0) revert Lockdrop_AlreadyAllocateP88();
@@ -276,7 +287,11 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
 
   /// @dev Users can claim their P88, this is a one time claim
   /// @param user Address of the user that wants to claim P88
-  function claimAllP88(address user) external onlyAfterLockdropPeriod {
+  function claimAllP88(address user)
+    external
+    onlyAfterLockdropPeriod
+    nonReentrant
+  {
     if (lockdropStates[msg.sender].lockdropTokenAmount == 0)
       revert Lockdrop_NoPosition();
     if (totalP88 == 0) revert Lockdrop_ZeroTotalP88NotAllowed();
@@ -321,52 +336,47 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     return harvestedReward;
   }
 
-  function _updateAccPerShare(uint256 claimedReward)
+  function _calculateAccPerShare(uint256 claimedReward)
     internal
-    onlyAfterLockdropPeriod
     returns (uint256)
   {
-    uint256 newRwardTokenPerShare;
-    uint256 userPLPAmount = lockdropConfig.plpStaking().getUserTokenAmount(
-      address(lockdropConfig.plpToken()),
-      address(this)
-    );
+    uint256 totalStakedPLPAmount = lockdropConfig
+      .plpStaking()
+      .getUserTokenAmount(address(lockdropConfig.plpToken()), address(this));
 
-    newRwardTokenPerShare = (claimedReward * 1e12) / userPLPAmount;
-
-    return newRwardTokenPerShare;
+    return
+      (totalStakedPLPAmount > 0)
+        ? (claimedReward * 1e12) / totalStakedPLPAmount
+        : 0;
   }
 
   function _transferRewardToUser(
     address user,
     uint256[] memory harvestedRewards
   ) internal {
-    uint256 pendingReward;
-    uint256 userAccumRewardPerShare;
     uint256 userShare = (lockdropStates[user].lockdropTokenAmount *
       totalPLPAmount) / totalAmount;
 
     uint256 length = rewardTokens.length;
     for (uint256 i = 0; i < length; ) {
       // Update PLP accumurate per share
-      if (userShare > 0)
-        accRewardPerShares[i] += _updateAccPerShare(harvestedRewards[i]);
+      accRewardPerShares[i] += _calculateAccPerShare(harvestedRewards[i]);
 
-      userAccumRewardPerShare = ((userShare * accRewardPerShares[i]) / 1e12);
+      uint256 userAccumRewardPerShare = ((userShare * accRewardPerShares[i]) /
+        1e12);
 
       // calculate pending reward to be received for user
-      pendingReward =
-        userAccumRewardPerShare -
+      uint256 pendingReward = userAccumRewardPerShare -
         lockdropStates[user].userRewardDebts[i];
 
       // Transfer reward to user
-      uint256 actualRwardBalanceOf = IERC20(rewardTokens[i]).balanceOf(
+      uint256 rewardTokenAmount = IERC20(rewardTokens[i]).balanceOf(
         address(this)
       );
-      if (actualRwardBalanceOf < pendingReward) {
+      if (rewardTokenAmount < pendingReward) {
         revert Lockdrop_NotEnoughRewardToken(
           pendingReward,
-          actualRwardBalanceOf,
+          rewardTokenAmount,
           rewardTokens[i]
         );
       }
@@ -384,7 +394,12 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
 
   // /// @dev Users can claim all their reward
   // /// @param _user Address of the user that wants to claim the reward
-  function claimAllRewards(address _user) external onlyAfterLockdropPeriod {
+  function claimAllRewards(address _user)
+    external
+    onlyAfterLockdropPeriod
+    nonReentrant
+  {
+    if (totalPLPAmount == 0) revert Lockdrop_PLPNotYetStake();
     uint256[] memory harvestedRewards = _harvestAll();
     _transferRewardToUser(_user, harvestedRewards);
   }
