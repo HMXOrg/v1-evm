@@ -14,7 +14,7 @@ contract LockdropGateway is ILockdropGateway {
   ) external {
     uint256 length = lockdropList.length;
     for (uint256 index = 0; index < length; ) {
-      ILockdrop(lockdropList[index]).claimAllReward(user);
+      ILockdrop(lockdropList[index]).claimAllRewards(user);
 
       unchecked {
         ++index;
