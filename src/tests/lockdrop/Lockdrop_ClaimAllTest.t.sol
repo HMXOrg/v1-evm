@@ -23,9 +23,11 @@ contract Lockdrop_ClaimReward is BaseTest {
   Lockdrop internal lockdrop;
   MockLockdropStrategy internal lockdropStrategy;
   MockPLPStaking internal mockPLPStaking;
+  address internal mockGateway;
 
   function setUp() external {
     lockdropStrategy = new MockLockdropStrategy();
+    mockGateway = address(0x88);
 
     lockdropToken = new MockErc20("LockdropToken", "LCKT", 18);
     mockPLP = new MockErc20("PLP", "PLP", 18);
@@ -46,7 +48,8 @@ contract Lockdrop_ClaimReward is BaseTest {
       1 days,
       mockPLPStaking,
       mockPLP,
-      mockP88
+      mockP88,
+      mockGateway
     );
 
     rewardsTokenList.push(address(mockEsP88));
