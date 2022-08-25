@@ -232,10 +232,9 @@ contract LockdropGateway is ILockdropGateway, Ownable {
     if (lockAmount > 0)
       IERC20(token).approve(mapTokenLockdropInfo[token].lockdrop, lockAmount);
 
-    // TODO: change to lockTokenFor, addLockAmountFor, extendLockPeriodFor
     if (currentTokenAmount == 0) {
       // No lockdrop position yet, create a new one
-      ILockdrop(lockdrop).lockToken(lockAmount, lockPeriod);
+      ILockdrop(lockdrop).lockTokenFor(lockAmount, lockPeriod, msg.sender);
       return;
     } else {
       // Lockdrop position is existed, update with new param
@@ -245,10 +244,10 @@ contract LockdropGateway is ILockdropGateway, Ownable {
         revert LockdropGateway_NothingToDoWithPosition();
 
       if (lockAmount > 0) {
-        ILockdrop(lockdrop).addLockAmount(lockAmount);
+        ILockdrop(lockdrop).addLockAmountFor(lockAmount, msg.sender);
       }
       if (lockPeriod > 0) {
-        ILockdrop(lockdrop).extendLockPeriod(lockAmount);
+        ILockdrop(lockdrop).extendLockPeriodFor(lockAmount, msg.sender);
       }
       return;
     }

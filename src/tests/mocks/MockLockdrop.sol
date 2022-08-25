@@ -89,4 +89,14 @@ contract MockLockdrop is ILockdrop {
   {
     return (0, 0, false);
   }
+
+  function lockTokenFor(
+    uint256 amount,
+    uint256 lockPeriod,
+    address user
+  ) external {}
+
+  function extendLockPeriodFor(uint256 lockPeriod, address user) external {}
+
+  function addLockAmountFor(uint256 amount, address user) external {}
 }
