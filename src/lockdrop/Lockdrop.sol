@@ -49,6 +49,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   error Lockdrop_ZeroTotalP88NotAllowed();
   error Lockdrop_AlreadyAllocateP88();
   error Lockdrop_PLPAlreadyStaked();
+  error Lockdrop_NotGateway();
 
   // --- Structs ---
   struct LockdropState {
@@ -84,6 +85,12 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     _;
   }
 
+  /// @dev ACL Gateway
+   modifier onlyGateway() {
+    if (msg.sender != lockdropConfig.gatewayAddress()) revert Lockdrop_NotGateway();
+    _;
+  }
+
   constructor(
     address lockdropToken_,
     ILockdropStrategy strategy_,
@@ -99,6 +106,32 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     lockdropConfig = lockdropConfig_;
   }
 
+  function _lockTokenFor(
+    uint256 amount,
+    uint256 lockPeriod,
+    address user
+  ) internal {
+    if (lockdropStates[user].lockdropTokenAmount > 0)
+      revert Lockdrop_UserAlreadyLocked();
+    if (amount == 0) revert Lockdrop_ZeroAmountNotAllowed();
+    if (lockPeriod < (7 days) || lockPeriod > (7 days * 52))
+      revert Lockdrop_InvalidLockPeriod(); // Less than 7 days or more than 364 days
+    lockdropStates[user] = LockdropState({
+      lockdropTokenAmount: amount,
+      lockPeriod: lockPeriod,
+      p88Claimed: false
+    });
+    totalAmount += amount;
+    totalP88Weight += amount * lockPeriod;
+    // Gateway call the function
+    if (msg.sender == lockdropConfig.gatewayAddress()) {
+      lockdropToken.safeTransferFrom(msg.sender, address(this), amount);
+    } else {
+      lockdropToken.safeTransferFrom(user, address(this), amount);
+    }
+    emit LogLockToken(user, amount, lockPeriod);
+  }
+
   /// @dev Users can lock their ERC20 Token during the lockdrop period
   /// @param amount Number of token that user wants to lock
   /// @param lockPeriod Number of second that user wants to lock
@@ -106,20 +139,32 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     external
     onlyInLockdropPeriod
   {
-    if (lockdropStates[msg.sender].lockdropTokenAmount > 0)
-      revert Lockdrop_UserAlreadyLocked();
-    if (amount == 0) revert Lockdrop_ZeroAmountNotAllowed();
-    if (lockPeriod < (7 days) || lockPeriod > (7 days * 52))
-      revert Lockdrop_InvalidLockPeriod(); // Less than 7 days or more than 364 days
-    lockdropStates[msg.sender] = LockdropState({
-      lockdropTokenAmount: amount,
-      lockPeriod: lockPeriod,
-      p88Claimed: false
-    });
-    totalAmount += amount;
-    totalP88Weight += amount * lockPeriod;
-    lockdropToken.safeTransferFrom(msg.sender, address(this), amount);
-    emit LogLockToken(msg.sender, amount, lockPeriod);
+    _lockTokenFor(amount, lockPeriod, msg.sender);
+  }
+
+  /// @dev Users can lock their ERC20 Token during the lockdrop period
+  /// @param amount Number of token that user wants to lock
+  /// @param lockPeriod Number of second that user wants to lock
+  /// @param user Address of the user that wants to lock the token
+  function lockTokenFor(
+    uint256 amount,
+    uint256 lockPeriod,
+    address user
+  ) external onlyInLockdropPeriod onlyGateway {
+    _lockTokenFor(amount, lockPeriod, user);
+  }
+
+  function _extendLockPeriodFor(uint256 newLockPeriod, address user) internal {
+    if (newLockPeriod > (7 days * 52)) revert Lockdrop_InvalidLockPeriod(); // New lock period should not be more than 364 days
+    if (lockdropStates[user].lockdropTokenAmount == 0)
+      revert Lockdrop_NoPosition();
+    if (newLockPeriod < lockdropStates[user].lockPeriod)
+      revert Lockdrop_InvalidLockPeriod();
+    totalP88Weight +=
+      lockdropStates[user].lockdropTokenAmount *
+      (newLockPeriod - lockdropStates[user].lockPeriod);
+    lockdropStates[user].lockPeriod = newLockPeriod;
+    emit LogExtendLockPeriod(user, newLockPeriod);
   }
 
   /// @dev Users can extend their lock period during the lockdrop period
@@ -128,29 +173,50 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     external
     onlyInLockdropPeriod
   {
-    if (newLockPeriod > (7 days * 52)) revert Lockdrop_InvalidLockPeriod(); // New lock period should not be more than 364 days
-    if (lockdropStates[msg.sender].lockdropTokenAmount == 0)
+    _extendLockPeriodFor(newLockPeriod, msg.sender);
+  }
+
+  /// @dev Users can extend their lock period during the lockdrop period
+  /// @param newLockPeriod New number of second that user wants to lock
+  /// @param user Address of the user that wants extend the lock period
+  function extendLockPeriodFor(uint256 newLockPeriod, address user)
+    external
+    onlyInLockdropPeriod
+    onlyGateway
+  {
+    _extendLockPeriodFor(newLockPeriod, user);
+  }
+
+  function _addLockAmountFor(uint256 amount, address user) internal {
+    if (amount == 0) revert Lockdrop_ZeroAmountNotAllowed();
+    if (lockdropStates[user].lockdropTokenAmount == 0)
       revert Lockdrop_NoPosition();
-    if (newLockPeriod < lockdropStates[msg.sender].lockPeriod)
-      revert Lockdrop_InvalidLockPeriod();
-    totalP88Weight +=
-      lockdropStates[msg.sender].lockdropTokenAmount *
-      (newLockPeriod - lockdropStates[msg.sender].lockPeriod);
-    lockdropStates[msg.sender].lockPeriod = newLockPeriod;
-    emit LogExtendLockPeriod(msg.sender, newLockPeriod);
+    lockdropStates[user].lockdropTokenAmount += amount;
+    totalAmount += amount;
+    totalP88Weight += amount * lockdropStates[user].lockPeriod;
+     // Gateway call the function
+    if (msg.sender == lockdropConfig.gatewayAddress()) {
+      lockdropToken.safeTransferFrom(msg.sender, address(this), amount);
+    } else {
+      lockdropToken.safeTransferFrom(user, address(this), amount);
+    }
+    emit LogAddLockAmount(user, amount);
   }
 
   /// @dev Users can add more lock amount during the lockdrop period
   /// @param amount Number of lock token that user wants to add
   function addLockAmount(uint256 amount) external onlyInLockdropPeriod {
-    if (amount == 0) revert Lockdrop_ZeroAmountNotAllowed();
-    if (lockdropStates[msg.sender].lockdropTokenAmount == 0)
-      revert Lockdrop_NoPosition();
-    lockdropStates[msg.sender].lockdropTokenAmount += amount;
-    totalAmount += amount;
-    totalP88Weight += amount * lockdropStates[msg.sender].lockPeriod;
-    lockdropToken.safeTransferFrom(msg.sender, address(this), amount);
-    emit LogAddLockAmount(msg.sender, amount);
+    _addLockAmountFor(amount, msg.sender);
+  }
+
+  /// @dev Users can add more lock amount during the lockdrop period
+  /// @param amount Number of lock token that user wants to add
+  function addLockAmountFor(uint256 amount, address user)
+    external
+    onlyInLockdropPeriod
+    onlyGateway
+  {
+    _addLockAmountFor(amount, user);
   }
 
   function _getEarlyWithdrawableAmount(address user)

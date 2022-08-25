@@ -17,6 +17,7 @@ contract LockdropConfig {
   IStaking public plpStaking;
   IERC20 public p88Token;
   IERC20 public plpToken;
+  address public gatewayAddress;
   uint256 public startLockTimestamp; // timestamp for starting lockdrop event
   uint256 public endLockTimestamp; // timestamp for deposit period after start lockdrop event
   uint256 public startDecayingWithdrawalTimestamp; 
@@ -28,7 +29,8 @@ contract LockdropConfig {
     uint256 startLockTimestamp_,
     IStaking plpStaking_,
     IERC20 plpToken_,
-    IERC20 p88Token_
+    IERC20 p88Token_,
+    address gatewayAddress_
   ) {
     decayStartPercentage = 50;
     startTimeDecay = 12 hours;
@@ -39,5 +41,6 @@ contract LockdropConfig {
     startDecayingWithdrawalTimestamp = startLockTimestamp_ + 3 days + startTimeDecay;
     plpToken = plpToken_;
     p88Token = p88Token_;
+    gatewayAddress = gatewayAddress_;
   }
 }
