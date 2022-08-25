@@ -124,7 +124,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     });
     totalAmount += amount;
     totalP88Weight += amount * lockPeriod;
-    lockdropToken.safeTransferFrom(msg.sender, address(this), amount);    
+    lockdropToken.safeTransferFrom(msg.sender, address(this), amount);
     emit LogLockToken(user, amount, lockPeriod);
   }
 
