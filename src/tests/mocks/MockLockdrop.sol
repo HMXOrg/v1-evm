@@ -77,4 +77,16 @@ contract MockLockdrop is ILockdrop {
       IERC20(address(lockdropConfig.p88Token())).balanceOf(address(this))
     );
   }
+
+  function lockdropStates(address user)
+    external
+    view
+    returns (
+      uint256 lockdropTokenAmount,
+      uint256 lockPeriod,
+      bool p88Claimed
+    )
+  {
+    return (0, 0, false);
+  }
 }

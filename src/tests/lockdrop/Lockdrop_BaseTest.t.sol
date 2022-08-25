@@ -14,6 +14,7 @@ import { LockdropConfig } from "../../lockdrop/LockdropConfig.sol";
 import { PLPStaking } from "../../staking/PLPStaking.sol";
 import { P88 } from "../../tokens/P88.sol";
 import { PLP } from "../../tokens/PLP.sol";
+import { MockRewarder } from "../mocks/MockRewarder.sol";
 
 abstract contract Lockdrop_BaseTest is BaseTest {
   using SafeERC20 for IERC20;
@@ -26,6 +27,7 @@ abstract contract Lockdrop_BaseTest is BaseTest {
   PLPStaking internal plpStaking;
   P88 internal mockP88Token;
   PLP internal mockPLPToken;
+  MockRewarder internal PRRewarder;
 
   function setUp() public virtual {
     pool = new MockPool();
@@ -33,21 +35,34 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     mockERC20 = new MockErc20("Mock Token", "MT", 18);
     mockPLPToken = new PLP();
     mockP88Token = new P88();
-
     plpStaking = new PLPStaking();
+
     lockdropConfig = new LockdropConfig(
       100000,
       plpStaking,
       mockPLPToken,
       mockP88Token
     );
+
+    PRRewarder = new MockRewarder();
+    address[] memory rewarders1 = new address[](1);
+    rewarders1[0] = address(PRRewarder);
+    plpStaking.addStakingToken(address(mockPLPToken), rewarders1);
+
     lockdrop = new Lockdrop(address(mockERC20), strategy, lockdropConfig);
   }
 
   function testCorrectness_WhenLockdropIsInit() external {
     assertEq(address(lockdrop.lockdropToken()), address(mockERC20));
-    assertEq(lockdropConfig.startLockTimestamp(), uint256(100000));
-    assertEq(lockdropConfig.endLockTimestamp(), uint256(704800));
-    assertEq(lockdropConfig.withdrawalTimestamp(), uint256(532000));
+    assertEq(lockdropConfig.startLockTimestamp(), 100000);
+    assertEq(lockdropConfig.endLockTimestamp(), 100000 + 4 days);
+    assertEq(
+      lockdropConfig.startRestrictedWithdrawalTimestamp(),
+      100000 + 3 days
+    );
+    assertEq(
+      lockdropConfig.startDecayingWithdrawalTimestamp(),
+      100000 + 3 days + 12 hours
+    );
   }
 }
