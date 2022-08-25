@@ -28,6 +28,7 @@ abstract contract Lockdrop_BaseTest is BaseTest {
   P88 internal mockP88Token;
   PLP internal mockPLPToken;
   MockRewarder internal PRRewarder;
+  address internal mockGateway;
 
   function setUp() public virtual {
     pool = new MockPool();
@@ -36,12 +37,14 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     mockPLPToken = new PLP();
     mockP88Token = new P88();
     plpStaking = new PLPStaking();
+    mockGateway = address(0x88);
 
     lockdropConfig = new LockdropConfig(
       100000,
       plpStaking,
       mockPLPToken,
-      mockP88Token
+      mockP88Token,
+      mockGateway
     );
 
     PRRewarder = new MockRewarder();
