@@ -5,7 +5,6 @@ import { Lockdrop_BaseTest, console } from "./Lockdrop_BaseTest.t.sol";
 contract Lockdrop_AllocateP88 is Lockdrop_BaseTest {
   function setUp() public override {
     super.setUp();
-    mockP88Token.setMinter(address(this), true);
   }
 
   function testCorrectness_AllocateP88() external {
@@ -14,16 +13,12 @@ contract Lockdrop_AllocateP88 is Lockdrop_BaseTest {
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(120000);
     lockdrop.lockToken(16, 604900);
-    (
-      uint256 aliceLockdropTokenAmount,
-      uint256 aliceLockPeriod,
-      bool aliceP88Claimed
-    ) = lockdrop.lockdropStates(ALICE);
+    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod, ) = lockdrop
+      .lockdropStates(ALICE);
     vm.stopPrank();
     assertEq(mockERC20.balanceOf(ALICE), 4);
     assertEq(aliceLockdropTokenAmount, 16);
     assertEq(aliceLockPeriod, 604900);
-    assertTrue(!aliceP88Claimed);
     assertEq(lockdrop.totalAmount(), 16);
     assertEq(lockdrop.totalP88Weight(), 16 * 604900);
 
@@ -40,6 +35,7 @@ contract Lockdrop_AllocateP88 is Lockdrop_BaseTest {
     // After lockdrop period ends, allocating P88 is called, the following criteria needs to satisfy:
     assertEq(lockdrop.totalP88(), 100);
     assertEq(mockP88Token.balanceOf(address(lockdrop)), 100);
+    assertEq(mockP88Token.balanceOf(address(this)), 0);
   }
 
   function testRevert_AllocateP88_CallAllocateMultipleTimes() external {
@@ -48,16 +44,12 @@ contract Lockdrop_AllocateP88 is Lockdrop_BaseTest {
     mockERC20.approve(address(lockdrop), 20);
     vm.warp(120000);
     lockdrop.lockToken(16, 604900);
-    (
-      uint256 aliceLockdropTokenAmount,
-      uint256 aliceLockPeriod,
-      bool aliceP88Claimed
-    ) = lockdrop.lockdropStates(ALICE);
+    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod, ) = lockdrop
+      .lockdropStates(ALICE);
     vm.stopPrank();
     assertEq(mockERC20.balanceOf(ALICE), 4);
     assertEq(aliceLockdropTokenAmount, 16);
     assertEq(aliceLockPeriod, 604900);
-    assertTrue(!aliceP88Claimed);
     assertEq(lockdrop.totalAmount(), 16);
     assertEq(lockdrop.totalP88Weight(), 16 * 604900);
 

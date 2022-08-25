@@ -6,7 +6,6 @@ import { Lockdrop_BaseTest, console } from "./Lockdrop_BaseTest.t.sol";
 contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
   function setUp() public override {
     super.setUp();
-    mockP88Token.setMinter(address(this), true);
   }
 
   // -------------------- claimAllP88 ----------------------------
@@ -124,6 +123,164 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     // 5. Status of Bob claiming P88 should be true
     assertEq(mockP88Token.balanceOf(ALICE), 57);
     assertEq(mockP88Token.balanceOf(BOB), 42);
+    assertEq(mockP88Token.balanceOf(address(lockdrop)), 1);
+    assertTrue(aliceP88Claimed);
+    assertTrue(bobP88Claimed);
+  }
+
+  function testCorrectness_ClaimAllP88_MultipleUserWithDoubleLockAmount()
+    external
+  {
+    // Alice lock x2 token more than Bob with same lock period
+    // ------- Alice session -------
+    vm.startPrank(ALICE);
+    mockERC20.mint(ALICE, 20);
+    mockERC20.approve(address(lockdrop), 20);
+    vm.warp(120000);
+    lockdrop.lockToken(20, 604900);
+    (
+      uint256 aliceLockdropTokenAmount,
+      uint256 aliceLockPeriod,
+      bool aliceP88Claimed
+    ) = lockdrop.lockdropStates(ALICE);
+    vm.stopPrank();
+    assertEq(mockERC20.balanceOf(ALICE), 0);
+    assertEq(aliceLockdropTokenAmount, 20);
+    assertEq(aliceLockPeriod, 604900);
+    assertEq(lockdrop.totalAmount(), 20);
+    assertEq(lockdrop.totalP88Weight(), 20 * 604900);
+    assertTrue(!aliceP88Claimed);
+
+    // ------- Bob session -------
+    vm.startPrank(BOB);
+    mockERC20.mint(BOB, 30);
+    mockERC20.approve(address(lockdrop), 30);
+    vm.warp(130000);
+    lockdrop.lockToken(10, 604900);
+    (
+      uint256 bobLockdropTokenAmount,
+      uint256 bobLockPeriod,
+      bool bobP88Claimed
+    ) = lockdrop.lockdropStates(BOB);
+    vm.stopPrank();
+    assertEq(mockERC20.balanceOf(BOB), 20);
+    assertEq(bobLockdropTokenAmount, 10);
+    assertEq(bobLockPeriod, 604900);
+    assertEq(lockdrop.totalAmount(), 30);
+    assertEq(lockdrop.totalP88Weight(), 20 * 604900 + 10 * 604900);
+    assertTrue(!bobP88Claimed);
+
+    // After lockdrop period
+    // Mint P88
+    vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
+    vm.startPrank(address(this));
+    mockP88Token.mint(address(this), 100);
+    mockP88Token.approve(address(lockdrop), 1000);
+    lockdrop.allocateP88(100);
+    vm.stopPrank();
+
+    // Alice claims her P88
+    vm.startPrank(ALICE);
+    lockdrop.claimAllP88(ALICE);
+    vm.stopPrank();
+
+    // Bob claims his P88
+    vm.startPrank(BOB);
+    lockdrop.claimAllP88(BOB);
+    vm.stopPrank();
+
+    (bobLockdropTokenAmount, bobLockPeriod, bobP88Claimed) = lockdrop
+      .lockdropStates(BOB);
+    (aliceLockdropTokenAmount, aliceLockPeriod, aliceP88Claimed) = lockdrop
+      .lockdropStates(ALICE);
+
+    // After claims her P88, the following criteria needs to satisfy:
+    // 1. The amount of Alice's P88 should be 66 (x2 of Bob amount)
+    // 2. The amount of Bob's P88 should be 33
+    // 3. The amount of lockdrop P88 should be 1
+    // 4. Status of Alice claiming P88 should be true
+    // 5. Status of Bob claiming P88 should be true
+    assertEq(mockP88Token.balanceOf(ALICE), 66);
+    assertEq(mockP88Token.balanceOf(BOB), 33);
+    assertEq(mockP88Token.balanceOf(address(lockdrop)), 1);
+    assertTrue(aliceP88Claimed);
+    assertTrue(bobP88Claimed);
+  }
+
+  function testCorrectness_ClaimAllP88_MultipleUserWithDoubleLockPeriod()
+    external
+  {
+    // Alice lock period x2 more than Bob with same lock amount
+    // ------- Alice session -------
+    vm.startPrank(ALICE);
+    mockERC20.mint(ALICE, 20);
+    mockERC20.approve(address(lockdrop), 20);
+    vm.warp(120000);
+    lockdrop.lockToken(10, 604900 * 2);
+    (
+      uint256 aliceLockdropTokenAmount,
+      uint256 aliceLockPeriod,
+      bool aliceP88Claimed
+    ) = lockdrop.lockdropStates(ALICE);
+    vm.stopPrank();
+    assertEq(mockERC20.balanceOf(ALICE), 10);
+    assertEq(aliceLockdropTokenAmount, 10);
+    assertEq(aliceLockPeriod, 604900 * 2);
+    assertEq(lockdrop.totalAmount(), 10);
+    assertEq(lockdrop.totalP88Weight(), 10 * 604900 * 2);
+    assertTrue(!aliceP88Claimed);
+
+    // ------- Bob session -------
+    vm.startPrank(BOB);
+    mockERC20.mint(BOB, 30);
+    mockERC20.approve(address(lockdrop), 30);
+    vm.warp(130000);
+    lockdrop.lockToken(10, 604900);
+    (
+      uint256 bobLockdropTokenAmount,
+      uint256 bobLockPeriod,
+      bool bobP88Claimed
+    ) = lockdrop.lockdropStates(BOB);
+    vm.stopPrank();
+    assertEq(mockERC20.balanceOf(BOB), 20);
+    assertEq(bobLockdropTokenAmount, 10);
+    assertEq(bobLockPeriod, 604900);
+    assertEq(lockdrop.totalAmount(), 20);
+    assertEq(lockdrop.totalP88Weight(), 10 * 604900 + 10 * 604900 * 2);
+    assertTrue(!bobP88Claimed);
+
+    // After lockdrop period
+    // Mint P88
+    vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
+    vm.startPrank(address(this));
+    mockP88Token.mint(address(this), 100);
+    mockP88Token.approve(address(lockdrop), 1000);
+    lockdrop.allocateP88(100);
+    vm.stopPrank();
+
+    // Alice claims her P88
+    vm.startPrank(ALICE);
+    lockdrop.claimAllP88(ALICE);
+    vm.stopPrank();
+
+    // Bob claims his P88
+    vm.startPrank(BOB);
+    lockdrop.claimAllP88(BOB);
+    vm.stopPrank();
+
+    (bobLockdropTokenAmount, bobLockPeriod, bobP88Claimed) = lockdrop
+      .lockdropStates(BOB);
+    (aliceLockdropTokenAmount, aliceLockPeriod, aliceP88Claimed) = lockdrop
+      .lockdropStates(ALICE);
+
+    // After claims her P88, the following criteria needs to satisfy:
+    // 1. The amount of Alice's P88 should be 66 (x2 of Bob amount)
+    // 2. The amount of Bob's P88 should be 33
+    // 3. The amount of lockdrop P88 should be 1
+    // 4. Status of Alice claiming P88 should be true
+    // 5. Status of Bob claiming P88 should be true
+    assertEq(mockP88Token.balanceOf(ALICE), 66);
+    assertEq(mockP88Token.balanceOf(BOB), 33);
     assertEq(mockP88Token.balanceOf(address(lockdrop)), 1);
     assertTrue(aliceP88Claimed);
     assertTrue(bobP88Claimed);
