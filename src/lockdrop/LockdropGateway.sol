@@ -3,6 +3,7 @@ pragma solidity 0.8.14;
 
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 import { IAaveAToken } from "../interfaces/IAaveAToken.sol";
 import { IAaveLendingPool } from "../interfaces/IAaveLendingPool.sol";
@@ -11,23 +12,24 @@ import { IUniswapPair } from "../interfaces/IUniswapPair.sol";
 import { ILockdrop } from "./interfaces/ILockdrop.sol";
 import { ILockdropGateway } from "./interfaces/ILockdropGateway.sol";
 
-contract LockdropGateway is ILockdropGateway {
+contract LockdropGateway is ILockdropGateway, Ownable {
   using SafeERC20 for IERC20;
 
   enum TokenType {
     UninitializedToken,
     BaseToken,
-    AToken,
-    PairToken
+    AToken, // Aave
+    LpPairToken, // SushiSwap, QuickSwap
+    LpStablePoolToken // Curve
   }
 
   struct LockdropInfo {
     TokenType tokenInType;
     address lockdrop;
+    bytes metadata;
   }
 
   mapping(address => LockdropInfo) public mapTokenLockdropInfo;
-  address public pairTokenRouter;
 
   error LockdropGateway_UnknownTokenType();
   error LockdropGateway_NotBaseToken();
@@ -36,8 +38,53 @@ contract LockdropGateway is ILockdropGateway {
   error LockdropGateway_UninitializedToken();
   error LockdropGateway_NothingToDoWithPosition();
 
-  constructor(address pairTokenRouter_) {
-    pairTokenRouter = pairTokenRouter_;
+  constructor() {}
+
+  function setBaseTokenLockdropInfo(address token, address lockdrop)
+    external
+    onlyOwner
+  {
+    _setLockdropInfo(token, TokenType.BaseToken, lockdrop, bytes(""));
+  }
+
+  function setATokenLockdropInfo(address token, address lockdrop)
+    external
+    onlyOwner
+  {
+    _setLockdropInfo(token, TokenType.AToken, lockdrop, bytes(""));
+  }
+
+  function setLpPairTokenLockdropInfo(
+    address token,
+    address lockdrop,
+    address router
+  ) external onlyOwner {
+    _setLockdropInfo(
+      token,
+      TokenType.LpPairToken,
+      lockdrop,
+      abi.encode(router)
+    );
+  }
+
+  function setLpStablePoolTokenLockdropInfo(address token, address lockdrop)
+    external
+    onlyOwner
+  {
+    _setLockdropInfo(token, TokenType.LpStablePoolToken, lockdrop, bytes(""));
+  }
+
+  function _setLockdropInfo(
+    address token,
+    TokenType tokenInType,
+    address lockdrop,
+    bytes memory metadata
+  ) internal {
+    mapTokenLockdropInfo[token] = LockdropInfo({
+      tokenInType: tokenInType,
+      lockdrop: lockdrop,
+      metadata: metadata
+    });
   }
 
   // Claim All Reward Token
@@ -104,9 +151,12 @@ contract LockdropGateway is ILockdropGateway {
       _handleLockAToken(token, lockAmount, lockPeriod);
       return;
     }
-    if (tokenInType == TokenType.PairToken) {
-      _handleLockPairToken(token, lockAmount, lockPeriod);
+    if (tokenInType == TokenType.LpPairToken) {
+      _handleLockLpPairToken(token, lockAmount, lockPeriod);
       return;
+    }
+    if (tokenInType == TokenType.LpStablePoolToken) {
+      revert();
     }
 
     revert LockdropGateway_UnknownTokenType();
@@ -138,19 +188,23 @@ contract LockdropGateway is ILockdropGateway {
     _handleLockBaseToken(baseToken, baseTokenAmount, lockPeriod);
   }
 
-  function _handleLockPairToken(
+  function _handleLockLpPairToken(
     address token,
     uint256 lockAmount,
     uint256 lockPeriod
   ) internal {
-    if (mapTokenLockdropInfo[token].tokenInType != TokenType.PairToken)
+    if (mapTokenLockdropInfo[token].tokenInType != TokenType.LpPairToken)
       revert LockdropGateway_NotPairToken();
 
     address baseToken0 = IUniswapPair(token).token0();
     address baseToken1 = IUniswapPair(token).token1();
+    address router = abi.decode(
+      mapTokenLockdropInfo[token].metadata,
+      (address)
+    );
 
     (uint256 baseToken0Amount, uint256 baseToken1Amount) = IUniswapRouter(
-      pairTokenRouter
+      router
     ).removeLiquidity(
         baseToken0,
         baseToken1,
