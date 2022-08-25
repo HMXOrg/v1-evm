@@ -8,6 +8,6 @@ contract MockLockdropStrategy is ILockdropStrategy {
     external
     returns (uint256)
   {
-    return tokenAmount;
+    return tokenAmount * 2;
   }
 }
