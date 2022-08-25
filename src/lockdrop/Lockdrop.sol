@@ -86,8 +86,9 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   }
 
   /// @dev ACL Gateway
-   modifier onlyGateway() {
-    if (msg.sender != lockdropConfig.gatewayAddress()) revert Lockdrop_NotGateway();
+  modifier onlyGateway() {
+    if (msg.sender != lockdropConfig.gatewayAddress())
+      revert Lockdrop_NotGateway();
     _;
   }
 
@@ -123,12 +124,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     });
     totalAmount += amount;
     totalP88Weight += amount * lockPeriod;
-    // Gateway call the function
-    if (msg.sender == lockdropConfig.gatewayAddress()) {
-      lockdropToken.safeTransferFrom(msg.sender, address(this), amount);
-    } else {
-      lockdropToken.safeTransferFrom(user, address(this), amount);
-    }
+    lockdropToken.safeTransferFrom(msg.sender, address(this), amount);    
     emit LogLockToken(user, amount, lockPeriod);
   }
 
@@ -194,12 +190,8 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     lockdropStates[user].lockdropTokenAmount += amount;
     totalAmount += amount;
     totalP88Weight += amount * lockdropStates[user].lockPeriod;
-     // Gateway call the function
-    if (msg.sender == lockdropConfig.gatewayAddress()) {
-      lockdropToken.safeTransferFrom(msg.sender, address(this), amount);
-    } else {
-      lockdropToken.safeTransferFrom(user, address(this), amount);
-    }
+    // Gateway call the function
+    lockdropToken.safeTransferFrom(msg.sender, address(this), amount);
     emit LogAddLockAmount(user, amount);
   }
 
