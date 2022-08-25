@@ -154,6 +154,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   function lockToken(uint256 amount, uint256 lockPeriod)
     external
     onlyInLockdropPeriod
+    nonReentrant
   {
     _lockTokenFor(amount, lockPeriod, msg.sender);
   }
@@ -200,6 +201,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     external
     onlyInLockdropPeriod
     onlyGateway
+    nonReentrant
   {
     _extendLockPeriodFor(newLockPeriod, user);
   }
@@ -228,6 +230,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     external
     onlyInLockdropPeriod
     onlyGateway
+    nonReentrant
   {
     _addLockAmountFor(amount, user);
   }
@@ -298,7 +301,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
 
   /// @dev Users able to withdraw all their PLP Token after the end of the lockdrop period + their input lock period
   /// @param user Address of the user that wants to withdraw
-  function withdrawAll(address user) external {
+  function withdrawAll(address user) external nonReentrant {
     if (totalPLPAmount == 0) revert Lockdrop_ZeroTotalPLPAmount();
     if (
       block.timestamp <
