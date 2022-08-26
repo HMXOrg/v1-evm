@@ -70,8 +70,8 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   uint256 public totalP88;
   uint256 public totalPLPAmount;
   address[] public rewardTokens; //The index of each reward token will remain the same, for example, 0 for MATIC and 1 for esP88
-  uint256[] accRewardPerShares; // Accum reward per share
-  address nativeTokenAddress;
+  uint256[] public accRewardPerShares; // Accum reward per share
+  address public nativeTokenAddress;
 
   mapping(address => LockdropState) public lockdropStates;
 
