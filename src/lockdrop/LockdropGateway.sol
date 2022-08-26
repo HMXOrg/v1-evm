@@ -6,6 +6,9 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 import { IAaveAToken } from "../interfaces/IAaveAToken.sol";
+import { ICurveTokenV3Remover } from "../interfaces/ICurveTokenV3Remover.sol";
+import { ICurveTokenV5Remover } from "../interfaces/ICurveTokenV5Remover.sol";
+import { ICurveTokenV3 } from "../interfaces/ICurveTokenV3.sol";
 import { IAaveLendingPool } from "../interfaces/IAaveLendingPool.sol";
 import { IUniswapRouter } from "../interfaces/IUniswapRouter.sol";
 import { IUniswapPair } from "../interfaces/IUniswapPair.sol";
@@ -20,7 +23,8 @@ contract LockdropGateway is ILockdropGateway, Ownable {
     BaseToken,
     AToken, // Aave
     LpPairToken, // SushiSwap, QuickSwap
-    LpStablePoolToken // Curve
+    CurveV3Token, // Curve Aave LP Token
+    CurveV5Token // ATriCrypto3 LP Token
   }
 
   struct LockdropInfo {
@@ -35,6 +39,8 @@ contract LockdropGateway is ILockdropGateway, Ownable {
   error LockdropGateway_NotBaseToken();
   error LockdropGateway_NotAToken();
   error LockdropGateway_NotPairToken();
+  error LockdropGateway_NotCurveV3Token();
+  error LockdropGateway_NotCurveV5Token();
   error LockdropGateway_UninitializedToken();
   error LockdropGateway_NothingToDoWithPosition();
 
@@ -67,11 +73,19 @@ contract LockdropGateway is ILockdropGateway, Ownable {
     );
   }
 
-  function setLpStablePoolTokenLockdropInfo(address token, address lockdrop)
+  function setCurveV3TokenLockdropInfo(address token, address lockdrop)
     external
     onlyOwner
   {
-    _setLockdropInfo(token, TokenType.LpStablePoolToken, lockdrop, bytes(""));
+    _setLockdropInfo(token, TokenType.CurveV3Token, lockdrop, bytes(""));
+  }
+
+  function setCurveV5TokenLockdropInfo(
+    address token,
+    address lockdrop,
+    address zap
+  ) external onlyOwner {
+    _setLockdropInfo(token, TokenType.CurveV3Token, lockdrop, abi.encode(zap));
   }
 
   function _setLockdropInfo(
@@ -155,8 +169,13 @@ contract LockdropGateway is ILockdropGateway, Ownable {
       _handleLockLpPairToken(token, lockAmount, lockPeriod);
       return;
     }
-    if (tokenInType == TokenType.LpStablePoolToken) {
-      revert();
+    if (tokenInType == TokenType.CurveV3Token) {
+      _handleLockCurveV3Token(token, lockAmount, lockPeriod);
+      return;
+    }
+    if (tokenInType == TokenType.CurveV5Token) {
+      _handleLockCurveV5Token(token, lockAmount, lockPeriod);
+      return;
     }
 
     revert LockdropGateway_UnknownTokenType();
@@ -217,6 +236,113 @@ contract LockdropGateway is ILockdropGateway, Ownable {
 
     _handleLockBaseToken(baseToken0, baseToken0Amount, lockPeriod);
     _handleLockBaseToken(baseToken1, baseToken1Amount, lockPeriod);
+  }
+
+  function _handleLockCurveV3Token(
+    address token,
+    uint256 lockAmount,
+    uint256 lockPeriod
+  ) internal {
+    if (mapTokenLockdropInfo[token].tokenInType != TokenType.CurveV3Token)
+      revert LockdropGateway_NotCurveV3Token();
+
+    address remover = ICurveTokenV3(token).minter();
+    address[] memory baseTokens = ICurveTokenV3Remover(remover)
+      .underlying_coins();
+
+    uint256[3] memory baseTokenAmountsBefore = [
+      IERC20(baseTokens[0]).balanceOf(address(this)),
+      IERC20(baseTokens[1]).balanceOf(address(this)),
+      IERC20(baseTokens[2]).balanceOf(address(this))
+    ];
+    uint256[3] memory minAmounts;
+    ICurveTokenV3Remover(remover).remove_liquidity(
+      lockAmount,
+      minAmounts,
+      true
+    );
+
+    // Find the actual receive amount, and then lock those tokens
+    {
+      uint256[3] memory baseTokenAmounts = [
+        IERC20(baseTokens[0]).balanceOf(address(this)) -
+          baseTokenAmountsBefore[0],
+        IERC20(baseTokens[1]).balanceOf(address(this)) -
+          baseTokenAmountsBefore[1],
+        IERC20(baseTokens[2]).balanceOf(address(this)) -
+          baseTokenAmountsBefore[2]
+      ];
+      if (baseTokenAmounts[0] > 0) {
+        _handleLockBaseToken(baseTokens[0], baseTokenAmounts[0], lockPeriod);
+      }
+      if (baseTokenAmounts[1] > 0) {
+        _handleLockBaseToken(baseTokens[1], baseTokenAmounts[1], lockPeriod);
+      }
+      if (baseTokenAmounts[2] > 0) {
+        _handleLockBaseToken(baseTokens[2], baseTokenAmounts[2], lockPeriod);
+      }
+    }
+  }
+
+  function _handleLockCurveV5Token(
+    address token,
+    uint256 lockAmount,
+    uint256 lockPeriod
+  ) internal {
+    if (mapTokenLockdropInfo[token].tokenInType != TokenType.CurveV5Token)
+      revert LockdropGateway_NotCurveV5Token();
+
+    address remover = abi.decode(
+      mapTokenLockdropInfo[token].metadata,
+      (address) // Zap address
+    );
+    address[] memory baseTokens = ICurveTokenV5Remover(remover)
+      .underlying_coins();
+
+    uint256[5] memory baseTokenAmountsBefore = [
+      IERC20(baseTokens[0]).balanceOf(address(this)),
+      IERC20(baseTokens[1]).balanceOf(address(this)),
+      IERC20(baseTokens[2]).balanceOf(address(this)),
+      IERC20(baseTokens[3]).balanceOf(address(this)),
+      IERC20(baseTokens[4]).balanceOf(address(this))
+    ];
+    uint256[5] memory minAmounts;
+    ICurveTokenV5Remover(remover).remove_liquidity(
+      lockAmount,
+      minAmounts,
+      address(this)
+    );
+
+    // Find the actual receive amount, and then lock those tokens
+    {
+      uint256[5] memory baseTokenAmounts = [
+        IERC20(baseTokens[0]).balanceOf(address(this)) -
+          baseTokenAmountsBefore[0],
+        IERC20(baseTokens[1]).balanceOf(address(this)) -
+          baseTokenAmountsBefore[1],
+        IERC20(baseTokens[2]).balanceOf(address(this)) -
+          baseTokenAmountsBefore[2],
+        IERC20(baseTokens[3]).balanceOf(address(this)) -
+          baseTokenAmountsBefore[3],
+        IERC20(baseTokens[4]).balanceOf(address(this)) -
+          baseTokenAmountsBefore[4]
+      ];
+      if (baseTokenAmounts[0] > 0) {
+        _handleLockBaseToken(baseTokens[0], baseTokenAmounts[0], lockPeriod);
+      }
+      if (baseTokenAmounts[1] > 0) {
+        _handleLockBaseToken(baseTokens[1], baseTokenAmounts[1], lockPeriod);
+      }
+      if (baseTokenAmounts[2] > 0) {
+        _handleLockBaseToken(baseTokens[2], baseTokenAmounts[2], lockPeriod);
+      }
+      if (baseTokenAmounts[3] > 0) {
+        _handleLockBaseToken(baseTokens[3], baseTokenAmounts[3], lockPeriod);
+      }
+      if (baseTokenAmounts[4] > 0) {
+        _handleLockBaseToken(baseTokens[4], baseTokenAmounts[4], lockPeriod);
+      }
+    }
   }
 
   function _lockBaseTokenAtLockdrop(
