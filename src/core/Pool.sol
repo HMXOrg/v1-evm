@@ -1114,6 +1114,16 @@ contract Pool is Constants, ReentrancyGuard {
     return address(uint160(primary) ^ uint160(subAccountId));
   }
 
+  function getTargetValue(address token) public view returns (uint256) {
+    // SLOAD
+    uint256 cachedTotalUsdDebt = totalUsdDebt;
+    if (cachedTotalUsdDebt == 0) return 0;
+
+    return
+      (cachedTotalUsdDebt * config.tokenWeight(token)) /
+      config.totalTokenWeight();
+  }
+
   function isSubAccountOf(address primary, address subAccount)
     public
     pure
@@ -1385,16 +1395,6 @@ contract Pool is Constants, ReentrancyGuard {
     emit UpdatePnL(posId, vars.isProfit, vars.delta);
 
     return (vars.usdOut, vars.usdOutAfterFee);
-  }
-
-  function targetValue(address token) public view returns (uint256) {
-    // SLOAD
-    uint256 cachedTotalUsdDebt = totalUsdDebt;
-    if (cachedTotalUsdDebt == 0) return 0;
-
-    return
-      (cachedTotalUsdDebt * config.tokenWeight(token)) /
-      config.totalTokenWeight();
   }
 
   /// ---------------

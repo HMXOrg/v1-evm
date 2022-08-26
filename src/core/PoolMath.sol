@@ -100,7 +100,7 @@ contract PoolMath is Constants {
     if (direction == LiquidityDirection.REMOVE)
       nextValue = value > startValue ? 0 : startValue - value;
 
-    uint256 targetValue = pool.targetValue(token);
+    uint256 targetValue = pool.getTargetValue(token);
     if (targetValue == 0) return feeBps;
 
     uint256 startTargetDiff = startValue > targetValue
