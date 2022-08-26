@@ -343,13 +343,12 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     // vm.stopPrank();
 
     vm.startPrank(address(lockdrop));
-    mockERC20.approve(address(strategy), 100);
     mockPLPToken.approve(address(lockdropConfig.plpStaking()), 100);
     vm.stopPrank();
 
     vm.startPrank(address(this));
     // Owner mint PLPToken
-    mockPLPToken.mint(address(lockdrop), 20);
+    mockPLPToken.mint(address(lockdrop), 32);
     mockPLPToken.approve(address(lockdropConfig.plpStaking()), 100);
     lockdrop.stakePLP();
     assertEq(mockPLPToken.balanceOf(address(lockdrop)), 0);
@@ -367,7 +366,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     // 3. Since Alice is the only one who lock the token, the total amount of PLP token in the contract should remain the same
     // 4. Alice is now deleted from lockdropStates so her lock token amount is 0
     // 5. Alice is now deleted from lockdropStates so her lock period is 0
-    assertEq(mockPLPToken.balanceOf(ALICE), 20);
+    assertEq(mockPLPToken.balanceOf(ALICE), 32);
     assertEq(mockPLPToken.balanceOf(address(lockdrop)), 0);
     assertEq(alicelockdropTokenAmount, 0);
     assertEq(alicelockPeriod, 0);

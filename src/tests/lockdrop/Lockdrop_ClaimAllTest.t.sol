@@ -7,7 +7,7 @@ import { MockErc20 } from "../mocks/MockERC20.sol";
 import { BaseTest } from "../base/BaseTest.sol";
 import { LockdropConfig } from "../../lockdrop/LockdropConfig.sol";
 import { Lockdrop } from "../../lockdrop/Lockdrop.sol";
-import { MockLockdropStrategy } from "../mocks/MockLockdropStrategy.sol";
+import { MockPool } from "../mocks/MockPool.sol";
 import { MockPLPStaking } from "../mocks/MockPLPStaking.sol";
 
 contract Lockdrop_ClaimReward is BaseTest {
@@ -21,13 +21,13 @@ contract Lockdrop_ClaimReward is BaseTest {
   address[] internal rewardsTokenList;
   LockdropConfig internal lockdropConfig;
   Lockdrop internal lockdrop;
-  MockLockdropStrategy internal lockdropStrategy;
   MockPLPStaking internal mockPLPStaking;
+  MockPool internal pool;
   address internal mockGateway;
 
   function setUp() external {
-    lockdropStrategy = new MockLockdropStrategy();
     mockGateway = address(0x88);
+    pool = new MockPool();
 
     lockdropToken = new MockErc20("LockdropToken", "LCKT", 18);
     mockPLP = new MockErc20("PLP", "PLP", 18);
@@ -57,7 +57,7 @@ contract Lockdrop_ClaimReward is BaseTest {
 
     lockdrop = new Lockdrop(
       address(lockdropToken),
-      lockdropStrategy,
+      pool,
       lockdropConfig,
       rewardsTokenList
     );
@@ -111,7 +111,6 @@ contract Lockdrop_ClaimReward is BaseTest {
     vm.warp(block.timestamp + 7 days);
 
     // Lockdrop stake lockdrop tokens  in PLPstaking.
-    lockdropToken.approve(address(lockdropStrategy), 31 ether);
     lockdrop.stakePLP();
 
     // mint PLP tokens for PLPStaking

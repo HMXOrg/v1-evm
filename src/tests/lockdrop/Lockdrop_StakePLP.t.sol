@@ -51,14 +51,13 @@ contract Lockdrop_StakePLP is Lockdrop_BaseTest {
 
     // Lockdrop approve strategy and PLPStaking
     vm.startPrank(address(lockdrop));
-    mockERC20.approve(address(strategy), 100);
-    mockPLPToken.approve(address(lockdropConfig.plpStaking()), 100);
+    mockPLPToken.approve(address(lockdropConfig.plpStaking()), 90);
     vm.stopPrank();
 
     vm.startPrank(address(this));
     // Owner mint PLPToken
-    mockPLPToken.mint(address(lockdrop), 20);
-    mockPLPToken.approve(address(lockdropConfig.plpStaking()), 100);
+    mockPLPToken.mint(address(lockdrop), 90);
+    mockPLPToken.approve(address(lockdropConfig.plpStaking()), 90);
     lockdrop.stakePLP();
     assertEq(mockPLPToken.balanceOf(address(lockdrop)), 0);
     vm.stopPrank();
@@ -88,14 +87,13 @@ contract Lockdrop_StakePLP is Lockdrop_BaseTest {
 
     // Lockdrop approve strategy and PLPStaking
     vm.startPrank(address(lockdrop));
-    mockERC20.approve(address(strategy), 45);
-    mockPLPToken.approve(address(lockdropConfig.plpStaking()), 20);
+    mockPLPToken.approve(address(lockdropConfig.plpStaking()), 32);
     vm.stopPrank();
 
     vm.startPrank(address(this));
     // Owner mint PLPToken
-    mockPLPToken.mint(address(lockdrop), 20);
-    mockPLPToken.approve(address(lockdropConfig.plpStaking()), 20);
+    mockPLPToken.mint(address(lockdrop), 32);
+    mockPLPToken.approve(address(lockdropConfig.plpStaking()), 32);
     lockdrop.stakePLP();
     vm.expectRevert(abi.encodeWithSignature("Lockdrop_PLPAlreadyStaked()"));
     lockdrop.stakePLP();
