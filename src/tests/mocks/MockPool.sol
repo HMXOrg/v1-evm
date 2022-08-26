@@ -16,7 +16,7 @@ contract MockPool is IPool {
     address receiver,
     uint256 minLiquidity
   ) public returns (uint256) {
-    return 20;
+    return amount * 2;
   }
 
   function swap(

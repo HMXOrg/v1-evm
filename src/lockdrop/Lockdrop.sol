@@ -6,7 +6,7 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { ILockdropStrategy } from "./interfaces/ILockdropStrategy.sol";
+import { IPool } from "../interfaces/IPool.sol";
 import { IStaking } from "../staking/interfaces/IStaking.sol";
 import { LockdropConfig } from "./LockdropConfig.sol";
 import { ILockdrop } from "./interfaces/ILockdrop.sol";
@@ -62,9 +62,9 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   }
 
   // --- States ---
-  ILockdropStrategy public strategy;
   IERC20 public lockdropToken; // lockdrop token address
   LockdropConfig public lockdropConfig;
+  IPool public pool;
   uint256 public totalAmount; // total amount of token
   uint256 public totalP88Weight; // Sum of amount * lockPeriod
   uint256 public totalP88;
@@ -99,7 +99,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
 
   constructor(
     address lockdropToken_,
-    ILockdropStrategy strategy_,
+    IPool pool_,
     LockdropConfig lockdropConfig_,
     address[] memory rewardTokens_
   ) {
@@ -108,10 +108,10 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     if (block.timestamp > lockdropConfig_.startLockTimestamp())
       revert Lockdrop_InvalidStartLockTimestamp();
 
-    strategy = strategy_;
     lockdropToken = IERC20(lockdropToken_);
     lockdropConfig = lockdropConfig_;
     rewardTokens = rewardTokens_;
+    pool = pool_;
   }
 
   function _lockTokenFor(
@@ -452,7 +452,13 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   /// Recieve number of PLP after staking ERC20 Token
   function stakePLP() external onlyAfterLockdropPeriod onlyOwner {
     if (totalPLPAmount > 0) revert Lockdrop_PLPAlreadyStaked();
-    totalPLPAmount = strategy.execute(totalAmount, address(lockdropToken));
+    // add lockdrop token to liquidity pool.
+    totalPLPAmount = pool.addLiquidity(
+      address(lockdropToken),
+      totalAmount,
+      address(this),
+      0
+    );
     lockdropConfig.plpStaking().deposit(
       address(this),
       address(lockdropConfig.plpToken()),
