@@ -17,7 +17,9 @@ contract Pool is Constants, ReentrancyGuard {
 
   error Pool_BadAmountOut();
   error Pool_BadArgument();
+  error Pool_BadCollateralDelta();
   error Pool_BadPositionSize();
+  error Pool_BadSizeDelta();
   error Pool_BadToken();
   error Pool_CollateralNotCoverFee();
   error Pool_CollateralTokenIsStable();
@@ -93,10 +95,31 @@ contract Pool is Constants, ReentrancyGuard {
     uint256 usdDebt,
     uint256 mintAmount
   );
+  event ClosePosition(
+    bytes32 posId,
+    uint256 size,
+    uint256 collateral,
+    uint256 averagePrice,
+    uint256 entryFundingRate,
+    uint256 reserveAmount,
+    int256 realisedPnL
+  );
   event CollectSwapFee(address token, uint256 feeUsd, uint256 fee);
   event CollectMarginFee(address token, uint256 feeUsd, uint256 feeTokens);
   event DecreaseGuaranteedUsd(address token, uint256 amount);
   event DecreasePoolLiquidity(address token, uint256 amount);
+  event DecreasePosition(
+    bytes32 posId,
+    address primaryAccount,
+    uint256 subAccountId,
+    address collateralToken,
+    address indexToken,
+    uint256 collateralDelta,
+    uint256 sizeDelta,
+    Exposure exposure,
+    uint256 price,
+    uint256 feeUsd
+  );
   event DecreaseUsdDebt(address token, uint256 amount);
   event DecreaseReserved(address token, uint256 amount);
   event DecreaseShortSize(address token, uint256 amount);
@@ -117,8 +140,9 @@ contract Pool is Constants, ReentrancyGuard {
   event IncreaseGuaranteedUsd(address token, uint256 amount);
   event IncreasePoolLiquidity(address token, uint256 amount);
   event IncreasePosition(
-    bytes32 positionId,
-    address subAccount,
+    bytes32 posId,
+    address primaryAccount,
+    uint256 subAccountId,
     address collateralToken,
     address indexToken,
     uint256 collateralDeltaUsd,
@@ -148,6 +172,7 @@ contract Pool is Constants, ReentrancyGuard {
     uint256 amountOutAfterFee,
     uint256 swapFeeBps
   );
+  event UpdatePnL(bytes32 positionId, bool isProfit, uint256 delta);
   event UpdatePosition(
     bytes32 positionId,
     uint256 size,
@@ -597,7 +622,8 @@ contract Pool is Constants, ReentrancyGuard {
 
     emit IncreasePosition(
       vars.posId,
-      vars.subAccount,
+      primaryAccount,
+      subAccountId,
       collateralToken,
       indexToken,
       vars.collateralDeltaUsd,
@@ -616,6 +642,199 @@ contract Pool is Constants, ReentrancyGuard {
       position.realizedPnl,
       vars.price
     );
+  }
+
+  struct DecreasePositionLocalVars {
+    address subAccount;
+    bytes32 posId;
+    uint256 collateral;
+    uint256 reserveDelta;
+    uint256 usdOut;
+    uint256 usdOutAfterFee;
+    uint256 price;
+  }
+
+  function decreasePosition(
+    address primaryAccount,
+    uint256 subAccountId,
+    address collateralToken,
+    address indexToken,
+    uint256 collateralDelta,
+    uint256 sizeDelta,
+    Exposure exposure,
+    address receiver
+  ) external nonReentrant allowed(primaryAccount) returns (uint256) {
+    return
+      _decreasePosition(
+        primaryAccount,
+        subAccountId,
+        collateralToken,
+        indexToken,
+        collateralDelta,
+        sizeDelta,
+        exposure,
+        receiver
+      );
+  }
+
+  /// @notice Decrease leverage position size.
+  function _decreasePosition(
+    address primaryAccount,
+    uint256 subAccountId,
+    address collateralToken,
+    address indexToken,
+    uint256 collateralDelta,
+    uint256 sizeDelta,
+    Exposure exposure,
+    address receiver
+  ) internal returns (uint256) {
+    updateFundingRate(collateralToken, indexToken);
+
+    DecreasePositionLocalVars memory vars;
+
+    vars.subAccount = getSubAccount(primaryAccount, subAccountId);
+
+    vars.posId = getPositionId(
+      vars.subAccount,
+      collateralToken,
+      indexToken,
+      exposure
+    );
+    Position storage position = positions[vars.posId];
+    if (position.size == 0) revert Pool_BadPositionSize();
+    if (sizeDelta > position.size) revert Pool_BadSizeDelta();
+    if (collateralDelta > position.collateral) revert Pool_BadCollateralDelta();
+
+    // Reduce position's reserveAmount proportionally to sizeDelta and positionSize.
+    // Then decrease reserved token in the pool as well.
+    vars.reserveDelta = (position.reserveAmount * sizeDelta) / position.size;
+    position.reserveAmount -= vars.reserveDelta;
+    _decreaseReserved(collateralToken, vars.reserveDelta);
+
+    // Preload position's collateral here as _reduceCollateral will alter it
+    vars.collateral = position.collateral;
+
+    // Perform the actual reduce collateral
+    (vars.usdOut, vars.usdOutAfterFee) = _reduceCollateral(
+      vars.subAccount,
+      collateralToken,
+      indexToken,
+      collateralDelta,
+      sizeDelta,
+      exposure
+    );
+
+    if (position.size != sizeDelta) {
+      // Partially close the position
+      position.entryFundingRate = poolMath.getEntryFundingRate(
+        Pool(address(this)),
+        collateralToken,
+        indexToken,
+        exposure
+      );
+      position.size -= sizeDelta;
+
+      _checkPosition(position.size, position.collateral);
+      poolMath.checkLiquidation(
+        Pool(address(this)),
+        vars.subAccount,
+        collateralToken,
+        indexToken,
+        exposure,
+        true
+      );
+
+      if (exposure == Exposure.LONG) {
+        // Update guaranteedUsd by increase by delta of collateralBeforeReduce and collateralAfterReduce
+        // Then decrease by sizeDelta
+        _increaseGuaranteedUsd(
+          collateralToken,
+          vars.collateral - position.collateral
+        );
+        _decreaseGuaranteedUsd(collateralToken, sizeDelta);
+      }
+
+      vars.price = Exposure.LONG == exposure
+        ? oracle.getMinPrice(indexToken)
+        : oracle.getMaxPrice(indexToken);
+
+      emit DecreasePosition(
+        vars.posId,
+        primaryAccount,
+        subAccountId,
+        collateralToken,
+        indexToken,
+        collateralDelta,
+        sizeDelta,
+        exposure,
+        vars.price,
+        vars.usdOut - vars.usdOutAfterFee
+      );
+      emit UpdatePosition(
+        vars.posId,
+        position.size,
+        position.collateral,
+        position.averagePrice,
+        position.entryFundingRate,
+        position.reserveAmount,
+        position.realizedPnl,
+        vars.price
+      );
+    } else {
+      // Close position
+      if (Exposure.LONG == exposure) {
+        _increaseGuaranteedUsd(collateralToken, vars.collateral);
+        _decreaseGuaranteedUsd(collateralToken, sizeDelta);
+      }
+
+      vars.price = Exposure.LONG == exposure
+        ? oracle.getMinPrice(indexToken)
+        : oracle.getMaxPrice(indexToken);
+
+      delete positions[vars.posId];
+
+      emit DecreasePosition(
+        vars.posId,
+        primaryAccount,
+        subAccountId,
+        collateralToken,
+        indexToken,
+        collateralDelta,
+        sizeDelta,
+        exposure,
+        vars.price,
+        vars.usdOut - vars.usdOutAfterFee
+      );
+      emit ClosePosition(
+        vars.posId,
+        position.size,
+        position.collateral,
+        position.averagePrice,
+        position.entryFundingRate,
+        position.reserveAmount,
+        position.realizedPnl
+      );
+    }
+
+    if (Exposure.SHORT == exposure) _decreaseShortSize(indexToken, sizeDelta);
+
+    if (vars.usdOut > 0) {
+      if (Exposure.LONG == exposure)
+        _decreasePoolLiquidity(
+          collateralToken,
+          _convertUsde30ToTokens(collateralToken, vars.usdOut, MinMax.MAX)
+        );
+      uint256 amountOutAfterFee = _convertUsde30ToTokens(
+        collateralToken,
+        vars.usdOutAfterFee,
+        MinMax.MAX
+      );
+      _pushTokens(collateralToken, receiver, amountOutAfterFee);
+
+      return amountOutAfterFee;
+    }
+
+    return 0;
   }
 
   // ----------------
@@ -676,6 +895,7 @@ contract Pool is Constants, ReentrancyGuard {
       lastIncreasedTime + config.minProfitDuration()
       ? 0
       : config.tokenMinProfitBps(indexToken);
+
     if (isProfit && delta * BPS <= size * minBps) delta = 0;
 
     return (isProfit, delta);
@@ -869,6 +1089,22 @@ contract Pool is Constants, ReentrancyGuard {
       );
   }
 
+  function getPositionLeverage(
+    address account,
+    address collateralToken,
+    address indexToken,
+    Exposure exposure
+  ) public view returns (uint256) {
+    bytes32 posId = getPositionId(
+      account,
+      collateralToken,
+      indexToken,
+      exposure
+    );
+    Position memory position = positions[posId];
+    return (position.size * BPS) / position.collateral;
+  }
+
   function getSubAccount(address primary, uint256 subAccountId)
     public
     pure
@@ -876,6 +1112,16 @@ contract Pool is Constants, ReentrancyGuard {
   {
     if (subAccountId > 255) revert Pool_BadArgument();
     return address(uint160(primary) ^ uint160(subAccountId));
+  }
+
+  function getTargetValue(address token) public view returns (uint256) {
+    // SLOAD
+    uint256 cachedTotalUsdDebt = totalUsdDebt;
+    if (cachedTotalUsdDebt == 0) return 0;
+
+    return
+      (cachedTotalUsdDebt * config.tokenWeight(token)) /
+      config.totalTokenWeight();
   }
 
   function isSubAccountOf(address primary, address subAccount)
@@ -1039,14 +1285,116 @@ contract Pool is Constants, ReentrancyGuard {
     emit DecreaseShortSize(token, amountUsd);
   }
 
-  function targetValue(address token) public view returns (uint256) {
-    // SLOAD
-    uint256 cachedTotalUsdDebt = totalUsdDebt;
-    if (cachedTotalUsdDebt == 0) return 0;
+  struct ReduceCollateralLocalVars {
+    uint256 feeUsd;
+    uint256 delta;
+    uint256 usdOut;
+    uint256 usdOutAfterFee;
+    bool isProfit;
+  }
 
-    return
-      (cachedTotalUsdDebt * config.tokenWeight(token)) /
-      config.totalTokenWeight();
+  function _reduceCollateral(
+    address account,
+    address collateralToken,
+    address indexToken,
+    uint256 collateralDelta,
+    uint256 sizeDelta,
+    Exposure exposure
+  ) internal returns (uint256, uint256) {
+    bytes32 posId = getPositionId(
+      account,
+      collateralToken,
+      indexToken,
+      exposure
+    );
+    Position storage position = positions[posId];
+
+    ReduceCollateralLocalVars memory vars;
+
+    // Collect margin fee
+    vars.feeUsd = _collectMarginFee(
+      account,
+      collateralToken,
+      indexToken,
+      exposure,
+      sizeDelta,
+      position.size,
+      position.entryFundingRate
+    );
+
+    // Calculate position's delta.
+    (vars.isProfit, vars.delta) = getDelta(
+      indexToken,
+      position.size,
+      position.averagePrice,
+      exposure,
+      position.lastIncreasedTime
+    );
+    // Adjusting delta to be proportionally to size delta and position size
+    vars.delta = (vars.delta * sizeDelta) / position.size;
+
+    if (vars.isProfit && vars.delta > 0) {
+      // Position is profitable. Handle profits here.
+      vars.usdOut = vars.delta;
+
+      // realized PnL
+      position.realizedPnl += int256(vars.delta);
+
+      if (exposure == Exposure.SHORT)
+        // If it is a short position, payout profits from the liquidity.
+        _decreasePoolLiquidity(
+          collateralToken,
+          _convertUsde30ToTokens(collateralToken, vars.delta, MinMax.MAX)
+        );
+    }
+
+    if (!vars.isProfit && vars.delta > 0) {
+      // Position is not profitable. Handle losses here.
+
+      // Take out collateral
+      position.collateral -= vars.delta;
+
+      if (exposure == Exposure.SHORT)
+        // If it is a short position, add short losses to pool liquidity.
+        _increasePoolLiquidity(
+          collateralToken,
+          _convertUsde30ToTokens(collateralToken, vars.delta, MinMax.MAX)
+        );
+
+      // realized PnL
+      position.realizedPnl -= int256(vars.delta);
+    }
+
+    // Reduce position's collateral by collateralDelta
+    if (collateralDelta > 0) {
+      vars.usdOut += collateralDelta;
+      position.collateral -= collateralDelta;
+    }
+
+    // If position to be closed, then remove all collateral from it.
+    if (position.size == sizeDelta) {
+      vars.usdOut += position.collateral;
+      position.collateral = 0;
+    }
+
+    vars.usdOutAfterFee = vars.usdOut;
+    if (vars.usdOut > vars.feeUsd)
+      // if usdOut is enough to cover fee, then take it out from usdOut
+      vars.usdOutAfterFee -= vars.feeUsd;
+    else {
+      // take fee from the collateral
+      position.collateral -= vars.feeUsd;
+      if (Exposure.LONG == exposure) {
+        _decreasePoolLiquidity(
+          collateralToken,
+          _convertUsde30ToTokens(collateralToken, vars.feeUsd, MinMax.MAX)
+        );
+      }
+    }
+
+    emit UpdatePnL(posId, vars.isProfit, vars.delta);
+
+    return (vars.usdOut, vars.usdOutAfterFee);
   }
 
   /// ---------------

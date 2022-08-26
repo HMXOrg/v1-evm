@@ -161,7 +161,7 @@ contract Pool_RemoveLiquidityTest is Pool_BaseTest {
     // 6. Pool should have 0.7 DAI left in liquidity.
     // 7. Pool should have 0.0997 WBTC left in liquidity.
     // 8. Pool should have 0.09177071428571415 MATIC left in liquidity.
-    assertEq(matic.balanceOf(BOB), 826567122857142857);
+    assertEq(matic.balanceOf(BOB), 826567122857142856);
     assertEq(pool.plp().balanceOf(BOB), 0 ether);
     assertEq(pool.plp().totalSupply(), 398.8 ether);
     assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 644785357142857143000);
@@ -192,7 +192,7 @@ contract Pool_RemoveLiquidityTest is Pool_BaseTest {
     // 6. Pool should have 0.7 DAI left in liquidity.
     // 7. Pool should have 0.00000874 WBTC left in liquidity.
     // 8. Pool should have 0.09177071428571415 MATIC left in liquidity.
-    assertEq(wbtc.balanceOf(CAT), 993138);
+    assertEq(wbtc.balanceOf(CAT), 993137);
     assertEq(pool.plp().balanceOf(CAT), 23.8 ether);
     assertEq(pool.plp().totalSupply(), 23.8 ether);
     assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 47109757142857143000);
