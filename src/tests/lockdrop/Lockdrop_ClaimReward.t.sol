@@ -10,29 +10,32 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
 
   // -------------------- claimAllP88 ----------------------------
   function testCorrectness_ClaimAllP88_OnlyOneUser() external {
+    uint256 lockAmount = 16 ether;
+    uint256 lockPeriod = 8 days;
+
     vm.startPrank(ALICE);
-    mockERC20.mint(ALICE, 20);
-    mockERC20.approve(address(lockdrop), 20);
+    mockERC20.mint(ALICE, 1e12 ether);
+    mockERC20.approve(address(lockdrop), 1e12 ether);
     vm.warp(120000);
-    lockdrop.lockToken(16, 604900);
+    lockdrop.lockToken(lockAmount, lockPeriod);
     (
       uint256 aliceLockdropTokenAmount,
       uint256 aliceLockPeriod,
       bool aliceP88Claimed
     ) = lockdrop.lockdropStates(ALICE);
     vm.stopPrank();
-    assertEq(mockERC20.balanceOf(ALICE), 4);
-    assertEq(aliceLockdropTokenAmount, 16);
-    assertEq(aliceLockPeriod, 604900);
-    assertEq(lockdrop.totalAmount(), 16);
-    assertEq(lockdrop.totalP88Weight(), 16 * 604900);
+
+    assertEq(aliceLockdropTokenAmount, lockAmount);
+    assertEq(aliceLockPeriod, lockPeriod);
+    assertEq(lockdrop.totalAmount(), lockAmount);
+    assertEq(lockdrop.totalP88Weight(), lockAmount * lockPeriod);
 
     // After lockdrop period
     // Mint P88
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
     vm.startPrank(address(this));
-    mockP88Token.mint(address(this), 100);
-    mockP88Token.approve(address(lockdrop), 1000);
+    mockP88Token.mint(address(this), 1e12 ether);
+    mockP88Token.approve(address(lockdrop), 1e12 ether);
     lockdrop.allocateP88(100);
     vm.stopPrank();
 
@@ -53,50 +56,53 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
   }
 
   function testCorrectness_ClaimAllP88_MultipleUser() external {
+    uint256 lockAmount1 = 16 ether;
+    uint256 lockPeriod1 = 8 days;
+    uint256 lockAmount2 = 10 ether;
+    uint256 lockPeriod2 = 20 days;
+
     // ------- Alice session -------
     vm.startPrank(ALICE);
-    mockERC20.mint(ALICE, 20);
-    mockERC20.approve(address(lockdrop), 20);
+    mockERC20.mint(ALICE, 1e12 ether);
+    mockERC20.approve(address(lockdrop), 1e12 ether);
     vm.warp(120000);
-    lockdrop.lockToken(16, 604900);
+    lockdrop.lockToken(lockAmount1, lockPeriod1);
     (
       uint256 aliceLockdropTokenAmount,
       uint256 aliceLockPeriod,
       bool aliceP88Claimed
     ) = lockdrop.lockdropStates(ALICE);
     vm.stopPrank();
-    assertEq(mockERC20.balanceOf(ALICE), 4);
-    assertEq(aliceLockdropTokenAmount, 16);
-    assertEq(aliceLockPeriod, 604900);
-    assertEq(lockdrop.totalAmount(), 16);
-    assertEq(lockdrop.totalP88Weight(), 16 * 604900);
+    assertEq(aliceLockdropTokenAmount, lockAmount1);
+    assertEq(aliceLockPeriod, lockPeriod1);
+    assertEq(lockdrop.totalAmount(), lockAmount1);
+    assertEq(lockdrop.totalP88Weight(), lockAmount1 * lockPeriod1);
     assertTrue(!aliceP88Claimed);
 
     // ------- Bob session -------
     vm.startPrank(BOB);
-    mockERC20.mint(BOB, 30);
-    mockERC20.approve(address(lockdrop), 30);
+    mockERC20.mint(BOB, 1e12 ether);
+    mockERC20.approve(address(lockdrop), 1e12 ether);
     vm.warp(130000);
-    lockdrop.lockToken(10, 704900);
+    lockdrop.lockToken(lockAmount2, lockPeriod2);
     (
       uint256 bobLockdropTokenAmount,
       uint256 bobLockPeriod,
       bool bobP88Claimed
     ) = lockdrop.lockdropStates(BOB);
     vm.stopPrank();
-    assertEq(mockERC20.balanceOf(BOB), 20);
-    assertEq(bobLockdropTokenAmount, 10);
-    assertEq(bobLockPeriod, 704900);
-    assertEq(lockdrop.totalAmount(), 26);
-    assertEq(lockdrop.totalP88Weight(), 16 * 604900 + 10 * 704900);
+    assertEq(bobLockdropTokenAmount, lockAmount2);
+    assertEq(bobLockPeriod, lockPeriod2);
+    assertEq(lockdrop.totalAmount(), lockAmount1 + lockAmount2);
+    assertEq(lockdrop.totalP88Weight(), lockAmount1 * lockPeriod1 + lockAmount2 * lockPeriod2);
     assertTrue(!bobP88Claimed);
 
     // After lockdrop period
     // Mint P88
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
     vm.startPrank(address(this));
-    mockP88Token.mint(address(this), 100);
-    mockP88Token.approve(address(lockdrop), 1000);
+    mockP88Token.mint(address(this), 1e12 ether);
+    mockP88Token.approve(address(lockdrop), 1e12 ether);
     lockdrop.allocateP88(100);
     vm.stopPrank();
 
@@ -110,73 +116,78 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     lockdrop.claimAllP88(BOB);
     vm.stopPrank();
 
-    (bobLockdropTokenAmount, bobLockPeriod, bobP88Claimed) = lockdrop
+    (, , bobP88Claimed) = lockdrop
       .lockdropStates(BOB);
-    (aliceLockdropTokenAmount, aliceLockPeriod, aliceP88Claimed) = lockdrop
+    (, , aliceP88Claimed) = lockdrop
       .lockdropStates(ALICE);
 
     // After claims her P88, the following criteria needs to satisfy:
-    // 1. The amount of Alice's P88 should be 57
-    // 2. The amount of Bob's P88 should be 42
-    // 3. The amount of lockdrop P88 should be 1
-    // 4. Status of Alice claiming P88 should be true
-    // 5. Status of Bob claiming P88 should be true
-    assertEq(mockP88Token.balanceOf(ALICE), 57);
-    assertEq(mockP88Token.balanceOf(BOB), 42);
-    assertEq(mockP88Token.balanceOf(address(lockdrop)), 1);
+    // 1. Status of Alice claiming P88 should be true
+    // 2. Status of Bob claiming P88 should be true
     assertTrue(aliceP88Claimed);
     assertTrue(bobP88Claimed);
   }
 
-  function testCorrectness_ClaimAllP88_MultipleUserWithDoubleLockAmount()
-    external
-  {
-    // Alice lock x2 token more than Bob with same lock period
+  function testCorrectness_ClaimAllP88_MultipleUserWithMultipleLockAmount(
+    uint256 multiplier
+  ) external {
+    // Alice lock xn token more than Bob with same lock period
+    vm.assume(multiplier > 0 && multiplier < 100);
+    uint256 userLockAmount = 10 ether;
+    uint256 userLockPeriod = 8 days;
+
     // ------- Alice session -------
     vm.startPrank(ALICE);
-    mockERC20.mint(ALICE, 20);
-    mockERC20.approve(address(lockdrop), 20);
+    mockERC20.mint(ALICE, 1e12 ether);
+    mockERC20.approve(address(lockdrop), 1e12 ether);
     vm.warp(120000);
-    lockdrop.lockToken(20, 604900);
+    lockdrop.lockToken(userLockAmount * multiplier, userLockPeriod);
     (
       uint256 aliceLockdropTokenAmount,
-      uint256 aliceLockPeriod,
+      uint256 aliceLockdropLockPeriod,
       bool aliceP88Claimed
     ) = lockdrop.lockdropStates(ALICE);
     vm.stopPrank();
-    assertEq(mockERC20.balanceOf(ALICE), 0);
-    assertEq(aliceLockdropTokenAmount, 20);
-    assertEq(aliceLockPeriod, 604900);
-    assertEq(lockdrop.totalAmount(), 20);
-    assertEq(lockdrop.totalP88Weight(), 20 * 604900);
+    assertEq(aliceLockdropTokenAmount, userLockAmount * multiplier);
+    assertEq(aliceLockdropLockPeriod, userLockPeriod);
+    assertEq(lockdrop.totalAmount(), aliceLockdropTokenAmount);
+    assertEq(
+      lockdrop.totalP88Weight(),
+      userLockAmount * multiplier * userLockPeriod
+    );
     assertTrue(!aliceP88Claimed);
 
     // ------- Bob session -------
     vm.startPrank(BOB);
-    mockERC20.mint(BOB, 30);
-    mockERC20.approve(address(lockdrop), 30);
+    mockERC20.mint(BOB, 1e12 ether);
+    mockERC20.approve(address(lockdrop), 1e12 ether);
     vm.warp(130000);
-    lockdrop.lockToken(10, 604900);
+    lockdrop.lockToken(userLockAmount, userLockPeriod);
     (
       uint256 bobLockdropTokenAmount,
-      uint256 bobLockPeriod,
+      uint256 bobLockdropLockPeriod,
       bool bobP88Claimed
     ) = lockdrop.lockdropStates(BOB);
     vm.stopPrank();
-    assertEq(mockERC20.balanceOf(BOB), 20);
-    assertEq(bobLockdropTokenAmount, 10);
-    assertEq(bobLockPeriod, 604900);
-    assertEq(lockdrop.totalAmount(), 30);
-    assertEq(lockdrop.totalP88Weight(), 20 * 604900 + 10 * 604900);
+    assertEq(bobLockdropTokenAmount, userLockAmount);
+    assertEq(bobLockdropLockPeriod, userLockPeriod);
+    assertEq(
+      lockdrop.totalAmount(),
+      bobLockdropTokenAmount + aliceLockdropTokenAmount
+    );
+    assertEq(
+      lockdrop.totalP88Weight(),
+      userLockAmount * userLockPeriod * (1 + multiplier)
+    );
     assertTrue(!bobP88Claimed);
 
     // After lockdrop period
     // Mint P88
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
     vm.startPrank(address(this));
-    mockP88Token.mint(address(this), 100);
-    mockP88Token.approve(address(lockdrop), 1000);
-    lockdrop.allocateP88(100);
+    mockP88Token.mint(address(this), 1e12 ether);
+    mockP88Token.approve(address(lockdrop), 1e12 ether);
+    lockdrop.allocateP88(100 ether);
     vm.stopPrank();
 
     // Alice claims her P88
@@ -189,73 +200,86 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     lockdrop.claimAllP88(BOB);
     vm.stopPrank();
 
-    (bobLockdropTokenAmount, bobLockPeriod, bobP88Claimed) = lockdrop
+    (bobLockdropTokenAmount, bobLockdropLockPeriod, bobP88Claimed) = lockdrop
       .lockdropStates(BOB);
-    (aliceLockdropTokenAmount, aliceLockPeriod, aliceP88Claimed) = lockdrop
-      .lockdropStates(ALICE);
+    (
+      aliceLockdropTokenAmount,
+      aliceLockdropLockPeriod,
+      aliceP88Claimed
+    ) = lockdrop.lockdropStates(ALICE);
 
     // After claims her P88, the following criteria needs to satisfy:
-    // 1. The amount of Alice's P88 should be 66 (x2 of Bob amount)
-    // 2. The amount of Bob's P88 should be 33
-    // 3. The amount of lockdrop P88 should be 1
-    // 4. Status of Alice claiming P88 should be true
-    // 5. Status of Bob claiming P88 should be true
-    assertEq(mockP88Token.balanceOf(ALICE), 66);
-    assertEq(mockP88Token.balanceOf(BOB), 33);
-    assertEq(mockP88Token.balanceOf(address(lockdrop)), 1);
+    // 1. The amount of Alice's P88 should be greater than or equal to xN of Bob amount)
+    // 2. Status of Alice claiming P88 should be true
+    // 3. Status of Bob claiming P88 should be true
+    assertGe(
+      mockP88Token.balanceOf(ALICE),
+      mockP88Token.balanceOf(BOB) * multiplier
+    );
     assertTrue(aliceP88Claimed);
     assertTrue(bobP88Claimed);
   }
 
-  function testCorrectness_ClaimAllP88_MultipleUserWithDoubleLockPeriod()
-    external
-  {
-    // Alice lock period x2 more than Bob with same lock amount
+  function testCorrectness_ClaimAllP88_MultipleUserWithMultipleLockPeriod(
+    uint256 multiplier
+  ) external {
+    // Alice lock xN more lock period than Bob with same lock amount
+    vm.assume(multiplier > 0 && multiplier < 40);
+    uint256 userLockAmount = 10 ether;
+    uint256 userLockPeriod = 8 days;
+
     // ------- Alice session -------
     vm.startPrank(ALICE);
-    mockERC20.mint(ALICE, 20);
-    mockERC20.approve(address(lockdrop), 20);
+    mockERC20.mint(ALICE, 1e12 ether);
+    mockERC20.approve(address(lockdrop), 1e12 ether);
     vm.warp(120000);
-    lockdrop.lockToken(10, 604900 * 2);
+    lockdrop.lockToken(userLockAmount, userLockPeriod * multiplier);
     (
       uint256 aliceLockdropTokenAmount,
-      uint256 aliceLockPeriod,
+      uint256 aliceLockdropLockPeriod,
       bool aliceP88Claimed
     ) = lockdrop.lockdropStates(ALICE);
     vm.stopPrank();
-    assertEq(mockERC20.balanceOf(ALICE), 10);
-    assertEq(aliceLockdropTokenAmount, 10);
-    assertEq(aliceLockPeriod, 604900 * 2);
-    assertEq(lockdrop.totalAmount(), 10);
-    assertEq(lockdrop.totalP88Weight(), 10 * 604900 * 2);
+    assertEq(aliceLockdropTokenAmount, userLockAmount);
+    assertEq(aliceLockdropLockPeriod, userLockPeriod * multiplier);
+    assertEq(lockdrop.totalAmount(), aliceLockdropTokenAmount);
+    assertEq(
+      lockdrop.totalP88Weight(),
+      userLockAmount * multiplier * userLockPeriod
+    );
     assertTrue(!aliceP88Claimed);
 
     // ------- Bob session -------
     vm.startPrank(BOB);
-    mockERC20.mint(BOB, 30);
-    mockERC20.approve(address(lockdrop), 30);
+    mockERC20.mint(BOB, 1e12 ether);
+    mockERC20.approve(address(lockdrop), 1e12 ether);
     vm.warp(130000);
-    lockdrop.lockToken(10, 604900);
+    lockdrop.lockToken(userLockAmount, userLockPeriod);
     (
       uint256 bobLockdropTokenAmount,
-      uint256 bobLockPeriod,
+      uint256 bobLockdropLockPeriod,
       bool bobP88Claimed
     ) = lockdrop.lockdropStates(BOB);
     vm.stopPrank();
-    assertEq(mockERC20.balanceOf(BOB), 20);
-    assertEq(bobLockdropTokenAmount, 10);
-    assertEq(bobLockPeriod, 604900);
-    assertEq(lockdrop.totalAmount(), 20);
-    assertEq(lockdrop.totalP88Weight(), 10 * 604900 + 10 * 604900 * 2);
+    assertEq(bobLockdropTokenAmount, userLockAmount);
+    assertEq(bobLockdropLockPeriod, userLockPeriod);
+    assertEq(
+      lockdrop.totalAmount(),
+      bobLockdropTokenAmount + aliceLockdropTokenAmount
+    );
+    assertEq(
+      lockdrop.totalP88Weight(),
+      userLockAmount * userLockPeriod * (1 + multiplier)
+    );
     assertTrue(!bobP88Claimed);
 
     // After lockdrop period
     // Mint P88
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
     vm.startPrank(address(this));
-    mockP88Token.mint(address(this), 100);
-    mockP88Token.approve(address(lockdrop), 1000);
-    lockdrop.allocateP88(100);
+    mockP88Token.mint(address(this), 1e12 ether);
+    mockP88Token.approve(address(lockdrop), 1e12 ether);
+    lockdrop.allocateP88(100 ether);
     vm.stopPrank();
 
     // Alice claims her P88
@@ -268,50 +292,54 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     lockdrop.claimAllP88(BOB);
     vm.stopPrank();
 
-    (bobLockdropTokenAmount, bobLockPeriod, bobP88Claimed) = lockdrop
+    (bobLockdropTokenAmount, bobLockdropLockPeriod, bobP88Claimed) = lockdrop
       .lockdropStates(BOB);
-    (aliceLockdropTokenAmount, aliceLockPeriod, aliceP88Claimed) = lockdrop
-      .lockdropStates(ALICE);
+    (
+      aliceLockdropTokenAmount,
+      aliceLockdropLockPeriod,
+      aliceP88Claimed
+    ) = lockdrop.lockdropStates(ALICE);
 
     // After claims her P88, the following criteria needs to satisfy:
-    // 1. The amount of Alice's P88 should be 66 (x2 of Bob amount)
-    // 2. The amount of Bob's P88 should be 33
-    // 3. The amount of lockdrop P88 should be 1
-    // 4. Status of Alice claiming P88 should be true
-    // 5. Status of Bob claiming P88 should be true
-    assertEq(mockP88Token.balanceOf(ALICE), 66);
-    assertEq(mockP88Token.balanceOf(BOB), 33);
-    assertEq(mockP88Token.balanceOf(address(lockdrop)), 1);
+    // 1. The amount of Alice's P88 should be greater than or equal to xN of Bob amount)
+    // 2. Status of Alice claiming P88 should be true
+    // 3. Status of Bob claiming P88 should be true
+    assertGe(
+      mockP88Token.balanceOf(ALICE),
+      mockP88Token.balanceOf(BOB) * multiplier
+    );
     assertTrue(aliceP88Claimed);
     assertTrue(bobP88Claimed);
   }
 
   function testRevert_ClaimAllP88_TotalP88NotSet() external {
+    uint256 lockAmount = 16 ether;
+    uint256 lockPeriod = 8 days;
+
     vm.startPrank(ALICE);
-    mockERC20.mint(ALICE, 20);
-    mockERC20.approve(address(lockdrop), 20);
+    mockERC20.mint(ALICE, 1e12 ether);
+    mockERC20.approve(address(lockdrop), 1e12 ether);
     vm.warp(120000);
-    lockdrop.lockToken(16, 604900);
+    lockdrop.lockToken(lockAmount, lockPeriod);
     (
       uint256 aliceLockdropTokenAmount,
       uint256 aliceLockPeriod,
       bool aliceP88Claimed
     ) = lockdrop.lockdropStates(ALICE);
     vm.stopPrank();
-    assertEq(mockERC20.balanceOf(ALICE), 4);
-    assertEq(aliceLockdropTokenAmount, 16);
-    assertEq(aliceLockPeriod, 604900);
+    assertEq(aliceLockdropTokenAmount, lockAmount);
+    assertEq(aliceLockPeriod, lockPeriod);
     assertTrue(!aliceP88Claimed);
-    assertEq(lockdrop.totalAmount(), 16);
-    assertEq(lockdrop.totalP88Weight(), 16 * 604900);
+    assertEq(lockdrop.totalAmount(), lockAmount);
+    assertEq(lockdrop.totalP88Weight(), lockAmount * lockPeriod);
 
     // After lockdrop period
     // Mint P88
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
 
     vm.startPrank(address(this));
-    mockP88Token.mint(address(this), 100);
-    mockP88Token.approve(address(lockdrop), 1000);
+    mockP88Token.mint(address(this), 1e12 ether);
+    mockP88Token.approve(address(lockdrop), 1e12 ether);
     vm.stopPrank();
 
     vm.startPrank(ALICE);
@@ -324,31 +352,33 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
   }
 
   function testRevert_ClaimAllP88_AlreadyClaimedReward() external {
+    uint256 lockAmount = 16 ether;
+    uint256 lockPeriod = 8 days;
+
     vm.startPrank(ALICE);
-    mockERC20.mint(ALICE, 20);
-    mockERC20.approve(address(lockdrop), 20);
+    mockERC20.mint(ALICE, 1e12 ether);
+    mockERC20.approve(address(lockdrop), 1e12 ether);
     vm.warp(120000);
-    lockdrop.lockToken(16, 604900);
+    lockdrop.lockToken(lockAmount, lockPeriod);
     (
       uint256 aliceLockdropTokenAmount,
       uint256 aliceLockPeriod,
       bool aliceP88Claimed
     ) = lockdrop.lockdropStates(ALICE);
     vm.stopPrank();
-    assertEq(mockERC20.balanceOf(ALICE), 4);
-    assertEq(aliceLockdropTokenAmount, 16);
-    assertEq(aliceLockPeriod, 604900);
+    assertEq(aliceLockdropTokenAmount, lockAmount);
+    assertEq(aliceLockPeriod, lockPeriod);
     assertTrue(!aliceP88Claimed);
-    assertEq(lockdrop.totalAmount(), 16);
-    assertEq(lockdrop.totalP88Weight(), 16 * 604900);
+    assertEq(lockdrop.totalAmount(), lockAmount);
+    assertEq(lockdrop.totalP88Weight(), lockAmount * lockPeriod);
 
     // After lockdrop period
     // Mint P88
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
 
     vm.startPrank(address(this));
-    mockP88Token.mint(address(this), 100);
-    mockP88Token.approve(address(lockdrop), 1000);
+    mockP88Token.mint(address(this), 1e12 ether);
+    mockP88Token.approve(address(lockdrop), 1e12 ether);
     lockdrop.allocateP88(100);
     vm.stopPrank();
 
