@@ -102,6 +102,20 @@ abstract contract BaseStaking is IStaking, Ownable {
     emit LogDeposit(msg.sender, to, token, amount);
   }
 
+  function getUserTokenAmount(address token, address sender)
+    external
+    returns (uint256)
+  {
+    return userTokenAmount[token][sender];
+  }
+
+  function getStakingTokenRewarders(address token)
+    external
+    returns (address[] memory)
+  {
+    return stakingTokenRewarders[token];
+  }
+
   function withdraw(
     address to,
     address token,

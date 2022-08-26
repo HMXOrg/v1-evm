@@ -33,7 +33,7 @@ contract MockLockdrop is ILockdrop {
 
   function earlyWithdrawLockedToken(uint256 _amount, address _user) external {}
 
-  function claimAllReward(address _user) external {
+  function claimAllRewards(address _user) external {
     lockdropConfig.p88Token().mint(address(this), 10 ether);
     lockdropConfig.p88Token().approve(address(this), 10 ether);
 
