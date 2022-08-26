@@ -5,12 +5,14 @@ import { IStaking } from "../../staking/interfaces/IStaking.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { MockErc20 } from "../mocks/MockERC20.sol";
+import { MockWNative } from "../base/BaseTest.sol";
+import { IWNative } from "../../interfaces/IWNative.sol";
 
 using SafeERC20 for IERC20;
 
 contract MockPLPStaking is IStaking {
   address internal plpTokenAddress;
-  address internal revenueTokenAddress;
+  MockWNative internal revenueToken;
   address internal esp88TokenAddress;
   address internal mockRewarder;
 
@@ -20,11 +22,11 @@ contract MockPLPStaking is IStaking {
 
   constructor(
     address _plpTokenAddress,
-    address _revenueTokenAddress,
+    MockWNative _revenueToken,
     address _esp88TokenAddress
   ) {
     plpTokenAddress = _plpTokenAddress;
-    revenueTokenAddress = _revenueTokenAddress;
+    revenueToken = _revenueToken;
     esp88TokenAddress = _esp88TokenAddress;
     mockRewarder = address(1);
     rewardPerSec = 1 ether;
@@ -66,19 +68,18 @@ contract MockPLPStaking is IStaking {
 
     MockErc20(esp88TokenAddress).mint(msg.sender, esp88RewardAmount);
 
-    IERC20(revenueTokenAddress).approve(address(this), revenueRewardAmount);
-    IERC20(revenueTokenAddress).transfer(msg.sender, revenueRewardAmount);
-    revenueRewardAmount = 0;
+    // unwrap
+    IWNative(revenueToken).withdraw(revenueRewardAmount);
+    // transfer native token
+    payable(msg.sender).transfer(revenueRewardAmount);
 
+    // update state
+    revenueRewardAmount = 0;
     esp88RewardLastReward = block.timestamp;
   }
 
   function feedRevenueReward(uint256 tokenAmount) external {
-    IERC20(revenueTokenAddress).safeTransferFrom(
-      msg.sender,
-      address(this),
-      tokenAmount
-    );
+    revenueToken.transferFrom(msg.sender, address(this), tokenAmount);
 
     revenueRewardAmount += tokenAmount;
   }
@@ -100,4 +101,6 @@ contract MockPLPStaking is IStaking {
   {}
 
   function isRewarder(address rewarder) external view returns (bool) {}
+
+  receive() external payable {}
 }
