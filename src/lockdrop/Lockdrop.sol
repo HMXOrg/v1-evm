@@ -70,7 +70,9 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   uint256 public totalP88;
   uint256 public totalPLPAmount;
   address[] public rewardTokens; //The index of each reward token will remain the same, for example, 0 for MATIC and 1 for esP88
-  uint256[] accRewardPerShares; // Accum reward per share
+  uint256[] public accRewardPerShares; // Accum reward per share
+  address public nativeTokenAddress;
+
   mapping(address => LockdropState) public lockdropStates;
 
   // --- Modifiers ---
@@ -101,7 +103,8 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     address lockdropToken_,
     IPool pool_,
     LockdropConfig lockdropConfig_,
-    address[] memory rewardTokens_
+    address[] memory rewardTokens_,
+    address nativeTokenAddress_
   ) {
     // Sanity check
     IERC20(lockdropToken_).balanceOf(address(this));
@@ -112,6 +115,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     lockdropConfig = lockdropConfig_;
     rewardTokens = rewardTokens_;
     pool = pool_;
+    nativeTokenAddress = nativeTokenAddress_;
   }
 
   function _lockTokenFor(
@@ -361,7 +365,14 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     uint256[] memory rewardBeforeHarvest = new uint256[](length);
     uint256[] memory harvestedReward = new uint256[](length);
     for (uint256 i = 0; i < length; ) {
-      rewardBeforeHarvest[i] = IERC20(rewardTokens[i]).balanceOf(address(this));
+      // check if is native token or ERC20
+      if (rewardTokens[i] == nativeTokenAddress) {
+        rewardBeforeHarvest[i] = address(this).balance;
+      } else {
+        rewardBeforeHarvest[i] = IERC20(rewardTokens[i]).balanceOf(
+          address(this)
+        );
+      }
 
       unchecked {
         ++i;
@@ -375,9 +386,13 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     );
 
     for (uint256 i = 0; i < length; ) {
-      harvestedReward[i] =
-        IERC20(rewardTokens[i]).balanceOf(address(this)) -
-        rewardBeforeHarvest[i];
+      if (rewardTokens[i] == nativeTokenAddress) {
+        harvestedReward[i] = address(this).balance - rewardBeforeHarvest[i];
+      } else {
+        harvestedReward[i] =
+          IERC20(rewardTokens[i]).balanceOf(address(this)) -
+          rewardBeforeHarvest[i];
+      }
 
       unchecked {
         ++i;
@@ -420,7 +435,11 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
         lockdropStates[user].userRewardDebts[i];
 
       // Transfer reward to user
-      IERC20(rewardTokens[i]).safeTransfer(user, pendingReward);
+      if (rewardTokens[i] == nativeTokenAddress) {
+        payable(user).transfer(pendingReward);
+      } else {
+        IERC20(rewardTokens[i]).safeTransfer(user, pendingReward);
+      }
 
       // calculate for update user reward dept
       lockdropStates[user].userRewardDebts[i] = userAccumReward;
@@ -466,4 +485,6 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     );
     emit LogStakePLP(totalPLPAmount);
   }
+
+  receive() external payable {}
 }
