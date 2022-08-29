@@ -403,13 +403,16 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
 
     vm.warp(lockdropConfig.endLockTimestamp() + lockPeriod);
 
+    vm.startPrank(address(lockdrop));
+    mockPLPToken.approve(address(lockdropConfig.plpStaking()), 100 ether);
+    vm.stopPrank();
+
     vm.startPrank(address(this));
     // Owner mint PLPToken
-    mockPLPToken.mint(address(lockdrop), 20 ether);
+    mockPLPToken.mint(address(lockdrop), 32 ether);
     mockPLPToken.approve(address(lockdropConfig.plpStaking()), 100 ether);
 
     lockdrop.stakePLP();
-    assertEq(mockPLPToken.balanceOf(address(lockdrop)), 19999999999999999980);
     vm.stopPrank();
 
     vm.startPrank(ALICE);
@@ -419,15 +422,14 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     vm.stopPrank();
 
     // After Alice withdrawAll, the following criteria needs to satisfy:
-    // 1. Balance of Alice's PLP token should be 20
-    // 2. Balance of lockdrop PLP token should be 19999999999999999980
+    // 1. Balance of Alice's PLP token should be 32
+    // 2. Balance of lockdrop PLP token should be 0
     // 3. Since Alice is the only one who lock the token, the total amount of PLP token in the contract should remain the same
     // 4. Alice is now deleted from lockdropStates so her lock token amount is 0
     // 5. Alice is now deleted from lockdropStates so her lock period is 0
-    assertEq(mockPLPToken.balanceOf(ALICE), 20);
-    assertEq(mockPLPToken.balanceOf(address(lockdrop)), 19999999999999999980);
-    assertEq(lockdrop.totalPLPAmount(), 20);
-
+    assertEq(mockPLPToken.balanceOf(ALICE), 32 ether);
+    assertEq(mockPLPToken.balanceOf(address(lockdrop)), 0);
+    assertEq(lockdrop.totalPLPAmount(), 32 ether);
     assertEq(alicelockdropTokenAmount, 0);
     assertEq(alicelockPeriod, 0);
   }
