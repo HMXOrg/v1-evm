@@ -55,7 +55,7 @@ contract LockdropGateway is ILockdropGateway {
     plpToken.approve(address(plpStaking), plpToken.balanceOf(address(this)));
 
     plpStaking.deposit(
-      address(this),
+      user,
       address(plpToken),
       plpToken.balanceOf(address(this))
     );
