@@ -3,6 +3,7 @@ pragma solidity 0.8.14;
 
 import "../base/DSTest.sol";
 import { console } from "../utils/console.sol";
+import { math } from "../utils/math.sol";
 import { BaseTest, MockWNative } from "../base/BaseTest.sol";
 import { Lockdrop } from "../../lockdrop/Lockdrop.sol";
 import { MockErc20 } from "../mocks/MockERC20.sol";
