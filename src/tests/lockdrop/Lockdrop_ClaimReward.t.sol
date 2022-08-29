@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.14;
 
-import { Lockdrop_BaseTest, console } from "./Lockdrop_BaseTest.t.sol";
+import { Lockdrop_BaseTest, console, math } from "./Lockdrop_BaseTest.t.sol";
 
 contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
   function setUp() public override {
@@ -145,7 +145,7 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
   }
 
   function testCorrectness_ClaimAllP88_MultipleUserWithNTimesLockAmount(
-    uint256 multiplier
+    uint8 multiplier
   ) external {
     // Alice lock xn token more than Bob with same lock period
     vm.assume(multiplier > 0 && multiplier < 100);
@@ -228,19 +228,23 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     ) = lockdrop.lockdropStates(ALICE);
 
     // After claims her P88, the following criteria needs to satisfy:
-    // 1. The amount of Alice's P88 should be greater than or equal to xN of Bob amount)
+    // 1. The amount of Alice's P88 should be almost equal to xN of Bob amount)
     // 2. Status of Alice claiming P88 should be true
     // 3. Status of Bob claiming P88 should be true
-    assertGe(
-      mockP88Token.balanceOf(ALICE),
-      mockP88Token.balanceOf(BOB) * multiplier
+     assertTrue(
+      math.almostEqual(
+        (mockP88Token.balanceOf(BOB) * multiplier),
+        mockP88Token.balanceOf(ALICE),
+        1
+      )
     );
     assertTrue(aliceP88Claimed);
     assertTrue(bobP88Claimed);
   }
 
-  function testCorrectness_ClaimAllP88_MultipleUserWithhNTimesLockPeriod(
-    uint256 multiplier
+
+  function testCorrectness_ClaimAllP88_MultipleUserWithNTimesLockPeriod(
+    uint8 multiplier
   ) external {
     // Alice lock xN more lock period than Bob with same lock amount
     vm.assume(multiplier > 0 && multiplier < 40);
@@ -257,6 +261,7 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
       uint256 aliceLockdropTokenAmount,
       uint256 aliceLockdropLockPeriod,
       bool aliceP88Claimed,
+
 
     ) = lockdrop.lockdropStates(ALICE);
     vm.stopPrank();
@@ -314,6 +319,7 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     vm.stopPrank();
 
     (bobLockdropTokenAmount, bobLockdropLockPeriod, bobP88Claimed, ) = lockdrop
+
       .lockdropStates(BOB);
     (
       aliceLockdropTokenAmount,
@@ -326,10 +332,14 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     // 1. The amount of Alice's P88 should be greater than or equal to xN of Bob amount)
     // 2. Status of Alice claiming P88 should be true
     // 3. Status of Bob claiming P88 should be true
-    assertGe(
-      mockP88Token.balanceOf(ALICE),
-      mockP88Token.balanceOf(BOB) * multiplier
+    assertTrue(
+      math.almostEqual(
+        (mockP88Token.balanceOf(BOB) * multiplier),
+        mockP88Token.balanceOf(ALICE),
+        1
+      )
     );
+
     assertTrue(aliceP88Claimed);
     assertTrue(bobP88Claimed);
   }
