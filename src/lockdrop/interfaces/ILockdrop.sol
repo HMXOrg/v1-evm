@@ -14,7 +14,7 @@ interface ILockdrop {
 
   function stakePLP() external;
 
-  function withdrawAll(address user, address to) external;
+  function withdrawAll(address user) external;
 
   function claimAllP88(address user) external;
 }
