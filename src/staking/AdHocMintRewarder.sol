@@ -1,6 +1,6 @@
 pragma solidity 0.8.14;
 
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -9,7 +9,7 @@ import { IRewarder } from "./interfaces/IRewarder.sol";
 import { IStaking } from "./interfaces/IStaking.sol";
 import { MintableTokenInterface } from "../interfaces/MintableTokenInterface.sol";
 
-contract AdHocMintRewarder is IRewarder, Ownable {
+contract AdHocMintRewarder is IRewarder, OwnableUpgradeable {
   using SafeCast for uint256;
   using SafeCast for uint128;
   using SafeCast for int256;
@@ -41,11 +41,11 @@ contract AdHocMintRewarder is IRewarder, Ownable {
     _;
   }
 
-  constructor(
+  function initialize(
     string memory name_,
     address rewardToken_,
     address staking_
-  ) {
+  ) external initializer {
     // Sanity check
     IERC20(rewardToken_).totalSupply();
     IStaking(staking_).isRewarder(address(this));
@@ -121,5 +121,10 @@ contract AdHocMintRewarder is IRewarder, Ownable {
     virtual
   {
     MintableTokenInterface(rewardToken).mint(receiver, pendingRewardAmount);
+  }
+
+  /// @custom:oz-upgrades-unsafe-allow constructor
+  constructor() {
+    _disableInitializers();
   }
 }

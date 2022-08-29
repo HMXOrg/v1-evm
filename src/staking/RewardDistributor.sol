@@ -4,20 +4,22 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { IPool } from "../interfaces/IPool.sol";
 import { IFeedableRewarder } from "../staking/interfaces/IFeedableRewarder.sol";
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract RewardDistributor is Ownable {
+contract RewardDistributor is OwnableUpgradeable {
   using SafeERC20 for IERC20;
 
   address public rewardToken;
   IPool public pool;
   IFeedableRewarder public feedableRewarder;
 
-  constructor(
+  function initialize(
     address rewardToken_,
     IPool pool_,
     IFeedableRewarder feedableRewarder_
-  ) {
+  ) external initializer {
+    OwnableUpgradeable.__Ownable_init();
+
     rewardToken = rewardToken_;
     pool = pool_;
     feedableRewarder = feedableRewarder_;
@@ -49,5 +51,10 @@ contract RewardDistributor is Ownable {
     IERC20(rewardToken).approve(address(feedableRewarder), rewardTokenAmount);
 
     feedableRewarder.feed(rewardTokenAmount, duration);
+  }
+
+  /// @custom:oz-upgrades-unsafe-allow constructor
+  constructor() {
+    _disableInitializers();
   }
 }

@@ -17,7 +17,7 @@ contract AdHocMintRewarderTest is BaseTest {
     mockStaking = new MockStaking();
 
     rewardToken = new MockErc20("DragonPoint Token", "DP", 18);
-    rewarder = new AdHocMintRewarder(
+    rewarder = deployAdHocMintRewarder(
       "DPRewarder",
       address(rewardToken),
       address(mockStaking)

@@ -1,13 +1,13 @@
 pragma solidity 0.8.14;
 
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { IRewarder } from "./interfaces/IRewarder.sol";
 import { IStaking } from "./interfaces/IStaking.sol";
 
-contract FeedableRewarder is IRewarder, Ownable {
+contract FeedableRewarder is IRewarder, OwnableUpgradeable {
   using SafeCast for uint256;
   using SafeCast for uint128;
   using SafeCast for int256;
@@ -46,11 +46,30 @@ contract FeedableRewarder is IRewarder, Ownable {
     _;
   }
 
-  constructor(
+  function initialize(
     string memory name_,
     address rewardToken_,
     address staking_
-  ) {
+  ) external virtual initializer {
+    OwnableUpgradeable.__Ownable_init();
+
+    // Sanity check
+    IERC20(rewardToken_).totalSupply();
+    IStaking(staking_).isRewarder(address(this));
+
+    name = name_;
+    rewardToken = rewardToken_;
+    staking = staking_;
+    lastRewardTime = block.timestamp.toUint64();
+  }
+
+  function __FeedableRewarder_init_unchained(
+    string memory name_,
+    address rewardToken_,
+    address staking_
+  ) internal initializer {
+    OwnableUpgradeable.__Ownable_init_unchained();
+
     // Sanity check
     IERC20(rewardToken_).totalSupply();
     IStaking(staking_).isRewarder(address(this));
@@ -206,5 +225,10 @@ contract FeedableRewarder is IRewarder, Ownable {
     virtual
   {
     IERC20(rewardToken).safeTransfer(receiver, pendingRewardAmount);
+  }
+
+  /// @custom:oz-upgrades-unsafe-allow constructor
+  constructor() {
+    _disableInitializers();
   }
 }

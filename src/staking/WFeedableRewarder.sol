@@ -14,11 +14,13 @@ contract WFeedableRewarder is FeedableRewarder {
 
   error WFeedableRewarder_TransferFail();
 
-  constructor(
+  function initialize(
     string memory name_,
     address rewardToken_,
     address staking_
-  ) FeedableRewarder(name_, rewardToken_, staking_) {
+  ) external override initializer {
+    __FeedableRewarder_init_unchained(name_, rewardToken_, staking_);
+
     // Sanity check. Ensure that the rewardToken is wrappable.
     IWNative(rewardToken).deposit{ value: 0 }();
   }
@@ -35,4 +37,9 @@ contract WFeedableRewarder is FeedableRewarder {
   }
 
   receive() external payable {}
+
+  /// @custom:oz-upgrades-unsafe-allow constructor
+  constructor() {
+    _disableInitializers();
+  }
 }

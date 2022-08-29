@@ -26,6 +26,7 @@ import { DragonStaking } from "../../staking/DragonStaking.sol";
 import { FeedableRewarder } from "../../staking/FeedableRewarder.sol";
 import { AdHocMintRewarder } from "../../staking/AdHocMintRewarder.sol";
 import { WFeedableRewarder } from "../../staking/WFeedableRewarder.sol";
+import { RewardDistributor } from "../../staking/RewardDistributor.sol";
 import { Compounder } from "../../staking/Compounder.sol";
 import { Vester } from "../../vesting/Vester.sol";
 import { ProxyAdmin } from "../interfaces/ProxyAdmin.sol";
@@ -273,7 +274,17 @@ contract BaseTest is DSTest, CoreConstants {
     address rewardToken,
     address staking
   ) internal returns (FeedableRewarder) {
-    return new FeedableRewarder(name, rewardToken, staking);
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/FeedableRewarder.sol/FeedableRewarder.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(string,address,address)")),
+      name,
+      rewardToken,
+      staking
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return FeedableRewarder(payable(_proxy));
   }
 
   function deployAdHocMintRewarder(
@@ -281,7 +292,17 @@ contract BaseTest is DSTest, CoreConstants {
     address rewardToken,
     address staking
   ) internal returns (AdHocMintRewarder) {
-    return new AdHocMintRewarder(name, rewardToken, staking);
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/AdHocMintRewarder.sol/AdHocMintRewarder.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(string,address,address)")),
+      name,
+      rewardToken,
+      staking
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return AdHocMintRewarder(payable(_proxy));
   }
 
   function deployWFeedableRewarder(
@@ -289,7 +310,17 @@ contract BaseTest is DSTest, CoreConstants {
     address rewardToken,
     address staking
   ) internal returns (WFeedableRewarder) {
-    return new WFeedableRewarder(name, rewardToken, staking);
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/WFeedableRewarder.sol/WFeedableRewarder.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(string,address,address)")),
+      name,
+      rewardToken,
+      staking
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return WFeedableRewarder(payable(_proxy));
   }
 
   function deployCompounder(
@@ -319,5 +350,23 @@ contract BaseTest is DSTest, CoreConstants {
     );
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
     return Vester(payable(_proxy));
+  }
+
+  function deployRewardDistributor(
+    address rewardToken,
+    address pool,
+    address feedableRewarder
+  ) internal returns (RewardDistributor) {
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/RewardDistributor.sol/RewardDistributor.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(address,address,address)")),
+      rewardToken,
+      pool,
+      feedableRewarder
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return RewardDistributor(payable(_proxy));
   }
 }

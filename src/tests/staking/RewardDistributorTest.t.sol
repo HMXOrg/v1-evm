@@ -40,10 +40,10 @@ contract RewardDistributorTest is BaseTest {
     pool = new MockPool();
     feedableRewarder = new MockFeedableRewarder(address(rewardToken));
 
-    rewardDistributor = new RewardDistributor(
+    rewardDistributor = deployRewardDistributor(
       address(rewardToken),
-      pool,
-      feedableRewarder
+      address(pool),
+      address(feedableRewarder)
     );
   }
 
