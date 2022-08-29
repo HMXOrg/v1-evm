@@ -3,6 +3,8 @@ pragma solidity 0.8.14;
 
 import { ILockdrop } from "./interfaces/ILockdrop.sol";
 import { ILockdropGateway } from "./interfaces/ILockdropGateway.sol";
+import { IStaking } from "../staking/interfaces/IStaking.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract LockdropGateway is ILockdropGateway {
   // Claim All Reward Token
@@ -35,12 +37,23 @@ contract LockdropGateway is ILockdropGateway {
   }
 
   // Withdraw All Deposit Token
-  function withdrawAllLockedToken(address[] memory lockdropList, address user)
-    external
-  {
+  function withdrawAllAndStakePLP(
+    address[] memory lockdropList,
+    address user,
+    IERC20 plpToken,
+    IStaking plpStaking
+  ) external {
     uint256 length = lockdropList.length;
     for (uint256 index = 0; index < length; ) {
       ILockdrop(lockdropList[index]).withdrawAll(user);
+
+      plpToken.approve(address(plpStaking), plpToken.balanceOf(address(this)));
+
+      plpStaking.deposit(
+        address(this),
+        address(plpToken),
+        plpToken.balanceOf(address(this))
+      );
 
       unchecked {
         ++index;

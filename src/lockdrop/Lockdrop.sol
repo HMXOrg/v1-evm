@@ -316,7 +316,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
       address(lockdropConfig.plpToken()),
       userPLPTokenAmount
     );
-    lockdropConfig.plpToken().safeTransfer(user, userPLPTokenAmount);
+    lockdropConfig.plpToken().safeTransfer(msg.sender, userPLPTokenAmount);
     delete lockdropStates[user];
     emit LogWithdrawAll(user, address(lockdropToken));
   }
