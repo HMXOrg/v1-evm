@@ -128,7 +128,7 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     assertTrue(bobP88Claimed);
   }
 
-  function testCorrectness_ClaimAllP88_MultipleUserWithMultipleLockAmount(
+  function testCorrectness_ClaimAllP88_MultipleUserWithNTimesLockAmount(
     uint256 multiplier
   ) external {
     // Alice lock xn token more than Bob with same lock period
@@ -220,7 +220,7 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     assertTrue(bobP88Claimed);
   }
 
-  function testCorrectness_ClaimAllP88_MultipleUserWithMultipleLockPeriod(
+  function testCorrectness_ClaimAllP88_MultipleUserWithhNTimesLockPeriod(
     uint256 multiplier
   ) external {
     // Alice lock xN more lock period than Bob with same lock amount
