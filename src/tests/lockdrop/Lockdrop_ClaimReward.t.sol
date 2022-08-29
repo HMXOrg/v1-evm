@@ -21,7 +21,8 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     (
       uint256 aliceLockdropTokenAmount,
       uint256 aliceLockPeriod,
-      bool aliceP88Claimed
+      bool aliceP88Claimed,
+
     ) = lockdrop.lockdropStates(ALICE);
     vm.stopPrank();
 
@@ -43,7 +44,7 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     lockdrop.claimAllP88(ALICE);
     vm.stopPrank();
 
-    (aliceLockdropTokenAmount, aliceLockPeriod, aliceP88Claimed) = lockdrop
+    (aliceLockdropTokenAmount, aliceLockPeriod, aliceP88Claimed, ) = lockdrop
       .lockdropStates(ALICE);
 
     // After Alice claims her P88, the following criteria needs to satisfy:
@@ -70,7 +71,8 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     (
       uint256 aliceLockdropTokenAmount,
       uint256 aliceLockPeriod,
-      bool aliceP88Claimed
+      bool aliceP88Claimed,
+
     ) = lockdrop.lockdropStates(ALICE);
     vm.stopPrank();
     assertEq(aliceLockdropTokenAmount, lockAmount1);
@@ -88,7 +90,8 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     (
       uint256 bobLockdropTokenAmount,
       uint256 bobLockPeriod,
-      bool bobP88Claimed
+      bool bobP88Claimed,
+
     ) = lockdrop.lockdropStates(BOB);
     vm.stopPrank();
     assertEq(bobLockdropTokenAmount, lockAmount2);
@@ -119,8 +122,20 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     lockdrop.claimAllP88(BOB);
     vm.stopPrank();
 
-    (, , bobP88Claimed) = lockdrop.lockdropStates(BOB);
-    (, , aliceP88Claimed) = lockdrop.lockdropStates(ALICE);
+    (, , bobP88Claimed, ) = lockdrop.lockdropStates(BOB);
+    (, , aliceP88Claimed, ) = lockdrop.lockdropStates(ALICE);
+    // After claims her P88, the following criteria needs to satisfy:
+    // 1. The amount of Alice's P88 should be 39
+    // 2. The amount of Bob's P88 should be 60
+    // 3. The amount of lockdrop P88 should be 1
+    // 4. Status of Alice claiming P88 should be true
+    // 5. Status of Bob claiming P88 should be true
+    assertEq(mockP88Token.balanceOf(ALICE), 39);
+    assertEq(mockP88Token.balanceOf(BOB), 60);
+    assertEq(mockP88Token.balanceOf(address(lockdrop)), 1);
+
+    (, , bobP88Claimed, ) = lockdrop.lockdropStates(BOB);
+    (, , aliceP88Claimed, ) = lockdrop.lockdropStates(ALICE);
 
     // After claims her P88, the following criteria needs to satisfy:
     // 1. Status of Alice claiming P88 should be true
@@ -146,7 +161,8 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     (
       uint256 aliceLockdropTokenAmount,
       uint256 aliceLockdropLockPeriod,
-      bool aliceP88Claimed
+      bool aliceP88Claimed,
+
     ) = lockdrop.lockdropStates(ALICE);
     vm.stopPrank();
     assertEq(aliceLockdropTokenAmount, userLockAmount * multiplier);
@@ -167,7 +183,8 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     (
       uint256 bobLockdropTokenAmount,
       uint256 bobLockdropLockPeriod,
-      bool bobP88Claimed
+      bool bobP88Claimed,
+
     ) = lockdrop.lockdropStates(BOB);
     vm.stopPrank();
     assertEq(bobLockdropTokenAmount, userLockAmount);
@@ -201,29 +218,30 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     lockdrop.claimAllP88(BOB);
     vm.stopPrank();
 
-    (bobLockdropTokenAmount, bobLockdropLockPeriod, bobP88Claimed) = lockdrop
+    (bobLockdropTokenAmount, bobLockdropLockPeriod, bobP88Claimed, ) = lockdrop
       .lockdropStates(BOB);
     (
       aliceLockdropTokenAmount,
       aliceLockdropLockPeriod,
-      aliceP88Claimed
+      aliceP88Claimed,
+
     ) = lockdrop.lockdropStates(ALICE);
 
     // After claims her P88, the following criteria needs to satisfy:
     // 1. The amount of Alice's P88 should be almost equal to xN of Bob amount)
     // 2. Status of Alice claiming P88 should be true
     // 3. Status of Bob claiming P88 should be true
-    assertTrue(
+     assertTrue(
       math.almostEqual(
         (mockP88Token.balanceOf(BOB) * multiplier),
         mockP88Token.balanceOf(ALICE),
         1
       )
     );
-
     assertTrue(aliceP88Claimed);
     assertTrue(bobP88Claimed);
   }
+
 
   function testCorrectness_ClaimAllP88_MultipleUserWithNTimesLockPeriod(
     uint8 multiplier
@@ -242,7 +260,9 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     (
       uint256 aliceLockdropTokenAmount,
       uint256 aliceLockdropLockPeriod,
-      bool aliceP88Claimed
+      bool aliceP88Claimed,
+
+
     ) = lockdrop.lockdropStates(ALICE);
     vm.stopPrank();
     assertEq(aliceLockdropTokenAmount, userLockAmount);
@@ -263,7 +283,8 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     (
       uint256 bobLockdropTokenAmount,
       uint256 bobLockdropLockPeriod,
-      bool bobP88Claimed
+      bool bobP88Claimed,
+
     ) = lockdrop.lockdropStates(BOB);
     vm.stopPrank();
     assertEq(bobLockdropTokenAmount, userLockAmount);
@@ -297,16 +318,18 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     lockdrop.claimAllP88(BOB);
     vm.stopPrank();
 
-    (bobLockdropTokenAmount, bobLockdropLockPeriod, bobP88Claimed) = lockdrop
+    (bobLockdropTokenAmount, bobLockdropLockPeriod, bobP88Claimed, ) = lockdrop
+
       .lockdropStates(BOB);
     (
       aliceLockdropTokenAmount,
       aliceLockdropLockPeriod,
-      aliceP88Claimed
+      aliceP88Claimed,
+
     ) = lockdrop.lockdropStates(ALICE);
 
     // After claims her P88, the following criteria needs to satisfy:
-    // 1. The amount of Alice's P88 should be almost equal to xN of Bob amount)
+    // 1. The amount of Alice's P88 should be greater than or equal to xN of Bob amount)
     // 2. Status of Alice claiming P88 should be true
     // 3. Status of Bob claiming P88 should be true
     assertTrue(
@@ -333,7 +356,8 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     (
       uint256 aliceLockdropTokenAmount,
       uint256 aliceLockPeriod,
-      bool aliceP88Claimed
+      bool aliceP88Claimed,
+
     ) = lockdrop.lockdropStates(ALICE);
     vm.stopPrank();
     assertEq(aliceLockdropTokenAmount, lockAmount);
@@ -372,7 +396,8 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     (
       uint256 aliceLockdropTokenAmount,
       uint256 aliceLockPeriod,
-      bool aliceP88Claimed
+      bool aliceP88Claimed,
+
     ) = lockdrop.lockdropStates(ALICE);
     vm.stopPrank();
     assertEq(aliceLockdropTokenAmount, lockAmount);

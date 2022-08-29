@@ -26,7 +26,8 @@ contract Lockdrop_StakePLP is Lockdrop_BaseTest {
     (
       uint256 alicelockdropTokenAmount,
       uint256 alicelockPeriod,
-      bool aliceP88Claimed
+      bool aliceP88Claimed,
+
     ) = lockdrop.lockdropStates(ALICE);
     assertEq(mockERC20.balanceOf(ALICE), 4 ether);
     assertEq(alicelockdropTokenAmount, lockAmount1);
@@ -42,7 +43,8 @@ contract Lockdrop_StakePLP is Lockdrop_BaseTest {
     (
       uint256 boblockdropTokenAmount,
       uint256 boblockPeriod,
-      bool bobP88Claimed
+      bool bobP88Claimed,
+
     ) = lockdrop.lockdropStates(BOB);
     assertEq(mockERC20.balanceOf(BOB), 1 ether);
     assertEq(boblockdropTokenAmount, lockAmount2);
@@ -87,7 +89,8 @@ contract Lockdrop_StakePLP is Lockdrop_BaseTest {
     (
       uint256 alicelockdropTokenAmount,
       uint256 alicelockPeriod,
-      bool aliceP88Claimed
+      bool aliceP88Claimed,
+
     ) = lockdrop.lockdropStates(ALICE);
     assertEq(mockERC20.balanceOf(ALICE), 4 ether);
     assertEq(alicelockdropTokenAmount, lockAmount);

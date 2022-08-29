@@ -21,7 +21,8 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     mockERC20.approve(address(lockdrop), 20 ether);
     vm.warp(lockdropConfig.startLockTimestamp() + 4 hours);
     lockdrop.lockToken(lockAmount1, lockPeriod1);
-    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod, ) = lockdrop
+    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod, , ) = lockdrop
+
       .lockdropStates(ALICE);
     vm.stopPrank();
     // After Alice lock the ERC20 token, the following criteria needs to satisfy:
@@ -45,7 +46,8 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     mockERC20.approve(address(lockdrop), 30 ether);
     vm.warp(lockdropConfig.startLockTimestamp() + 5 hours);
     lockdrop.lockToken(lockAmount2, lockPeriod2);
-    (uint256 bobLockdropTokenAmount, uint256 bobLockPeriod, ) = lockdrop
+    (uint256 bobLockdropTokenAmount, uint256 bobLockPeriod, , ) = lockdrop
+
       .lockdropStates(BOB);
     vm.stopPrank();
     // After Bob lock the ERC20 token, the following criteria needs to satisfy:
@@ -76,7 +78,8 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     mockERC20.approve(address(lockdrop), 100 ether);
     vm.warp(lockdropConfig.startLockTimestamp() + 4 hours);
     lockdrop.lockToken(lockAmount1, lockPeriod1);
-    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod, ) = lockdrop
+    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod, , ) = lockdrop
+
       .lockdropStates(ALICE);
     assertEq(mockERC20.balanceOf(ALICE), 4 ether);
     assertEq(aliceLockdropTokenAmount, lockAmount1);
@@ -87,7 +90,8 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     lockdrop.earlyWithdrawLockedToken(lockAmount1, ALICE);
 
     lockdrop.lockToken(lockAmount2, lockPeriod2);
-    (aliceLockdropTokenAmount, aliceLockPeriod, ) = lockdrop.lockdropStates(
+    (aliceLockdropTokenAmount, aliceLockPeriod, , ) = lockdrop.lockdropStates(
+
       ALICE
     );
     // After Alice withdraw all and relock, the following criteria needs to satisfy:
@@ -112,7 +116,8 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     mockERC20.approve(address(lockdrop), 20 ether);
     vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
     lockdrop.lockToken(lockAmount, lockPeriod);
-    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod, ) = lockdrop
+    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod, , ) = lockdrop
+
       .lockdropStates(ALICE);
     assertEq(mockERC20.balanceOf(ALICE), 4 ether);
     assertEq(aliceLockdropTokenAmount, lockAmount);
@@ -124,7 +129,7 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     lockdrop.addLockAmount(4 ether);
     vm.stopPrank();
 
-    (aliceLockdropTokenAmount, aliceLockPeriod, ) = lockdrop.lockdropStates(
+    (aliceLockdropTokenAmount, aliceLockPeriod, , ) = lockdrop.lockdropStates(
       ALICE
     );
     // After Alice add more ERC20 token, the following criteria needs to satisfy:
@@ -149,7 +154,8 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     mockERC20.approve(address(lockdrop), 20 ether);
     vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
     lockdrop.lockToken(lockAmount, lockPeriod);
-    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod, ) = lockdrop
+    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod, ,) = lockdrop
+
       .lockdropStates(ALICE);
     assertEq(mockERC20.balanceOf(ALICE), 4 ether);
     assertEq(aliceLockdropTokenAmount, lockAmount);
@@ -160,7 +166,7 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     // Alice wants to extend her lock period
     lockdrop.extendLockPeriod(12 days);
     vm.stopPrank();
-    (aliceLockdropTokenAmount, aliceLockPeriod, ) = lockdrop.lockdropStates(
+    (aliceLockdropTokenAmount, aliceLockPeriod, , ) = lockdrop.lockdropStates(
       ALICE
     );
 
@@ -188,7 +194,8 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     mockERC20.mint(lockdropConfig.gatewayAddress(), 20 ether);
     mockERC20.approve(address(lockdrop), 20 ether);
     lockdrop.lockTokenFor(lockAmount, lockPeriod, ALICE);
-    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod, ) = lockdrop
+    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod, , ) = lockdrop
+
       .lockdropStates(ALICE);
     vm.stopPrank();
     // After gateway lock Alice's ERC20 token, the following criteria needs to satisfy:
@@ -215,7 +222,8 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     mockERC20.mint(lockdropConfig.gatewayAddress(), 20 ether);
     mockERC20.approve(address(lockdrop), 100 ether);
     lockdrop.lockTokenFor(lockAmount, lockPeriod, ALICE);
-    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod, ) = lockdrop
+    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod, , ) = lockdrop
+
       .lockdropStates(ALICE);
 
     assertEq(aliceLockdropTokenAmount, lockAmount);
@@ -227,7 +235,8 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     lockdrop.earlyWithdrawLockedToken(lockAmount, ALICE);
 
     lockdrop.lockTokenFor(20 ether, 40 days, ALICE);
-    (aliceLockdropTokenAmount, aliceLockPeriod, ) = lockdrop.lockdropStates(
+    (aliceLockdropTokenAmount, aliceLockPeriod, , ) = lockdrop.lockdropStates(
+
       ALICE
     );
     // After Alice withdraw all and call gateway to relock, the following criteria needs to satisfy:
@@ -255,7 +264,8 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     mockERC20.mint(lockdropConfig.gatewayAddress(), 20 ether);
     mockERC20.approve(address(lockdrop), 20 ether);
     lockdrop.lockTokenFor(lockAmount, lockPeriod, ALICE);
-    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod, ) = lockdrop
+    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod, , ) = lockdrop
+
       .lockdropStates(ALICE);
     assertEq(aliceLockdropTokenAmount, lockAmount);
     assertEq(aliceLockPeriod, lockPeriod);
@@ -267,7 +277,7 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     lockdrop.addLockAmountFor(4 ether, ALICE);
     vm.stopPrank();
 
-    (aliceLockdropTokenAmount, aliceLockPeriod, ) = lockdrop.lockdropStates(
+    (aliceLockdropTokenAmount, aliceLockPeriod, , ) = lockdrop.lockdropStates(
       ALICE
     );
     // After gateway lock more ERC20 token for Alice, the following criteria needs to satisfy:
@@ -294,7 +304,8 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     mockERC20.mint(lockdropConfig.gatewayAddress(), 20 ether);
     mockERC20.approve(address(lockdrop), 20 ether);
     lockdrop.lockTokenFor(lockAmount, lockPeriod, ALICE);
-    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod, ) = lockdrop
+    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod, , ) = lockdrop
+
       .lockdropStates(ALICE);
     assertEq(aliceLockdropTokenAmount, lockAmount);
     assertEq(aliceLockPeriod, lockPeriod);
@@ -305,7 +316,7 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     // Alice wants to extend her lock period done by gateway
     lockdrop.extendLockPeriodFor(20 days, ALICE);
     vm.stopPrank();
-    (aliceLockdropTokenAmount, aliceLockPeriod, ) = lockdrop.lockdropStates(
+    (aliceLockdropTokenAmount, aliceLockPeriod, , ) = lockdrop.lockdropStates(
       ALICE
     );
 
@@ -413,7 +424,8 @@ contract Lockdrop_LockToken is Lockdrop_BaseTest {
     mockERC20.mint(lockdropConfig.gatewayAddress(), 20 ether);
     mockERC20.approve(address(lockdrop), 20 ether);
     lockdrop.lockTokenFor(lockAmount, lockPeriod, ALICE);
-    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod, ) = lockdrop
+    (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod, , ) = lockdrop
+
       .lockdropStates(ALICE);
     vm.stopPrank();
     vm.startPrank(ALICE);
