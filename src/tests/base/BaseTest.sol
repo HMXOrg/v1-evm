@@ -27,6 +27,8 @@ import { FeedableRewarder } from "../../staking/FeedableRewarder.sol";
 import { AdHocMintRewarder } from "../../staking/AdHocMintRewarder.sol";
 import { WFeedableRewarder } from "../../staking/WFeedableRewarder.sol";
 import { Compounder } from "../../staking/Compounder.sol";
+import { Vester } from "../../vesting/Vester.sol";
+import { ProxyAdmin } from "../interfaces/ProxyAdmin.sol";
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
@@ -63,6 +65,8 @@ contract BaseTest is DSTest, CoreConstants {
   MockChainlinkPriceFeed internal daiPriceFeed;
   MockChainlinkPriceFeed internal usdcPriceFeed;
 
+  ProxyAdmin internal proxyAdmin;
+
   constructor() {
     matic = deployMockErc20("Matic Token", "MATIC", 18);
     weth = deployMockErc20("Wrapped Ethereum", "WETH", 18);
@@ -75,6 +79,19 @@ contract BaseTest is DSTest, CoreConstants {
     wbtcPriceFeed = deployMockChainlinkPriceFeed();
     daiPriceFeed = deployMockChainlinkPriceFeed();
     usdcPriceFeed = deployMockChainlinkPriceFeed();
+
+    proxyAdmin = _setupProxyAdmin();
+  }
+
+  function _setupProxyAdmin() internal returns (ProxyAdmin) {
+    bytes memory _bytecode = abi.encodePacked(
+      vm.getCode("./out/ProxyAdmin.sol/ProxyAdmin.json")
+    );
+    address _address;
+    assembly {
+      _address := create(0, add(_bytecode, 0x20), mload(_bytecode))
+    }
+    return ProxyAdmin(address(_address));
   }
 
   function buildDefaultSetPriceFeedInput()
@@ -123,6 +140,37 @@ contract BaseTest is DSTest, CoreConstants {
     });
 
     return (tokens, priceFeedInfo);
+  }
+
+  function _setupUpgradeable(
+    bytes memory _logicBytecode,
+    bytes memory _initializer
+  ) internal returns (address) {
+    bytes memory _proxyBytecode = abi.encodePacked(
+      vm.getCode(
+        "./out/TransparentUpgradeableProxy.sol/TransparentUpgradeableProxy.json"
+      )
+    );
+
+    address _logic;
+    assembly {
+      _logic := create(0, add(_logicBytecode, 0x20), mload(_logicBytecode))
+    }
+
+    _proxyBytecode = abi.encodePacked(
+      _proxyBytecode,
+      abi.encode(_logic, address(proxyAdmin), _initializer)
+    );
+
+    address _proxy;
+    assembly {
+      _proxy := create(0, add(_proxyBytecode, 0x20), mload(_proxyBytecode))
+      if iszero(extcodesize(_proxy)) {
+        revert(0, 0)
+      }
+    }
+
+    return _proxy;
   }
 
   function deployMockWNative() internal returns (MockWNative) {
@@ -251,5 +299,25 @@ contract BaseTest is DSTest, CoreConstants {
     bool[] memory isCompoundTokens_
   ) internal returns (Compounder) {
     return new Compounder(dp, compoundPool, tokens, isCompoundTokens_);
+  }
+
+  function deployVester(
+    address esP88Address,
+    address p88Address,
+    address vestedEsp88DestinationAddress,
+    address unusedEsp88DestinationAddress
+  ) internal returns (Vester) {
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/Vester.sol/Vester.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(address,address,address,address)")),
+      esP88Address,
+      p88Address,
+      vestedEsp88DestinationAddress,
+      unusedEsp88DestinationAddress
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return Vester(payable(_proxy));
   }
 }
