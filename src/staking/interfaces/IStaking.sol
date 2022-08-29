@@ -13,6 +13,14 @@ interface IStaking {
     uint256 amount
   ) external;
 
+  function getUserTokenAmount(address token, address sender)
+    external
+    returns (uint256);
+
+  function getStakingTokenRewarders(address token)
+    external
+    returns (address[] memory);
+
   function harvest(address[] memory rewarders) external;
 
   function harvestToCompounder(address user, address[] memory rewarders)

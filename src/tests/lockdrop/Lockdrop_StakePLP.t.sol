@@ -54,17 +54,13 @@ contract Lockdrop_StakePLP is Lockdrop_BaseTest {
     // After the lockdrop period ends, owner can stake PLP
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
 
-    // Lockdrop approve strategy and PLPStaking
-    vm.startPrank(address(lockdrop));
-    mockERC20.approve(address(strategy), 100 ether);
-    mockPLPToken.approve(address(lockdropConfig.plpStaking()), 100 ether);
-    vm.stopPrank();
 
     vm.startPrank(address(this));
     // Owner mint PLPToken
     mockPLPToken.mint(address(lockdrop), 20 ether);
     mockPLPToken.approve(address(lockdropConfig.plpStaking()), 100 ether);
     assertEq(mockPLPToken.balanceOf(address(lockdropConfig.plpStaking())), 0);
+
     lockdrop.stakePLP();
     assertEq(lockdrop.totalPLPAmount(), 20 );
     assertEq(
@@ -100,16 +96,12 @@ contract Lockdrop_StakePLP is Lockdrop_BaseTest {
     // After the lockdrop period ends, owner can stake PLP
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
 
-    // Lockdrop approve strategy and PLPStaking
-    vm.startPrank(address(lockdrop));
-    mockERC20.approve(address(strategy), 45 ether);
-    mockPLPToken.approve(address(lockdropConfig.plpStaking()), 20 ether);
-    vm.stopPrank();
 
     vm.startPrank(address(this));
     // Owner mint PLPToken
     mockPLPToken.mint(address(lockdrop), 20 ether);
     mockPLPToken.approve(address(lockdropConfig.plpStaking()), 20 ether);
+
     lockdrop.stakePLP();
     vm.expectRevert(abi.encodeWithSignature("Lockdrop_PLPAlreadyStaked()"));
     lockdrop.stakePLP();

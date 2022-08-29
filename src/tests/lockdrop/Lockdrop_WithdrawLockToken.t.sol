@@ -402,15 +402,12 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     vm.stopPrank();
 
     vm.warp(lockdropConfig.endLockTimestamp() + lockPeriod);
-    vm.startPrank(address(lockdrop));
-    mockERC20.approve(address(strategy), 100 ether);
-    mockPLPToken.approve(address(lockdropConfig.plpStaking()), 100 ether);
-    vm.stopPrank();
 
     vm.startPrank(address(this));
     // Owner mint PLPToken
     mockPLPToken.mint(address(lockdrop), 20 ether);
     mockPLPToken.approve(address(lockdropConfig.plpStaking()), 100 ether);
+
     lockdrop.stakePLP();
     assertEq(mockPLPToken.balanceOf(address(lockdrop)), 19999999999999999980);
     vm.stopPrank();
@@ -430,6 +427,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     assertEq(mockPLPToken.balanceOf(ALICE), 20);
     assertEq(mockPLPToken.balanceOf(address(lockdrop)), 19999999999999999980);
     assertEq(lockdrop.totalPLPAmount(), 20);
+
     assertEq(alicelockdropTokenAmount, 0);
     assertEq(alicelockPeriod, 0);
   }
