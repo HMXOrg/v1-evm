@@ -57,6 +57,7 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     address[] memory rewarders1 = new address[](1);
     rewarders1[0] = address(PRRewarder);
     plpStaking.addStakingToken(address(mockPLPToken), rewarders1);
+    mockP88Token.setMinter(address(this), true);
 
     lockdrop = new Lockdrop(
       address(mockERC20),

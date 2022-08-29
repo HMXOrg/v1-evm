@@ -52,13 +52,14 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   error Lockdrop_PLPAlreadyStaked();
   error Lockdrop_NotGateway();
   error Lockdrop_PLPNotYetStake();
-
+  error Lockdrop_WithdrawNotAllowed();
   // --- Structs ---
   struct LockdropState {
     uint256 lockdropTokenAmount;
     uint256 lockPeriod;
     uint256[] userRewardDebts;
     bool p88Claimed;
+    bool withdrawOnce; // true if user withdraw already (use in the last day)
   }
 
   // --- States ---
@@ -138,8 +139,10 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
       lockdropTokenAmount: amount,
       lockPeriod: lockPeriod,
       userRewardDebts: userRewardDebts,
-      p88Claimed: false
+      p88Claimed: false,
+      withdrawOnce: false
     });
+
     accRewardPerShares = userAccRewardPerShares;
     totalAmount += amount;
     totalP88Weight += amount * lockPeriod;
@@ -277,6 +280,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     nonReentrant
   {
     uint256 lockdropTokenAmount = lockdropStates[user].lockdropTokenAmount;
+    if (lockdropStates[user].withdrawOnce) revert Lockdrop_WithdrawNotAllowed();
     if (amount == 0) revert Lockdrop_ZeroAmountNotAllowed();
     if (amount > lockdropTokenAmount) revert Lockdrop_InsufficientBalance();
     if (amount > _getEarlyWithdrawableAmount(user))
@@ -287,6 +291,11 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     totalP88Weight -= amount * lockdropStates[user].lockPeriod;
     if (lockdropStates[user].lockdropTokenAmount == 0) {
       delete lockdropStates[user];
+    }
+    if (
+      block.timestamp >= lockdropConfig.startRestrictedWithdrawalTimestamp()
+    ) {
+      lockdropStates[user].withdrawOnce = true;
     }
 
     lockdropToken.safeTransfer(msg.sender, amount);
