@@ -11,6 +11,7 @@ import { PLP } from "../tokens/PLP.sol";
 // 2. First 3 days is 100% withdrawable
 // 3. Withdraw day 4: First 12 hours 50 % withdrawable
 // 4. Withdraw day 4: After 12 hours dacaying withdraw from 50% to 0%
+// 5. On day 4, user can only withdraw once
 
 contract LockdropConfig {
   // --- States ---
