@@ -78,9 +78,9 @@ contract MockLockdrop is ILockdrop {
     );
   }
 
-  function lockdropStates(address user)
+  function lockdropStates(address)
     external
-    view
+    pure
     returns (
       uint256 lockdropTokenAmount,
       uint256 lockPeriod,

@@ -8,5 +8,5 @@ interface ICurveTokenV5Remover {
     address _receiver
   ) external;
 
-  function underlying_coins() external returns (address[] memory);
+  function underlying_coins(uint256 index) external returns (address);
 }

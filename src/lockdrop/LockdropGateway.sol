@@ -4,6 +4,9 @@ pragma solidity 0.8.14;
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
+
+import { console } from "../tests/utils/console.sol";
 
 import { IAaveAToken } from "../interfaces/IAaveAToken.sol";
 import { ICurveTokenV3Remover } from "../interfaces/ICurveTokenV3Remover.sol";
@@ -23,8 +26,8 @@ contract LockdropGateway is ILockdropGateway, Ownable {
     BaseToken,
     AToken, // Aave
     LpPairToken, // SushiSwap, QuickSwap
-    CurveV3Token, // Curve Aave LP Token
-    CurveV5Token // ATriCrypto3 LP Token
+    CurveV3Token, // Curve Aave LP Token (only support 3 underlycoins)
+    CurveV5Token // ATriCrypto3 LP Token (only support 5 underlycoins)
   }
 
   struct LockdropInfo {
@@ -53,39 +56,37 @@ contract LockdropGateway is ILockdropGateway, Ownable {
     _setLockdropInfo(token, TokenType.BaseToken, lockdrop, bytes(""));
   }
 
-  function setATokenLockdropInfo(address token, address lockdrop)
+  function setATokenLockdropInfo(address token) external onlyOwner {
+    _setLockdropInfo(token, TokenType.AToken, address(0), bytes(""));
+  }
+
+  function setLpPairTokenLockdropInfo(address token, address router)
     external
     onlyOwner
   {
-    _setLockdropInfo(token, TokenType.AToken, lockdrop, bytes(""));
-  }
-
-  function setLpPairTokenLockdropInfo(
-    address token,
-    address lockdrop,
-    address router
-  ) external onlyOwner {
     _setLockdropInfo(
       token,
       TokenType.LpPairToken,
-      lockdrop,
+      address(0),
       abi.encode(router)
     );
   }
 
-  function setCurveV3TokenLockdropInfo(address token, address lockdrop)
-    external
-    onlyOwner
-  {
-    _setLockdropInfo(token, TokenType.CurveV3Token, lockdrop, bytes(""));
+  function setCurveV3TokenLockdropInfo(address token) external onlyOwner {
+    _setLockdropInfo(token, TokenType.CurveV3Token, address(0), bytes(""));
   }
 
   function setCurveV5TokenLockdropInfo(
     address token,
-    address lockdrop,
-    address zap
+    address zap,
+    uint8 underlyTokenCount
   ) external onlyOwner {
-    _setLockdropInfo(token, TokenType.CurveV3Token, lockdrop, abi.encode(zap));
+    _setLockdropInfo(
+      token,
+      TokenType.CurveV5Token,
+      address(0),
+      abi.encode(zap, underlyTokenCount)
+    );
   }
 
   function _setLockdropInfo(
@@ -188,6 +189,9 @@ contract LockdropGateway is ILockdropGateway, Ownable {
   ) internal {
     if (mapTokenLockdropInfo[token].tokenInType != TokenType.BaseToken)
       revert LockdropGateway_NotBaseToken();
+
+    if (lockAmount > 0)
+      IERC20(token).approve(mapTokenLockdropInfo[token].lockdrop, lockAmount);
 
     _lockBaseTokenAtLockdrop(token, lockAmount, lockPeriod);
   }
@@ -296,8 +300,14 @@ contract LockdropGateway is ILockdropGateway, Ownable {
       mapTokenLockdropInfo[token].metadata,
       (address) // Zap address
     );
-    address[] memory baseTokens = ICurveTokenV5Remover(remover)
-      .underlying_coins();
+
+    address[5] memory baseTokens = [
+      ICurveTokenV5Remover(remover).underlying_coins(0),
+      ICurveTokenV5Remover(remover).underlying_coins(1),
+      ICurveTokenV5Remover(remover).underlying_coins(2),
+      ICurveTokenV5Remover(remover).underlying_coins(3),
+      ICurveTokenV5Remover(remover).underlying_coins(4)
+    ];
 
     uint256[5] memory baseTokenAmountsBefore = [
       IERC20(baseTokens[0]).balanceOf(address(this)),
@@ -307,6 +317,11 @@ contract LockdropGateway is ILockdropGateway, Ownable {
       IERC20(baseTokens[4]).balanceOf(address(this))
     ];
     uint256[5] memory minAmounts;
+
+    // approve
+    IERC20(token).approve(remover, lockAmount);
+
+    // remove
     ICurveTokenV5Remover(remover).remove_liquidity(
       lockAmount,
       minAmounts,
@@ -327,21 +342,12 @@ contract LockdropGateway is ILockdropGateway, Ownable {
         IERC20(baseTokens[4]).balanceOf(address(this)) -
           baseTokenAmountsBefore[4]
       ];
-      if (baseTokenAmounts[0] > 0) {
-        _handleLockBaseToken(baseTokens[0], baseTokenAmounts[0], lockPeriod);
-      }
-      if (baseTokenAmounts[1] > 0) {
-        _handleLockBaseToken(baseTokens[1], baseTokenAmounts[1], lockPeriod);
-      }
-      if (baseTokenAmounts[2] > 0) {
-        _handleLockBaseToken(baseTokens[2], baseTokenAmounts[2], lockPeriod);
-      }
-      if (baseTokenAmounts[3] > 0) {
-        _handleLockBaseToken(baseTokens[3], baseTokenAmounts[3], lockPeriod);
-      }
-      if (baseTokenAmounts[4] > 0) {
-        _handleLockBaseToken(baseTokens[4], baseTokenAmounts[4], lockPeriod);
-      }
+
+      _handleLockBaseToken(baseTokens[0], baseTokenAmounts[0], lockPeriod);
+      _handleLockBaseToken(baseTokens[1], baseTokenAmounts[1], lockPeriod);
+      _handleLockBaseToken(baseTokens[2], baseTokenAmounts[2], lockPeriod);
+      _handleLockBaseToken(baseTokens[3], baseTokenAmounts[3], lockPeriod);
+      _handleLockBaseToken(baseTokens[4], baseTokenAmounts[4], lockPeriod);
     }
   }
 
@@ -355,25 +361,17 @@ contract LockdropGateway is ILockdropGateway, Ownable {
       mapTokenLockdropInfo[token].lockdrop
     ).lockdropStates(msg.sender);
 
-    if (lockAmount > 0)
-      IERC20(token).approve(mapTokenLockdropInfo[token].lockdrop, lockAmount);
-
     if (currentTokenAmount == 0) {
       // No lockdrop position yet, create a new one
       ILockdrop(lockdrop).lockTokenFor(lockAmount, lockPeriod, msg.sender);
       return;
     } else {
       // Lockdrop position is existed, update with new param
-
-      // Revert if input results in doing nothing
-      if (lockAmount == 0 && lockPeriod == 0)
-        revert LockdropGateway_NothingToDoWithPosition();
-
       if (lockAmount > 0) {
         ILockdrop(lockdrop).addLockAmountFor(lockAmount, msg.sender);
       }
       if (lockPeriod > 0) {
-        ILockdrop(lockdrop).extendLockPeriodFor(lockAmount, msg.sender);
+        ILockdrop(lockdrop).extendLockPeriodFor(lockPeriod, msg.sender);
       }
       return;
     }
