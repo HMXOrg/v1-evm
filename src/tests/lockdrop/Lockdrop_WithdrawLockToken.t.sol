@@ -355,7 +355,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     vm.stopPrank();
 
     vm.startPrank(ALICE);
-    lockdrop.withdrawAll(ALICE);
+    lockdrop.withdrawAll(ALICE, ALICE);
     (alicelockdropTokenAmount, alicelockPeriod, aliceP88Claimed) = lockdrop
       .lockdropStates(ALICE);
     vm.stopPrank();
@@ -393,6 +393,6 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     assertEq(lockdrop.totalP88Weight(), 16 * 604900);
 
     vm.expectRevert(abi.encodeWithSignature("Lockdrop_ZeroTotalPLPAmount()"));
-    lockdrop.withdrawAll(ALICE);
+    lockdrop.withdrawAll(ALICE, ALICE);
   }
 }

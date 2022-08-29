@@ -68,7 +68,7 @@ contract MockLockdrop is ILockdrop {
     );
   }
 
-  function withdrawAll(address _user) external {
+  function withdrawAll(address _user, address to) external {
     _claimAllRewards(_user);
 
     lockdropConfig.plpStaking().withdraw(
@@ -80,7 +80,7 @@ contract MockLockdrop is ILockdrop {
     IERC20(lockdropConfig.plpToken()).approve(address(this), totalPLPAmount);
     IERC20(lockdropConfig.plpToken()).safeTransferFrom(
       address(this),
-      msg.sender,
+      to,
       totalPLPAmount
     );
 

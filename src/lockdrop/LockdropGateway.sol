@@ -45,7 +45,7 @@ contract LockdropGateway is ILockdropGateway {
   ) external {
     uint256 length = lockdropList.length;
     for (uint256 index = 0; index < length; ) {
-      ILockdrop(lockdropList[index]).withdrawAll(user);
+      ILockdrop(lockdropList[index]).withdrawAll(user, address(this));
 
       plpToken.approve(address(plpStaking), plpToken.balanceOf(address(this)));
 

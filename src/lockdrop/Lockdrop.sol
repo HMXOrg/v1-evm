@@ -300,7 +300,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
 
   /// @dev Users able to withdraw all their PLP Token after the end of the lockdrop period + their input lock period
   /// @param user Address of the user that wants to withdraw
-  function withdrawAll(address user) external nonReentrant {
+  function withdrawAll(address user, address to) external nonReentrant {
     if (totalPLPAmount == 0) revert Lockdrop_ZeroTotalPLPAmount();
     if (
       block.timestamp <
@@ -316,7 +316,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
       address(lockdropConfig.plpToken()),
       userPLPTokenAmount
     );
-    lockdropConfig.plpToken().safeTransfer(msg.sender, userPLPTokenAmount);
+    lockdropConfig.plpToken().safeTransfer(to, userPLPTokenAmount);
     delete lockdropStates[user];
     emit LogWithdrawAll(user, address(lockdropToken));
   }
