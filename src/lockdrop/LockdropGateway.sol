@@ -46,6 +46,7 @@ contract LockdropGateway is ILockdropGateway, Ownable {
   error LockdropGateway_NotCurveV5Token();
   error LockdropGateway_UninitializedToken();
   error LockdropGateway_NothingToDoWithPosition();
+  error LockdropGateway_NonBaseTokenZeroLockedAmount();
 
   constructor() {}
 
@@ -162,6 +163,10 @@ contract LockdropGateway is ILockdropGateway, Ownable {
       _handleLockBaseToken(token, lockAmount, lockPeriod);
       return;
     }
+
+    // Amount check on non-base token
+    if (lockAmount == 0) revert LockdropGateway_NonBaseTokenZeroLockedAmount();
+
     if (tokenInType == TokenType.AToken) {
       _handleLockAToken(token, lockAmount, lockPeriod);
       return;
@@ -204,9 +209,17 @@ contract LockdropGateway is ILockdropGateway, Ownable {
     if (mapTokenLockdropInfo[token].tokenInType != TokenType.AToken)
       revert LockdropGateway_NotAToken();
 
+    // Approve pool
+    address pool = IAaveAToken(token).POOL();
+    IERC20(token).approve(pool, lockAmount);
+
+    // Convert AToken to base token
     address baseToken = IAaveAToken(token).UNDERLYING_ASSET_ADDRESS();
-    uint256 baseTokenAmount = IAaveLendingPool(IAaveAToken(token).POOL())
-      .withdraw(baseToken, lockAmount, address(this));
+    uint256 baseTokenAmount = IAaveLendingPool(pool).withdraw(
+      baseToken,
+      lockAmount,
+      address(this)
+    );
 
     _handleLockBaseToken(baseToken, baseTokenAmount, lockPeriod);
   }
@@ -225,6 +238,9 @@ contract LockdropGateway is ILockdropGateway, Ownable {
       mapTokenLockdropInfo[token].metadata,
       (address)
     );
+
+    // Approve router
+    IERC20(token).approve(router, lockAmount);
 
     (uint256 baseToken0Amount, uint256 baseToken1Amount) = IUniswapRouter(
       router

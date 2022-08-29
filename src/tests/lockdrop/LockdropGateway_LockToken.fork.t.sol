@@ -24,6 +24,14 @@ contract LockdropGateway_LockToken is BaseTest {
   address internal constant WBTC = 0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6;
   address internal constant WETH = 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619;
 
+  // AToken
+  address internal constant amWETH = 0x28424507fefb6f7f8E9D3860F56504E4e5f5f390;
+  address internal constant amAAVE = 0x1d2a0E5EC8E5bBDCA5CB219e649B565d8e5c3360;
+
+  // Sushi LP
+  address internal constant WETH_USDC =
+    0x34965ba0ac2451A34a0471F04CCa3F990b8dea27;
+
   // Other tokens
   address internal constant crvUSDBTCETH =
     0xdAD97F7713Ae9437fa9249920eC8507e5FbB23d3; // Curve V5 Token
@@ -31,12 +39,20 @@ contract LockdropGateway_LockToken is BaseTest {
   // Etc.
   address internal constant crvUSDBTCETHZap =
     0x1d8b86e3D88cDb2d34688e87E72F388Cb541B7C8;
+  address internal constant sushiRouter =
+    0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506;
 
   // Wallets
   address internal constant WHALE_1 =
-    0xF977814e90dA44bFA03b6295A0616a897441aceC;
+    0xF977814e90dA44bFA03b6295A0616a897441aceC; // holds multiple stable coins
+  address internal constant WHALE_2 =
+    0x043f8524F87EFb25990b65Ff4918f9128aCF742E; // holds amWETH
+  address internal constant WHALE_3 =
+    0x975779102B2A82384f872EE759801DB5204CE331; // holds amAAVE
   address internal constant crvUSDBTCETHHolder =
     0x6c5384bBaE7aF65Ed1b6784213A81DaE18e528b2;
+  address internal constant WETHUSDCHolder =
+    0x59e3a85A31042b88f3C009efB62936CEB4E760c3;
 
   function setUp() public {
     gateway = new LockdropGateway();
@@ -47,11 +63,18 @@ contract LockdropGateway_LockToken is BaseTest {
     wethLockdrop = new MockLockdrop2();
 
     // Base token
-    gateway.setBaseTokenLockdropInfo(address(DAI), address(daiLockdrop));
-    gateway.setBaseTokenLockdropInfo(address(USDC), address(usdcLockdrop));
-    gateway.setBaseTokenLockdropInfo(address(USDT), address(usdtLockdrop));
-    gateway.setBaseTokenLockdropInfo(address(WBTC), address(wbtcLockdrop));
-    gateway.setBaseTokenLockdropInfo(address(WETH), address(wethLockdrop));
+    gateway.setBaseTokenLockdropInfo(DAI, address(daiLockdrop));
+    gateway.setBaseTokenLockdropInfo(USDC, address(usdcLockdrop));
+    gateway.setBaseTokenLockdropInfo(USDT, address(usdtLockdrop));
+    gateway.setBaseTokenLockdropInfo(WBTC, address(wbtcLockdrop));
+    gateway.setBaseTokenLockdropInfo(WETH, address(wethLockdrop));
+
+    // A Token
+    gateway.setATokenLockdropInfo(amWETH);
+    gateway.setATokenLockdropInfo(amAAVE); // but AAVE does not supported as base token
+
+    // Sushi Lp
+    gateway.setLpPairTokenLockdropInfo(WETH_USDC, sushiRouter); // but AAVE does not supported as base token
 
     // Curve V5
     gateway.setCurveV5TokenLockdropInfo(crvUSDBTCETH, crvUSDBTCETHZap, 5);
@@ -89,6 +112,86 @@ contract LockdropGateway_LockToken is BaseTest {
     assertEq(usdcLockdrop.lockTokenForCallCount(), 1);
     assertEq(usdcLockdrop.extendLockPeriodForCallCount(), 2);
     assertEq(usdcLockdrop.addLockAmountForCallCount(), 2);
+    vm.stopPrank();
+  }
+
+  function testCorrectness_LockAToken() external {
+    if (!_isExpectedFork()) return;
+
+    vm.startPrank(WHALE_2);
+
+    // Approve
+    IERC20(amWETH).approve(address(gateway), type(uint256).max);
+
+    // Whale lock amWETH
+    gateway.lockToken(address(amWETH), 3000 ether, 30 days);
+
+    // Assert locked amount/period
+    (uint256 lockedAmount, uint256 lockedPeriod, ) = wethLockdrop
+      .lockdropStates(WHALE_2);
+    assertEq(lockedAmount, 3000 ether);
+    assertEq(lockedPeriod, 30 days);
+
+    // Assert call counts
+    assertEq(wethLockdrop.lockTokenForCallCount(), 1);
+    assertEq(wethLockdrop.extendLockPeriodForCallCount(), 0);
+    assertEq(wethLockdrop.addLockAmountForCallCount(), 0);
+    vm.stopPrank();
+  }
+
+  function testRevert_LockAToken_ButWithUnsupportedUnderlyingBaseToken()
+    external
+  {
+    if (!_isExpectedFork()) return;
+
+    vm.startPrank(WHALE_3);
+
+    // Approve
+    IERC20(amAAVE).approve(address(gateway), type(uint256).max);
+
+    // Whale lock amAAVE
+    // While amAAVE is supported, but AAVE does not, hence revert is expected.
+    vm.expectRevert(abi.encodeWithSignature("LockdropGateway_NotBaseToken()"));
+    gateway.lockToken(address(amAAVE), 3000 ether, 30 days);
+    vm.stopPrank();
+  }
+
+  function testCorrectness_LockLpPairToken() external {
+    if (!_isExpectedFork()) return;
+
+    vm.startPrank(WETHUSDCHolder);
+
+    // Approve
+    IERC20(WETH_USDC).approve(address(gateway), type(uint256).max);
+
+    // Whale lock WETH_USDC
+    gateway.lockToken(address(WETH_USDC), 0.0002 ether, 30 days);
+
+    // Assert locked amount/period
+    {
+      (uint256 lockedAmount, uint256 lockedPeriod, ) = wethLockdrop
+        .lockdropStates(WETHUSDCHolder);
+      assertGt(lockedAmount, 0);
+      assertEq(lockedPeriod, 30 days);
+    }
+    {
+      (uint256 lockedAmount, uint256 lockedPeriod, ) = usdcLockdrop
+        .lockdropStates(WETHUSDCHolder);
+      assertGt(lockedAmount, 0);
+      assertEq(lockedPeriod, 30 days);
+    }
+
+    // Assert call counts
+    {
+      assertEq(wethLockdrop.lockTokenForCallCount(), 1);
+      assertEq(wethLockdrop.extendLockPeriodForCallCount(), 0);
+      assertEq(wethLockdrop.addLockAmountForCallCount(), 0);
+    }
+    {
+      assertEq(usdcLockdrop.lockTokenForCallCount(), 1);
+      assertEq(usdcLockdrop.extendLockPeriodForCallCount(), 0);
+      assertEq(usdcLockdrop.addLockAmountForCallCount(), 0);
+    }
     vm.stopPrank();
   }
 
@@ -158,15 +261,12 @@ contract LockdropGateway_LockToken is BaseTest {
       lockedAmountBefore[i] = lockedAmount;
     }
 
-    // // Lock crvUSDBTCETH, but with 0 amount
-    // // Will revert as the crvUSDBTCETH does not allow removeLiquidity 0
-    vm.expectRevert();
-    gateway.lockToken(address(crvUSDBTCETH), 0 ether, 40 days); // lockTokenFor
-
     // Assert call counts
-    assertEq(usdcLockdrop.lockTokenForCallCount(), 1);
-    assertEq(usdcLockdrop.addLockAmountForCallCount(), 3);
-    assertEq(usdcLockdrop.extendLockPeriodForCallCount(), 2);
+    for (uint256 i = 0; i < 5; i++) {
+      assertEq(lockdrops[i].lockTokenForCallCount(), 1);
+      assertEq(lockdrops[i].addLockAmountForCallCount(), 3);
+      assertEq(lockdrops[i].extendLockPeriodForCallCount(), 2);
+    }
     vm.stopPrank();
   }
 
@@ -180,7 +280,9 @@ contract LockdropGateway_LockToken is BaseTest {
 
     // Lock crvUSDBTCETH, but with 0 amount
     // Will revert as the crvUSDBTCETH does not allow removeLiquidity 0
-    vm.expectRevert();
+    vm.expectRevert(
+      abi.encodeWithSignature("LockdropGateway_NonBaseTokenZeroLockedAmount()")
+    );
     gateway.lockToken(address(crvUSDBTCETH), 0 ether, 40 days); // lockTokenFor
 
     vm.stopPrank();
