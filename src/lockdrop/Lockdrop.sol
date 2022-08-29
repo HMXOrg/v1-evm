@@ -59,7 +59,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     uint256 lockPeriod;
     uint256[] userRewardDebts;
     bool p88Claimed;
-    bool withdrawOnce; // true if user withdraw already (use in the last day)
+    bool restrictedWithdrawn; // true if user withdraw already (use in the last day)
   }
 
   // --- States ---
@@ -140,7 +140,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
       lockPeriod: lockPeriod,
       userRewardDebts: userRewardDebts,
       p88Claimed: false,
-      withdrawOnce: false
+      restrictedWithdrawn: false
     });
 
     accRewardPerShares = userAccRewardPerShares;
@@ -280,7 +280,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     nonReentrant
   {
     uint256 lockdropTokenAmount = lockdropStates[user].lockdropTokenAmount;
-    if (lockdropStates[user].withdrawOnce) revert Lockdrop_WithdrawNotAllowed();
+    if (lockdropStates[user].restrictedWithdrawn) revert Lockdrop_WithdrawNotAllowed();
     if (amount == 0) revert Lockdrop_ZeroAmountNotAllowed();
     if (amount > lockdropTokenAmount) revert Lockdrop_InsufficientBalance();
     if (amount > _getEarlyWithdrawableAmount(user))
@@ -295,7 +295,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     if (
       block.timestamp >= lockdropConfig.startRestrictedWithdrawalTimestamp()
     ) {
-      lockdropStates[user].withdrawOnce = true;
+      lockdropStates[user].restrictedWithdrawn = true;
     }
 
     lockdropToken.safeTransfer(msg.sender, amount);

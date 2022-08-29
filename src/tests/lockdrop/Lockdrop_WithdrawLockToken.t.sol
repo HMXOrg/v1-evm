@@ -46,7 +46,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     // 3. The number of lock period should be 8 days
     // 4. The total amount of lock token should be 11
     // 5. The total weight of P88 should be 11 * 8 days
-    // 6. Alice withdrawOnce state should remain false
+    // 6. Alice restrictedWithdrawn state should remain false
     assertEq(mockERC20.balanceOf(ALICE), 9 ether);
     assertEq(alicelockdropTokenAmount, 11 ether);
     assertEq(alicelockPeriod, lockPeriod);
@@ -91,7 +91,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     // 3. The number of lock period should be 0
     // 4. The total amount of lock token should be 0
     // 5. The total weight of P88 should be 0
-    // 6 Alice withdrawOnce should remain false
+    // 6 Alice restrictedWithdrawn should remain false
     assertEq(mockERC20.balanceOf(ALICE), 20 ether);
     assertEq(alicelockdropTokenAmount, 0);
     assertEq(alicelockPeriod, 0);
@@ -135,7 +135,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     // 3. The number of lock period should be 8 days
     // 4. The total amount of lock token should be 11
     // 5. The total weight of P88 should be 11 * 8 days
-    // 6. Alice withdrawOnce should remain false
+    // 6. Alice restrictedWithdrawn should remain false
     assertEq(mockERC20.balanceOf(ALICE), 9 ether);
     assertEq(alicelockdropTokenAmount, 11 ether);
     assertEq(alicelockPeriod, lockPeriod);
@@ -152,7 +152,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     // 1. Balance of Alice's ERC20 token should be 20
     // 2. Alice is now deleted from lockdropStates so her lock token amount is 0
     // 3. Alice is now deleted from lockdropStates so her lock period is 0
-    // 4. Alice withdrawOnce should remain false
+    // 4. Alice restrictedWithdrawn should remain false
     assertEq(mockERC20.balanceOf(ALICE), 20 ether);
     assertEq(alicelockdropTokenAmount, 0);
     assertEq(alicelockPeriod, 0);
@@ -195,7 +195,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     // 3. The number of lock period should be 8 days
     // 4. The total amount of lock token should be 11
     // 5. The total weight of P88 should be 11 * 8 days
-    // 6. Alice withdrawOnce state should be set to true
+    // 6. Alice restrictedWithdrawn state should be set to true
     assertEq(mockERC20.balanceOf(ALICE), 9 ether);
     assertEq(alicelockdropTokenAmount, 11 ether);
     assertEq(alicelockPeriod, lockPeriod);
@@ -245,7 +245,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     // 4. The number of lock period should be 8 days
     // 5. The total amount of lock token should be 12
     // 6. The total weight of P88 should be 12 * 8 days
-    // 7. Alice withdrawOnce state should be set to true
+    // 7. Alice restrictedWithdrawn state should be set to true
     assertEq(mockERC20.balanceOf(ALICE), 8 ether);
     assertEq(alicelockdropTokenAmount, 12 ether);
     assertEq(alicelockPeriod, lockPeriod);
