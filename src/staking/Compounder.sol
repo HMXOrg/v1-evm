@@ -2,12 +2,12 @@
 pragma solidity 0.8.14;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import { IStaking } from "./interfaces/IStaking.sol";
 
-contract Compounder is Ownable {
+contract Compounder is OwnableUpgradeable {
   using SafeERC20 for IERC20;
 
   error Compounder_InconsistentLength();
@@ -17,12 +17,14 @@ contract Compounder is Ownable {
   address[] public tokens;
   mapping(address => bool) public isCompoundableTokens;
 
-  constructor(
+  function initialize(
     address dp_,
     address destinationCompundPool_,
     address[] memory tokens_,
     bool[] memory isCompoundTokens_
-  ) {
+  ) external initializer {
+    OwnableUpgradeable.__Ownable_init();
+
     dp = dp_;
     destinationCompundPool = destinationCompundPool_;
     addToken(tokens_, isCompoundTokens_);
@@ -129,4 +131,9 @@ contract Compounder is Ownable {
   }
 
   receive() external payable {}
+
+  /// @custom:oz-upgrades-unsafe-allow constructor
+  constructor() {
+    _disableInitializers();
+  }
 }

@@ -342,9 +342,20 @@ contract BaseTest is DSTest, CoreConstants {
     address dp,
     address compoundPool,
     address[] memory tokens,
-    bool[] memory isCompoundTokens_
+    bool[] memory isCompoundTokens
   ) internal returns (Compounder) {
-    return new Compounder(dp, compoundPool, tokens, isCompoundTokens_);
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/Compounder.sol/Compounder.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(address,address,address[],bool[])")),
+      dp,
+      compoundPool,
+      tokens,
+      isCompoundTokens
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return Compounder(payable(_proxy));
   }
 
   function deployVester(
