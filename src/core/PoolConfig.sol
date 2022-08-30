@@ -39,6 +39,8 @@ contract PoolConfig is Ownable {
   // --------------------------
   /// @notice liquidation fee in USD with 1e30 precision
   uint256 public liquidationFeeUsd;
+  bool public isAllowAllLiquidators;
+  mapping(address => bool) public allowLiquidators;
 
   // ---------------------------
   // Funding rate configurations
@@ -69,6 +71,10 @@ contract PoolConfig is Ownable {
   address public router;
 
   event DeleteTokenConfig(address token);
+  event SetIsAllowAllLiquidators(
+    bool prevIsAllowAllLiquidators,
+    bool isAllowAllLiquidators
+  );
   event SetIsDynamicFeeEnable(
     bool prevIsDynamicFeeEnable,
     bool newIsDynamicFeeEnable
@@ -136,6 +142,17 @@ contract PoolConfig is Ownable {
     stableSwapFeeBps = 4; // 0.04%
     swapFeeBps = 30; // 0.3%
     marginFeeBps = 10; // 0.1%
+  }
+
+  function setIsAllowAllLiquidators(bool _isAllowAllLiquidators)
+    external
+    onlyOwner
+  {
+    emit SetIsAllowAllLiquidators(
+      isAllowAllLiquidators,
+      _isAllowAllLiquidators
+    );
+    isAllowAllLiquidators = _isAllowAllLiquidators;
   }
 
   function setIsDynamicFeeEnable(bool newIsDynamicFeeEnable)
@@ -253,6 +270,17 @@ contract PoolConfig is Ownable {
 
   function isAcceptToken(address token) external view returns (bool) {
     return tokenMetas[token].accept;
+  }
+
+  function isAllowedLiquidators(address liquidator)
+    external
+    view
+    returns (bool)
+  {
+    return
+      isAllowAllLiquidators
+        ? isAllowAllLiquidators
+        : allowLiquidators[liquidator];
   }
 
   function isStableToken(address token) external view returns (bool) {

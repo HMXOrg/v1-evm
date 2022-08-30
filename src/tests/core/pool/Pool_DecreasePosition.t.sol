@@ -733,6 +733,7 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
     assertEq(position.averagePrice, 0);
     assertEq(position.entryFundingRate, 0);
     assertEq(position.reserveAmount, 0);
+    assertEq(position.primaryAccount, address(0));
 
     checkPoolBalanceWithState(address(wbtc), 0);
   }
@@ -1188,6 +1189,7 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
     assertEq(position.entryFundingRate, 0);
     assertEq(position.reserveAmount, 0);
     assertEq(position.realizedPnl, 0);
+    assertEq(position.primaryAccount, address(0));
     assertTrue(position.hasProfit);
 
     // Assert BOB's DAI balance
