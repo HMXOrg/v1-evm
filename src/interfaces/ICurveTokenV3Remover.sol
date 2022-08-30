@@ -9,5 +9,5 @@ interface ICurveTokenV3Remover {
     bool _use_underlying
   ) external returns (uint256[3] memory amounts);
 
-  function underlying_coins() external returns (address[] memory);
+  function underlying_coins(uint256 index) external returns (address);
 }

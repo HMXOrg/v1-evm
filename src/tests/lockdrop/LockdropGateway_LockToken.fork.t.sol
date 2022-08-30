@@ -38,6 +38,7 @@ contract LockdropGateway_LockToken is BaseTest {
   // Other tokens
   address internal constant crvUSDBTCETH =
     0xdAD97F7713Ae9437fa9249920eC8507e5FbB23d3; // Curve V5 Token
+  address internal constant am3Crv = 0xE7a24EF0C5e95Ffb0f6684b813A78F2a3AD7D171; // Curve V3 Token (Curve.fi amDAI/amUSDC/amUSDT (am3CRV))
 
   // Etc.
   address internal constant crvUSDBTCETHZap =
@@ -52,7 +53,7 @@ contract LockdropGateway_LockToken is BaseTest {
     0x043f8524F87EFb25990b65Ff4918f9128aCF742E; // holds amWETH
   address internal constant WHALE_3 =
     0x975779102B2A82384f872EE759801DB5204CE331; // holds amAAVE
-  address internal constant crvUSDBTCETHHolder =
+  address internal constant WHALE_CRV =
     0x6c5384bBaE7aF65Ed1b6784213A81DaE18e528b2;
   address internal constant WETHUSDCHolder =
     0x59e3a85A31042b88f3C009efB62936CEB4E760c3;
@@ -82,6 +83,8 @@ contract LockdropGateway_LockToken is BaseTest {
     gateway.setLpPairTokenLockdropInfo(WETHUSDC, sushiRouter);
     gateway.setLpPairTokenLockdropInfo(WETHAAVE, sushiRouter); // but AAVE does not supported as base token
 
+    // Curve V3
+    gateway.setCurveV3TokenLockdropInfo(am3Crv);
     // Curve V5
     gateway.setCurveV5TokenLockdropInfo(crvUSDBTCETH, crvUSDBTCETHZap, 5);
   }
@@ -184,6 +187,79 @@ contract LockdropGateway_LockToken is BaseTest {
     vm.stopPrank();
   }
 
+  function testCorrectness_LockCurveV3Token() external {
+    if (!_isExpectedFork()) return;
+
+    // Declarations
+    MockLockdrop2[3] memory lockdrops = [
+      daiLockdrop,
+      usdcLockdrop,
+      usdtLockdrop
+    ];
+    uint256[3] memory lockedAmountBefore;
+
+    vm.startPrank(WHALE_CRV);
+
+    // Approve
+    IERC20(am3Crv).approve(address(gateway), type(uint256).max);
+
+    // Lock am3Crv
+    gateway.lockToken(address(am3Crv), 20 ether, 30 days); // lockTokenFor
+
+    // Assertion
+    for (uint256 i = 0; i < 3; i++) {
+      (uint256 lockedAmount, uint256 lockedPeriod, ) = lockdrops[i]
+        .lockdropStates(WHALE_CRV);
+      assertGt(lockedAmount, lockedAmountBefore[i]);
+      assertEq(lockedPeriod, 30 days);
+      lockedAmountBefore[i] = lockedAmount;
+    }
+
+    // Lock am3Crv again
+    gateway.lockToken(address(am3Crv), 50 ether, 36 days); // lockTokenFor
+
+    // Assertion
+    for (uint256 i = 0; i < 3; i++) {
+      (uint256 lockedAmount, uint256 lockedPeriod, ) = lockdrops[i]
+        .lockdropStates(WHALE_CRV);
+      assertGt(lockedAmount, lockedAmountBefore[i]);
+      assertEq(lockedPeriod, 36 days);
+      lockedAmountBefore[i] = lockedAmount;
+    }
+
+    // Lock am3Crv again, but with same period
+    gateway.lockToken(address(am3Crv), 75 ether, 36 days); // lockTokenFor
+
+    // Assertion
+    for (uint256 i = 0; i < 3; i++) {
+      (uint256 lockedAmount, uint256 lockedPeriod, ) = lockdrops[i]
+        .lockdropStates(WHALE_CRV);
+      assertGt(lockedAmount, lockedAmountBefore[i]);
+      assertEq(lockedPeriod, 36 days);
+      lockedAmountBefore[i] = lockedAmount;
+    }
+
+    // Lock am3Crv again, but don't extend period
+    gateway.lockToken(address(am3Crv), 1 ether, 0 days); // lockTokenFor
+
+    // Assertion
+    for (uint256 i = 0; i < 3; i++) {
+      (uint256 lockedAmount, uint256 lockedPeriod, ) = lockdrops[i]
+        .lockdropStates(WHALE_CRV);
+      assertGt(lockedAmount, lockedAmountBefore[i]);
+      assertEq(lockedPeriod, 36 days);
+      lockedAmountBefore[i] = lockedAmount;
+    }
+
+    // Assert call counts
+    for (uint256 i = 0; i < 3; i++) {
+      assertEq(lockdrops[i].lockTokenForCallCount(), 1);
+      assertEq(lockdrops[i].addLockAmountForCallCount(), 3);
+      assertEq(lockdrops[i].extendLockPeriodForCallCount(), 2);
+    }
+    vm.stopPrank();
+  }
+
   function testCorrectness_LockCurveV5Token() external {
     if (!_isExpectedFork()) return;
 
@@ -197,7 +273,7 @@ contract LockdropGateway_LockToken is BaseTest {
     ];
     uint256[5] memory lockedAmountBefore;
 
-    vm.startPrank(crvUSDBTCETHHolder);
+    vm.startPrank(WHALE_CRV);
 
     // Approve
     IERC20(crvUSDBTCETH).approve(address(gateway), type(uint256).max);
@@ -208,7 +284,7 @@ contract LockdropGateway_LockToken is BaseTest {
     // Assertion
     for (uint256 i = 0; i < 5; i++) {
       (uint256 lockedAmount, uint256 lockedPeriod, ) = lockdrops[i]
-        .lockdropStates(crvUSDBTCETHHolder);
+        .lockdropStates(WHALE_CRV);
       assertGt(lockedAmount, lockedAmountBefore[i]);
       assertEq(lockedPeriod, 30 days);
       lockedAmountBefore[i] = lockedAmount;
@@ -220,7 +296,7 @@ contract LockdropGateway_LockToken is BaseTest {
     // Assertion
     for (uint256 i = 0; i < 5; i++) {
       (uint256 lockedAmount, uint256 lockedPeriod, ) = lockdrops[i]
-        .lockdropStates(crvUSDBTCETHHolder);
+        .lockdropStates(WHALE_CRV);
       assertGt(lockedAmount, lockedAmountBefore[i]);
       assertEq(lockedPeriod, 36 days);
       lockedAmountBefore[i] = lockedAmount;
@@ -232,7 +308,7 @@ contract LockdropGateway_LockToken is BaseTest {
     // Assertion
     for (uint256 i = 0; i < 5; i++) {
       (uint256 lockedAmount, uint256 lockedPeriod, ) = lockdrops[i]
-        .lockdropStates(crvUSDBTCETHHolder);
+        .lockdropStates(WHALE_CRV);
       assertGt(lockedAmount, lockedAmountBefore[i]);
       assertEq(lockedPeriod, 36 days);
       lockedAmountBefore[i] = lockedAmount;
@@ -244,7 +320,7 @@ contract LockdropGateway_LockToken is BaseTest {
     // Assertion
     for (uint256 i = 0; i < 5; i++) {
       (uint256 lockedAmount, uint256 lockedPeriod, ) = lockdrops[i]
-        .lockdropStates(crvUSDBTCETHHolder);
+        .lockdropStates(WHALE_CRV);
       assertGt(lockedAmount, lockedAmountBefore[i]);
       assertEq(lockedPeriod, 36 days);
       lockedAmountBefore[i] = lockedAmount;
@@ -305,21 +381,71 @@ contract LockdropGateway_LockToken is BaseTest {
     vm.stopPrank();
   }
 
-  function testRevert_LockCurveV5Token_WithZeroAmount() external {
+  function testRevert_LockNonBaseToken_WithZeroAmount() external {
     if (!_isExpectedFork()) return;
 
-    vm.startPrank(crvUSDBTCETHHolder);
+    // A Token
+    {
+      vm.startPrank(WHALE_2);
+      // Approve
+      IERC20(amWETH).approve(address(gateway), type(uint256).max);
+      // Lock amWETH, but with 0 amount
+      // Will revert as the amWETH does not allow removeLiquidity 0
+      vm.expectRevert(
+        abi.encodeWithSignature(
+          "LockdropGateway_NonBaseTokenZeroLockedAmount()"
+        )
+      );
+      gateway.lockToken(address(amWETH), 0 ether, 40 days);
+      vm.stopPrank();
+    }
 
-    // Approve
-    IERC20(crvUSDBTCETH).approve(address(gateway), type(uint256).max);
+    // lp pair
+    {
+      vm.startPrank(WETHUSDCHolder);
+      // Approve
+      IERC20(WETHUSDC).approve(address(gateway), type(uint256).max);
+      // Lock WETHUSDC, but with 0 amount
+      // Will revert as the WETHUSDC does not allow removeLiquidity 0
+      vm.expectRevert(
+        abi.encodeWithSignature(
+          "LockdropGateway_NonBaseTokenZeroLockedAmount()"
+        )
+      );
+      gateway.lockToken(address(WETHUSDC), 0 ether, 40 days);
+      vm.stopPrank();
+    }
 
-    // Lock crvUSDBTCETH, but with 0 amount
-    // Will revert as the crvUSDBTCETH does not allow removeLiquidity 0
-    vm.expectRevert(
-      abi.encodeWithSignature("LockdropGateway_NonBaseTokenZeroLockedAmount()")
-    );
-    gateway.lockToken(address(crvUSDBTCETH), 0 ether, 40 days); // lockTokenFor
+    // curveV3
+    {
+      vm.startPrank(WHALE_CRV);
+      // Approve
+      IERC20(am3Crv).approve(address(gateway), type(uint256).max);
+      // Lock am3Crv, but with 0 amount
+      // Will revert as the am3Crv does not allow removeLiquidity 0
+      vm.expectRevert(
+        abi.encodeWithSignature(
+          "LockdropGateway_NonBaseTokenZeroLockedAmount()"
+        )
+      );
+      gateway.lockToken(address(am3Crv), 0 ether, 40 days); // lockTokenFor
+      vm.stopPrank();
+    }
 
-    vm.stopPrank();
+    // curveV5
+    {
+      vm.startPrank(WHALE_CRV);
+      // Approve
+      IERC20(crvUSDBTCETH).approve(address(gateway), type(uint256).max);
+      // Lock crvUSDBTCETH, but with 0 amount
+      // Will revert as the crvUSDBTCETH does not allow removeLiquidity 0
+      vm.expectRevert(
+        abi.encodeWithSignature(
+          "LockdropGateway_NonBaseTokenZeroLockedAmount()"
+        )
+      );
+      gateway.lockToken(address(crvUSDBTCETH), 0 ether, 40 days); // lockTokenFor
+      vm.stopPrank();
+    }
   }
 }

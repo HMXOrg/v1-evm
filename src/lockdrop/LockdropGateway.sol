@@ -267,8 +267,11 @@ contract LockdropGateway is ILockdropGateway, Ownable {
       revert LockdropGateway_NotCurveV3Token();
 
     address remover = ICurveTokenV3(token).minter();
-    address[] memory baseTokens = ICurveTokenV3Remover(remover)
-      .underlying_coins();
+    address[3] memory baseTokens = [
+      ICurveTokenV3Remover(remover).underlying_coins(0),
+      ICurveTokenV3Remover(remover).underlying_coins(1),
+      ICurveTokenV3Remover(remover).underlying_coins(2)
+    ];
 
     uint256[3] memory baseTokenAmountsBefore = [
       IERC20(baseTokens[0]).balanceOf(address(this)),
@@ -276,6 +279,11 @@ contract LockdropGateway is ILockdropGateway, Ownable {
       IERC20(baseTokens[2]).balanceOf(address(this))
     ];
     uint256[3] memory minAmounts;
+
+    // approve
+    IERC20(token).approve(remover, lockAmount);
+
+    // remove
     ICurveTokenV3Remover(remover).remove_liquidity(
       lockAmount,
       minAmounts,
@@ -292,15 +300,9 @@ contract LockdropGateway is ILockdropGateway, Ownable {
         IERC20(baseTokens[2]).balanceOf(address(this)) -
           baseTokenAmountsBefore[2]
       ];
-      if (baseTokenAmounts[0] > 0) {
-        _handleLockBaseToken(baseTokens[0], baseTokenAmounts[0], lockPeriod);
-      }
-      if (baseTokenAmounts[1] > 0) {
-        _handleLockBaseToken(baseTokens[1], baseTokenAmounts[1], lockPeriod);
-      }
-      if (baseTokenAmounts[2] > 0) {
-        _handleLockBaseToken(baseTokens[2], baseTokenAmounts[2], lockPeriod);
-      }
+      _handleLockBaseToken(baseTokens[0], baseTokenAmounts[0], lockPeriod);
+      _handleLockBaseToken(baseTokens[1], baseTokenAmounts[1], lockPeriod);
+      _handleLockBaseToken(baseTokens[2], baseTokenAmounts[2], lockPeriod);
     }
   }
 
