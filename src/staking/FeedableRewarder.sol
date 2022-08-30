@@ -63,23 +63,6 @@ contract FeedableRewarder is IRewarder, OwnableUpgradeable {
     lastRewardTime = block.timestamp.toUint64();
   }
 
-  function __FeedableRewarder_init_unchained(
-    string memory name_,
-    address rewardToken_,
-    address staking_
-  ) internal initializer {
-    OwnableUpgradeable.__Ownable_init_unchained();
-
-    // Sanity check
-    IERC20(rewardToken_).totalSupply();
-    IStaking(staking_).isRewarder(address(this));
-
-    name = name_;
-    rewardToken = rewardToken_;
-    staking = staking_;
-    lastRewardTime = block.timestamp.toUint64();
-  }
-
   function onDeposit(address user, uint256 shareAmount)
     external
     onlyStakingContract
