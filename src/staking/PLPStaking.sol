@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -108,6 +108,7 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
 
   function getUserTokenAmount(address token, address sender)
     external
+    view
     returns (uint256)
   {
     return userTokenAmount[token][sender];
@@ -115,6 +116,7 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
 
   function getStakingTokenRewarders(address token)
     external
+    view
     returns (address[] memory)
   {
     return stakingTokenRewarders[token];

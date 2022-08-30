@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
 import { IStaking } from "../staking/interfaces/IStaking.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -21,7 +21,7 @@ contract LockdropConfig {
   address public gatewayAddress;
   uint256 public startLockTimestamp; // timestamp for starting lockdrop event
   uint256 public endLockTimestamp; // timestamp for deposit period after start lockdrop event
-  uint256 public startDecayingWithdrawalTimestamp; 
+  uint256 public startDecayingWithdrawalTimestamp;
   uint256 public startRestrictedWithdrawalTimestamp; // timestamp for withdraw period after start lockdrop event
   uint256 public decayStartPercentage;
   uint256 public startTimeDecay;
@@ -39,7 +39,10 @@ contract LockdropConfig {
     startLockTimestamp = startLockTimestamp_;
     endLockTimestamp = startLockTimestamp_ + (4 days);
     startRestrictedWithdrawalTimestamp = startLockTimestamp_ + 3 days;
-    startDecayingWithdrawalTimestamp = startLockTimestamp_ + 3 days + startTimeDecay;
+    startDecayingWithdrawalTimestamp =
+      startLockTimestamp_ +
+      3 days +
+      startTimeDecay;
     plpToken = plpToken_;
     p88Token = p88Token_;
     gatewayAddress = gatewayAddress_;

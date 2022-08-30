@@ -1,4 +1,4 @@
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
 interface IRewarder {
   function name() external view returns (string memory);
