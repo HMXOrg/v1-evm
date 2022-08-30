@@ -42,7 +42,7 @@ contract LockdropGatewayTest is BaseTest {
       mockWMatic
     );
 
-    lockdropGateway = new LockdropGateway();
+    lockdropGateway = new LockdropGateway(plp, plpStaking);
     lockdrop = new MockLockdrop(address(lockdropToken), lockdropConfig);
 
     vm.startPrank(ALICE);
@@ -104,17 +104,11 @@ contract LockdropGatewayTest is BaseTest {
     // User need to withdraw all locked tokens
 
     vm.startPrank(ALICE);
-    lockdropGateway.withdrawAllAndStakePLP(
-      lockdropList,
-      ALICE,
-      plp,
-      plpStaking
-    );
+    lockdropGateway.withdrawAllAndStakePLP(lockdropList, ALICE);
     vm.stopPrank();
     // Expect user got return their locked token, reward, and stake their PLP
     assertEq(plp.balanceOf(address(plpStaking)), 20 ether);
     assertEq(plpStaking.userTokenAmount(address(plp), ALICE), 20 ether);
-    assertEq(lockdropToken.balanceOf(ALICE), 20 ether);
     assertEq(IERC20(mockEsP88).balanceOf(ALICE), 100 ether);
     assertEq(ALICE.balance, 100 ether);
   }

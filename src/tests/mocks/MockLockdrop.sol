@@ -66,6 +66,7 @@ contract MockLockdrop is ILockdrop {
       address(lockdropConfig.plpToken()),
       totalPLPAmount
     );
+    lockTokenAmount = 0;
   }
 
   function withdrawAll(address _user) external {
@@ -83,15 +84,6 @@ contract MockLockdrop is ILockdrop {
       msg.sender,
       totalPLPAmount
     );
-
-    IERC20(lockeDropTokenAddress).approve(address(this), lockTokenAmount);
-    IERC20(lockeDropTokenAddress).safeTransferFrom(
-      address(this),
-      _user,
-      lockTokenAmount
-    );
-
-    lockTokenAmount = 0;
     totalPLPAmount = 0;
   }
 
