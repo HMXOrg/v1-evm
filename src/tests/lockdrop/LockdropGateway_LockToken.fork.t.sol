@@ -29,10 +29,10 @@ contract LockdropGateway_LockToken is BaseTest {
   address internal constant amAAVE = 0x1d2a0E5EC8E5bBDCA5CB219e649B565d8e5c3360;
 
   // Sushi LP
-  address internal constant WETH_USDC =
+  address internal constant WETHUSDC =
     0x34965ba0ac2451A34a0471F04CCa3F990b8dea27;
 
-  address internal constant WETH_AAVE =
+  address internal constant WETHAAVE =
     0x2813D43463C374a680f235c428FB1D7f08dE0B69;
 
   // Other tokens
@@ -56,6 +56,8 @@ contract LockdropGateway_LockToken is BaseTest {
     0x6c5384bBaE7aF65Ed1b6784213A81DaE18e528b2;
   address internal constant WETHUSDCHolder =
     0x59e3a85A31042b88f3C009efB62936CEB4E760c3;
+  address internal constant WETHAAVEHolder =
+    0x6c5384bBaE7aF65Ed1b6784213A81DaE18e528b2;
 
   function setUp() public {
     gateway = new LockdropGateway();
@@ -77,7 +79,8 @@ contract LockdropGateway_LockToken is BaseTest {
     gateway.setATokenLockdropInfo(amAAVE); // but AAVE does not supported as base token
 
     // Sushi Lp
-    gateway.setLpPairTokenLockdropInfo(WETH_USDC, sushiRouter); // but AAVE does not supported as base token
+    gateway.setLpPairTokenLockdropInfo(WETHUSDC, sushiRouter);
+    gateway.setLpPairTokenLockdropInfo(WETHAAVE, sushiRouter); // but AAVE does not supported as base token
 
     // Curve V5
     gateway.setCurveV5TokenLockdropInfo(crvUSDBTCETH, crvUSDBTCETHZap, 5);
@@ -148,10 +151,10 @@ contract LockdropGateway_LockToken is BaseTest {
     vm.startPrank(WETHUSDCHolder);
 
     // Approve
-    IERC20(WETH_USDC).approve(address(gateway), type(uint256).max);
+    IERC20(WETHUSDC).approve(address(gateway), type(uint256).max);
 
-    // Whale lock WETH_USDC
-    gateway.lockToken(address(WETH_USDC), 0.0002 ether, 30 days);
+    // Whale lock WETHUSDC
+    gateway.lockToken(address(WETHUSDC), 0.0002 ether, 30 days);
 
     // Assert locked amount/period
     {
@@ -256,6 +259,18 @@ contract LockdropGateway_LockToken is BaseTest {
     vm.stopPrank();
   }
 
+  function testRevert_LockTotallyRandomToken() external {
+    if (!_isExpectedFork()) return;
+
+    vm.startPrank(WHALE_1);
+
+    vm.expectRevert(
+      abi.encodeWithSignature("LockdropGateway_UninitializedToken()")
+    );
+    gateway.lockToken(address(88), 88 ether, 88 days);
+    vm.stopPrank();
+  }
+
   function testRevert_LockAToken_ButWithUnsupportedUnderlyingBaseToken()
     external
   {
@@ -270,6 +285,23 @@ contract LockdropGateway_LockToken is BaseTest {
     // While amAAVE is supported, but AAVE does not, hence revert is expected.
     vm.expectRevert(abi.encodeWithSignature("LockdropGateway_NotBaseToken()"));
     gateway.lockToken(address(amAAVE), 3000 ether, 30 days);
+    vm.stopPrank();
+  }
+
+  function testRevert_LockLpPairToken_ButWithUnsupportedUnderlyingBaseToken()
+    external
+  {
+    if (!_isExpectedFork()) return;
+
+    vm.startPrank(WETHAAVEHolder);
+
+    // Approve
+    IERC20(WETHAAVE).approve(address(gateway), type(uint256).max);
+
+    // A guy lock WETHAAVE
+    // While WETHAAVE is supported, but AAVE does not, hence revert is expected.
+    vm.expectRevert(abi.encodeWithSignature("LockdropGateway_NotBaseToken()"));
+    gateway.lockToken(address(WETHAAVE), 1 ether, 30 days);
     vm.stopPrank();
   }
 
