@@ -3,7 +3,8 @@ pragma solidity 0.8.14;
 
 import "../base/DSTest.sol";
 import { console } from "../utils/console.sol";
-import { BaseTest } from "../base/BaseTest.sol";
+import { math } from "../utils/math.sol";
+import { BaseTest, MockWNative } from "../base/BaseTest.sol";
 import { Lockdrop } from "../../lockdrop/Lockdrop.sol";
 import { MockErc20 } from "../mocks/MockERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -27,10 +28,10 @@ abstract contract Lockdrop_BaseTest is BaseTest {
   P88 internal mockP88Token;
   PLP internal mockPLPToken;
   EsP88 internal mockEsP88;
-  MockErc20 internal mockMatic;
   address[] internal rewardsTokenList;
   MockRewarder internal PRRewarder;
   address internal mockGateway;
+  MockWNative internal mockMatic;
 
   function setUp() public virtual {
     pool = new MockPool();
@@ -38,7 +39,7 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     mockPLPToken = new PLP();
     mockP88Token = new P88();
     mockEsP88 = new EsP88();
-    mockMatic = new MockErc20("MATIC", "MATIC", 18);
+    mockMatic = deployMockWNative();
 
     rewardsTokenList.push(address(mockEsP88));
     rewardsTokenList.push(address(mockMatic));
@@ -57,12 +58,14 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     address[] memory rewarders1 = new address[](1);
     rewarders1[0] = address(PRRewarder);
     plpStaking.addStakingToken(address(mockPLPToken), rewarders1);
+    mockP88Token.setMinter(address(this), true);
 
     lockdrop = new Lockdrop(
       address(mockERC20),
       pool,
       lockdropConfig,
-      rewardsTokenList
+      rewardsTokenList,
+      address(mockMatic)
     );
   }
 
