@@ -60,10 +60,10 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     plpStaking.addStakingToken(address(mockPLPToken), rewarders1);
     mockP88Token.setMinter(address(this), true);
 
-    lockdrop = new Lockdrop(
+    lockdrop = deployLockdrop(
       address(mockERC20),
-      pool,
-      lockdropConfig,
+      address(pool),
+      address(lockdropConfig),
       rewardsTokenList,
       address(mockMatic)
     );

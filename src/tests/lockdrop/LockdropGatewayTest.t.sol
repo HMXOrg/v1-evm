@@ -31,7 +31,7 @@ contract LockdropGatewayTest is BaseTest {
 
     lockdropConfig = new MockLockdropConfig(100000, plpStaking, plp, p88);
 
-    lockdropGateway = new LockdropGateway();
+    lockdropGateway = deployLockdropGateway();
     lockdrop = new MockLockdrop(address(lockdropToken), lockdropConfig);
 
     lockdropToken.approve(address(lockdrop), 10 ether);

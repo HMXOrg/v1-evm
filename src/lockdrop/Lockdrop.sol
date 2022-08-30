@@ -2,8 +2,8 @@
 
 pragma solidity 0.8.14;
 
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { IPool } from "../interfaces/IPool.sol";
@@ -12,7 +12,7 @@ import { LockdropConfig } from "./LockdropConfig.sol";
 import { ILockdrop } from "./interfaces/ILockdrop.sol";
 import { P88 } from "../tokens/P88.sol";
 
-contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
+contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable, ILockdrop {
   // --- Libraries ---
   using SafeERC20 for IERC20;
 
@@ -100,13 +100,16 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     _;
   }
 
-  constructor(
+  function initialize(
     address lockdropToken_,
     IPool pool_,
     LockdropConfig lockdropConfig_,
     address[] memory rewardTokens_,
     address nativeTokenAddress_
-  ) {
+  ) external initializer {
+    OwnableUpgradeable.__Ownable_init();
+    ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
+
     // Sanity check
     IERC20(lockdropToken_).balanceOf(address(this));
     if (block.timestamp > lockdropConfig_.startLockTimestamp())
@@ -497,4 +500,9 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   }
 
   receive() external payable {}
+
+  /// @custom:oz-upgrades-unsafe-allow constructor
+  constructor() {
+    _disableInitializers();
+  }
 }

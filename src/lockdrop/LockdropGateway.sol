@@ -1,12 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.14;
 
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { ILockdrop } from "./interfaces/ILockdrop.sol";
 import { ILockdropGateway } from "./interfaces/ILockdropGateway.sol";
 
-contract LockdropGateway is ILockdropGateway {
+contract LockdropGateway is ILockdropGateway, OwnableUpgradeable {
   // Claim All Reward Token
   // Pending for Lockdrop contract
+
+  function initialize() external initializer {
+    OwnableUpgradeable.__Ownable_init();
+  }
 
   function claimAllStakingContractRewards(
     address[] memory lockdropList,
@@ -46,5 +51,10 @@ contract LockdropGateway is ILockdropGateway {
         ++index;
       }
     }
+  }
+
+  /// @custom:oz-upgrades-unsafe-allow constructor
+  constructor() {
+    _disableInitializers();
   }
 }

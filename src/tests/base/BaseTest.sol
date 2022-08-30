@@ -30,6 +30,8 @@ import { RewardDistributor } from "../../staking/RewardDistributor.sol";
 import { Compounder } from "../../staking/Compounder.sol";
 import { Vester } from "../../vesting/Vester.sol";
 import { ProxyAdmin } from "../interfaces/ProxyAdmin.sol";
+import { Lockdrop } from "../../lockdrop/Lockdrop.sol";
+import { LockdropGateway } from "../../lockdrop/LockdropGateway.sol";
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
@@ -394,5 +396,40 @@ contract BaseTest is DSTest, CoreConstants {
     );
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
     return RewardDistributor(payable(_proxy));
+  }
+
+  function deployLockdrop(
+    address lockdropToken_,
+    address pool_,
+    address lockdropConfig_,
+    address[] memory rewardTokens_,
+    address nativeTokenAddress_
+  ) internal returns (Lockdrop) {
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/Lockdrop.sol/Lockdrop.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(
+        keccak256("initialize(address,address,address,address[],address)")
+      ),
+      lockdropToken_,
+      pool_,
+      lockdropConfig_,
+      rewardTokens_,
+      nativeTokenAddress_
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return Lockdrop(payable(_proxy));
+  }
+
+  function deployLockdropGateway() internal returns (LockdropGateway) {
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/LockdropGateway.sol/LockdropGateway.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize()"))
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return LockdropGateway(payable(_proxy));
   }
 }

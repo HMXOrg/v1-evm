@@ -56,10 +56,10 @@ contract Lockdrop_ClaimReward is BaseTest {
     rewardsTokenList.push(address(mockEsP88));
     rewardsTokenList.push(address(mockWMatic));
 
-    lockdrop = new Lockdrop(
+    lockdrop = deployLockdrop(
       address(lockdropToken),
-      pool,
-      lockdropConfig,
+      address(pool),
+      address(lockdropConfig),
       rewardsTokenList,
       address(mockWMatic)
     );
