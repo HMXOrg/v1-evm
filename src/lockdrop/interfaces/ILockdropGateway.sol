@@ -12,10 +12,6 @@ interface ILockdropGateway {
 
   function claimAllP88(address[] memory lockdropList, address user) external;
 
-  function withdrawAllAndStakePLP(
-    address[] memory lockdropList,
-    address user,
-    IERC20 plpToken,
-    IStaking plpStaking
-  ) external;
+  function withdrawAllAndStakePLP(address[] memory lockdropList, address user)
+    external;
 }

@@ -7,6 +7,14 @@ import { IStaking } from "../staking/interfaces/IStaking.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract LockdropGateway is ILockdropGateway {
+  IERC20 public plpToken;
+  IStaking public plpStaking;
+
+  constructor(IERC20 plpToken_, IStaking plpStaking_) {
+    plpToken = plpToken_;
+    plpStaking = plpStaking_;
+  }
+
   // Claim All Reward Token
   // Pending for Lockdrop contract
 
@@ -37,12 +45,9 @@ contract LockdropGateway is ILockdropGateway {
   }
 
   // Withdraw All Deposit Token
-  function withdrawAllAndStakePLP(
-    address[] memory lockdropList,
-    address user,
-    IERC20 plpToken,
-    IStaking plpStaking
-  ) external {
+  function withdrawAllAndStakePLP(address[] memory lockdropList, address user)
+    external
+  {
     uint256 length = lockdropList.length;
     for (uint256 index = 0; index < length; ) {
       ILockdrop(lockdropList[index]).withdrawAll(user);

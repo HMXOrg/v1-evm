@@ -310,6 +310,10 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
 
   /// @dev Users able to withdraw all their PLP Token after the end of the lockdrop period + their input lock period
   /// @param user Address of the user that wants to withdraw
+  /// Withdraw Tokens
+  // -> MATIC
+  // -> EsP88
+  // -> PLP
   function withdrawAll(address user) external nonReentrant onlyGateway {
     if (totalPLPAmount == 0) revert Lockdrop_ZeroTotalPLPAmount();
     if (
@@ -317,15 +321,21 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
       lockdropStates[user].lockPeriod + lockdropConfig.endLockTimestamp()
     ) revert Lockdrop_InvalidWithdrawAllPeriod();
 
+    // Claim All Reward for user at the same time.
+    // User will receive EsP88 and Revenue Native(MATIC) Tokens
     _claimAllRewards(user);
 
     uint256 userPLPTokenAmount = (lockdropStates[user].lockdropTokenAmount *
       totalPLPAmount) / totalAmount;
+
+    // Lockdrop withdraw PLP Token from PLP staking
     lockdropConfig.plpStaking().withdraw(
       address(this),
       address(lockdropConfig.plpToken()),
       userPLPTokenAmount
     );
+
+    // Lockdrop transfer for withdrawn PLP to gateway.
     lockdropConfig.plpToken().safeTransfer(msg.sender, userPLPTokenAmount);
     delete lockdropStates[user];
     emit LogWithdrawAll(user, address(lockdropToken));
