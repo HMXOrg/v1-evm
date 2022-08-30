@@ -448,12 +448,17 @@ contract BaseTest is DSTest, CoreConstants {
     return Lockdrop(payable(_proxy));
   }
 
-  function deployLockdropGateway() internal returns (LockdropGateway) {
+  function deployLockdropGateway(address plpToken, address plpStaking)
+    internal
+    returns (LockdropGateway)
+  {
     bytes memory _logicBytecode = abi.encodePacked(
       vm.getCode("./out/LockdropGateway.sol/LockdropGateway.json")
     );
     bytes memory _initializer = abi.encodeWithSelector(
-      bytes4(keccak256("initialize()"))
+      bytes4(keccak256("initialize(address,address)")),
+      plpToken,
+      plpStaking
     );
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
     return LockdropGateway(payable(_proxy));

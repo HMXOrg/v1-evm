@@ -8,19 +8,19 @@ import { IStaking } from "../staking/interfaces/IStaking.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract LockdropGateway is ILockdropGateway, OwnableUpgradeable {
-  IERC20 public plpToken;
-  IStaking public plpStaking;
-
-  constructor(IERC20 plpToken_, IStaking plpStaking_) {
-    plpToken = plpToken_;
-    plpStaking = plpStaking_;
-  }
-
   // Claim All Reward Token
   // Pending for Lockdrop contract
 
-  function initialize() external initializer {
+  IERC20 public plpToken;
+  IStaking public plpStaking;
+
+  function initialize(IERC20 plpToken_, IStaking plpStaking_)
+    external
+    initializer
+  {
     OwnableUpgradeable.__Ownable_init();
+    plpToken = plpToken_;
+    plpStaking = plpStaking_;
   }
 
   function claimAllStakingContractRewards(

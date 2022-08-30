@@ -42,27 +42,8 @@ contract LockdropGatewayTest is BaseTest {
       mockWMatic
     );
 
-    lockdropGateway = deployLockdropGateway();
+    lockdropGateway = deployLockdropGateway(address(plp), address(plpStaking));
     lockdrop = new MockLockdrop(address(lockdropToken), lockdropConfig);
-=======
-    // After the lockdrop period ends, owner can stake PLP or WithdrawAll
-    vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
-
-    vm.startPrank(address(lockdrop));
-    plp.approve(address(lockdropConfig.plpStaking()), 20 ether);
-    vm.stopPrank();
-
-    vm.startPrank(address(this));
-
-    p88.mint(address(lockdrop), 10 ether);
-    p88.approve(address(lockdrop), 10 ether);
-
-    mockWMatic.deposit{ value: 100 ether }();
-    mockWMatic.approve(address(lockdrop), 100 ether);
-    mockWMatic.transfer(address(lockdrop), 100 ether);
-
-    mockEsP88.mint(address(lockdrop), 100 ether);
-    mockEsP88.approve(address(lockdrop), 100 ether);
 
     vm.startPrank(ALICE);
     lockdropToken.mint(ALICE, 20 ether);
