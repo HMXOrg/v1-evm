@@ -32,6 +32,9 @@ contract LockdropGateway_LockToken is BaseTest {
   address internal constant WETH_USDC =
     0x34965ba0ac2451A34a0471F04CCa3F990b8dea27;
 
+  address internal constant WETH_AAVE =
+    0x2813D43463C374a680f235c428FB1D7f08dE0B69;
+
   // Other tokens
   address internal constant crvUSDBTCETH =
     0xdAD97F7713Ae9437fa9249920eC8507e5FbB23d3; // Curve V5 Token
@@ -136,23 +139,6 @@ contract LockdropGateway_LockToken is BaseTest {
     assertEq(wethLockdrop.lockTokenForCallCount(), 1);
     assertEq(wethLockdrop.extendLockPeriodForCallCount(), 0);
     assertEq(wethLockdrop.addLockAmountForCallCount(), 0);
-    vm.stopPrank();
-  }
-
-  function testRevert_LockAToken_ButWithUnsupportedUnderlyingBaseToken()
-    external
-  {
-    if (!_isExpectedFork()) return;
-
-    vm.startPrank(WHALE_3);
-
-    // Approve
-    IERC20(amAAVE).approve(address(gateway), type(uint256).max);
-
-    // Whale lock amAAVE
-    // While amAAVE is supported, but AAVE does not, hence revert is expected.
-    vm.expectRevert(abi.encodeWithSignature("LockdropGateway_NotBaseToken()"));
-    gateway.lockToken(address(amAAVE), 3000 ether, 30 days);
     vm.stopPrank();
   }
 
@@ -267,6 +253,23 @@ contract LockdropGateway_LockToken is BaseTest {
       assertEq(lockdrops[i].addLockAmountForCallCount(), 3);
       assertEq(lockdrops[i].extendLockPeriodForCallCount(), 2);
     }
+    vm.stopPrank();
+  }
+
+  function testRevert_LockAToken_ButWithUnsupportedUnderlyingBaseToken()
+    external
+  {
+    if (!_isExpectedFork()) return;
+
+    vm.startPrank(WHALE_3);
+
+    // Approve
+    IERC20(amAAVE).approve(address(gateway), type(uint256).max);
+
+    // Whale lock amAAVE
+    // While amAAVE is supported, but AAVE does not, hence revert is expected.
+    vm.expectRevert(abi.encodeWithSignature("LockdropGateway_NotBaseToken()"));
+    gateway.lockToken(address(amAAVE), 3000 ether, 30 days);
     vm.stopPrank();
   }
 
