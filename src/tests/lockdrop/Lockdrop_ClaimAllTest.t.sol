@@ -106,19 +106,21 @@ contract Lockdrop_ClaimReward is BaseTest {
     lockdrop.lockToken(5 ether, 7 days);
     vm.stopPrank();
 
+    // mint PLP tokens for PLPStaking
+    mockPLP.mint(address(lockdrop), 62 ether);
+    mockPLP.approve(address(lockdrop), 62 ether);
+
+    vm.startPrank(address(lockdrop));
+    mockPLP.approve(address(lockdropConfig.plpStaking()), 62 ether);
+    vm.stopPrank();
+
     // After the lockdrop period ends, owner can stake PLP
     // Be Lockdrop contract.
     vm.startPrank(address(this));
     // after 7 days.
     vm.warp(block.timestamp + 7 days);
-
     // Lockdrop stake lockdrop tokens  in PLPstaking.
     lockdrop.stakePLP();
-
-    // mint PLP tokens for PLPStaking
-    mockPLP.mint(address(mockPLPStaking), 62 ether);
-    mockPLP.approve(address(mockPLPStaking), 62 ether);
-
     vm.stopPrank();
   }
 
