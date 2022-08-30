@@ -37,7 +37,9 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
     uint256 amount
   );
 
-  function initialize() external initializer {}
+  function initialize() external initializer {
+    OwnableUpgradeable.__Ownable_init();
+  }
 
   function addStakingToken(address newToken, address[] memory newRewarders)
     external

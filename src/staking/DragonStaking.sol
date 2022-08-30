@@ -42,6 +42,8 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
   );
 
   function initialize(address dp_) external initializer {
+    OwnableUpgradeable.__Ownable_init();
+
     dp = DragonPoint(dp_);
   }
 

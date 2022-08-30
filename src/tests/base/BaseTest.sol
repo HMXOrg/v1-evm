@@ -259,7 +259,14 @@ contract BaseTest is DSTest, CoreConstants {
   }
 
   function deployPLPStaking() internal returns (PLPStaking) {
-    return new PLPStaking();
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/PLPStaking.sol/PLPStaking.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize()"))
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return PLPStaking(payable(_proxy));
   }
 
   function deployDragonStaking(address dragonPointToken)

@@ -44,7 +44,7 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     rewardsTokenList.push(address(mockEsP88));
     rewardsTokenList.push(address(mockMatic));
 
-    plpStaking = new PLPStaking();
+    plpStaking = deployPLPStaking();
     mockGateway = address(0x88);
 
     lockdropConfig = new LockdropConfig(

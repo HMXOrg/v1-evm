@@ -29,7 +29,7 @@ contract PLPStakingTest is BaseTest {
     rewarders1[1] = address(esP88Rewarder);
     rewarders1[2] = address(partnerRewarder);
 
-    staking = new PLPStaking();
+    staking = deployPLPStaking();
     staking.addStakingToken(address(plp), rewarders1);
 
     plp.mint(ALICE, 100 ether);
@@ -38,7 +38,9 @@ contract PLPStakingTest is BaseTest {
   }
 
   function testRevert_NotStakingToken_WhenAliceDeposit() external {
-    vm.expectRevert(abi.encodeWithSignature("Staking_UnknownStakingToken()"));
+    vm.expectRevert(
+      abi.encodeWithSignature("PLPStaking_UnknownStakingToken()")
+    );
     vm.prank(ALICE);
     staking.deposit(ALICE, address(p168), 100 ether);
   }
@@ -109,7 +111,9 @@ contract PLPStakingTest is BaseTest {
 
   function testRevert_NotStakingToken_WhenAliceWithdraw() external {
     vm.startPrank(ALICE);
-    vm.expectRevert(abi.encodeWithSignature("Staking_UnknownStakingToken()"));
+    vm.expectRevert(
+      abi.encodeWithSignature("PLPStaking_UnknownStakingToken()")
+    );
     staking.withdraw(ALICE, address(p168), 100 ether);
     vm.stopPrank();
   }
@@ -117,7 +121,7 @@ contract PLPStakingTest is BaseTest {
   function testRevert_InsufficientBalance_WhenAliceWithdraw() external {
     vm.startPrank(ALICE);
     vm.expectRevert(
-      abi.encodeWithSignature("Staking_InsufficientTokenAmount()")
+      abi.encodeWithSignature("PLPStaking_InsufficientTokenAmount()")
     );
     staking.withdraw(ALICE, address(plp), 100 ether);
     vm.stopPrank();
@@ -265,7 +269,7 @@ contract PLPStakingTest is BaseTest {
     rewarders[0] = address(88); // some random address
 
     vm.startPrank(ALICE);
-    vm.expectRevert(abi.encodeWithSignature("Staking_NotRewarder()"));
+    vm.expectRevert(abi.encodeWithSignature("PLPStaking_NotRewarder()"));
     staking.harvest(rewarders);
     vm.stopPrank();
   }
@@ -291,7 +295,7 @@ contract PLPStakingTest is BaseTest {
     staking.setCompounder(compounder);
 
     vm.startPrank(BOB);
-    vm.expectRevert(abi.encodeWithSignature("Staking_NotCompounder()"));
+    vm.expectRevert(abi.encodeWithSignature("PLPStaking_NotCompounder()"));
     staking.harvestToCompounder(ALICE, rewarders);
     vm.stopPrank();
   }
