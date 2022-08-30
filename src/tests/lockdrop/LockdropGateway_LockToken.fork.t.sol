@@ -111,7 +111,7 @@ contract LockdropGateway_LockToken is BaseTest {
     gateway.lockToken(address(USDC), 0, 50 days); // extendLockPeriodFor
 
     // Assert locked amount/period
-    (uint256 lockedAmount, uint256 lockedPeriod, ) = usdcLockdrop
+    (uint256 lockedAmount, uint256 lockedPeriod, , ) = usdcLockdrop
       .lockdropStates(WHALE_1);
     assertEq(lockedAmount, 320000000 * 1e6);
     assertEq(lockedPeriod, 50 days);
@@ -135,7 +135,7 @@ contract LockdropGateway_LockToken is BaseTest {
     gateway.lockToken(address(amWETH), 3000 ether, 30 days);
 
     // Assert locked amount/period
-    (uint256 lockedAmount, uint256 lockedPeriod, ) = wethLockdrop
+    (uint256 lockedAmount, uint256 lockedPeriod, , ) = wethLockdrop
       .lockdropStates(WHALE_2);
     assertEq(lockedAmount, 3000 ether);
     assertEq(lockedPeriod, 30 days);
@@ -160,13 +160,13 @@ contract LockdropGateway_LockToken is BaseTest {
 
     // Assert locked amount/period
     {
-      (uint256 lockedAmount, uint256 lockedPeriod, ) = wethLockdrop
+      (uint256 lockedAmount, uint256 lockedPeriod, , ) = wethLockdrop
         .lockdropStates(WETHUSDCHolder);
       assertGt(lockedAmount, 0);
       assertEq(lockedPeriod, 30 days);
     }
     {
-      (uint256 lockedAmount, uint256 lockedPeriod, ) = usdcLockdrop
+      (uint256 lockedAmount, uint256 lockedPeriod, , ) = usdcLockdrop
         .lockdropStates(WETHUSDCHolder);
       assertGt(lockedAmount, 0);
       assertEq(lockedPeriod, 30 days);
@@ -207,7 +207,7 @@ contract LockdropGateway_LockToken is BaseTest {
 
     // Assertion
     for (uint256 i = 0; i < 3; i++) {
-      (uint256 lockedAmount, uint256 lockedPeriod, ) = lockdrops[i]
+      (uint256 lockedAmount, uint256 lockedPeriod, , ) = lockdrops[i]
         .lockdropStates(WHALE_CRV);
       assertGt(lockedAmount, lockedAmountBefore[i]);
       assertEq(lockedPeriod, 30 days);
@@ -219,7 +219,7 @@ contract LockdropGateway_LockToken is BaseTest {
 
     // Assertion
     for (uint256 i = 0; i < 3; i++) {
-      (uint256 lockedAmount, uint256 lockedPeriod, ) = lockdrops[i]
+      (uint256 lockedAmount, uint256 lockedPeriod, , ) = lockdrops[i]
         .lockdropStates(WHALE_CRV);
       assertGt(lockedAmount, lockedAmountBefore[i]);
       assertEq(lockedPeriod, 36 days);
@@ -231,7 +231,7 @@ contract LockdropGateway_LockToken is BaseTest {
 
     // Assertion
     for (uint256 i = 0; i < 3; i++) {
-      (uint256 lockedAmount, uint256 lockedPeriod, ) = lockdrops[i]
+      (uint256 lockedAmount, uint256 lockedPeriod, , ) = lockdrops[i]
         .lockdropStates(WHALE_CRV);
       assertGt(lockedAmount, lockedAmountBefore[i]);
       assertEq(lockedPeriod, 36 days);
@@ -243,7 +243,7 @@ contract LockdropGateway_LockToken is BaseTest {
 
     // Assertion
     for (uint256 i = 0; i < 3; i++) {
-      (uint256 lockedAmount, uint256 lockedPeriod, ) = lockdrops[i]
+      (uint256 lockedAmount, uint256 lockedPeriod, , ) = lockdrops[i]
         .lockdropStates(WHALE_CRV);
       assertGt(lockedAmount, lockedAmountBefore[i]);
       assertEq(lockedPeriod, 36 days);
@@ -282,7 +282,7 @@ contract LockdropGateway_LockToken is BaseTest {
 
     // Assertion
     for (uint256 i = 0; i < 5; i++) {
-      (uint256 lockedAmount, uint256 lockedPeriod, ) = lockdrops[i]
+      (uint256 lockedAmount, uint256 lockedPeriod, , ) = lockdrops[i]
         .lockdropStates(WHALE_CRV);
       assertGt(lockedAmount, lockedAmountBefore[i]);
       assertEq(lockedPeriod, 30 days);
@@ -294,7 +294,7 @@ contract LockdropGateway_LockToken is BaseTest {
 
     // Assertion
     for (uint256 i = 0; i < 5; i++) {
-      (uint256 lockedAmount, uint256 lockedPeriod, ) = lockdrops[i]
+      (uint256 lockedAmount, uint256 lockedPeriod, , ) = lockdrops[i]
         .lockdropStates(WHALE_CRV);
       assertGt(lockedAmount, lockedAmountBefore[i]);
       assertEq(lockedPeriod, 36 days);
@@ -306,7 +306,7 @@ contract LockdropGateway_LockToken is BaseTest {
 
     // Assertion
     for (uint256 i = 0; i < 5; i++) {
-      (uint256 lockedAmount, uint256 lockedPeriod, ) = lockdrops[i]
+      (uint256 lockedAmount, uint256 lockedPeriod, , ) = lockdrops[i]
         .lockdropStates(WHALE_CRV);
       assertGt(lockedAmount, lockedAmountBefore[i]);
       assertEq(lockedPeriod, 36 days);
@@ -318,7 +318,7 @@ contract LockdropGateway_LockToken is BaseTest {
 
     // Assertion
     for (uint256 i = 0; i < 5; i++) {
-      (uint256 lockedAmount, uint256 lockedPeriod, ) = lockdrops[i]
+      (uint256 lockedAmount, uint256 lockedPeriod, , ) = lockdrops[i]
         .lockdropStates(WHALE_CRV);
       assertGt(lockedAmount, lockedAmountBefore[i]);
       assertEq(lockedPeriod, 36 days);
