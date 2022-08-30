@@ -7,12 +7,12 @@ import { PoolOracle } from "./PoolOracle.sol";
 import { MintableTokenInterface } from "../interfaces/MintableTokenInterface.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import { Constants } from "./Constants.sol";
 
 import { console } from "../tests/utils/console.sol";
 
-contract Pool is Constants, ReentrancyGuard {
+contract Pool is Constants, ReentrancyGuardUpgradeable {
   using SafeERC20 for IERC20;
 
   error Pool_BadAmountOut();
@@ -99,12 +99,14 @@ contract Pool is Constants, ReentrancyGuard {
     uint256 amountOut
   );
 
-  constructor(
+  function initialize(
     MintableTokenInterface _plp,
     PoolConfig _config,
     PoolMath _poolMath,
     PoolOracle _oracle
-  ) {
+  ) external initializer {
+    ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
+
     config = _config;
     poolMath = _poolMath;
     oracle = _oracle;
@@ -402,5 +404,10 @@ contract Pool is Constants, ReentrancyGuard {
     uint256 amount
   ) internal pure returns (uint256) {
     return (amount * 10**toTokenDecimals) / 10**fromTokenDecimals;
+  }
+
+  /// @custom:oz-upgrades-unsafe-allow constructor
+  constructor() {
+    _disableInitializers();
   }
 }

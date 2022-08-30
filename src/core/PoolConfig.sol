@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.14;
 
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { LinkedList } from "../libraries/LinkedList.sol";
 
-contract PoolConfig is Ownable {
+contract PoolConfig is OwnableUpgradeable {
   using LinkedList for LinkedList.List;
 
   error PoolConfig_BadArguments();
@@ -63,14 +63,16 @@ contract PoolConfig is Ownable {
     TokenConfig newConfig
   );
 
-  constructor(
+  function initialize(
     uint64 _fundingInterval,
     uint64 _mintBurnFeeBps,
     uint64 _taxBps,
     uint64 _stableFundingRateFactor,
     uint64 _fundingRateFactor,
     uint64 _liquidityCoolDownDuration
-  ) {
+  ) external initializer {
+    OwnableUpgradeable.__Ownable_init();
+
     allowTokens.init();
 
     fundingInterval = _fundingInterval;
@@ -178,5 +180,10 @@ contract PoolConfig is Ownable {
 
   function tokenShortCeiling(address token) external view returns (uint256) {
     return tokenMetas[token].shortCeiling;
+  }
+
+  /// @custom:oz-upgrades-unsafe-allow constructor
+  constructor() {
+    _disableInitializers();
   }
 }

@@ -212,22 +212,37 @@ contract BaseTest is DSTest, CoreConstants {
   }
 
   function deployPoolOracle(uint80 roundDepth) internal returns (PoolOracle) {
-    return new PoolOracle(roundDepth);
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/PoolOracle.sol/PoolOracle.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(uint80)")),
+      roundDepth
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return PoolOracle(payable(_proxy));
   }
 
   function deployPoolConfig(PoolConfigConstructorParams memory params)
     internal
     returns (PoolConfig)
   {
-    return
-      new PoolConfig(
-        params.fundingInterval,
-        params.mintBurnFeeBps,
-        params.taxBps,
-        params.stableFundingRateFactor,
-        params.fundingRateFactor,
-        params.liquidityCoolDownPeriod
-      );
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/PoolConfig.sol/PoolConfig.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(
+        keccak256("initialize(uint64,uint64,uint64,uint64,uint64,uint64)")
+      ),
+      params.fundingInterval,
+      params.mintBurnFeeBps,
+      params.taxBps,
+      params.stableFundingRateFactor,
+      params.fundingRateFactor,
+      params.liquidityCoolDownPeriod
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return PoolConfig(payable(_proxy));
   }
 
   function deployPoolMath() internal returns (PoolMath) {
@@ -252,7 +267,18 @@ contract BaseTest is DSTest, CoreConstants {
     PLP plp = deployPLP();
 
     // Deploy Pool
-    Pool pool = new Pool(plp, poolConfig, poolMath, poolOracle);
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/Pool.sol/Pool.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(address,address,address,address)")),
+      address(plp),
+      address(poolConfig),
+      address(poolMath),
+      address(poolOracle)
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    Pool pool = Pool(payable(_proxy));
 
     // Config
     plp.setMinter(address(pool), true);
