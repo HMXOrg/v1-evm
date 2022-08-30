@@ -84,10 +84,11 @@ contract MockLockdrop is ILockdrop {
     returns (
       uint256 lockdropTokenAmount,
       uint256 lockPeriod,
-      bool p88Claimed
+      bool p88Claimed,
+      bool restrictedWithdrawn
     )
   {
-    return (0, 0, false);
+    return (0, 0, false, false);
   }
 
   function lockTokenFor(

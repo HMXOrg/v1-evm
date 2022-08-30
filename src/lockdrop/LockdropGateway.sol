@@ -375,7 +375,7 @@ contract LockdropGateway is ILockdropGateway, Ownable {
     uint256 lockPeriod
   ) internal {
     address lockdrop = mapTokenLockdropInfo[token].lockdrop;
-    (uint256 currentTokenAmount, , ) = ILockdrop(
+    (uint256 currentTokenAmount, , , ) = ILockdrop(
       mapTokenLockdropInfo[token].lockdrop
     ).lockdropStates(msg.sender);
 

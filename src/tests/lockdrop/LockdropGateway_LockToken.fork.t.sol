@@ -10,12 +10,12 @@ import { MockLockdrop2 } from "../mocks/MockLockdrop2.sol";
 // forge test -vvv --match-contract 'LockdropGateway_LockToken' --fork-url https://rpc.tenderly.co/fork/b9034711-f094-4ffe-9353-86fa37be3381
 
 contract LockdropGateway_LockToken is BaseTest {
-  LockdropGateway gateway;
-  MockLockdrop2 daiLockdrop;
-  MockLockdrop2 usdcLockdrop;
-  MockLockdrop2 usdtLockdrop;
-  MockLockdrop2 wbtcLockdrop;
-  MockLockdrop2 wethLockdrop;
+  LockdropGateway internal gateway;
+  MockLockdrop2 internal daiLockdrop;
+  MockLockdrop2 internal usdcLockdrop;
+  MockLockdrop2 internal usdtLockdrop;
+  MockLockdrop2 internal wbtcLockdrop;
+  MockLockdrop2 internal wethLockdrop;
 
   // Tokens
   address internal constant DAI = 0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063;
@@ -31,7 +31,6 @@ contract LockdropGateway_LockToken is BaseTest {
   // Sushi LP
   address internal constant WETHUSDC =
     0x34965ba0ac2451A34a0471F04CCa3F990b8dea27;
-
   address internal constant WETHAAVE =
     0x2813D43463C374a680f235c428FB1D7f08dE0B69;
 
@@ -54,7 +53,7 @@ contract LockdropGateway_LockToken is BaseTest {
   address internal constant WHALE_3 =
     0x975779102B2A82384f872EE759801DB5204CE331; // holds amAAVE
   address internal constant WHALE_CRV =
-    0x6c5384bBaE7aF65Ed1b6784213A81DaE18e528b2;
+    0x6c5384bBaE7aF65Ed1b6784213A81DaE18e528b2; // holds crvUSDBTCETH, WETHAAVE
   address internal constant WETHUSDCHolder =
     0x59e3a85A31042b88f3C009efB62936CEB4E760c3;
   address internal constant WETHAAVEHolder =

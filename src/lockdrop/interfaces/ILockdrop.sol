@@ -34,6 +34,7 @@ interface ILockdrop {
     returns (
       uint256 lockdropTokenAmount,
       uint256 lockPeriod,
-      bool p88Claimed
+      bool p88Claimed,
+      bool restrictedWithdrawn
     );
 }

@@ -13,6 +13,7 @@ contract MockLockdrop2 {
     uint256 lockPeriod;
     uint256[] userRewardDebts;
     bool p88Claimed;
+    bool restrictedWithdrawn;
   }
 
   function lockTokenFor(
