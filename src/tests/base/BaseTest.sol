@@ -266,7 +266,15 @@ contract BaseTest is DSTest, CoreConstants {
     internal
     returns (DragonStaking)
   {
-    return new DragonStaking(dragonPointToken);
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/DragonStaking.sol/DragonStaking.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(address)")),
+      dragonPointToken
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return DragonStaking(payable(_proxy));
   }
 
   function deployFeedableRewarder(
