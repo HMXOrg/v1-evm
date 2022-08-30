@@ -6,7 +6,7 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { ILockdropStrategy } from "./interfaces/ILockdropStrategy.sol";
+import { IPool } from "../interfaces/IPool.sol";
 import { IStaking } from "../staking/interfaces/IStaking.sol";
 import { LockdropConfig } from "./LockdropConfig.sol";
 import { ILockdrop } from "./interfaces/ILockdrop.sol";
@@ -52,25 +52,28 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   error Lockdrop_PLPAlreadyStaked();
   error Lockdrop_NotGateway();
   error Lockdrop_PLPNotYetStake();
-
+  error Lockdrop_WithdrawNotAllowed();
   // --- Structs ---
   struct LockdropState {
     uint256 lockdropTokenAmount;
     uint256 lockPeriod;
     uint256[] userRewardDebts;
     bool p88Claimed;
+    bool restrictedWithdrawn; // true if user withdraw already (use in the last day)
   }
 
   // --- States ---
-  ILockdropStrategy public strategy;
   IERC20 public lockdropToken; // lockdrop token address
   LockdropConfig public lockdropConfig;
+  IPool public pool;
   uint256 public totalAmount; // total amount of token
   uint256 public totalP88Weight; // Sum of amount * lockPeriod
   uint256 public totalP88;
   uint256 public totalPLPAmount;
   address[] public rewardTokens; //The index of each reward token will remain the same, for example, 0 for MATIC and 1 for esP88
-  uint256[] accRewardPerShares; // Accum reward per share
+  uint256[] public accRewardPerShares; // Accum reward per share
+  address public nativeTokenAddress;
+
   mapping(address => LockdropState) public lockdropStates;
 
   // --- Modifiers ---
@@ -99,19 +102,21 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
 
   constructor(
     address lockdropToken_,
-    ILockdropStrategy strategy_,
+    IPool pool_,
     LockdropConfig lockdropConfig_,
-    address[] memory rewardTokens_
+    address[] memory rewardTokens_,
+    address nativeTokenAddress_
   ) {
     // Sanity check
     IERC20(lockdropToken_).balanceOf(address(this));
     if (block.timestamp > lockdropConfig_.startLockTimestamp())
       revert Lockdrop_InvalidStartLockTimestamp();
 
-    strategy = strategy_;
     lockdropToken = IERC20(lockdropToken_);
     lockdropConfig = lockdropConfig_;
     rewardTokens = rewardTokens_;
+    pool = pool_;
+    nativeTokenAddress = nativeTokenAddress_;
   }
 
   function _lockTokenFor(
@@ -134,8 +139,10 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
       lockdropTokenAmount: amount,
       lockPeriod: lockPeriod,
       userRewardDebts: userRewardDebts,
-      p88Claimed: false
+      p88Claimed: false,
+      restrictedWithdrawn: false
     });
+
     accRewardPerShares = userAccRewardPerShares;
     totalAmount += amount;
     totalP88Weight += amount * lockPeriod;
@@ -273,6 +280,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     nonReentrant
   {
     uint256 lockdropTokenAmount = lockdropStates[user].lockdropTokenAmount;
+    if (lockdropStates[user].restrictedWithdrawn) revert Lockdrop_WithdrawNotAllowed();
     if (amount == 0) revert Lockdrop_ZeroAmountNotAllowed();
     if (amount > lockdropTokenAmount) revert Lockdrop_InsufficientBalance();
     if (amount > _getEarlyWithdrawableAmount(user))
@@ -283,6 +291,11 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     totalP88Weight -= amount * lockdropStates[user].lockPeriod;
     if (lockdropStates[user].lockdropTokenAmount == 0) {
       delete lockdropStates[user];
+    }
+    if (
+      block.timestamp >= lockdropConfig.startRestrictedWithdrawalTimestamp()
+    ) {
+      lockdropStates[user].restrictedWithdrawn = true;
     }
 
     lockdropToken.safeTransfer(msg.sender, amount);
@@ -361,7 +374,14 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     uint256[] memory rewardBeforeHarvest = new uint256[](length);
     uint256[] memory harvestedReward = new uint256[](length);
     for (uint256 i = 0; i < length; ) {
-      rewardBeforeHarvest[i] = IERC20(rewardTokens[i]).balanceOf(address(this));
+      // check if is native token or ERC20
+      if (rewardTokens[i] == nativeTokenAddress) {
+        rewardBeforeHarvest[i] = address(this).balance;
+      } else {
+        rewardBeforeHarvest[i] = IERC20(rewardTokens[i]).balanceOf(
+          address(this)
+        );
+      }
 
       unchecked {
         ++i;
@@ -375,9 +395,13 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     );
 
     for (uint256 i = 0; i < length; ) {
-      harvestedReward[i] =
-        IERC20(rewardTokens[i]).balanceOf(address(this)) -
-        rewardBeforeHarvest[i];
+      if (rewardTokens[i] == nativeTokenAddress) {
+        harvestedReward[i] = address(this).balance - rewardBeforeHarvest[i];
+      } else {
+        harvestedReward[i] =
+          IERC20(rewardTokens[i]).balanceOf(address(this)) -
+          rewardBeforeHarvest[i];
+      }
 
       unchecked {
         ++i;
@@ -420,7 +444,11 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
         lockdropStates[user].userRewardDebts[i];
 
       // Transfer reward to user
-      IERC20(rewardTokens[i]).safeTransfer(user, pendingReward);
+      if (rewardTokens[i] == nativeTokenAddress) {
+        payable(user).transfer(pendingReward);
+      } else {
+        IERC20(rewardTokens[i]).safeTransfer(user, pendingReward);
+      }
 
       // calculate for update user reward dept
       lockdropStates[user].userRewardDebts[i] = userAccumReward;
@@ -452,7 +480,13 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   /// Recieve number of PLP after staking ERC20 Token
   function stakePLP() external onlyAfterLockdropPeriod onlyOwner {
     if (totalPLPAmount > 0) revert Lockdrop_PLPAlreadyStaked();
-    totalPLPAmount = strategy.execute(totalAmount, address(lockdropToken));
+    // add lockdrop token to liquidity pool.
+    totalPLPAmount = pool.addLiquidity(
+      address(lockdropToken),
+      totalAmount,
+      address(this),
+      0
+    );
     lockdropConfig.plpStaking().deposit(
       address(this),
       address(lockdropConfig.plpToken()),
@@ -460,4 +494,6 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     );
     emit LogStakePLP(totalPLPAmount);
   }
+
+  receive() external payable {}
 }
