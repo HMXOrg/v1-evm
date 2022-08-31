@@ -13,7 +13,7 @@ abstract contract Constants {
   }
 
   enum LiquidationState {
-    CANNOT_LIQUIDATE,
+    HEALTHY,
     SOFT_LIQUIDATE,
     LIQUIDATE
   }

@@ -79,6 +79,7 @@ contract PoolConfig is Ownable {
     bool prevIsDynamicFeeEnable,
     bool newIsDynamicFeeEnable
   );
+  event SetMaxLeverage(uint256 prevMaxLeverage, uint256 newMaxLeverage);
   event SetMinProfitDuration(
     uint64 prevMinProfitDuration,
     uint64 newMinProfitDuration
@@ -211,6 +212,11 @@ contract PoolConfig is Ownable {
       newLiquidityCoolDownPeriod
     );
     liquidityCoolDownDuration = newLiquidityCoolDownPeriod;
+  }
+
+  function setMaxLeverage(uint256 newMaxLeverage) external onlyOwner {
+    emit SetMaxLeverage(maxLeverage, newMaxLeverage);
+    maxLeverage = newMaxLeverage;
   }
 
   function setMinProfitDuration(uint64 newMinProfitDuration)

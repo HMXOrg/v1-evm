@@ -745,7 +745,7 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
     wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
     daiPriceFeed.setLatestAnswer(1 * 10**8);
 
-    // Add 1,000 DAI as a liquidity to the pool
+    // Add 100 DAI as a liquidity to the pool
     dai.mint(address(pool), 100 * 10**18);
     pool.addLiquidity(address(this), address(dai), address(this));
 
