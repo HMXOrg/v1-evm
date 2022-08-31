@@ -15,6 +15,8 @@ import { IUniswapRouter } from "../interfaces/IUniswapRouter.sol";
 import { IUniswapPair } from "../interfaces/IUniswapPair.sol";
 import { ILockdrop } from "./interfaces/ILockdrop.sol";
 import { ILockdropGateway } from "./interfaces/ILockdropGateway.sol";
+import { IStaking } from "../staking/interfaces/IStaking.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract LockdropGateway is ILockdropGateway, Ownable {
   using SafeERC20 for IERC20;
@@ -34,6 +36,8 @@ contract LockdropGateway is ILockdropGateway, Ownable {
     bytes metadata;
   }
 
+  IERC20 public plpToken;
+  IStaking public plpStaking;
   mapping(address => LockdropInfo) public mapTokenLockdropInfo;
 
   error LockdropGateway_UnknownTokenType();
@@ -46,7 +50,10 @@ contract LockdropGateway is ILockdropGateway, Ownable {
   error LockdropGateway_NothingToDoWithPosition();
   error LockdropGateway_NonBaseTokenZeroLockedAmount();
 
-  constructor() {}
+  constructor(IERC20 plpToken_, IStaking plpStaking_) {
+    plpToken = plpToken_;
+    plpStaking = plpStaking_;
+  }
 
   function setBaseTokenLockdropInfo(address token, address lockdrop)
     external
@@ -130,7 +137,7 @@ contract LockdropGateway is ILockdropGateway, Ownable {
   }
 
   // Withdraw All Deposit Token
-  function withdrawAllLockedToken(address[] memory lockdropList, address user)
+  function withdrawAllAndStakePLP(address[] memory lockdropList, address user)
     external
   {
     uint256 length = lockdropList.length;
@@ -141,6 +148,14 @@ contract LockdropGateway is ILockdropGateway, Ownable {
         ++index;
       }
     }
+
+    plpToken.approve(address(plpStaking), plpToken.balanceOf(address(this)));
+
+    plpStaking.deposit(
+      user,
+      address(plpToken),
+      plpToken.balanceOf(address(this))
+    );
   }
 
   function lockToken(

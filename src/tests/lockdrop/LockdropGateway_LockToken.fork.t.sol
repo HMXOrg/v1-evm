@@ -6,6 +6,8 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { BaseTest, console } from "../base/BaseTest.sol";
 import { LockdropGateway } from "../../lockdrop/LockdropGateway.sol";
 import { MockLockdrop2 } from "../mocks/MockLockdrop2.sol";
+import { IStaking } from "../../staking/interfaces/IStaking.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 // forge test -vvv --match-contract 'LockdropGateway_LockToken' --fork-url https://rpc.tenderly.co/fork/b9034711-f094-4ffe-9353-86fa37be3381
 
@@ -60,7 +62,7 @@ contract LockdropGateway_LockToken is BaseTest {
     0x6c5384bBaE7aF65Ed1b6784213A81DaE18e528b2;
 
   function setUp() public {
-    gateway = new LockdropGateway();
+    gateway = new LockdropGateway(IERC20(address(0)), IStaking(address(0)));
     daiLockdrop = new MockLockdrop2();
     usdcLockdrop = new MockLockdrop2();
     usdtLockdrop = new MockLockdrop2();
