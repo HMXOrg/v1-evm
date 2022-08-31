@@ -53,6 +53,8 @@ contract MockLockdrop is ILockdrop {
     );
   }
 
+  function claimAllRewardsFor(address user) external {}
+
   function stakePLP() external {}
 
   function withdrawAll(address _user) external {
@@ -77,4 +79,10 @@ contract MockLockdrop is ILockdrop {
       IERC20(address(lockdropConfig.p88Token())).balanceOf(address(this))
     );
   }
+
+  function getUserReward(address user, address token)
+    external
+    view
+    returns (uint256)
+  {}
 }

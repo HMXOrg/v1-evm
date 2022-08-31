@@ -12,9 +12,16 @@ interface ILockdrop {
 
   function claimAllRewards(address user) external;
 
+  function claimAllRewardsFor(address user) external;
+
   function stakePLP() external;
 
   function withdrawAll(address user) external;
 
   function claimAllP88(address user) external;
+
+  function getUserReward(address user, address token)
+    external
+    view
+    returns (uint256);
 }

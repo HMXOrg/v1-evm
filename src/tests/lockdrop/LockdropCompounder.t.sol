@@ -80,8 +80,12 @@ contract Lockdrop_StakePLP is BaseTest {
     mockEsP88Token.mint(address(this), 2 * 1e12 ether);
     mockEsP88Token.approve(address(esP88rewarder2), 2 * 1e12 ether);
 
+    mockWMaticToken.mint(address(this), 2 * 1e12 ether);
+    mockWMaticToken.approve(address(wMaticRewarder), 2 * 1e12 ether);
+
     esP88rewarder1.feed(100 ether, 5 days);
     esP88rewarder2.feed(100 ether, 5 days);
+    wMaticRewarder.feed(100 ether, 5 days);
 
     rewardersplpStaking = new address[](2);
     rewardersplpStaking[0] = address(esP88rewarder1);
@@ -96,7 +100,10 @@ contract Lockdrop_StakePLP is BaseTest {
     rewardsTokenList.push(address(mockWMaticToken));
 
     // Dragon Staking
-    dragonStaking.addStakingToken(address(mockEsP88Token), rewardersdragonStaking);
+    dragonStaking.addStakingToken(
+      address(mockEsP88Token),
+      rewardersdragonStaking
+    );
 
     mockGateway = address(0x88);
     pool = new MockPool();
@@ -163,14 +170,16 @@ contract Lockdrop_StakePLP is BaseTest {
     mockEsP88Token.approve(address(dragonStaking), 1e12 ether);
 
     vm.startPrank(ALICE);
-    mockEsP88Token.approve(address(lockdropCompounder), 100 ether);
+
     lockdropCompounder.compound(lockdrops);
     vm.stopPrank();
 
     // After Alice compound her reward, the following criteria needs to satisfy:
-    // 1. Alice's EsP88 should be 0
-    // 2. DragonStaking's EsP88 should be more than 0 
+    // 1. Alice's EsP88 should be 0 since compounder will directly stakes EsP88 to dragon staking
+    // 2. DragonStaking's EsP88 should be greater than 0
+    // 3. Alice's native token should be greater than 0
     assertEq(IERC20(mockEsP88Token).balanceOf(ALICE), 0);
-    assertGe(IERC20(mockEsP88Token).balanceOf(address(dragonStaking)), 0);
+    assertGt(IERC20(mockEsP88Token).balanceOf(address(dragonStaking)), 0);
+    assertGt(ALICE.balance, 0);
   }
 }
