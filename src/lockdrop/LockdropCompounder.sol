@@ -8,7 +8,6 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { ILockdrop } from "./interfaces/ILockdrop.sol";
 import { IStaking } from "../staking/interfaces/IStaking.sol";
-import { console } from "../tests/utils/console.sol";
 
 contract LockdropCompounder is Ownable, ReentrancyGuard {
   // --- Libraries ---
@@ -22,9 +21,9 @@ contract LockdropCompounder is Ownable, ReentrancyGuard {
 
   // --- States ---
   address public esp88Token;
-  IStaking public dragonStaking;
+  address public dragonStaking;
 
-  constructor(address esp88Token_, IStaking dragonStaking_) {
+  constructor(address esp88Token_, address dragonStaking_) {
     esp88Token = esp88Token_;
     dragonStaking = dragonStaking_;
   }
@@ -43,7 +42,8 @@ contract LockdropCompounder is Ownable, ReentrancyGuard {
   function compound(address[] memory lockdrops) external {
     _claimAll(lockdrops, msg.sender);
     uint256 amount = IERC20(esp88Token).balanceOf(msg.sender);
-    dragonStaking.deposit(msg.sender, esp88Token, amount);
+    IERC20(esp88Token).safeTransferFrom(msg.sender, address(this), amount);
+    IStaking(dragonStaking).deposit(msg.sender, esp88Token, amount);
     emit LogCompound(msg.sender, amount);
   }
 }
