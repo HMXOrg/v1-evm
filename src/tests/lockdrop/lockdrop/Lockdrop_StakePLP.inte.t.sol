@@ -85,7 +85,10 @@ contract Lockdrop_StakePLP is Lockdrop_BaseTest {
     // 1. lockdrop totalPLPAmount should more than zero
     // 2. PLP from lockdrop shold stake on PLP staking contract
     assertGt(lockdrop.totalPLPAmount(), 0);
-    assertGt(plp.balanceOf(address(lockdropConfig.plpStaking())), 0);
+    assertEq(
+      plp.balanceOf(address(lockdropConfig.plpStaking())),
+      lockdrop.totalPLPAmount()
+    );
   }
 
   function testRevert_WhenUserLockToken_ThenLockdropStakePLP_ButStakeMultipleTime()
