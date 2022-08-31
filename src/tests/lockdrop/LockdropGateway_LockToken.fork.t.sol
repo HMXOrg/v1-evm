@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -62,7 +62,7 @@ contract LockdropGateway_LockToken is BaseTest {
     0x6c5384bBaE7aF65Ed1b6784213A81DaE18e528b2;
 
   function setUp() public {
-    gateway = new LockdropGateway(IERC20(address(0)), IStaking(address(0)));
+    gateway = deployLockdropGateway(address(0), address(0));
     daiLockdrop = new MockLockdrop2();
     usdcLockdrop = new MockLockdrop2();
     usdtLockdrop = new MockLockdrop2();
