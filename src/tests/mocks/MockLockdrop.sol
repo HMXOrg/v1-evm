@@ -97,5 +97,28 @@ contract MockLockdrop is ILockdrop {
     );
   }
 
+  function lockdropStates(address)
+    external
+    pure
+    returns (
+      uint256 lockdropTokenAmount,
+      uint256 lockPeriod,
+      bool p88Claimed,
+      bool restrictedWithdrawn
+    )
+  {
+    return (0, 0, false, false);
+  }
+
+  function lockTokenFor(
+    uint256 amount,
+    uint256 lockPeriod,
+    address user
+  ) external {}
+
+  function extendLockPeriodFor(uint256 lockPeriod, address user) external {}
+
+  function addLockAmountFor(uint256 amount, address user) external {}
+
   receive() external payable {}
 }
