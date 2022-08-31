@@ -13,7 +13,7 @@ contract LZBridgeStrategy is IBridgeStrategy {
   function execute(
     address caller,
     uint256 destinationChainId,
-    address destinationAddress,
+    address tokenRecipient,
     uint256 amount,
     bytes memory _payload
   ) external payable {
@@ -23,7 +23,7 @@ contract LZBridgeStrategy is IBridgeStrategy {
     if (destinationTokenContract == address(0))
       revert LZBridgeStrategy_UnknownChainId();
 
-    bytes memory payload = abi.encode(destinationAddress, amount);
+    bytes memory payload = abi.encode(tokenRecipient, amount);
 
     lzEndpoint.send{ value: msg.value }(
       uint16(destinationChainId),

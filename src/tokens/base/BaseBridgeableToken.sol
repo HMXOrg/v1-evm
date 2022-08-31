@@ -19,7 +19,7 @@ contract BaseBridgeableToken is BaseMintableToken {
 
   function bridgeToken(
     uint256 destinationChainId,
-    address destinationAddress,
+    address tokenRecipient,
     uint256 amount,
     address bridgeStrategy,
     bytes memory payload
@@ -35,7 +35,7 @@ contract BaseBridgeableToken is BaseMintableToken {
     IBridgeStrategy(bridgeStrategy).execute(
       msg.sender,
       destinationChainId,
-      destinationAddress,
+      tokenRecipient,
       amount,
       payload
     );

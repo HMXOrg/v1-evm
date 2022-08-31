@@ -5,7 +5,7 @@ interface IBridgeStrategy {
   function execute(
     address caller,
     uint256 destinationChainId,
-    address destinationAddress,
+    address tokenRecipient,
     uint256 amount,
     bytes memory payload
   ) external payable;
