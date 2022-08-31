@@ -553,6 +553,315 @@ contract Pool_LiquidateTest is Pool_BaseTest {
     checkPoolBalanceWithState(address(wbtc), 0);
   }
 
+  function testCorrectness_WhenLiquidateShortPosition_WhenSoftLiquidate()
+    external
+  {
+    // Initialized price feeds
+    daiPriceFeed.setLatestAnswer(1 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    maticPriceFeed.setLatestAnswer(400 * 10**8);
+
+    // Set mintBurnFeeBps to 4 bps
+    poolConfig.setMintBurnFeeBps(4);
+
+    // Feed WBTC prices
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+
+    // Add 1,001 DAI as liquidity
+    dai.mint(address(pool), 1001 * 10**18);
+    pool.addLiquidity(address(this), address(dai), address(this));
+
+    // Assert pool state.
+    // 1. Pool's DAI liquidity should be:
+    // = 1001 * (1-0.0004)
+    // = 1000.5996
+    // 2. Pool should make:
+    // = 1001*0.0004
+    // = 0.4004 DAI
+    // 3. Pool's AUM by min price should be:
+    // = 1000.5996
+    // 4. Pool's AUM by max price should be:
+    // = 1000.5996
+    assertEq(pool.liquidityOf(address(dai)), 1000.5996 * 10**18);
+    assertEq(pool.feeReserveOf(address(dai)), 0.4004 * 10**18);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 1000.5996 * 10**18);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 1000.5996 * 10**18);
+
+    // Open 1000 USD WBTC short position with 100 DAI as a collateral
+    dai.mint(address(pool), 100 * 10**18);
+    pool.increasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      1000 * 10**30,
+      Exposure.SHORT
+    );
+
+    // Assert pool's state.
+    // 1. Pool's DAI liquidity should be them same
+    // 2. Pool should make:
+    // = 0.4004 + (1000 * 0.001)
+    // = 1.4004 DAI
+    // 3. Pool's WBTC short size should be 1000 USD
+    // 4. Pool's WBTC short average price should be 40,000 USD
+    // 5. Pool's AUM by min price should be:
+    // = 1000.5996 - 1000 + 1000
+    // = 1000.5996
+    assertEq(pool.liquidityOf(address(dai)), 1000.5996 * 10**18);
+    assertEq(pool.feeReserveOf(address(dai)), 1.4004 * 10**18);
+    assertEq(pool.shortSizeOf(address(wbtc)), 1000 * 10**30);
+    assertEq(pool.shortAveragePriceOf(address(wbtc)), 40_000 * 10**30);
+
+    // Assert position
+    // 1. Position's size should be: 1000 USD
+    // 2. Position's collateral should be:
+    // = 100 - (1000*0.001)
+    // = 99 USD
+    // 3. Position's averge price shuold be: 40,000 USD
+    // 4. Position's entry funding rate should be 0
+    // 5. Position's reserve amount should be 1000 DAI
+    Pool.GetPositionReturnVars memory position = pool.getPosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      Exposure.SHORT
+    );
+    assertEq(position.size, 1000 * 10**30);
+    assertEq(position.collateral, 99 * 10**30);
+    assertEq(position.averagePrice, 40_000 * 10**30);
+    assertEq(position.entryFundingRate, 0);
+    assertEq(position.reserveAmount, 1000 * 10**18);
+
+    // Assert position liquidation state
+    // Position's liquidation state should be healthy
+    (LiquidationState liquidationState, ) = pool.poolMath().checkLiquidation(
+      pool,
+      address(this),
+      address(dai),
+      address(wbtc),
+      Exposure.SHORT,
+      false
+    );
+    assertTrue(liquidationState == LiquidationState.HEALTHY);
+
+    // Feeds WBTC@39000 3 times
+    wbtcPriceFeed.setLatestAnswer(39_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(39_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(39_000 * 10**8);
+
+    // Assert position's delta
+    // 1. Position's delta should be:
+    // = 1000 * ((40000-39000) / 40000)
+    // = 25 USD
+    // 2. Position should be profitable
+    (bool isProfit, uint256 delta) = pool.getPositionDelta(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      Exposure.SHORT
+    );
+    assertEq(delta, 25 * 10**30);
+    assertTrue(isProfit);
+
+    // Assert position liquidation state
+    // Position's liquidation state should be healthy
+    (liquidationState, ) = pool.poolMath().checkLiquidation(
+      pool,
+      address(this),
+      address(dai),
+      address(wbtc),
+      Exposure.SHORT,
+      false
+    );
+    assertTrue(liquidationState == LiquidationState.HEALTHY);
+
+    // Feed WBTC price at 41,000 USD 3 times
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+
+    // Assert position's delta
+    // 1. Position's delta should be:
+    // = 1000 * ((40000-41000) / 40000)
+    // = -25 USD
+    // 2. Position should be unprofitable
+    (isProfit, delta) = pool.getPositionDelta(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      Exposure.SHORT
+    );
+    assertEq(delta, 25 * 10**30);
+    assertFalse(isProfit);
+
+    // Assert liquidation state
+    // Position should still be healthy
+    (liquidationState, ) = pool.poolMath().checkLiquidation(
+      pool,
+      address(this),
+      address(dai),
+      address(wbtc),
+      Exposure.SHORT,
+      false
+    );
+    assertTrue(liquidationState == LiquidationState.HEALTHY);
+
+    // Feed WBTC price at 45,000 USD 3 times
+    wbtcPriceFeed.setLatestAnswer(45_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(45_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(45_000 * 10**8);
+
+    // Assert position's delta
+    // 1. Position's delta should be:
+    // = 1000 * ((40000-45000) / 40000)
+    // = -125 USD
+    // 2. Position should be unprofitable
+    (isProfit, delta) = pool.getPositionDelta(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      Exposure.SHORT
+    );
+    assertEq(delta, 125 * 10**30);
+    assertFalse(isProfit);
+
+    // Assert liquidation state
+    // Position should be liquidated
+    (liquidationState, ) = pool.poolMath().checkLiquidation(
+      pool,
+      address(this),
+      address(dai),
+      address(wbtc),
+      Exposure.SHORT,
+      false
+    );
+    assertTrue(liquidationState == LiquidationState.LIQUIDATE);
+
+    // Feed WBTC price at 43600 USD 3 times
+    wbtcPriceFeed.setLatestAnswer(43600 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(43600 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(43600 * 10**8);
+
+    // Assert position's delta
+    // 1. Position's delta should be:
+    // = 1000 * ((40000-43600) / 40000)
+    // = -90
+    // 2. Position should be unprofitable
+    (isProfit, delta) = pool.getPositionDelta(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      Exposure.SHORT
+    );
+    assertEq(delta, 90 * 10**30);
+    assertFalse(isProfit);
+
+    // Assert liquidation state
+    // Position should be soft liquidate
+    (liquidationState, ) = pool.poolMath().checkLiquidation(
+      pool,
+      address(this),
+      address(dai),
+      address(wbtc),
+      Exposure.SHORT,
+      false
+    );
+    assertTrue(liquidationState == LiquidationState.SOFT_LIQUIDATE);
+
+    // Assert pool's AUM
+    // Short is at loss, so aum should count short loss.
+    // = 1000.5996 + 90
+    // = 1090.5996
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 1090.5996 * 10**18);
+
+    // Allow anyone to liquidate
+    poolConfig.setIsAllowAllLiquidators(true);
+
+    // Assuming Bob wants to liquidate the position
+    // --- Start Bob session ---
+    vm.startPrank(BOB);
+
+    pool.liquidate(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      Exposure.SHORT,
+      BOB
+    );
+
+    // Assert pool's state:
+    // 1. Pool's DAI liquidity should be:
+    // = 1000.5996 + 90 [Loss from the position]
+    // = 1090.5996 DAI
+    // Pool should make:
+    // 2. Pool should make:
+    // = 1.4004 + (1000 * 0.001)
+    // = 2.4004 DAI
+    // 3. Pool's WBTC short size should be 0 USD
+    // 4. Pool's WBTC short average price should be 40,000 USD
+    // 5. Pool's AUM by min price should be:
+    // = 1090.5996
+    assertEq(pool.liquidityOf(address(dai)), 1090.5996 * 10**18);
+    assertEq(pool.feeReserveOf(address(dai)), 2.4004 * 10**18);
+    assertEq(pool.shortSizeOf(address(wbtc)), 0);
+    assertEq(pool.shortAveragePriceOf(address(wbtc)), 40_000 * 10**30);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 1090.5996 * 10**18);
+
+    // Assert position's owner DAI
+    // Position's owner should get:
+    // = 99 - 90 - (1000 * 0.001)
+    // = 8 DAI back
+    assertEq(dai.balanceOf(address(this)), 8 * 10**18);
+
+    vm.stopPrank();
+    // --- End Bob session ---
+
+    // Feeds WBTC@50,000 3 times
+    wbtcPriceFeed.setLatestAnswer(50_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(50_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(50_000 * 10**8);
+
+    // Open a 100 USD WBTC short position with 20 DAI as collateral
+    dai.mint(address(pool), 20 * 10**18);
+    pool.increasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      100 * 10**30,
+      Exposure.SHORT
+    );
+
+    // Assert pool's state
+    // 1. Pool's short size should be 100 USD
+    // 2. Pool's short average price should be 50,000 USD
+    // 3. Pool's AUM by min price should remain the same.
+    assertEq(pool.shortSizeOf(address(wbtc)), 100 * 10**30);
+    assertEq(pool.shortAveragePriceOf(address(wbtc)), 50_000 * 10**30);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 1090.5996 * 10**18);
+
+    position = pool.getPosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      Exposure.SHORT
+    );
+    checkPoolBalanceWithState(
+      address(dai),
+      (position.collateral * 10**18) / 10**30
+    );
+  }
+
   function testCorrectness_WhenLiquidateShortPosition_WhenLiquidate() external {
     // Initialized price feeds
     daiPriceFeed.setLatestAnswer(1 * 10**8);
