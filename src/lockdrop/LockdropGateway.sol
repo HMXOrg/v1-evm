@@ -6,8 +6,6 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
-import { console } from "../tests/utils/console.sol";
-
 import { IAaveAToken } from "../interfaces/IAaveAToken.sol";
 import { ICurveTokenV3Remover } from "../interfaces/ICurveTokenV3Remover.sol";
 import { ICurveTokenV5Remover } from "../interfaces/ICurveTokenV5Remover.sol";
