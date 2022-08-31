@@ -249,8 +249,8 @@ contract PoolMath is Constants {
     address collateralToken,
     address indexToken,
     Exposure exposure,
-    bool isRevertWhenError
-  ) external view returns (uint256, uint256) {
+    bool isRevertOnError
+  ) external view returns (LiquidationState, uint256) {
     Pool.GetPositionReturnVars memory position = pool.getPosition(
       account,
       collateralToken,
@@ -284,8 +284,8 @@ contract PoolMath is Constants {
     );
 
     if (!isProfit && position.collateral < delta) {
-      if (isRevertWhenError) revert PoolMath_LossesExceedCollateral();
-      return (1, marginFee);
+      if (isRevertOnError) revert PoolMath_LossesExceedCollateral();
+      return (LiquidationState.LIQUIDATE, marginFee);
     }
 
     uint256 remainingCollateral = position.collateral;
@@ -294,24 +294,24 @@ contract PoolMath is Constants {
     }
 
     if (remainingCollateral < marginFee) {
-      if (isRevertWhenError) revert PoolMath_FeeExceedCollateral();
+      if (isRevertOnError) revert PoolMath_FeeExceedCollateral();
       // Cap the fee to the remainingCollateral.
-      return (1, remainingCollateral);
+      return (LiquidationState.LIQUIDATE, remainingCollateral);
     }
 
     if (remainingCollateral < marginFee + pool.config().liquidationFeeUsd()) {
-      if (isRevertWhenError) revert PoolMath_LiquidationFeeExceedCollateral();
+      if (isRevertOnError) revert PoolMath_LiquidationFeeExceedCollateral();
       // Cap the fee to the margin fee
-      return (1, marginFee);
+      return (LiquidationState.LIQUIDATE, marginFee);
     }
 
     if (
       remainingCollateral * pool.config().maxLeverage() < position.size * BPS
     ) {
-      if (isRevertWhenError) revert PoolMath_MaxLeverageExceed();
-      return (2, marginFee);
+      if (isRevertOnError) revert PoolMath_MaxLeverageExceed();
+      return (LiquidationState.SOFT_LIQUIDATE, marginFee);
     }
 
-    return (0, marginFee);
+    return (LiquidationState.HEALTHY, marginFee);
   }
 }

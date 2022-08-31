@@ -12,6 +12,12 @@ abstract contract Constants {
     MAX
   }
 
+  enum LiquidationState {
+    HEALTHY,
+    SOFT_LIQUIDATE,
+    LIQUIDATE
+  }
+
   address internal constant LINKEDLIST_START = address(1);
   address internal constant LINKEDLIST_END = address(1);
   address internal constant LINKEDLIST_EMPTY = address(0);

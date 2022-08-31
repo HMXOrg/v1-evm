@@ -18,6 +18,7 @@ contract Pool is Constants, ReentrancyGuard {
   error Pool_BadAmountOut();
   error Pool_BadArgument();
   error Pool_BadCollateralDelta();
+  error Pool_BadLiquidator();
   error Pool_BadPositionSize();
   error Pool_BadSizeDelta();
   error Pool_BadToken();
@@ -74,6 +75,7 @@ contract Pool is Constants, ReentrancyGuard {
 
   // Position
   struct Position {
+    address primaryAccount;
     uint256 size;
     uint256 collateral; // collateral value in USD
     uint256 averagePrice;
@@ -154,6 +156,19 @@ contract Pool is Constants, ReentrancyGuard {
   event IncreaseUsdDebt(address token, uint256 amount);
   event IncreaseReserved(address token, uint256 amount);
   event IncreaseShortSize(address token, uint256 amount);
+  event LiquidatePosition(
+    bytes32 posId,
+    address primaryAccount,
+    uint256 subAccountId,
+    address collateralToken,
+    address indexToken,
+    Exposure exposure,
+    uint256 size,
+    uint256 collateral,
+    uint256 reserveAmount,
+    int256 realisedPnl,
+    uint256 markPrice
+  );
   event RemoveLiquidity(
     address account,
     address tokenOut,
@@ -526,7 +541,9 @@ contract Pool is Constants, ReentrancyGuard {
     if (position.size == 0) {
       // If position size = 0, then it is a new position.
       // So make average price to equal to price.
+      // And assign the primary account
       position.averagePrice = vars.price;
+      position.primaryAccount = primaryAccount;
     }
 
     if (position.size > 0 && sizeDelta > 0) {
@@ -837,6 +854,125 @@ contract Pool is Constants, ReentrancyGuard {
     return 0;
   }
 
+  function liquidate(
+    address primaryAccount,
+    uint256 subAccountId,
+    address collateralToken,
+    address indexToken,
+    Exposure exposure,
+    address to
+  ) external nonReentrant {
+    if (!config.isAllowedLiquidators(msg.sender)) revert Pool_BadLiquidator();
+
+    updateFundingRate(collateralToken, indexToken);
+
+    address subAccount = getSubAccount(primaryAccount, subAccountId);
+
+    bytes32 posId = getPositionId(
+      subAccount,
+      collateralToken,
+      indexToken,
+      exposure
+    );
+    Position memory position = positions[posId];
+
+    if (position.size == 0) revert Pool_BadPositionSize();
+
+    (LiquidationState liquidationState, uint256 marginFee) = checkLiquidation(
+      subAccount,
+      collateralToken,
+      indexToken,
+      exposure,
+      false
+    );
+    if (liquidationState == LiquidationState.SOFT_LIQUIDATE) {
+      // Position's leverage is exceeded, but there is enough collateral to soft-liquidate.
+      _decreasePosition(
+        primaryAccount,
+        subAccountId,
+        collateralToken,
+        indexToken,
+        0,
+        position.size,
+        exposure,
+        position.primaryAccount
+      );
+      return;
+    }
+
+    uint256 feeTokens = _convertUsde30ToTokens(
+      collateralToken,
+      marginFee,
+      MinMax.MAX
+    );
+    feeReserveOf[collateralToken] += feeTokens;
+    emit CollectMarginFee(collateralToken, marginFee, feeTokens);
+
+    // Decreases reserve amount of a collateral token.
+    _decreaseReserved(collateralToken, position.reserveAmount);
+
+    if (Exposure.LONG == exposure) {
+      // If it is long, then decrease guaranteed usd and pool's liquidity
+      _decreaseGuaranteedUsd(
+        collateralToken,
+        position.size - position.collateral
+      );
+      _decreasePoolLiquidity(
+        collateralToken,
+        _convertUsde30ToTokens(collateralToken, marginFee, MinMax.MAX)
+      );
+    }
+
+    uint256 markPrice = Exposure.LONG == exposure
+      ? oracle.getMinPrice(indexToken)
+      : oracle.getMaxPrice(indexToken);
+    emit LiquidatePosition(
+      posId,
+      primaryAccount,
+      subAccountId,
+      collateralToken,
+      indexToken,
+      exposure,
+      position.size,
+      position.collateral,
+      position.reserveAmount,
+      position.realizedPnl,
+      markPrice
+    );
+
+    if (exposure == Exposure.SHORT && marginFee < position.collateral) {
+      uint256 remainingCollateral = position.collateral - marginFee;
+      _increasePoolLiquidity(
+        collateralToken,
+        _convertUsde30ToTokens(collateralToken, remainingCollateral, MinMax.MAX)
+      );
+    }
+
+    if (exposure == Exposure.SHORT)
+      _decreaseShortSize(indexToken, position.size);
+
+    delete positions[posId];
+
+    // Pay liquidation bounty with the pool's liquidity
+    _decreasePoolLiquidity(
+      collateralToken,
+      _convertUsde30ToTokens(
+        collateralToken,
+        config.liquidationFeeUsd(),
+        MinMax.MAX
+      )
+    );
+    _pushTokens(
+      collateralToken,
+      to,
+      _convertUsde30ToTokens(
+        collateralToken,
+        config.liquidationFeeUsd(),
+        MinMax.MAX
+      )
+    );
+  }
+
   // ----------------
   // Getter functions
   // ----------------
@@ -991,6 +1127,7 @@ contract Pool is Constants, ReentrancyGuard {
   }
 
   struct GetPositionReturnVars {
+    address primaryAccount;
     uint256 size;
     uint256 collateral;
     uint256 averagePrice;
@@ -1030,6 +1167,7 @@ contract Pool is Constants, ReentrancyGuard {
       ? uint256(position.realizedPnl)
       : uint256(-position.realizedPnl);
     GetPositionReturnVars memory vars = GetPositionReturnVars({
+      primaryAccount: position.primaryAccount,
       size: position.size,
       collateral: position.collateral,
       averagePrice: position.averagePrice,
@@ -1436,7 +1574,7 @@ contract Pool is Constants, ReentrancyGuard {
     address indexToken,
     Exposure exposure,
     bool isRevertWhenError
-  ) public view returns (uint256, uint256) {
+  ) public view returns (LiquidationState, uint256) {
     return
       poolMath.checkLiquidation(
         Pool(address(this)),
@@ -1482,6 +1620,10 @@ contract Pool is Constants, ReentrancyGuard {
       (amountTokens * oracle.getPrice(token, minOrMax)) /
       (10**config.tokenDecimals(token));
   }
+
+  /// ---------------------------
+  /// ERC20 interaction functions
+  /// ---------------------------
 
   function _pullTokens(address token) internal returns (uint256) {
     uint256 prevBalance = totalOf[token];

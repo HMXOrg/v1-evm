@@ -39,6 +39,8 @@ contract PoolConfig is Ownable {
   // --------------------------
   /// @notice liquidation fee in USD with 1e30 precision
   uint256 public liquidationFeeUsd;
+  bool public isAllowAllLiquidators;
+  mapping(address => bool) public allowLiquidators;
 
   // ---------------------------
   // Funding rate configurations
@@ -69,10 +71,15 @@ contract PoolConfig is Ownable {
   address public router;
 
   event DeleteTokenConfig(address token);
+  event SetIsAllowAllLiquidators(
+    bool prevIsAllowAllLiquidators,
+    bool isAllowAllLiquidators
+  );
   event SetIsDynamicFeeEnable(
     bool prevIsDynamicFeeEnable,
     bool newIsDynamicFeeEnable
   );
+  event SetMaxLeverage(uint256 prevMaxLeverage, uint256 newMaxLeverage);
   event SetMinProfitDuration(
     uint64 prevMinProfitDuration,
     uint64 newMinProfitDuration
@@ -138,6 +145,17 @@ contract PoolConfig is Ownable {
     marginFeeBps = 10; // 0.1%
   }
 
+  function setIsAllowAllLiquidators(bool _isAllowAllLiquidators)
+    external
+    onlyOwner
+  {
+    emit SetIsAllowAllLiquidators(
+      isAllowAllLiquidators,
+      _isAllowAllLiquidators
+    );
+    isAllowAllLiquidators = _isAllowAllLiquidators;
+  }
+
   function setIsDynamicFeeEnable(bool newIsDynamicFeeEnable)
     external
     onlyOwner
@@ -194,6 +212,11 @@ contract PoolConfig is Ownable {
       newLiquidityCoolDownPeriod
     );
     liquidityCoolDownDuration = newLiquidityCoolDownPeriod;
+  }
+
+  function setMaxLeverage(uint256 newMaxLeverage) external onlyOwner {
+    emit SetMaxLeverage(maxLeverage, newMaxLeverage);
+    maxLeverage = newMaxLeverage;
   }
 
   function setMinProfitDuration(uint64 newMinProfitDuration)
@@ -253,6 +276,17 @@ contract PoolConfig is Ownable {
 
   function isAcceptToken(address token) external view returns (bool) {
     return tokenMetas[token].accept;
+  }
+
+  function isAllowedLiquidators(address liquidator)
+    external
+    view
+    returns (bool)
+  {
+    return
+      isAllowAllLiquidators
+        ? isAllowAllLiquidators
+        : allowLiquidators[liquidator];
   }
 
   function isStableToken(address token) external view returns (bool) {
