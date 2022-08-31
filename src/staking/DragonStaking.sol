@@ -164,8 +164,8 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
 
   function _afterWithdraw(
     address to,
-    address token,
-    uint256 amount
+    address,
+    uint256
   ) internal {
     _withdraw(to, address(dp), userTokenAmount[address(dp)][to]);
 
