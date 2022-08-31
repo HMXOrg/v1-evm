@@ -32,6 +32,7 @@ import { LockdropConfig } from "../../lockdrop/LockdropConfig.sol";
 import { IPool } from "../../interfaces/IPool.sol";
 import { IStaking } from "../../staking/interfaces/IStaking.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { LockdropGateway } from "../../lockdrop/LockdropGateway.sol";
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
@@ -262,9 +263,17 @@ contract BaseTest is DSTest, CoreConstants {
     address lockdropToken,
     IPool pool,
     LockdropConfig lockdropConfig,
-    address[] memory rewardTokens
+    address[] memory rewardTokens,
+    address nativeTokenAddress
   ) internal returns (Lockdrop) {
-    return new Lockdrop(lockdropToken, pool, lockdropConfig, rewardTokens);
+    return
+      new Lockdrop(
+        lockdropToken,
+        pool,
+        lockdropConfig,
+        rewardTokens,
+        nativeTokenAddress
+      );
   }
 
   function deployLockdropConfig(
@@ -282,5 +291,12 @@ contract BaseTest is DSTest, CoreConstants {
         p88Token,
         gatewayAddress
       );
+  }
+
+  function deployLockdropGateway(IERC20 plpToken, IStaking plpStaking)
+    internal
+    returns (LockdropGateway)
+  {
+    return new LockdropGateway(plpToken, plpStaking);
   }
 }

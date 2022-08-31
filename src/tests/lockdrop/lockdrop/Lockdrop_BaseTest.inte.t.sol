@@ -2,12 +2,11 @@
 pragma solidity 0.8.14;
 
 import "../../base/DSTest.sol";
-import { BaseTest, PLPStaking, PLP, P88, EsP88, MockErc20, MockWNative, FeedableRewarder, WFeedableRewarder, Lockdrop, LockdropConfig } from "../../base/BaseTest.sol";
+import { BaseTest, console, IPool, PoolConfig, PoolMath, PoolOracle, Pool, PLPStaking, PLP, P88, EsP88, MockErc20, MockWNative, FeedableRewarder, WFeedableRewarder, Lockdrop, LockdropConfig, LockdropGateway } from "../../base/BaseTest.sol";
 
 abstract contract Lockdrop_BaseTest is BaseTest {
   PLP internal plp;
   P88 internal p88;
-  MockErc20 internal lockdropToken;
   EsP88 internal esP88;
   MockWNative internal revenueToken;
 
@@ -19,13 +18,17 @@ abstract contract Lockdrop_BaseTest is BaseTest {
 
   LockdropConfig internal lockdropConfig;
   Lockdrop internal lockdrop;
+  LockdropGateway internal lockdropGateway;
 
-  address internal mockGateway;
+  PoolConfig internal poolConfig;
+  PoolMath internal poolMath;
+  PoolOracle internal poolOracle;
+  Pool internal pool;
+
+  address[] internal rewardsTokens;
 
   function setUp() public virtual {
-    mockGateway = address(0x88);
-    lockdropToken = new MockErc20("Mock Token", "MT", 18);
-
+    // Setup use token
     vm.startPrank(DAVE);
     plpStaking = BaseTest.deployPLPStaking();
 
@@ -40,6 +43,49 @@ abstract contract Lockdrop_BaseTest is BaseTest {
 
     revenueToken = deployMockWNative();
 
+    rewardsTokens.push(address(esP88));
+    rewardsTokens.push(address(revenueToken));
+
+    //  Setup for Pool
+    BaseTest.PoolConfigConstructorParams memory poolConfigParams = BaseTest
+      .PoolConfigConstructorParams({
+        fundingInterval: 8 hours,
+        mintBurnFeeBps: 30,
+        taxBps: 50,
+        stableFundingRateFactor: 600,
+        fundingRateFactor: 600,
+        liquidityCoolDownPeriod: 1 days
+      });
+
+    (poolOracle, poolConfig, poolMath, pool) = deployFullPool(poolConfigParams);
+
+    (
+      address[] memory tokens,
+      PoolOracle.PriceFeedInfo[] memory priceFeedInfo
+    ) = buildDefaultSetPriceFeedInput();
+    poolOracle.setPriceFeed(tokens, priceFeedInfo);
+
+    address[] memory poolTokens = new address[](1);
+    poolTokens[0] = address(usdc);
+
+    PoolConfig.TokenConfig[]
+      memory poolTokenConfigs = new PoolConfig.TokenConfig[](1);
+
+    poolTokenConfigs[0] = PoolConfig.TokenConfig({
+      accept: true,
+      isStable: true,
+      isShortable: false,
+      decimals: usdc.decimals(),
+      weight: 10000,
+      minProfitBps: 75,
+      usdDebtCeiling: 0,
+      shortCeiling: 0
+    });
+
+    poolConfig.setTokenConfigs(poolTokens, poolTokenConfigs);
+    // usdcPriceFeed.setLatestAnswer(60000 * 10**8);
+
+    //  setup for staking and rewarder
     revenueRewarder = BaseTest.deployWFeedableRewarder(
       "Protocol Revenue Rewarder",
       address(revenueToken),
@@ -56,6 +102,26 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     rewarders[1] = address(esP88Rewarder);
 
     plpStaking.addStakingToken(address(plp), rewarders);
+
+    lockdropGateway = BaseTest.deployLockdropGateway(plp, plpStaking);
+
+    // startLockTimestamp = 1 day
+    lockdropConfig = BaseTest.deployLockdropConfig(
+      1 days,
+      plpStaking,
+      plp,
+      p88,
+      address(lockdropGateway)
+    );
+
+    // Lock token is USDC
+    lockdrop = BaseTest.deployLockdrop(
+      address(usdc),
+      IPool(address(pool)),
+      lockdropConfig,
+      rewardsTokens,
+      address(revenueToken)
+    );
 
     vm.stopPrank();
   }
