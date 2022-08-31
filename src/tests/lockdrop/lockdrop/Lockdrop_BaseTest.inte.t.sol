@@ -32,9 +32,6 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     vm.startPrank(DAVE);
     plpStaking = BaseTest.deployPLPStaking();
 
-    plp = BaseTest.deployPLP();
-    plp.setMinter(DAVE, true);
-
     p88 = BaseTest.deployP88();
     p88.setMinter(DAVE, true);
 
@@ -58,6 +55,7 @@ abstract contract Lockdrop_BaseTest is BaseTest {
       });
 
     (poolOracle, poolConfig, poolMath, pool) = deployFullPool(poolConfigParams);
+    plp = PLP(address(pool.plp()));
 
     (
       address[] memory tokens,
@@ -83,7 +81,6 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     });
 
     poolConfig.setTokenConfigs(poolTokens, poolTokenConfigs);
-    // usdcPriceFeed.setLatestAnswer(60000 * 10**8);
 
     //  setup for staking and rewarder
     revenueRewarder = BaseTest.deployWFeedableRewarder(
