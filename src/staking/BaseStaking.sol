@@ -104,6 +104,7 @@ abstract contract BaseStaking is IStaking, Ownable {
 
   function getUserTokenAmount(address token, address sender)
     external
+    view
     returns (uint256)
   {
     return userTokenAmount[token][sender];
@@ -111,6 +112,7 @@ abstract contract BaseStaking is IStaking, Ownable {
 
   function getStakingTokenRewarders(address token)
     external
+    view
     returns (address[] memory)
   {
     return stakingTokenRewarders[token];

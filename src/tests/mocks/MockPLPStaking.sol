@@ -11,6 +11,8 @@ import { IWNative } from "../../interfaces/IWNative.sol";
 using SafeERC20 for IERC20;
 
 contract MockPLPStaking is IStaking {
+  mapping(address => mapping(address => uint256)) public userTokenAmount;
+
   address internal plpTokenAddress;
   MockWNative internal revenueToken;
   address internal esp88TokenAddress;
@@ -37,13 +39,19 @@ contract MockPLPStaking is IStaking {
     address to,
     address token,
     uint256 amount
-  ) external {}
+  ) external {
+    IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
+    userTokenAmount[token][to] += amount;
+  }
 
   function withdraw(
     address to,
     address token,
     uint256 amount
-  ) external {}
+  ) external {
+    IERC20(token).approve(to, amount);
+    IERC20(token).safeTransfer(to, amount);
+  }
 
   function getUserTokenAmount(address token, address sender)
     external
