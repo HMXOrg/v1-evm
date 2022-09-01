@@ -99,11 +99,6 @@ contract MockLockdrop is ILockdrop {
     );
   }
 
-  function getUserReward(address user, address token)
-    external
-    view
-    returns (uint256)
-  {}
   
   function lockdropStates(address)
     external

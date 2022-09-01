@@ -75,8 +75,6 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   address public nativeTokenAddress;
 
   mapping(address => LockdropState) public lockdropStates;
-  // user address => token address => total amount
-  mapping(address => mapping(address => uint256)) public userRewards;
 
   // --- Modifiers ---
   /// @dev Only in lockdrop period
@@ -438,9 +436,9 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
         : 0;
   }
 
-  function _transferRewardToUser(
+  function _transferUserReward(
     address user,
-    address sender,
+    address receiver,
     uint256[] memory harvestedRewards
   ) internal {
     uint256 userShare = (lockdropStates[user].lockdropTokenAmount *
@@ -459,9 +457,9 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
 
       // Transfer reward to user
       if (rewardTokens[i] == nativeTokenAddress) {
-        payable(user).transfer(pendingReward);
+        payable(receiver).transfer(pendingReward);
       } else {
-        IERC20(rewardTokens[i]).safeTransfer(sender, pendingReward);
+        IERC20(rewardTokens[i]).safeTransfer(receiver, pendingReward);
       }
 
       // calculate for update user reward dept
@@ -495,21 +493,14 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   function _claimAllRewards(address user) internal {
     if (totalPLPAmount == 0) revert Lockdrop_PLPNotYetStake();
     uint256[] memory harvestedRewards = _harvestAll();
-    _transferRewardToUser(user, user, harvestedRewards);
+    _transferUserReward(user, user, harvestedRewards);
   }
 
   function _claimAllRewardsFor(address user) internal {
     if (totalPLPAmount == 0) revert Lockdrop_PLPNotYetStake();
     uint256[] memory harvestedRewards = _harvestAll();
-    uint256 length = harvestedRewards.length;
-    for (uint256 i; i < length; ) {
-      userRewards[user][rewardTokens[i]] += harvestedRewards[i];
-      unchecked {
-        ++i;
-      }
-    }
     // Reward will be transfer too msg.sender instead of user, user reward state will be kept
-    _transferRewardToUser(user, msg.sender, harvestedRewards);
+    _transferUserReward(user, msg.sender, harvestedRewards);
   }
 
   /// @dev PLP token is staked after the lockdrop period
@@ -529,14 +520,6 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
       totalPLPAmount
     );
     emit LogStakePLP(totalPLPAmount);
-  }
-
-  function getUserReward(address user, address token)
-    external
-    view
-    returns (uint256)
-  {
-    return userRewards[user][token];
   }
 
   receive() external payable {}

@@ -173,14 +173,9 @@ contract Lockdrop_StakePLP is BaseTest {
     // 1. Alice's EsP88 should be 0 since compounder will directly stakes EsP88 to dragon staking
     // 2. DragonStaking's EsP88 should be greater than 0
     // 3. Alice's native token should be greater than 0
-    // 4. ALice's EsP88 reward states should be equal to EsP88 of dragon staking (only Alice lock tokens)
     assertEq(IERC20(mockEsP88Token).balanceOf(ALICE), 0);
     assertGt(IERC20(mockEsP88Token).balanceOf(address(dragonStaking)), 0);
     assertGt(ALICE.balance, 0);
-    assertEq(
-      lockdrop.getUserReward(ALICE, address(mockEsP88Token)),
-      IERC20(mockEsP88Token).balanceOf(address(dragonStaking))
-    );
   }
 
   // Compound multiple times with different block timestamp
@@ -201,17 +196,12 @@ contract Lockdrop_StakePLP is BaseTest {
     // 1. Alice's EsP88 should be 0 since compounder will directly stakes EsP88 to dragon staking
     // 2. DragonStaking's EsP88 should be greater than the previous amount
     // 3. Alice's native token should be greater than 0
-    // 4. ALice's EsP88 reward states should be equal to EsP88 of dragon staking (only Alice lock tokens)
     assertEq(IERC20(mockEsP88Token).balanceOf(ALICE), 0);
     assertGt(
       IERC20(mockEsP88Token).balanceOf(address(dragonStaking)),
       oldRewardAmount
     );
     assertGt(ALICE.balance, 0);
-    assertEq(
-      lockdrop.getUserReward(ALICE, address(mockEsP88Token)),
-      IERC20(mockEsP88Token).balanceOf(address(dragonStaking))
-    );
   }
 
   function testCorrectness_LockdropCompound_CompoundMultipleTimes_AfterFeededPeriod()

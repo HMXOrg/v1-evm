@@ -30,11 +30,6 @@ interface ILockdrop {
 
   function claimAllP88(address user) external;
 
-  function getUserReward(address user, address token)
-    external
-    view
-    returns (uint256);
-
   function lockdropStates(address user)
     external
     view

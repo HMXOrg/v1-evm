@@ -46,6 +46,9 @@ contract LockdropCompounder is Ownable, ReentrancyGuard {
     uint256 newEsP88Amount = IERC20(esp88Token).balanceOf(address(this)) -
       oldEsP88Amount;
     IStaking(dragonStaking).deposit(address(this), esp88Token, newEsP88Amount);
+    payable(msg.sender).transfer(address(this).balance);
     emit LogCompound(msg.sender, newEsP88Amount);
   }
+
+  receive() external payable {}
 }
