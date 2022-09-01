@@ -38,18 +38,14 @@ contract LockdropCompounder is Ownable, ReentrancyGuard {
     }
   }
 
-  // Send to PLP staking
-  function compound(address[] memory lockdrops) external {
+  /// @dev Users can compound their EsP88 reward into dragon staking.
+  /// @param lockdrops array of lockdrop addresses
+  function compound(address[] memory lockdrops) external nonReentrant {
+    uint256 oldEsP88Amount = IERC20(esp88Token).balanceOf(address(this));
     _claimAll(lockdrops, msg.sender);
-    uint256 amount = 0;
-    uint256 length = lockdrops.length;
-    for (uint256 i = 0; i < length; ) {
-      amount += ILockdrop(lockdrops[i]).getUserReward(msg.sender, esp88Token);
-      unchecked {
-        ++i;
-      }
-    }
-    IStaking(dragonStaking).deposit(address(this), esp88Token, amount);
-    emit LogCompound(msg.sender, amount);
+    uint256 newEsP88Amount = IERC20(esp88Token).balanceOf(address(this)) -
+      oldEsP88Amount;
+    IStaking(dragonStaking).deposit(address(this), esp88Token, newEsP88Amount);
+    emit LogCompound(msg.sender, newEsP88Amount);
   }
 }

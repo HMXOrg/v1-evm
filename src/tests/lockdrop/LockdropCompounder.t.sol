@@ -83,9 +83,9 @@ contract Lockdrop_StakePLP is BaseTest {
     mockWMaticToken.mint(address(this), 2 * 1e12 ether);
     mockWMaticToken.approve(address(wMaticRewarder), 2 * 1e12 ether);
 
-    esP88rewarder1.feed(100 ether, 5 days);
-    esP88rewarder2.feed(100 ether, 5 days);
-    wMaticRewarder.feed(100 ether, 5 days);
+    esP88rewarder1.feed(100 ether, 100 days);
+    esP88rewarder2.feed(100 ether, 100 days);
+    wMaticRewarder.feed(100 ether, 100 days);
 
     rewardersplpStaking = new address[](2);
     rewardersplpStaking[0] = address(esP88rewarder1);
@@ -131,7 +131,7 @@ contract Lockdrop_StakePLP is BaseTest {
 
     lockdrops.push(address(lockdrop));
 
-    // Alice
+    // --------- Alice ----------
     vm.warp(block.timestamp + 1 days);
     vm.startPrank(ALICE);
     mockERC20.mint(ALICE, 20 ether);
@@ -146,7 +146,7 @@ contract Lockdrop_StakePLP is BaseTest {
 
     vm.startPrank(address(this));
     // Owner mint PLPToken
-    mockPLPToken.mint(address(lockdrop), 90 ether);
+    mockPLPToken.mint(address(lockdrop), 100 ether);
     mockPLPToken.approve(address(lockdropConfig.plpStaking()), 100 ether);
     lockdrop.stakePLP();
     vm.stopPrank();
@@ -157,29 +157,89 @@ contract Lockdrop_StakePLP is BaseTest {
       mockPLPToken.balanceOf(address(lockdropConfig.plpStaking())),
       32 ether
     );
-    // 90 ether - 32 ether
-    assertEq(mockPLPToken.balanceOf(address(lockdrop)), 58 ether);
-    mockEsP88Token.mint(address(lockdrop), 100 ether);
-    mockEsP88Token.mint(address(lockdrop), 100 ether);
-  }
-
-  function testCorrectness_LockdropCompound() external {
-    vm.warp(block.timestamp + 10 days);
+    // 100 ether - 32 ether
+    assertEq(mockPLPToken.balanceOf(address(lockdrop)), 68 ether);
 
     vm.prank(address(lockdropCompounder));
     mockEsP88Token.approve(address(dragonStaking), 1e12 ether);
+  }
 
-    vm.startPrank(ALICE);
-
+  function testCorrectness_LockdropCompound_CompoundOnce() external {
+    vm.warp(10 days);
+    vm.prank(ALICE);
     lockdropCompounder.compound(lockdrops);
-    vm.stopPrank();
 
     // After Alice compound her reward, the following criteria needs to satisfy:
     // 1. Alice's EsP88 should be 0 since compounder will directly stakes EsP88 to dragon staking
     // 2. DragonStaking's EsP88 should be greater than 0
     // 3. Alice's native token should be greater than 0
+    // 4. ALice's EsP88 reward states should be equal to EsP88 of dragon staking (only Alice lock tokens)
     assertEq(IERC20(mockEsP88Token).balanceOf(ALICE), 0);
     assertGt(IERC20(mockEsP88Token).balanceOf(address(dragonStaking)), 0);
+    assertGt(ALICE.balance, 0);
+    assertEq(
+      lockdrop.getUserReward(ALICE, address(mockEsP88Token)),
+      IERC20(mockEsP88Token).balanceOf(address(dragonStaking))
+    );
+  }
+
+  // Compound multiple times with different block timestamp
+  function testCorrectness_LockdropCompound_CompoundMultipleTimes() external {
+    vm.warp(10 days);
+    vm.prank(ALICE);
+    lockdropCompounder.compound(lockdrops);
+    uint256 oldRewardAmount = IERC20(mockEsP88Token).balanceOf(
+      address(dragonStaking)
+    );
+    assertGt(oldRewardAmount, 0);
+
+    vm.warp(block.timestamp + 30 days);
+    vm.prank(ALICE);
+    lockdropCompounder.compound(lockdrops);
+
+    // After Alice compound her reward the second time, the following criteria needs to satisfy:
+    // 1. Alice's EsP88 should be 0 since compounder will directly stakes EsP88 to dragon staking
+    // 2. DragonStaking's EsP88 should be greater than the previous amount
+    // 3. Alice's native token should be greater than 0
+    // 4. ALice's EsP88 reward states should be equal to EsP88 of dragon staking (only Alice lock tokens)
+    assertEq(IERC20(mockEsP88Token).balanceOf(ALICE), 0);
+    assertGt(
+      IERC20(mockEsP88Token).balanceOf(address(dragonStaking)),
+      oldRewardAmount
+    );
+    assertGt(ALICE.balance, 0);
+    assertEq(
+      lockdrop.getUserReward(ALICE, address(mockEsP88Token)),
+      IERC20(mockEsP88Token).balanceOf(address(dragonStaking))
+    );
+  }
+
+  function testCorrectness_LockdropCompound_CompoundMultipleTimes_AfterFeededPeriod()
+    external
+  {
+    vm.warp(10 days);
+    vm.prank(ALICE);
+    lockdropCompounder.compound(lockdrops);
+
+    vm.warp(block.timestamp + 100 days);
+    vm.prank(ALICE);
+    lockdropCompounder.compound(lockdrops);
+    uint256 oldRewardAmount = IERC20(mockEsP88Token).balanceOf(
+      address(dragonStaking)
+    );
+    vm.warp(block.timestamp + 20 days);
+    vm.prank(ALICE);
+    lockdropCompounder.compound(lockdrops);
+
+    // After Alice compound her reward the third time when rewarder stop feed reward, the following criteria needs to satisfy:
+    // 1. Alice's EsP88 should be 0 since compounder will directly stakes EsP88 to dragon staking
+    // 2. DragonStaking's EsP88 should be equal to previous amount
+    // 3. Alice's native token should be greater than 0
+    assertEq(IERC20(mockEsP88Token).balanceOf(ALICE), 0);
+    assertEq(
+      IERC20(mockEsP88Token).balanceOf(address(dragonStaking)),
+      oldRewardAmount
+    );
     assertGt(ALICE.balance, 0);
   }
 }

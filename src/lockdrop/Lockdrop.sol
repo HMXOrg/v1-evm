@@ -75,7 +75,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   address public nativeTokenAddress;
 
   mapping(address => LockdropState) public lockdropStates;
-  // user address => token address => amount
+  // user address => token address => total amount
   mapping(address => mapping(address => uint256)) public userRewards;
 
   // --- Modifiers ---
@@ -493,11 +493,12 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     uint256[] memory harvestedRewards = _harvestAll();
     uint256 length = harvestedRewards.length;
     for (uint256 i; i < length; ) {
-      userRewards[user][rewardTokens[i]] = harvestedRewards[i];
+      userRewards[user][rewardTokens[i]] += harvestedRewards[i];
       unchecked {
         ++i;
       }
     }
+    // Reward will be transfer too msg.sender instead of user, user reward state will be kept
     _transferRewardToUser(user, msg.sender, harvestedRewards);
   }
 
