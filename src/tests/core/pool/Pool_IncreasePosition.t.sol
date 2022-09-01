@@ -464,6 +464,281 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 82295 * 10**18);
   }
 
+  function testCorrectness_WhenLong_WhenAddCollateral() external {
+    // Initialized price feeds
+    daiPriceFeed.setLatestAnswer(1 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    maticPriceFeed.setLatestAnswer(300 * 10**8);
+
+    // Initiate first set of WBTC prices
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+
+    // Add 117499 sathoshi as liquidity
+    wbtc.mint(address(pool), 117499);
+    pool.addLiquidity(address(this), address(wbtc), address(this));
+
+    // Assert pool's state.
+    // 1. Pool's WBTC liquidity:
+    // = 117499 * (1-0.003)
+    // = 117146 sathoshi
+    // 2. Pool should make:
+    // = 353 sathoshi
+    // 3. Pool's WBTC USD debt should be:
+    // = 46.8584 USD
+    // 4. Redemable WBTC in USD should be:
+    // = 117146 * 40000 / 1e8
+    // = 46.8584 USD
+    assertEq(pool.liquidityOf(address(wbtc)), 117146);
+    assertEq(pool.feeReserveOf(address(wbtc)), 353);
+    assertEq(pool.usdDebtOf(address(wbtc)), 46.8584 * 10**18);
+    assertEq(pool.getRedemptionCollateralUsd(address(wbtc)), 46.8584 * 10**30);
+
+    // Add 117499 sathoshi as liquidity
+    wbtc.mint(address(pool), 117499);
+    pool.addLiquidity(address(this), address(wbtc), address(this));
+
+    // Assert pool's state.
+    // 1. Pool's WBTC liquidity:
+    // = 117146 + 117499 * (1-0.003)
+    // = 234292 sathoshi
+    // 2. Pool should make:
+    // = 353 + 353
+    // = 706 sathoshi
+    // 3. Pool's WBTC USD debt should be:
+    // = 46.8584 + (117146 * 40000 / 1e8)
+    // = 93.7168 USD
+    // 4. Redemable WBTC in USD should be:
+    // = 46.8584 + (117146 * 40000 / 1e8)
+    // = 93.7168 USD
+    // 5. Pool's AUM by min price should be:
+    // = 234292 * 40000 / 1e8
+    // = 93.7168 USD
+    // 6. Pool's AUM by max price should be:
+    // = 234292 * 41000 / 1e8
+    // = 96.05972 USD
+    assertEq(pool.liquidityOf(address(wbtc)), 234292);
+    assertEq(pool.feeReserveOf(address(wbtc)), 706);
+    assertEq(pool.usdDebtOf(address(wbtc)), 93.7168 * 10**18);
+    assertEq(pool.getRedemptionCollateralUsd(address(wbtc)), 93.7168 * 10**30);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 93.7168 * 10**18);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 96.05972 * 10**18);
+
+    // Open a 47 USD WBTC long position with 22500 sathoshi as collateral
+    wbtc.mint(address(pool), 22500);
+    pool.increasePosition(
+      address(this),
+      0,
+      address(wbtc),
+      address(wbtc),
+      47 * 10**30,
+      Exposure.LONG
+    );
+
+    // Assert pool's state:
+    // 1. Pool's WBTC liquidity should be:
+    // = 234292 + 22500 - (47 * 0.001 / 41000 * 1e8)
+    // = 234292 + 22500 - 114
+    // = 256678 sathoshi
+    // 2. Pool should make:
+    // = 706 + 114
+    // = 820 sathoshi
+    // 3. Pool's reserve amount should be:
+    // = 47 / 40000 * 1e8
+    // = 117500 sathoshi
+    // 4. Pool's guaranteed USD should be:
+    // = 47 + (47 * 0.001) - (22500 * 40000 / 1e8)
+    // = 38.047 USD
+    // 5. Redempable WBTC should be:
+    // = ((38.047 / 41000 * 1e8) + 256678 - 117500) * 40000 / 1e8
+    // = 92.79 USD
+    // 6. Pool's AUM by min price should be:
+    // = 38.047 + ((256678 - 117500) * 40000 / 1e8)
+    // = 93.7182 USD
+    // 7. Pool's AUM by max price should be:
+    // = 38.047 + ((256678 - 117500) * 41000 / 1e8)
+    // = 95.10998 USD
+    assertEq(pool.liquidityOf(address(wbtc)), 256678);
+    assertEq(pool.feeReserveOf(address(wbtc)), 820);
+    assertEq(pool.reservedOf(address(wbtc)), 117500);
+    assertEq(pool.guaranteedUsdOf(address(wbtc)), 38.047 * 10**30);
+    assertEq(pool.getRedemptionCollateralUsd(address(wbtc)), 92.79 * 10**30);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 93.7182 * 10**18);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 95.10998 * 10**18);
+
+    // Assert position
+    // 1. Position's size should be 47 USD.
+    // 2. Position's collateral should be:
+    // = (22500 * 40000 / 1e8) - (47 * 0.001)
+    // = 8.953 USD
+    // 3. Position's average price should be 41000 USD
+    // 4. Position's entry funding rate should be 0
+    // 5. Reserve amount should be:
+    // = 47 / 40000 * 1e8
+    // = 117500 sathoshi
+    Pool.GetPositionReturnVars memory position = pool.getPosition(
+      address(this),
+      0,
+      address(wbtc),
+      address(wbtc),
+      Exposure.LONG
+    );
+    assertEq(position.size, 47 * 10**30);
+    assertEq(position.collateral, 8.953 * 10**30);
+    assertEq(position.averagePrice, 41_000 * 10**30);
+    assertEq(position.entryFundingRate, 0);
+    assertEq(position.reserveAmount, 117500);
+
+    // Assert position's leverage
+    // 1. Position leverage should be ~5.2x
+    assertEq(
+      pool.getPositionLeverage(
+        address(this),
+        address(wbtc),
+        address(wbtc),
+        Exposure.LONG
+      ),
+      52496
+    );
+
+    // Add 22500 sats as a collateral
+    wbtc.mint(address(pool), 22500);
+    pool.increasePosition(
+      address(this),
+      0,
+      address(wbtc),
+      address(wbtc),
+      0,
+      Exposure.LONG
+    );
+
+    // Assert pool's state:
+    // 1. Pool's WBTC liquidity should be:
+    // = 256678 + 22500
+    // = 279178 sathoshi
+    // 2. Pool's WBTC should be the same: 820 sathoshi
+    // 3. Pool's reserve amount should be remained the same
+    // = 117500 sathoshi
+    // 4. Pool's guaranteed USD should be:
+    // = 38.047 - (22500 * 40000 / 1e8)
+    // = 29.047 USD
+    // 5. Redempable WBTC should be:
+    // = ((29.047 / 41000 * 1e8) + 279178 - 117500) * 40000 / 1e8
+    // = (70846 + 279178 - 117500) * 40000 / 1e8
+    // = 93.0096 USD
+    // 6. Pool's AUM by min price should be:
+    // = 29.047 + ((279178 - 117500) * 40000 / 1e8)
+    // = 93.7182 USD
+    // 7. Pool's AUM by max price should be:
+    // = 29.047 + ((279178 - 117500) * 41000 / 1e8)
+    // = 95.33498 USD
+    assertEq(pool.liquidityOf(address(wbtc)), 279178);
+    assertEq(pool.feeReserveOf(address(wbtc)), 820);
+    assertEq(pool.reservedOf(address(wbtc)), 117500);
+    assertEq(pool.guaranteedUsdOf(address(wbtc)), 29.047 * 10**30);
+    assertEq(pool.getRedemptionCollateralUsd(address(wbtc)), 93.0096 * 10**30);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 93.7182 * 10**18);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 95.33498 * 10**18);
+
+    // Assert position
+    // 1. Position's size should be 47 USD.
+    // 2. Position's collateral should be:
+    // = 8.953 + (22500 * 40000 / 1e8)
+    // = 8.953 + 9
+    // = 17.953 USD
+    // 3. Position's average price should be 41000 USD
+    // 4. Position's entry funding rate should be 0
+    // 5. Reserve amount should be:
+    // = 47 / 40000 * 1e8
+    // = 117500 sathoshi
+    position = pool.getPosition(
+      address(this),
+      address(wbtc),
+      address(wbtc),
+      Exposure.LONG
+    );
+    assertEq(position.size, 47 * 10**30);
+    assertEq(position.collateral, 17.953 * 10**30);
+    assertEq(position.averagePrice, 41_000 * 10**30);
+    assertEq(position.entryFundingRate, 0);
+    assertEq(position.reserveAmount, 117500);
+
+    // Assert position's leverage
+    // 1. Position leverage should be ~2.6x
+    assertEq(
+      pool.getPositionLeverage(
+        address(this),
+        address(wbtc),
+        address(wbtc),
+        Exposure.LONG
+      ),
+      26179
+    );
+
+    // Feed WBTC prices
+    wbtcPriceFeed.setLatestAnswer(50_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(51_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(50_000 * 10**8);
+
+    // Assert pool state:
+    // 1. Pool's AUM by min price should be:
+    // = 29.047 + ((279178 - 117500) * 50000 / 1e8)
+    // = 109.886 USD
+    // 2. Pool's AUM by max price should be:
+    // = 29.047 + ((279178 - 117500) * 51000 / 1e8)
+    // = 111.50278 USD
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 109.886 * 10**18);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 111.50278 * 10**18);
+
+    // Add another 100 sats as collateral
+    wbtc.mint(address(pool), 100);
+    pool.increasePosition(
+      address(this),
+      0,
+      address(wbtc),
+      address(wbtc),
+      0,
+      Exposure.LONG
+    );
+
+    // Assert position
+    // 1. Position's size should be 47 USD.
+    // 2. Position's collateral should be:
+    // = 17.953 + (100 * 50000 / 1e8)
+    // = 18.003 USD
+    // 3. Position's average price should be 41000 USD
+    // 4. Position's entry funding rate should be 0
+    // 5. Reserve amount should be:
+    // = 47 / 40000 * 1e8
+    // = 117500 sathoshi
+    position = pool.getPosition(
+      address(this),
+      address(wbtc),
+      address(wbtc),
+      Exposure.LONG
+    );
+    assertEq(position.size, 47 * 10**30);
+    assertEq(position.collateral, 18.003 * 10**30);
+    assertEq(position.averagePrice, 41_000 * 10**30);
+    assertEq(position.entryFundingRate, 0);
+    assertEq(position.reserveAmount, 117500);
+
+    // Assert position's leverage
+    // 1. Position leverage should be ~2.6x
+    assertEq(
+      pool.getPositionLeverage(
+        address(this),
+        address(wbtc),
+        address(wbtc),
+        Exposure.LONG
+      ),
+      26106
+    );
+
+    checkPoolBalanceWithState(address(wbtc), 0);
+  }
+
   function testRevert_WhenShort_WhenCollateralNotStable() external {
     vm.expectRevert(abi.encodeWithSignature("Pool_CollateralTokenNotStable()"));
     pool.increasePosition(
