@@ -533,6 +533,164 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
     assertEq(wbtc.balanceOf(address(this)), 39957);
   }
 
+  function testCorrectness_WhenLong_WhenLoss_WhenClosePosition() external {
+    // Initialized price feeds
+    daiPriceFeed.setLatestAnswer(1 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    maticPriceFeed.setLatestAnswer(400 * 10**8);
+
+    // Assuming WBTC price is at 40,000 - 41,000 USD
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+
+    // Add 0.0025 WBTC as a liquidity of the pool
+    wbtc.mint(address(pool), 0.0025 * 10**8);
+    pool.addLiquidity(address(this), address(wbtc), address(this));
+
+    // The following conditions need to be met:
+    // 1. Pool's AUM by min price should be:
+    // 0.0025 * (1-0.003) * 40000 = 99.7 USD
+    // 2. Pool's AUM by max price should be:
+    // 0.0025 * (1-0.003) * 41000 = 102.1925 USD
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 99.7 * 10**18);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 102.1925 * 10**18);
+
+    // Increase long position with 0.00025 WBTC (=10 USD) as a collateral
+    // With 9x leverage; Hence position's size should be 90 USD.
+    wbtc.mint(address(pool), 0.00025 * 10**8);
+    pool.increasePosition(
+      address(this),
+      0,
+      address(wbtc),
+      address(wbtc),
+      90 * 10**30,
+      Exposure.LONG
+    );
+
+    // The following conditions need to be met:
+    // 1. Pool's liquidity should be:
+    // = 0.0024925 + 0.00025 - ((90 * 0.001) / 41000)
+    // = 0.0024925 + 0.00025 - (219 / 1e8)
+    // = 0.00274031 WBTC
+    // 2. Pool's WBTC's guaranteed USD should be:
+    // = 90 + (90 * 0.001) - (0.00025 * 40000)
+    // = 80.09 USD
+    // 3. Pool's WBTC reserved should be:
+    // = 90 / 40000 = 0.0025 WBTC
+    // 4. Pool should make:
+    // = 750 + 219
+    // = 969 sathoshi
+    // 5. Pool's AUM by min price should be:
+    // = 80.09 + ((0.00274031 - 0.00225) * 40000)
+    // 6. Pool's AUM by max price should be:
+    // = 80.09 + ((0.00274031 - 0.00225) * 41000)
+    assertEq(pool.liquidityOf(address(wbtc)), 0.00274031 * 10**8);
+    assertEq(pool.guaranteedUsdOf(address(wbtc)), 80.09 * 10**30);
+    assertEq(pool.reservedOf(address(wbtc)), 0.00225 * 10**8);
+    assertEq(pool.feeReserveOf(address(wbtc)), 969);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 99.7024 * 10**18);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 100.19271 * 10**18);
+
+    // Assert position
+    // 1. Position's size should be 90 USD
+    // 2. Position's collateral should be:
+    // = (0.00025 * 40000) - (90 * 0.001) = 9.91 USD
+    // 3. Position's average price should be: 41000 USD
+    // 4. Position's entry funding rate should be: 0
+    // 5. Position's reserve amount should be: 90 / 41000 = 0.00225 USD
+    Pool.GetPositionReturnVars memory position = pool.getPosition(
+      address(this),
+      0,
+      address(wbtc),
+      address(wbtc),
+      Exposure.LONG
+    );
+    assertEq(position.size, 90 * 10**30);
+    assertEq(position.collateral, 9.91 * 10**30);
+    assertEq(position.averagePrice, 41000 * 10**30);
+    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.reserveAmount, 0.00225 * 10**8);
+
+    // Assuming WBTC price decrease
+    wbtcPriceFeed.setLatestAnswer(39_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(39_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(39_000 * 10**8);
+
+    // Assert position's delta.
+    // 1. Position's delta should be:
+    // = 90 * ((39000 - 41000) / 41000)
+    // = -4.390243902439025 USD
+    // 2. Position should be loss
+    (bool isProfit, uint256 delta) = pool.getPositionDelta(
+      address(this),
+      0,
+      address(wbtc),
+      address(wbtc),
+      Exposure.LONG
+    );
+    assertEq(delta, 4390243902439024390243902439024);
+    assertFalse(isProfit);
+
+    // Close position
+    pool.decreasePosition(
+      address(this),
+      0,
+      address(wbtc),
+      address(wbtc),
+      0,
+      90 * 10**30,
+      Exposure.LONG,
+      address(this)
+    );
+
+    // The following conditions need to be met:
+    // 1. Pool's liquidity should be:
+    // = 274031 - ((90 * 0.001) / 39000 * 1e8) - (((9.91 - 4.390243902439024390243902439024) / 39000 * 1e8) - ((90 * 0.001) / 39000 * 1e8))
+    // = 274031 - 230 - (14153 - 230)
+    // = 259878 sats
+    // 2. Pool's WBTC's guaranteed USD should be:
+    // = 80.09 + 9.91 - 90
+    // = 0 USD
+    // 3. Pool's WBTC reserved should be: 0 WBTC
+    // 4. Pool should make:
+    // = 969 + 230
+    // = 1199 sathoshi
+    // 5. Pool's AUM by min price should be:
+    // = 259878 * 39000 / 1e8
+    // = 101.35242 USD
+    // 6. Pool's AUM by max price should be:
+    // = 259878 * 39000 / 1e8
+    // = 101.35242 USD
+    assertEq(pool.liquidityOf(address(wbtc)), 259878);
+    assertEq(pool.guaranteedUsdOf(address(wbtc)), 0);
+    assertEq(pool.reservedOf(address(wbtc)), 0);
+    assertEq(pool.feeReserveOf(address(wbtc)), 1199);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 101.35242 * 10**18);
+    assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 101.35242 * 10**18);
+
+    // Assert position. Everything should be zero.
+    position = pool.getPosition(
+      address(this),
+      0,
+      address(wbtc),
+      address(wbtc),
+      Exposure.LONG
+    );
+    assertEq(position.size, 0);
+    assertEq(position.collateral, 0);
+    assertEq(position.averagePrice, 0);
+    assertEq(position.entryFundingRate, 0);
+    assertEq(position.reserveAmount, 0);
+    assertEq(position.primaryAccount, address(0));
+
+    // Assert position's owner WBTC balance
+    // It should be:
+    // = (((9.91 - 4.390243902439024390243902439024) / 39000 * 1e8) - ((90 * 0.001) / 39000 * 1e8))
+    // = 13922 sats
+    assertEq(wbtc.balanceOf(address(this)), 13922);
+  }
+
   function testCorrectness_WhenLong_Aum() external {
     daiPriceFeed.setLatestAnswer(1 * 10**8);
     wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
