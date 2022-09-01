@@ -9,7 +9,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import { Constants } from "./Constants.sol";
-import { IPool } from "../interfaces/Ipool.sol";
+import { IPool } from "../interfaces/IPool.sol";
 
 import { console } from "../tests/utils/console.sol";
 
