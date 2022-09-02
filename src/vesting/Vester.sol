@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.16;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import { SafeERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import { Math } from "../utils/Math.sol";
 
 contract Vester is ReentrancyGuardUpgradeable {
-  using SafeERC20 for IERC20;
+  using SafeERC20Upgradeable for IERC20Upgradeable;
 
   uint256 private constant YEAR = 365 days;
 
@@ -101,7 +101,11 @@ contract Vester is ReentrancyGuardUpgradeable {
 
     items.push(item);
 
-    IERC20(esP88).safeTransferFrom(msg.sender, address(this), amount);
+    IERC20Upgradeable(esP88).safeTransferFrom(
+      msg.sender,
+      address(this),
+      amount
+    );
 
     emit Vest(
       item.owner,
@@ -139,11 +143,14 @@ contract Vester is ReentrancyGuardUpgradeable {
       item.endTime - item.startTime
     );
 
-    IERC20(p88).safeTransfer(account, claimable);
+    IERC20Upgradeable(p88).safeTransfer(account, claimable);
 
-    IERC20(esP88).safeTransfer(vestedEsp88Destination, claimable);
+    IERC20Upgradeable(esP88).safeTransfer(vestedEsp88Destination, claimable);
 
-    IERC20(esP88).safeTransfer(unusedEsp88Destination, item.amount - claimable);
+    IERC20Upgradeable(esP88).safeTransfer(
+      unusedEsp88Destination,
+      item.amount - claimable
+    );
 
     emit Claim(item.owner, itemIndex, claimable, item.amount - claimable);
   }
@@ -162,7 +169,7 @@ contract Vester is ReentrancyGuardUpgradeable {
     item.endTime = 0;
     item.hasClaimed = true;
 
-    IERC20(esP88).safeTransfer(msg.sender, returnAmount);
+    IERC20Upgradeable(esP88).safeTransfer(msg.sender, returnAmount);
 
     emit Cancel(msg.sender, itemIndex, returnAmount);
   }

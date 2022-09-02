@@ -4,8 +4,8 @@ pragma solidity 0.8.16;
 
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import { SafeERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import { IPool } from "../interfaces/IPool.sol";
 import { IStaking } from "../staking/interfaces/IStaking.sol";
 import { LockdropConfig } from "./LockdropConfig.sol";
@@ -14,7 +14,7 @@ import { P88 } from "../tokens/P88.sol";
 
 contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable, ILockdrop {
   // --- Libraries ---
-  using SafeERC20 for IERC20;
+  using SafeERC20Upgradeable for IERC20Upgradeable;
 
   // --- Events ---
   event LogLockToken(address indexed user, uint256 amount, uint256 lockPeriod);
@@ -63,7 +63,7 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable, ILockdrop {
   }
 
   // --- States ---
-  IERC20 public lockdropToken; // lockdrop token address
+  IERC20Upgradeable public lockdropToken; // lockdrop token address
   LockdropConfig public lockdropConfig;
   IPool public pool;
   uint256 public totalAmount; // total amount of token
@@ -111,11 +111,11 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable, ILockdrop {
     ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
 
     // Sanity check
-    IERC20(lockdropToken_).balanceOf(address(this));
+    IERC20Upgradeable(lockdropToken_).balanceOf(address(this));
     if (block.timestamp > lockdropConfig_.startLockTimestamp())
       revert Lockdrop_InvalidStartLockTimestamp();
 
-    lockdropToken = IERC20(lockdropToken_);
+    lockdropToken = IERC20Upgradeable(lockdropToken_);
     lockdropConfig = lockdropConfig_;
     rewardTokens = rewardTokens_;
     pool = pool_;
@@ -392,7 +392,7 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable, ILockdrop {
       if (rewardTokens[i] == nativeTokenAddress) {
         rewardBeforeHarvest[i] = address(this).balance;
       } else {
-        rewardBeforeHarvest[i] = IERC20(rewardTokens[i]).balanceOf(
+        rewardBeforeHarvest[i] = IERC20Upgradeable(rewardTokens[i]).balanceOf(
           address(this)
         );
       }
@@ -413,7 +413,7 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable, ILockdrop {
         harvestedReward[i] = address(this).balance - rewardBeforeHarvest[i];
       } else {
         harvestedReward[i] =
-          IERC20(rewardTokens[i]).balanceOf(address(this)) -
+          IERC20Upgradeable(rewardTokens[i]).balanceOf(address(this)) -
           rewardBeforeHarvest[i];
       }
 
@@ -461,7 +461,7 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable, ILockdrop {
       if (rewardTokens[i] == nativeTokenAddress) {
         payable(user).transfer(pendingReward);
       } else {
-        IERC20(rewardTokens[i]).safeTransfer(user, pendingReward);
+        IERC20Upgradeable(rewardTokens[i]).safeTransfer(user, pendingReward);
       }
 
       // calculate for update user reward dept

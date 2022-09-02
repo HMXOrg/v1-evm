@@ -1,13 +1,13 @@
 pragma solidity 0.8.16;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import { SafeERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import { IPool } from "../interfaces/IPool.sol";
 import { IFeedableRewarder } from "../staking/interfaces/IFeedableRewarder.sol";
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 contract RewardDistributor is OwnableUpgradeable {
-  using SafeERC20 for IERC20;
+  using SafeERC20Upgradeable for IERC20Upgradeable;
 
   address public rewardToken;
   IPool public pool;
@@ -29,10 +29,12 @@ contract RewardDistributor is OwnableUpgradeable {
   function distributeToken(address[] calldata tokenlist) external onlyOwner {
     uint256 length = tokenlist.length;
     for (uint256 index = 0; index < length; ) {
-      uint256 tokenAmount = IERC20(tokenlist[index]).balanceOf(address(this));
+      uint256 tokenAmount = IERC20Upgradeable(tokenlist[index]).balanceOf(
+        address(this)
+      );
 
       // Approve inToken
-      IERC20(tokenlist[index]).approve(address(pool), tokenAmount);
+      IERC20Upgradeable(tokenlist[index]).approve(address(pool), tokenAmount);
 
       // Swap to native token
       pool.swap(tokenlist[index], rewardToken, tokenAmount, 0, address(this));
@@ -45,10 +47,15 @@ contract RewardDistributor is OwnableUpgradeable {
 
   // Feed to FeedableRewarder contract
   function feedToRewarder(uint256 duration) external onlyOwner {
-    uint256 rewardTokenAmount = IERC20(rewardToken).balanceOf(address(this));
+    uint256 rewardTokenAmount = IERC20Upgradeable(rewardToken).balanceOf(
+      address(this)
+    );
 
     // Approve to feed inToken
-    IERC20(rewardToken).approve(address(feedableRewarder), rewardTokenAmount);
+    IERC20Upgradeable(rewardToken).approve(
+      address(feedableRewarder),
+      rewardTokenAmount
+    );
 
     feedableRewarder.feed(rewardTokenAmount, duration);
   }

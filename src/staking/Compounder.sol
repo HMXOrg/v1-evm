@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.16;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { SafeERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
 import { IStaking } from "./interfaces/IStaking.sol";
 
 contract Compounder is OwnableUpgradeable {
-  using SafeERC20 for IERC20;
+  using SafeERC20Upgradeable for IERC20Upgradeable;
 
   error Compounder_InconsistentLength();
 
@@ -73,7 +73,10 @@ contract Compounder is OwnableUpgradeable {
     isCompoundableTokens[token] = isCompoundToken;
 
     if (isCompoundToken)
-      IERC20(token).approve(destinationCompundPool, type(uint256).max);
+      IERC20Upgradeable(token).approve(
+        destinationCompundPool,
+        type(uint256).max
+      );
   }
 
   function claimAll(address[] memory pools, address[][] memory rewarders)
@@ -93,7 +96,7 @@ contract Compounder is OwnableUpgradeable {
   function _compoundOrTransfer(bool isCompound) internal {
     uint256 length = tokens.length;
     for (uint256 i = 0; i < length; ) {
-      uint256 amount = IERC20(tokens[i]).balanceOf(address(this));
+      uint256 amount = IERC20Upgradeable(tokens[i]).balanceOf(address(this));
       if (amount > 0) {
         // always compound dragon point
         if (
@@ -105,7 +108,7 @@ contract Compounder is OwnableUpgradeable {
             amount
           );
         } else {
-          IERC20(tokens[i]).safeTransfer(msg.sender, amount);
+          IERC20Upgradeable(tokens[i]).safeTransfer(msg.sender, amount);
         }
       }
 

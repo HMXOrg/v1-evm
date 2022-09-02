@@ -2,15 +2,15 @@
 pragma solidity 0.8.16;
 
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import { SafeERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
 import "./interfaces/IRewarder.sol";
 import "./interfaces/IStaking.sol";
 import "../tokens/DragonPoint.sol";
 
 contract DragonStaking is IStaking, OwnableUpgradeable {
-  using SafeERC20 for IERC20;
+  using SafeERC20Upgradeable for IERC20Upgradeable;
 
   error DragonStaking_UnknownStakingToken();
   error DragonStaking_InsufficientTokenAmount();
@@ -107,7 +107,11 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
     }
 
     userTokenAmount[token][to] += amount;
-    IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
+    IERC20Upgradeable(token).safeTransferFrom(
+      msg.sender,
+      address(this),
+      amount
+    );
 
     emit LogDeposit(msg.sender, to, token, amount);
   }
@@ -158,7 +162,7 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
       }
     }
     userTokenAmount[token][to] -= amount;
-    IERC20(token).safeTransfer(msg.sender, amount);
+    IERC20Upgradeable(token).safeTransfer(msg.sender, amount);
     emit LogWithdraw(msg.sender, to, token, amount);
   }
 
@@ -230,7 +234,7 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
     uint256 totalShare = 0;
     uint256 length = tokens.length;
     for (uint256 i = 0; i < length; ) {
-      totalShare += IERC20(tokens[i]).balanceOf(address(this));
+      totalShare += IERC20Upgradeable(tokens[i]).balanceOf(address(this));
 
       unchecked {
         ++i;
