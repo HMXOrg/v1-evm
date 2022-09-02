@@ -505,7 +505,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
 
   function _claimAllRewardsFor(address user, address receiver) internal {
     uint256[] memory harvestedRewards = _harvestAll();
-    // Reward will be transfer to msg.sender instead of user, user reward state will be kept
+    // Reward will be transfer to receiver instead of user, user reward state will be kept
     _transferUserReward(user, receiver, harvestedRewards);
   }
 
