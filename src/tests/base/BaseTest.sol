@@ -32,6 +32,7 @@ import { Vester } from "../../vesting/Vester.sol";
 import { ProxyAdmin } from "../interfaces/ProxyAdmin.sol";
 import { Lockdrop } from "../../lockdrop/Lockdrop.sol";
 import { LockdropGateway } from "../../lockdrop/LockdropGateway.sol";
+import { LockdropConfig } from "../../lockdrop/LockdropConfig.sol";
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
@@ -422,6 +423,28 @@ contract BaseTest is DSTest, CoreConstants {
     );
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
     return RewardDistributor(payable(_proxy));
+  }
+
+  function deployLockdropConfig(
+    uint256 startLockTimestamp,
+    address plpStaking,
+    address plpToken,
+    address p88Token,
+    address gatewayAddress
+  ) internal returns (LockdropConfig) {
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/LockdropConfig.sol/LockdropConfig.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(uint256,address,address,address,address)")),
+      startLockTimestamp,
+      plpStaking,
+      plpToken,
+      p88Token,
+      gatewayAddress
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return LockdropConfig(payable(_proxy));
   }
 
   function deployLockdrop(

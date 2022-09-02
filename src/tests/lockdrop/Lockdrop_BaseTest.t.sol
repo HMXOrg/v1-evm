@@ -47,12 +47,12 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     plpStaking = deployPLPStaking();
     mockGateway = address(0x88);
 
-    lockdropConfig = new LockdropConfig(
+    lockdropConfig = deployLockdropConfig(
       100000,
-      plpStaking,
-      mockPLPToken,
-      mockP88Token,
-      mockGateway
+      address(plpStaking),
+      address(mockPLPToken),
+      address(mockP88Token),
+      address(mockGateway)
     );
     PRRewarder = new MockRewarder();
     address[] memory rewarders1 = new address[](1);

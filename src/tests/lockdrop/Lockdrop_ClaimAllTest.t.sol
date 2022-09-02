@@ -45,12 +45,12 @@ contract Lockdrop_ClaimReward is BaseTest {
       address(mockEsP88)
     );
 
-    lockdropConfig = new LockdropConfig(
+    lockdropConfig = deployLockdropConfig(
       1 days,
-      mockPLPStaking,
-      mockPLP,
-      mockP88,
-      mockGateway
+      address(mockPLPStaking),
+      address(mockPLP),
+      address(mockP88),
+      address(mockGateway)
     );
 
     rewardsTokenList.push(address(mockEsP88));

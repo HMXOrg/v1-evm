@@ -50,4 +50,9 @@ contract LockdropConfig is OwnableUpgradeable {
     p88Token = p88Token_;
     gatewayAddress = gatewayAddress_;
   }
+
+  /// @custom:oz-upgrades-unsafe-allow constructor
+  constructor() {
+    _disableInitializers();
+  }
 }
