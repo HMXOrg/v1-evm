@@ -244,9 +244,7 @@ contract Pool is Constants, ReentrancyGuard {
 
     uint256 fundingRate = getNextFundingRate(collateralToken);
     unchecked {
-      sumFundingRateOf[collateralToken] =
-        sumFundingRateOf[collateralToken] +
-        fundingRate;
+      sumFundingRateOf[collateralToken] += fundingRate;
       lastFundingTimeOf[collateralToken] =
         (block.timestamp / fundingInterval) *
         fundingInterval;
@@ -1092,10 +1090,8 @@ contract Pool is Constants, ReentrancyGuard {
     // If block.timestamp not pass the next funding time, return 0.
     if (lastFundingTimeOf[token] + fundingInterval > block.timestamp) return 0;
 
-    uint256 intervals;
-    unchecked {
-      intervals = block.timestamp - lastFundingTimeOf[token] / fundingInterval;
-    }
+    uint256 intervals = (block.timestamp - lastFundingTimeOf[token]) /
+      fundingInterval;
     // SLOAD
     uint256 liquidity = liquidityOf[token];
     if (liquidity == 0) return 0;
@@ -1251,6 +1247,13 @@ contract Pool is Constants, ReentrancyGuard {
     return
       (cachedTotalUsdDebt * config.tokenWeight(token)) /
       config.totalTokenWeight();
+  }
+
+  function getUtilizationOf(address token) external view returns (uint256) {
+    uint256 liquidity = liquidityOf[token];
+    if (liquidity == 0) return 0;
+
+    return (reservedOf[token] * FUNDING_RATE_PRECISION) / liquidity;
   }
 
   function isSubAccountOf(address primary, address subAccount)

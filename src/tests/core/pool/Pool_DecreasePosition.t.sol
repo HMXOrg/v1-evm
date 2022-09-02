@@ -368,7 +368,7 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
     // = 0.00257046 WBTC
     // 5. Bob's WBTC balance should be:
     // = ((3 [CollateralDelta] + 5 [Profit] - 0.05 [MarginFee]) / 47100)
-    // = 16985 sathoshi
+    // = 16878 sathoshi
     assertEq(pool.feeReserveOf(address(wbtc)), 1075);
     assertEq(pool.reservedOf(address(wbtc)), 0.001 * 10**8);
     assertEq(pool.guaranteedUsdOf(address(wbtc)), 33.09 * 10**30);
