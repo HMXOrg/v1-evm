@@ -2,11 +2,11 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
 
-const DRAGON_POINT = "";
-const DESTINATION_COMPUND_POOL = "0x5c0F9425AB82AD53b009f02b2C2857544E74CC86";
+const DRAGON_POINT = "0x20E58fC5E1ee3C596fb3ebD6de6040e7800e82E6";
+const DESTINATION_COMPUND_POOL = "0xCB1EaA1E9Fd640c3900a4325440c80FEF4b1b16d";
 const TOKENS = [
-  "0x980cDd680Ea324ABaa6C64df31fDA73e35aC6c90",
-  "0x41E01292699513Fb5b202f97b98B361BF39E7c5F",
+  "0xEB27B05178515c7E6E51dEE159c8487A011ac030",
+  "0x20E58fC5E1ee3C596fb3ebD6de6040e7800e82E6",
 ];
 const IS_COMPOUNDABLE_TOKENS = [true, true];
 

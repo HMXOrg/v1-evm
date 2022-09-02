@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 import { DragonStaking__factory } from "../../typechain";
 
 const STAKING_CONTRACT_ADDRESS = "0xCB1EaA1E9Fd640c3900a4325440c80FEF4b1b16d";
-const DRAGON_POINT_REWARDER = "0xfc51C8c673C27e1b3D89688ef46D706A77CA28DB";
+const DRAGON_POINT_REWARDER = "0xf944690f3B7436161BA27B47799Bd06EA4154C0e";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
