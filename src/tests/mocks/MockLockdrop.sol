@@ -55,6 +55,8 @@ contract MockLockdrop is ILockdrop {
     );
   }
 
+  function claimAllRewardsFor(address user, address receiver) external {}
+
   function claimAllRewards(address _user) external {
     _claimAllRewards(_user);
   }
@@ -96,6 +98,30 @@ contract MockLockdrop is ILockdrop {
       IERC20(lockdropConfig.p88Token()).balanceOf(address(this))
     );
   }
+
+  
+  function lockdropStates(address)
+    external
+    pure
+    returns (
+      uint256 lockdropTokenAmount,
+      uint256 lockPeriod,
+      bool p88Claimed,
+      bool restrictedWithdrawn
+    )
+  {
+    return (0, 0, false, false);
+  }
+
+  function lockTokenFor(
+    uint256 amount,
+    uint256 lockPeriod,
+    address user
+  ) external {}
+
+  function extendLockPeriodFor(uint256 lockPeriod, address user) external {}
+
+  function addLockAmountFor(uint256 amount, address user) external {}
 
   receive() external payable {}
 }
