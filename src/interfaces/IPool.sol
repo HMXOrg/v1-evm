@@ -9,6 +9,13 @@ interface IPool {
     uint256 minLiquidity
   ) external returns (uint256);
 
+  function removeLiquidity(
+    address tokenOut,
+    uint256 liquidity,
+    address receiver,
+    uint256 minAmountOut
+  ) external returns (uint256);
+
   function swap(
     address tokenIn,
     address tokenOut,

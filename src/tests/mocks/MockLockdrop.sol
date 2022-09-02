@@ -55,6 +55,8 @@ contract MockLockdrop is ILockdrop {
     );
   }
 
+  function claimAllRewardsFor(address user, address receiver) external {}
+
   function claimAllRewards(address _user) external {
     _claimAllRewards(_user);
   }
@@ -97,6 +99,7 @@ contract MockLockdrop is ILockdrop {
     );
   }
 
+  
   function lockdropStates(address)
     external
     pure

@@ -35,4 +35,11 @@ contract MockPool is IPool {
 
     return 20;
   }
+
+  function removeLiquidity(
+    address tokenOut,
+    uint256 liquidity,
+    address receiver,
+    uint256 minAmountOut
+  ) external returns (uint256) {}
 }

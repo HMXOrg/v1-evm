@@ -33,6 +33,13 @@ import { ProxyAdmin } from "../interfaces/ProxyAdmin.sol";
 import { Lockdrop } from "../../lockdrop/Lockdrop.sol";
 import { LockdropGateway } from "../../lockdrop/LockdropGateway.sol";
 import { LockdropConfig } from "../../lockdrop/LockdropConfig.sol";
+import { Lockdrop } from "../../lockdrop/Lockdrop.sol";
+import { LockdropCompounder } from "../../lockdrop/LockdropCompounder.sol";
+import { LockdropConfig } from "../../lockdrop/LockdropConfig.sol";
+import { IPool } from "../../interfaces/IPool.sol";
+import { IStaking } from "../../staking/interfaces/IStaking.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { LockdropGateway } from "../../lockdrop/LockdropGateway.sol";
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly

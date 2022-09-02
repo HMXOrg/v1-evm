@@ -9,10 +9,11 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import { Constants } from "./Constants.sol";
+import { IPool } from "../interfaces/IPool.sol";
 
 import { console } from "../tests/utils/console.sol";
 
-contract Pool is Constants, ReentrancyGuardUpgradeable {
+contract Pool is IPool, Constants, ReentrancyGuardUpgradeable {
   using SafeERC20 for IERC20;
 
   error Pool_BadAmountOut();
@@ -404,6 +405,16 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
     uint256 amount
   ) internal pure returns (uint256) {
     return (amount * 10**toTokenDecimals) / 10**fromTokenDecimals;
+  }
+
+  function swap(
+    address tokenIn,
+    address tokenOut,
+    uint256 amountIn,
+    uint256 minAmountOut,
+    address receiver
+  ) external nonReentrant returns (uint256) {
+    return 0;
   }
 
   /// @custom:oz-upgrades-unsafe-allow constructor

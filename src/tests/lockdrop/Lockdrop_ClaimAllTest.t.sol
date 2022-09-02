@@ -24,9 +24,12 @@ contract Lockdrop_ClaimReward is BaseTest {
   MockPLPStaking internal mockPLPStaking;
   MockPool internal pool;
   address internal mockGateway;
+  address internal mockLockdropCompounder;
 
   function setUp() external {
     mockGateway = address(0x88);
+    mockLockdropCompounder = address(0x77);
+
     pool = new MockPool();
 
     lockdropToken = new MockErc20("LockdropToken", "LCKT", 18);
@@ -50,7 +53,8 @@ contract Lockdrop_ClaimReward is BaseTest {
       address(mockPLPStaking),
       address(mockPLP),
       address(mockP88),
-      address(mockGateway)
+      address(mockGateway),
+      address(mockLockdropCompounder)
     );
 
     rewardsTokenList.push(address(mockEsP88));
@@ -82,7 +86,7 @@ contract Lockdrop_ClaimReward is BaseTest {
 
     // Be CAT
     vm.startPrank(CAT);
-    // mint lockdrop token for BOB
+    // mint lockdrop token for CAT
     lockdropToken.mint(CAT, 20 ether);
     lockdropToken.approve(address(lockdrop), 20 ether);
 
@@ -404,5 +408,13 @@ contract Lockdrop_ClaimReward is BaseTest {
     vm.stopPrank();
     assertGt(CAT.balance, 0);
     assertGt(IERC20(mockEsP88).balanceOf(CAT), 0);
+  }
+
+  function testRevert_ClaimAllRewardFor_CallerNotLockdropCompounder() external {
+    vm.prank(ALICE);
+    vm.expectRevert(
+      abi.encodeWithSignature("Lockdrop_NotLockdropCompounder()")
+    );
+    lockdrop.claimAllRewardsFor(BOB, ALICE);
   }
 }
