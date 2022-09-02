@@ -38,7 +38,7 @@ contract MockLockdrop is ILockdrop {
 
   function earlyWithdrawLockedToken(uint256 _amount, address _user) external {}
 
-  function _claimAllRewards(address _user) internal {
+  function _claimAllRewardsFor(address _user, address receiver) internal {
     IWNative(lockdropConfig.nativeToken()).withdraw(
       lockdropConfig.nativeToken().balanceOf(address(this))
     );
@@ -55,10 +55,10 @@ contract MockLockdrop is ILockdrop {
     );
   }
 
-  function claimAllRewardsFor(address user) external {}
+  // function claimAllRewardsFor(address user) external {}
 
-  function claimAllRewards(address _user) external {
-    _claimAllRewards(_user);
+  function claimAllRewardsFor(address _user, address receiver) external {
+    _claimAllRewardsFor(_user, receiver);
   }
 
   function stakePLP() external {
@@ -72,7 +72,7 @@ contract MockLockdrop is ILockdrop {
   }
 
   function withdrawAll(address _user) external {
-    _claimAllRewards(_user);
+    _claimAllRewardsFor(_user, _user);
 
     lockdropConfig.plpStaking().withdraw(
       address(this),

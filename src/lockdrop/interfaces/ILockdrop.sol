@@ -20,9 +20,7 @@ interface ILockdrop {
 
   function earlyWithdrawLockedToken(uint256 amount, address user) external;
 
-  function claimAllRewards(address user) external;
-
-  function claimAllRewardsFor(address user) external;
+  function claimAllRewardsFor(address user, address receiver) external;
 
   function stakePLP() external;
 

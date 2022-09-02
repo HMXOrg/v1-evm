@@ -323,7 +323,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
 
     // Claim All Reward for user at the same time.
     // User will receive EsP88 and Revenue Native(MATIC) Tokens
-    _claimAllRewards(user);
+    _claimAllRewardsFor(user, user);
 
     uint256 userPLPTokenAmount = (lockdropStates[user].lockdropTokenAmount *
       totalPLPAmount) / totalAmount;
@@ -472,35 +472,21 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     }
   }
 
-  // /// @dev Users can claim all their reward
-  // /// @param _user Address of the user that wants to claim the reward
-  function claimAllRewards(address user)
+  function claimAllRewardsFor(address user, address receiver)
     external
     onlyAfterLockdropPeriod
     nonReentrant
   {
-    _claimAllRewards(user);
+    if (lockdropStates[user].lockdropTokenAmount == 0)
+      revert Lockdrop_NoPosition();
+    _claimAllRewardsFor(user, receiver);
   }
 
-  function claimAllRewardsFor(address user)
-    external
-    onlyAfterLockdropPeriod
-    nonReentrant
-  {
-    _claimAllRewardsFor(user);
-  }
-
-  function _claimAllRewards(address user) internal {
+  function _claimAllRewardsFor(address user, address receiver) internal {
     if (totalPLPAmount == 0) revert Lockdrop_PLPNotYetStake();
     uint256[] memory harvestedRewards = _harvestAll();
-    _transferUserReward(user, user, harvestedRewards);
-  }
-
-  function _claimAllRewardsFor(address user) internal {
-    if (totalPLPAmount == 0) revert Lockdrop_PLPNotYetStake();
-    uint256[] memory harvestedRewards = _harvestAll();
-    // Reward will be transfer too msg.sender instead of user, user reward state will be kept
-    _transferUserReward(user, msg.sender, harvestedRewards);
+    // Reward will be transfer to receiver instead of user
+    _transferUserReward(user, receiver, harvestedRewards);
   }
 
   /// @dev PLP token is staked after the lockdrop period

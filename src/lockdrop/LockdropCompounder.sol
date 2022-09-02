@@ -31,7 +31,7 @@ contract LockdropCompounder is Ownable, ReentrancyGuard {
   function _claimAll(address[] memory lockdrops, address user) internal {
     uint256 length = lockdrops.length;
     for (uint256 i = 0; i < length; ) {
-      ILockdrop(lockdrops[i]).claimAllRewardsFor(user);
+      ILockdrop(lockdrops[i]).claimAllRewardsFor(user, address(this));
       unchecked {
         ++i;
       }
@@ -42,11 +42,12 @@ contract LockdropCompounder is Ownable, ReentrancyGuard {
   /// @param lockdrops array of lockdrop addresses
   function compound(address[] memory lockdrops) external nonReentrant {
     uint256 oldEsP88Amount = IERC20(esp88Token).balanceOf(address(this));
+    uint256 oldNativeAmount = address(this).balance;
     _claimAll(lockdrops, msg.sender);
     uint256 newEsP88Amount = IERC20(esp88Token).balanceOf(address(this)) -
       oldEsP88Amount;
     IStaking(dragonStaking).deposit(address(this), esp88Token, newEsP88Amount);
-    payable(msg.sender).transfer(address(this).balance);
+    payable(msg.sender).transfer(address(this).balance - oldNativeAmount);
     emit LogCompound(msg.sender, newEsP88Amount);
   }
 
