@@ -24,8 +24,7 @@ contract AdHocMintRewarder is IRewarder, OwnableUpgradeable {
   mapping(address => uint64) public userLastRewards;
   mapping(address => uint256) public userAccRewards;
 
-  // For compatability only, no calculation usage on chain
-  uint256 public rewardRate = 31709791983 wei; // = 1 ether / 365 days
+  uint256 public rewardRate;
 
   // Events
   event LogOnDeposit(address indexed user, uint256 shareAmount);
@@ -52,6 +51,9 @@ contract AdHocMintRewarder is IRewarder, OwnableUpgradeable {
     name = name_;
     rewardToken = rewardToken_;
     staking = staking_;
+
+    // For compatability only, no calculation usage on chain
+    rewardRate = 31709791983 wei; // = 1 ether / 365 day
   }
 
   function onDeposit(address user, uint256 shareAmount)
