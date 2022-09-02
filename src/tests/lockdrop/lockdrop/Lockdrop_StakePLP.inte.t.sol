@@ -75,6 +75,7 @@ contract Lockdrop_StakePLP is Lockdrop_BaseTest {
 
     vm.startPrank(address(lockdrop));
     usdc.approve(address(pool), lockAmount_ALICE + lockAmount_BOB);
+    plp.approve(address(plpStaking), type(uint256).max);
     vm.stopPrank();
 
     vm.startPrank(DAVE);
@@ -125,6 +126,7 @@ contract Lockdrop_StakePLP is Lockdrop_BaseTest {
 
     vm.startPrank(address(lockdrop));
     usdc.approve(address(pool), lockAmount_ALICE);
+    plp.approve(address(plpStaking), type(uint256).max);
     vm.stopPrank();
 
     vm.startPrank(DAVE);

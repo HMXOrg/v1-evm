@@ -435,6 +435,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
 
     vm.startPrank(address(lockdrop));
     usdc.approve(address(pool), lockAmount);
+    plp.approve(address(plpStaking), type(uint256).max);
     vm.stopPrank();
 
     vm.startPrank(DAVE);
