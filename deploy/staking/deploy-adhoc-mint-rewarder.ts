@@ -1,6 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 
 const NAME = "Dragon Staking Dragon Point Emission";
 const REWARD_TOKEN_ADDRESS = "0x79F87112d902fCa835Df3b210fa0F9d1ACcEf131";
@@ -12,11 +12,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "AdHocMintRewarder",
     deployer
   );
-  const rewarder = await Rewarder.deploy(
+  const rewarder = await upgrades.deployProxy(Rewarder, [
     NAME,
     REWARD_TOKEN_ADDRESS,
-    STAKING_CONTRACT_ADDRESS
-  );
+    STAKING_CONTRACT_ADDRESS,
+  ]);
+  await rewarder.deployed();
   console.log(`Deploying ${NAME} AdHocMintRewarder Contract`);
   console.log(`Deployed at: ${rewarder.address}`);
 };

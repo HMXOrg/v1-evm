@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
-import { BaseStaking__factory, DragonStaking__factory } from "../../typechain";
+import { DragonStaking__factory } from "../../typechain";
 
 const STAKING_CONTRACT_ADDRESS = "0xCB1EaA1E9Fd640c3900a4325440c80FEF4b1b16d";
 const DRAGON_POINT_REWARDER = "0xfc51C8c673C27e1b3D89688ef46D706A77CA28DB";

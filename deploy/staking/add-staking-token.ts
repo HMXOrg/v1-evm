@@ -1,18 +1,18 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
-import { BaseStaking__factory } from "../../typechain";
+import { PLPStaking__factory } from "../../typechain";
 
-const STAKING_CONTRACT_ADDRESS = "0xb7c634ceeC4F86Da390d563FE46a7AF6879Bdc82";
-const STAKING_TOKEN_ADDRESS = "0x79F87112d902fCa835Df3b210fa0F9d1ACcEf131";
+const STAKING_CONTRACT_ADDRESS = "0x7AAF085e43f059105F7e1ECc525E8142fF962159";
+const STAKING_TOKEN_ADDRESS = "0xc88322Ec9526A7A98B7F58ff773b3B003C91ce71";
 const REWARDERS = [
-  "0x67284cEF8F608b64Aba0e44EC5d6cfBaFc26F758",
-  "0x108d83658bD43C9e427C64238EF7d79912dbb2fA",
+  "0xFc41505F4e24345E3797b6730a948a2B03a5eC5e",
+  "0x417B34E90990657BF6adC1Ecc2ac4B36069cc927",
 ];
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
-  const stakingContract = BaseStaking__factory.connect(
+  const stakingContract = PLPStaking__factory.connect(
     STAKING_CONTRACT_ADDRESS,
     deployer
   );
