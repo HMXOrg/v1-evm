@@ -53,6 +53,8 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   error Lockdrop_NotGateway();
   error Lockdrop_PLPNotYetStake();
   error Lockdrop_WithdrawNotAllowed();
+  error Lockdrop_NotLockdropCompounder();
+
   // --- Structs ---
   struct LockdropState {
     uint256 lockdropTokenAmount;
@@ -97,6 +99,13 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   modifier onlyGateway() {
     if (msg.sender != lockdropConfig.gatewayAddress())
       revert Lockdrop_NotGateway();
+    _;
+  }
+
+  /// @dev ACL Lockdrop Compounder
+  modifier onlyLockdropCompounder() {
+    if (msg.sender != lockdropConfig.lockdropCompounderAddress())
+      revert Lockdrop_NotLockdropCompounder();
     _;
   }
 
@@ -323,7 +332,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
 
     // Claim All Reward for user at the same time.
     // User will receive EsP88 and Revenue Native(MATIC) Tokens
-    _claimAllRewardsFor(user, user);
+    _claimAllRewards(user);
 
     uint256 userPLPTokenAmount = (lockdropStates[user].lockdropTokenAmount *
       totalPLPAmount) / totalAmount;
@@ -472,21 +481,34 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     }
   }
 
-  function claimAllRewardsFor(address user, address receiver)
+  // /// @dev Users can claim all their reward
+  // /// @param _user Address of the user that wants to claim the reward
+  function claimAllRewards(address user)
     external
     onlyAfterLockdropPeriod
     nonReentrant
   {
-    if (lockdropStates[user].lockdropTokenAmount == 0)
-      revert Lockdrop_NoPosition();
+    _claimAllRewardsFor(user, user);
+  }
+
+  function claimAllRewardsFor(address user, address receiver)
+    external
+    onlyLockdropCompounder
+    onlyAfterLockdropPeriod
+    nonReentrant
+  {
     _claimAllRewardsFor(user, receiver);
   }
 
-  function _claimAllRewardsFor(address user, address receiver) internal {
-    if (totalPLPAmount == 0) revert Lockdrop_PLPNotYetStake();
+  function _claimAllRewards(address user) internal {
     uint256[] memory harvestedRewards = _harvestAll();
-    // Reward will be transfer to receiver instead of user
-    _transferUserReward(user, receiver, harvestedRewards);
+    _transferUserReward(user, user, harvestedRewards);
+  }
+
+  function _claimAllRewardsFor(address user, address receiver) internal {
+    uint256[] memory harvestedRewards = _harvestAll();
+    // Reward will be transfer too msg.sender instead of user, user reward state will be kept
+    _transferUserReward(user, msg.sender, harvestedRewards);
   }
 
   /// @dev PLP token is staked after the lockdrop period

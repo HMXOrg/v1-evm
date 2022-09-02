@@ -24,9 +24,12 @@ contract Lockdrop_ClaimReward is BaseTest {
   MockPLPStaking internal mockPLPStaking;
   MockPool internal pool;
   address internal mockGateway;
+  address internal mockLockdropCompounder;
 
   function setUp() external {
     mockGateway = address(0x88);
+    mockLockdropCompounder = address(0x77);
+
     pool = new MockPool();
 
     lockdropToken = new MockErc20("LockdropToken", "LCKT", 18);
@@ -50,7 +53,8 @@ contract Lockdrop_ClaimReward is BaseTest {
       mockPLPStaking,
       mockPLP,
       mockP88,
-      mockGateway
+      mockGateway,
+      mockLockdropCompounder
     );
 
     rewardsTokenList.push(address(mockEsP88));
@@ -142,7 +146,7 @@ contract Lockdrop_ClaimReward is BaseTest {
     assertEq(mockWMatic.balanceOf(ALICE), 0 ether);
     assertEq(IERC20(mockEsP88).balanceOf(ALICE), 0 ether);
     vm.startPrank(ALICE, ALICE);
-    lockdrop.claimAllRewardsFor(ALICE, ALICE);
+    lockdrop.claimAllRewards(ALICE);
     vm.stopPrank();
 
     assertGt(ALICE.balance, 0);
@@ -169,7 +173,7 @@ contract Lockdrop_ClaimReward is BaseTest {
     // ALICE want to claim again but she will get only EsP88
     vm.warp(block.timestamp + 10 minutes);
     vm.startPrank(ALICE);
-    lockdrop.claimAllRewardsFor(ALICE, ALICE);
+    lockdrop.claimAllRewards(ALICE);
     vm.stopPrank();
     assertEq(mockWMatic.balanceOf(ALICE), 0 ether);
     assertTrue(IERC20(mockEsP88).balanceOf(ALICE) > 0);
@@ -194,7 +198,7 @@ contract Lockdrop_ClaimReward is BaseTest {
     assertEq(mockWMatic.balanceOf(ALICE), 0 ether);
     assertEq(IERC20(mockEsP88).balanceOf(ALICE), 0 ether);
     vm.startPrank(ALICE);
-    lockdrop.claimAllRewardsFor(ALICE, ALICE);
+    lockdrop.claimAllRewards(ALICE);
     vm.stopPrank();
 
     assertGt(ALICE.balance, 0);
@@ -204,7 +208,7 @@ contract Lockdrop_ClaimReward is BaseTest {
     assertEq(mockWMatic.balanceOf(BOB), 0 ether);
     assertEq(IERC20(mockEsP88).balanceOf(BOB), 0 ether);
     vm.startPrank(BOB);
-    lockdrop.claimAllRewardsFor(BOB, BOB);
+    lockdrop.claimAllRewards(BOB);
     vm.stopPrank();
     assertGt(BOB.balance, 0);
     assertGt(IERC20(mockEsP88).balanceOf(BOB), 0);
@@ -213,7 +217,7 @@ contract Lockdrop_ClaimReward is BaseTest {
     assertEq(mockWMatic.balanceOf(CAT), 0 ether);
     assertEq(IERC20(mockEsP88).balanceOf(CAT), 0 ether);
     vm.startPrank(CAT);
-    lockdrop.claimAllRewardsFor(CAT, CAT);
+    lockdrop.claimAllRewards(CAT);
     vm.stopPrank();
     assertGt(BOB.balance, 0);
     assertGt(IERC20(mockEsP88).balanceOf(BOB), 0);
@@ -238,7 +242,7 @@ contract Lockdrop_ClaimReward is BaseTest {
     assertEq(mockWMatic.balanceOf(ALICE), 0 ether);
     assertEq(IERC20(mockEsP88).balanceOf(ALICE), 0 ether);
     vm.startPrank(ALICE);
-    lockdrop.claimAllRewardsFor(ALICE, ALICE);
+    lockdrop.claimAllRewards(ALICE);
     vm.stopPrank();
     assertGt(ALICE.balance, 0);
     assertGt(IERC20(mockEsP88).balanceOf(ALICE), 0);
@@ -250,7 +254,7 @@ contract Lockdrop_ClaimReward is BaseTest {
     assertEq(mockWMatic.balanceOf(BOB), 0 ether);
     assertEq(IERC20(mockEsP88).balanceOf(BOB), 0 ether);
     vm.startPrank(BOB);
-    lockdrop.claimAllRewardsFor(BOB, BOB);
+    lockdrop.claimAllRewards(BOB);
     vm.stopPrank();
     assertGt(BOB.balance, 0);
     assertGt(IERC20(mockEsP88).balanceOf(BOB), 0);
@@ -262,7 +266,7 @@ contract Lockdrop_ClaimReward is BaseTest {
     assertEq(mockWMatic.balanceOf(CAT), 0 ether);
     assertEq(IERC20(mockEsP88).balanceOf(CAT), 0 ether);
     vm.startPrank(CAT);
-    lockdrop.claimAllRewardsFor(CAT, CAT);
+    lockdrop.claimAllRewards(CAT);
     vm.stopPrank();
     assertGt(CAT.balance, 0);
     assertGt(IERC20(mockEsP88).balanceOf(CAT), 0);
@@ -320,7 +324,7 @@ contract Lockdrop_ClaimReward is BaseTest {
     assertEq(mockWMatic.balanceOf(ALICE), 0 ether);
     assertEq(IERC20(mockEsP88).balanceOf(ALICE), 0 ether);
     vm.startPrank(ALICE);
-    lockdrop.claimAllRewardsFor(ALICE, ALICE);
+    lockdrop.claimAllRewards(ALICE);
     vm.stopPrank();
     assertGt(ALICE.balance, 0);
     assertGt(IERC20(mockEsP88).balanceOf(ALICE), 0);
@@ -329,7 +333,7 @@ contract Lockdrop_ClaimReward is BaseTest {
     assertEq(mockWMatic.balanceOf(CAT), 0 ether);
     assertEq(IERC20(mockEsP88).balanceOf(CAT), 0 ether);
     vm.startPrank(CAT);
-    lockdrop.claimAllRewardsFor(CAT, CAT);
+    lockdrop.claimAllRewards(CAT);
     vm.stopPrank();
     assertGt(CAT.balance, 0);
     assertGt(IERC20(mockEsP88).balanceOf(CAT), 0);
@@ -376,7 +380,7 @@ contract Lockdrop_ClaimReward is BaseTest {
     assertEq(mockWMatic.balanceOf(ALICE), 0 ether);
     assertEq(IERC20(mockEsP88).balanceOf(ALICE), 0 ether);
     vm.startPrank(ALICE);
-    lockdrop.claimAllRewardsFor(ALICE, ALICE);
+    lockdrop.claimAllRewards(ALICE);
     vm.stopPrank();
     assertGt(ALICE.balance, 0);
     assertGt(IERC20(mockEsP88).balanceOf(ALICE), 0);
@@ -388,7 +392,7 @@ contract Lockdrop_ClaimReward is BaseTest {
     assertEq(mockWMatic.balanceOf(BOB), 0 ether);
     assertEq(IERC20(mockEsP88).balanceOf(BOB), 0 ether);
     vm.startPrank(BOB);
-    lockdrop.claimAllRewardsFor(BOB, BOB);
+    lockdrop.claimAllRewards(BOB);
     vm.stopPrank();
     assertGt(BOB.balance, 0);
     assertGt(IERC20(mockEsP88).balanceOf(BOB), 0);
@@ -400,9 +404,17 @@ contract Lockdrop_ClaimReward is BaseTest {
     assertEq(mockWMatic.balanceOf(CAT), 0 ether);
     assertEq(IERC20(mockEsP88).balanceOf(CAT), 0 ether);
     vm.startPrank(CAT);
-    lockdrop.claimAllRewardsFor(CAT, CAT);
+    lockdrop.claimAllRewards(CAT);
     vm.stopPrank();
     assertGt(CAT.balance, 0);
     assertGt(IERC20(mockEsP88).balanceOf(CAT), 0);
+  }
+
+  function testRevert_ClaimAllRewardFor_CallerNotLockdropCompounder() external {
+    vm.prank(ALICE);
+    vm.expectRevert(
+      abi.encodeWithSignature("Lockdrop_NotLockdropCompounder()")
+    );
+    lockdrop.claimAllRewardsFor(BOB, ALICE);
   }
 }

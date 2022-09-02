@@ -108,12 +108,18 @@ contract Lockdrop_StakePLP is BaseTest {
     mockGateway = address(0x88);
     pool = new MockPool();
 
+    lockdropCompounder = new LockdropCompounder(
+      address(mockEsP88Token),
+      address(dragonStaking)
+    );
+    
     lockdropConfig = new LockdropConfig(
       1 days,
       plpStaking,
       mockPLPToken,
       mockP88Token,
-      mockGateway
+      mockGateway,
+      address(lockdropCompounder)
     );
 
     lockdrop = new Lockdrop(
@@ -124,10 +130,6 @@ contract Lockdrop_StakePLP is BaseTest {
       address(mockWMaticToken)
     );
 
-    lockdropCompounder = new LockdropCompounder(
-      address(mockEsP88Token),
-      address(dragonStaking)
-    );
 
     lockdrops.push(address(lockdrop));
 

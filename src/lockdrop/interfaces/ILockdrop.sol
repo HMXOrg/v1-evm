@@ -22,6 +22,8 @@ interface ILockdrop {
 
   function claimAllRewardsFor(address user, address receiver) external;
 
+  function claimAllRewards(address user) external;
+
   function stakePLP() external;
 
   function withdrawAll(address user) external;
