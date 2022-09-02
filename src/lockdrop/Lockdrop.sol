@@ -520,6 +520,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
       address(this),
       0
     );
+
     lockdropConfig.plpStaking().deposit(
       address(this),
       address(lockdropConfig.plpToken()),

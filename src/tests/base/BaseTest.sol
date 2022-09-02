@@ -27,6 +27,13 @@ import { FeedableRewarder } from "../../staking/FeedableRewarder.sol";
 import { AdHocMintRewarder } from "../../staking/AdHocMintRewarder.sol";
 import { WFeedableRewarder } from "../../staking/WFeedableRewarder.sol";
 import { Compounder } from "../../staking/Compounder.sol";
+import { Lockdrop } from "../../lockdrop/Lockdrop.sol";
+import { LockdropCompounder } from "../../lockdrop/LockdropCompounder.sol";
+import { LockdropConfig } from "../../lockdrop/LockdropConfig.sol";
+import { IPool } from "../../interfaces/IPool.sol";
+import { IStaking } from "../../staking/interfaces/IStaking.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { LockdropGateway } from "../../lockdrop/LockdropGateway.sol";
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
@@ -251,5 +258,55 @@ contract BaseTest is DSTest, CoreConstants {
     bool[] memory isCompoundTokens_
   ) internal returns (Compounder) {
     return new Compounder(dp, compoundPool, tokens, isCompoundTokens_);
+  }
+
+  function deployLockdrop(
+    address lockdropToken,
+    IPool pool,
+    LockdropConfig lockdropConfig,
+    address[] memory rewardTokens,
+    address nativeTokenAddress
+  ) internal returns (Lockdrop) {
+    return
+      new Lockdrop(
+        lockdropToken,
+        pool,
+        lockdropConfig,
+        rewardTokens,
+        nativeTokenAddress
+      );
+  }
+
+  function deployLockdropConfig(
+    uint256 startLockTimestamp,
+    IStaking plpStaking,
+    IERC20 plpToken,
+    IERC20 p88Token,
+    address gatewayAddress,
+    address lockdropCompounder
+  ) internal returns (LockdropConfig) {
+    return
+      new LockdropConfig(
+        startLockTimestamp,
+        plpStaking,
+        plpToken,
+        p88Token,
+        gatewayAddress,
+        lockdropCompounder
+      );
+  }
+
+  function deployLockdropGateway(IERC20 plpToken, IStaking plpStaking)
+    internal
+    returns (LockdropGateway)
+  {
+    return new LockdropGateway(plpToken, plpStaking);
+  }
+
+  function deployLockdropCompounder(address esp88Token, address dragonStaking)
+    internal
+    returns (LockdropCompounder)
+  {
+    return new LockdropCompounder(esp88Token, dragonStaking);
   }
 }

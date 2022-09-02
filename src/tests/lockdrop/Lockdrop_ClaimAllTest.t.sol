@@ -86,7 +86,7 @@ contract Lockdrop_ClaimReward is BaseTest {
 
     // Be CAT
     vm.startPrank(CAT);
-    // mint lockdrop token for BOB
+    // mint lockdrop token for CAT
     lockdropToken.mint(CAT, 20 ether);
     lockdropToken.approve(address(lockdrop), 20 ether);
 
