@@ -5,7 +5,7 @@
   "author": "Annonymous",
   "license": "MIT",
   "scripts": {
-    "compile": "hardhat compile && yarn build",
+    "compile": "hardhat compile",
     "build": "yarn run build:cjs",
     "build:cjs": "tsc -p tsconfig.cjs.json"
   },
