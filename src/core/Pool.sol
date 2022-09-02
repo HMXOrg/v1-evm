@@ -1181,29 +1181,19 @@ contract Pool is Constants, ReentrancyGuard {
   }
 
   function getPositionDelta(
-    address account,
+    address primaryAccount,
     uint256 subAccountId,
-    address collateralToken,
-    address indexToken,
-    Exposure exposure
-  ) external view returns (bool, uint256) {
-    return
-      getPositionDelta(
-        getSubAccount(account, subAccountId),
-        collateralToken,
-        indexToken,
-        exposure
-      );
-  }
-
-  function getPositionDelta(
-    address account,
     address collateralToken,
     address indexToken,
     Exposure exposure
   ) public view returns (bool, uint256) {
     Position memory position = positions[
-      getPositionId(account, collateralToken, indexToken, exposure)
+      getPositionId(
+        getSubAccount(primaryAccount, subAccountId),
+        collateralToken,
+        indexToken,
+        exposure
+      )
     ];
     return
       getDelta(
@@ -1228,13 +1218,14 @@ contract Pool is Constants, ReentrancyGuard {
   }
 
   function getPositionLeverage(
-    address account,
+    address primaryAccount,
+    uint256 subAccountId,
     address collateralToken,
     address indexToken,
     Exposure exposure
   ) public view returns (uint256) {
     bytes32 posId = getPositionId(
-      account,
+      getSubAccount(primaryAccount, subAccountId),
       collateralToken,
       indexToken,
       exposure

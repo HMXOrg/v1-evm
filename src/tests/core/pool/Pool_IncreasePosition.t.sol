@@ -595,6 +595,7 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     assertEq(
       pool.getPositionLeverage(
         address(this),
+        0,
         address(wbtc),
         address(wbtc),
         Exposure.LONG
@@ -669,6 +670,7 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     assertEq(
       pool.getPositionLeverage(
         address(this),
+        0,
         address(wbtc),
         address(wbtc),
         Exposure.LONG
@@ -729,6 +731,7 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     assertEq(
       pool.getPositionLeverage(
         address(this),
+        0,
         address(wbtc),
         address(wbtc),
         Exposure.LONG
