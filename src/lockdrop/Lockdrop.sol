@@ -471,7 +471,10 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable, ILockdrop {
       if (rewardTokens[i] == nativeTokenAddress) {
         payable(receiver).transfer(pendingReward);
       } else {
-        IERC20Upgradeable(rewardTokens[i]).safeTransfer(user, pendingReward);
+        IERC20Upgradeable(rewardTokens[i]).safeTransfer(
+          receiver,
+          pendingReward
+        );
       }
 
       // calculate for update user reward dept

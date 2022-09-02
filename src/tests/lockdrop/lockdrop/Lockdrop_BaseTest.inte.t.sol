@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
 import "../../base/DSTest.sol";
 import { BaseTest, math, console, IPool, PoolConfig, PoolMath, PoolOracle, Pool, PLPStaking, DragonStaking, DragonPoint, PLP, P88, EsP88, MockErc20, MockWNative, FeedableRewarder, WFeedableRewarder, Lockdrop, LockdropConfig, LockdropGateway, LockdropCompounder } from "../../base/BaseTest.sol";
@@ -110,7 +110,10 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     dragonPoint.setMinter(address(dragonStaking), true);
     dragonPoint.setTransferrer(address(dragonStaking), true);
 
-    lockdropGateway = BaseTest.deployLockdropGateway(plp, plpStaking);
+    lockdropGateway = BaseTest.deployLockdropGateway(
+      address(plp),
+      address(plpStaking)
+    );
     lockdropCompounder = BaseTest.deployLockdropCompounder(
       address(esP88),
       address(dragonStaking)
@@ -119,9 +122,9 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     // startLockTimestamp = 1 day
     lockdropConfig = BaseTest.deployLockdropConfig(
       1 days,
-      plpStaking,
-      plp,
-      p88,
+      address(plpStaking),
+      address(plp),
+      address(p88),
       address(lockdropGateway),
       address(lockdropCompounder)
     );
@@ -129,8 +132,8 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     // Lock token is USDC
     lockdrop = BaseTest.deployLockdrop(
       address(usdc),
-      IPool(address(pool)),
-      lockdropConfig,
+      address(pool),
+      address(lockdropConfig),
       rewardsTokens,
       address(revenueToken)
     );

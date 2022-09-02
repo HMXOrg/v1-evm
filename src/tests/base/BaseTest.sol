@@ -33,13 +33,10 @@ import { ProxyAdmin } from "../interfaces/ProxyAdmin.sol";
 import { Lockdrop } from "../../lockdrop/Lockdrop.sol";
 import { LockdropGateway } from "../../lockdrop/LockdropGateway.sol";
 import { LockdropConfig } from "../../lockdrop/LockdropConfig.sol";
-import { Lockdrop } from "../../lockdrop/Lockdrop.sol";
 import { LockdropCompounder } from "../../lockdrop/LockdropCompounder.sol";
-import { LockdropConfig } from "../../lockdrop/LockdropConfig.sol";
 import { IPool } from "../../interfaces/IPool.sol";
 import { IStaking } from "../../staking/interfaces/IStaking.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { LockdropGateway } from "../../lockdrop/LockdropGateway.sol";
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
@@ -437,18 +434,22 @@ contract BaseTest is DSTest, CoreConstants {
     address plpStaking,
     address plpToken,
     address p88Token,
-    address gatewayAddress
+    address gatewayAddress,
+    address lockdropCompounder
   ) internal returns (LockdropConfig) {
     bytes memory _logicBytecode = abi.encodePacked(
       vm.getCode("./out/LockdropConfig.sol/LockdropConfig.json")
     );
     bytes memory _initializer = abi.encodeWithSelector(
-      bytes4(keccak256("initialize(uint256,address,address,address,address)")),
+      bytes4(
+        keccak256("initialize(uint256,address,address,address,address,address)")
+      ),
       startLockTimestamp,
       plpStaking,
       plpToken,
       p88Token,
-      gatewayAddress
+      gatewayAddress,
+      lockdropCompounder
     );
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
     return LockdropConfig(payable(_proxy));
@@ -492,5 +493,21 @@ contract BaseTest is DSTest, CoreConstants {
     );
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
     return LockdropGateway(payable(_proxy));
+  }
+
+  function deployLockdropCompounder(address esp88Token, address dragonStaking)
+    internal
+    returns (LockdropCompounder)
+  {
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/LockdropCompounder.sol/LockdropCompounder.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(address,address)")),
+      esp88Token,
+      dragonStaking
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return LockdropCompounder(payable(_proxy));
   }
 }
