@@ -332,7 +332,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
 
     // Claim All Reward for user at the same time.
     // User will receive EsP88 and Revenue Native(MATIC) Tokens
-    _claimAllRewards(user);
+    _claimAllRewardsFor(user, user);
 
     uint256 userPLPTokenAmount = (lockdropStates[user].lockdropTokenAmount *
       totalPLPAmount) / totalAmount;
@@ -488,7 +488,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     onlyAfterLockdropPeriod
     nonReentrant
   {
-    _claimAllRewards(user);
+    _claimAllRewardsFor(user, user);
   }
 
   /// @dev Receiver can claim users reward 
@@ -503,15 +503,10 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     _claimAllRewardsFor(user, receiver);
   }
 
-  function _claimAllRewards(address user) internal {
-    uint256[] memory harvestedRewards = _harvestAll();
-    _transferUserReward(user, user, harvestedRewards);
-  }
-
   function _claimAllRewardsFor(address user, address receiver) internal {
     uint256[] memory harvestedRewards = _harvestAll();
     // Reward will be transfer too msg.sender instead of user, user reward state will be kept
-    _transferUserReward(user, msg.sender, harvestedRewards);
+    _transferUserReward(user, receiver, harvestedRewards);
   }
 
   /// @dev PLP token is staked after the lockdrop period
