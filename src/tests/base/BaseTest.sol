@@ -28,6 +28,7 @@ import { AdHocMintRewarder } from "../../staking/AdHocMintRewarder.sol";
 import { WFeedableRewarder } from "../../staking/WFeedableRewarder.sol";
 import { Compounder } from "../../staking/Compounder.sol";
 import { Lockdrop } from "../../lockdrop/Lockdrop.sol";
+import { LockdropCompounder } from "../../lockdrop/LockdropCompounder.sol";
 import { LockdropConfig } from "../../lockdrop/LockdropConfig.sol";
 import { IPool } from "../../interfaces/IPool.sol";
 import { IStaking } from "../../staking/interfaces/IStaking.sol";
@@ -281,7 +282,8 @@ contract BaseTest is DSTest, CoreConstants {
     IStaking plpStaking,
     IERC20 plpToken,
     IERC20 p88Token,
-    address gatewayAddress
+    address gatewayAddress,
+    address lockdropCompounder
   ) internal returns (LockdropConfig) {
     return
       new LockdropConfig(
@@ -289,7 +291,8 @@ contract BaseTest is DSTest, CoreConstants {
         plpStaking,
         plpToken,
         p88Token,
-        gatewayAddress
+        gatewayAddress,
+        lockdropCompounder
       );
   }
 
@@ -298,5 +301,12 @@ contract BaseTest is DSTest, CoreConstants {
     returns (LockdropGateway)
   {
     return new LockdropGateway(plpToken, plpStaking);
+  }
+
+  function deployLockdropCompounder(address esp88Token, address dragonStaking)
+    internal
+    returns (LockdropCompounder)
+  {
+    return new LockdropCompounder(esp88Token, dragonStaking);
   }
 }

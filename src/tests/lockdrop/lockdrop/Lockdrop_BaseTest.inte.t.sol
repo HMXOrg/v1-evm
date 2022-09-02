@@ -2,15 +2,17 @@
 pragma solidity 0.8.14;
 
 import "../../base/DSTest.sol";
-import { BaseTest, math, console, IPool, PoolConfig, PoolMath, PoolOracle, Pool, PLPStaking, PLP, P88, EsP88, MockErc20, MockWNative, FeedableRewarder, WFeedableRewarder, Lockdrop, LockdropConfig, LockdropGateway } from "../../base/BaseTest.sol";
+import { BaseTest, math, console, IPool, PoolConfig, PoolMath, PoolOracle, Pool, PLPStaking, DragonStaking, DragonPoint, PLP, P88, EsP88, MockErc20, MockWNative, FeedableRewarder, WFeedableRewarder, Lockdrop, LockdropConfig, LockdropGateway, LockdropCompounder } from "../../base/BaseTest.sol";
 
 abstract contract Lockdrop_BaseTest is BaseTest {
   PLP internal plp;
   P88 internal p88;
   EsP88 internal esP88;
+  DragonPoint internal dragonPoint;
   MockWNative internal revenueToken;
 
   PLPStaking internal plpStaking;
+  DragonStaking internal dragonStaking;
 
   WFeedableRewarder internal revenueRewarder;
   FeedableRewarder internal esP88Rewarder;
@@ -19,6 +21,7 @@ abstract contract Lockdrop_BaseTest is BaseTest {
   LockdropConfig internal lockdropConfig;
   Lockdrop internal lockdrop;
   LockdropGateway internal lockdropGateway;
+  LockdropCompounder internal lockdropCompounder;
 
   PoolConfig internal poolConfig;
   PoolMath internal poolMath;
@@ -34,6 +37,9 @@ abstract contract Lockdrop_BaseTest is BaseTest {
 
     p88 = BaseTest.deployP88();
     p88.setMinter(DAVE, true);
+
+    dragonPoint = BaseTest.deployDragonPoint();
+    dragonPoint.setMinter(DAVE, true);
 
     esP88 = BaseTest.deployEsP88();
     esP88.setMinter(DAVE, true);
@@ -100,7 +106,15 @@ abstract contract Lockdrop_BaseTest is BaseTest {
 
     plpStaking.addStakingToken(address(plp), rewarders);
 
+    dragonStaking = BaseTest.deployDragonStaking(address(dragonPoint));
+    dragonPoint.setMinter(address(dragonStaking), true);
+    dragonPoint.setTransferrer(address(dragonStaking), true);
+
     lockdropGateway = BaseTest.deployLockdropGateway(plp, plpStaking);
+    lockdropCompounder = BaseTest.deployLockdropCompounder(
+      address(esP88),
+      address(dragonStaking)
+    );
 
     // startLockTimestamp = 1 day
     lockdropConfig = BaseTest.deployLockdropConfig(
@@ -108,7 +122,8 @@ abstract contract Lockdrop_BaseTest is BaseTest {
       plpStaking,
       plp,
       p88,
-      address(lockdropGateway)
+      address(lockdropGateway),
+      address(lockdropCompounder)
     );
 
     // Lock token is USDC
