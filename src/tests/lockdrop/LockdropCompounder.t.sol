@@ -112,7 +112,7 @@ contract Lockdrop_StakePLP is BaseTest {
       address(mockEsP88Token),
       address(dragonStaking)
     );
-    
+
     lockdropConfig = new LockdropConfig(
       1 days,
       plpStaking,
@@ -129,7 +129,6 @@ contract Lockdrop_StakePLP is BaseTest {
       rewardsTokenList,
       address(mockWMaticToken)
     );
-
 
     lockdrops.push(address(lockdrop));
 
@@ -232,6 +231,14 @@ contract Lockdrop_StakePLP is BaseTest {
       IERC20(mockEsP88Token).balanceOf(address(dragonStaking)),
       oldRewardAmount
     );
+    assertGt(ALICE.balance, 0);
+  }
+
+  function testCorrectness_claimAll() external {
+    vm.warp(10 days);
+    vm.prank(ALICE);
+    lockdropCompounder.claimAll(lockdrops, ALICE);
+    assertGt(IERC20(mockEsP88Token).balanceOf(ALICE), 0);
     assertGt(ALICE.balance, 0);
   }
 }

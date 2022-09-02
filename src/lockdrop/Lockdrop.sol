@@ -481,16 +481,19 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     }
   }
 
-  // /// @dev Users can claim all their reward
-  // /// @param _user Address of the user that wants to claim the reward
+  /// @dev Users can claim all their reward
+  /// @param user Address of the user that wants to claim the reward
   function claimAllRewards(address user)
     external
     onlyAfterLockdropPeriod
     nonReentrant
   {
-    _claimAllRewardsFor(user, user);
+    _claimAllRewards(user);
   }
 
+  /// @dev Receiver can claim users reward 
+  /// @param user Address of user that own the reward
+  /// @param receiver Address of receiver that claim the reward for user
   function claimAllRewardsFor(address user, address receiver)
     external
     onlyLockdropCompounder
