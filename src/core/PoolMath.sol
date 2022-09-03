@@ -33,7 +33,7 @@ contract PoolMath is Constants {
         ? pool.oracle().getMinPrice(token)
         : pool.oracle().getMaxPrice(token);
       uint256 liquidity = pool.liquidityOf(token);
-      uint256 decimals = pool.config().tokenDecimals(token);
+      uint256 decimals = pool.config().getTokenDecimalsOf(token);
 
       if (pool.config().isStableToken(token)) {
         aum += (liquidity * price) / 10**decimals;

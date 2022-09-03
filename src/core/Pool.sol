@@ -309,7 +309,7 @@ contract Pool is Ownable, Constants, ReentrancyGuard {
     uint256 price = oracle.getMinPrice(token);
 
     uint256 tokenValueUsd = (amount * price) / PRICE_PRECISION;
-    uint8 tokenDecimals = config.tokenDecimals(token);
+    uint8 tokenDecimals = config.getTokenDecimalsOf(token);
     tokenValueUsd = _convertTokenDecimals(
       tokenDecimals,
       USD_DECIMALS,
@@ -394,7 +394,7 @@ contract Pool is Ownable, Constants, ReentrancyGuard {
     uint256 tokenPrice = oracle.getMaxPrice(token);
     uint256 amountOut = _convertTokenDecimals(
       18,
-      config.tokenDecimals(token),
+      config.getTokenDecimalsOf(token),
       (usdValue * PRICE_PRECISION) / tokenPrice
     );
     if (amountOut == 0) revert Pool_BadAmountOut();
@@ -445,15 +445,15 @@ contract Pool is Ownable, Constants, ReentrancyGuard {
 
     uint256 amountOut = (amountIn * priceIn) / priceOut;
     amountOut = _convertTokenDecimals(
-      config.tokenDecimals(tokenIn),
-      config.tokenDecimals(tokenOut),
+      config.getTokenDecimalsOf(tokenIn),
+      config.getTokenDecimalsOf(tokenOut),
       amountOut
     );
 
     // Adjust USD debt as swap shifted the debt between two assets
     uint256 usdDebt = (amountIn * priceIn) / PRICE_PRECISION;
     usdDebt = _convertTokenDecimals(
-      config.tokenDecimals(tokenIn),
+      config.getTokenDecimalsOf(tokenIn),
       USD_DECIMALS,
       usdDebt
     );
@@ -478,7 +478,7 @@ contract Pool is Ownable, Constants, ReentrancyGuard {
     _decreaseUsdDebt(tokenOut, usdDebt);
 
     // Buffer check
-    if (liquidityOf[tokenOut] < config.tokenBufferLiquidity(tokenOut))
+    if (liquidityOf[tokenOut] < config.getTokenBufferLiquidityOf(tokenOut))
       revert Pool_LiquidityBuffer();
 
     // Slippage check
@@ -1039,7 +1039,7 @@ contract Pool is Ownable, Constants, ReentrancyGuard {
     uint256 minBps = block.timestamp >
       lastIncreasedTime + config.minProfitDuration()
       ? 0
-      : config.tokenMinProfitBps(indexToken);
+      : config.getTokenMinProfitBpsOf(indexToken);
 
     if (isProfit && delta * BPS <= size * minBps) delta = 0;
 
@@ -1256,7 +1256,7 @@ contract Pool is Ownable, Constants, ReentrancyGuard {
     if (cachedTotalUsdDebt == 0) return 0;
 
     return
-      (cachedTotalUsdDebt * config.tokenWeight(token)) /
+      (cachedTotalUsdDebt * config.getTokenWeightOf(token)) /
       config.totalTokenWeight();
   }
 
@@ -1360,7 +1360,7 @@ contract Pool is Ownable, Constants, ReentrancyGuard {
 
     // SLOAD
     uint256 newUsdDebt = usdDebtOf[token];
-    uint256 usdDebtCeiling = config.tokenUsdDebtCeiling(token);
+    uint256 usdDebtCeiling = config.getTokenUsdDebtCeilingOf(token);
 
     if (usdDebtCeiling != 0) {
       if (newUsdDebt > usdDebtCeiling) revert Pool_OverUsdDebtCeiling();
@@ -1406,7 +1406,7 @@ contract Pool is Ownable, Constants, ReentrancyGuard {
 
   function _increaseShortSize(address token, uint256 amountUsd) internal {
     // SLOAD
-    uint256 shortCeiling = config.tokenShortCeiling(token);
+    uint256 shortCeiling = config.getTokenShortCeilingOf(token);
     shortSizeOf[token] += amountUsd;
 
     if (shortCeiling != 0) {
@@ -1611,7 +1611,7 @@ contract Pool is Ownable, Constants, ReentrancyGuard {
   ) internal view returns (uint256) {
     if (amountUsd == 0) return 0;
     return
-      (amountUsd * (10**config.tokenDecimals(token))) /
+      (amountUsd * (10**config.getTokenDecimalsOf(token))) /
       oracle.getPrice(token, minOrMax);
   }
 
@@ -1623,7 +1623,7 @@ contract Pool is Ownable, Constants, ReentrancyGuard {
     if (amountTokens == 0) return 0;
     return
       (amountTokens * oracle.getPrice(token, minOrMax)) /
-      (10**config.tokenDecimals(token));
+      (10**config.getTokenDecimalsOf(token));
   }
 
   /// ---------------------------
@@ -1665,12 +1665,12 @@ contract Pool is Ownable, Constants, ReentrancyGuard {
     while (oldConfigToken != LINKEDLIST_END) {
       if (oldConfigToken != newConfigToken) revert Pool_AllowTokensMismatch();
       if (
-        config.tokenDecimals(oldConfigToken) !=
-        newPoolConfig.tokenDecimals(oldConfigToken)
+        config.getTokenDecimalsOf(oldConfigToken) !=
+        newPoolConfig.getTokenDecimalsOf(oldConfigToken)
       ) revert Pool_TokenDecimalsMismatch();
       if (
-        config.tokenWeight(oldConfigToken) !=
-        newPoolConfig.tokenDecimals(oldConfigToken)
+        config.getTokenWeightOf(oldConfigToken) !=
+        newPoolConfig.getTokenDecimalsOf(oldConfigToken)
       ) revert Pool_TokenWeightMismatch();
 
       oldConfigToken = config.getNextAllowTokenOf(oldConfigToken);

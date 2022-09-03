@@ -154,6 +154,28 @@ contract PoolConfig is Ownable {
     marginFeeBps = 10; // 0.1%
   }
 
+  // ---------------
+  // Admin functions
+  // ---------------
+
+  function setFundingRate(
+    uint64 newFundingInterval,
+    uint64 newFundingRateFactor,
+    uint64 newStableFundingRateFactor
+  ) external onlyOwner {
+    emit SetFundingRate(
+      fundingInterval,
+      newFundingInterval,
+      fundingRateFactor,
+      newFundingRateFactor,
+      stableFundingRateFactor,
+      newStableFundingRateFactor
+    );
+    fundingInterval = newFundingInterval;
+    fundingRateFactor = newFundingRateFactor;
+    stableFundingRateFactor = newStableFundingRateFactor;
+  }
+
   function setIsAllowAllLiquidators(bool _isAllowAllLiquidators)
     external
     onlyOwner
@@ -181,24 +203,6 @@ contract PoolConfig is Ownable {
   function setIsSwapEnable(bool newIsSwapEnable) external onlyOwner {
     emit SetIsSwapEnable(isSwapEnable, newIsSwapEnable);
     isSwapEnable = newIsSwapEnable;
-  }
-
-  function setFundingRate(
-    uint64 newFundingInterval,
-    uint64 newFundingRateFactor,
-    uint64 newStableFundingRateFactor
-  ) external onlyOwner {
-    emit SetFundingRate(
-      fundingInterval,
-      newFundingInterval,
-      fundingRateFactor,
-      newFundingRateFactor,
-      stableFundingRateFactor,
-      newStableFundingRateFactor
-    );
-    fundingInterval = newFundingInterval;
-    fundingRateFactor = newFundingRateFactor;
-    stableFundingRateFactor = newStableFundingRateFactor;
   }
 
   function setLiquidationFeeUsd(uint256 newLiquidationFeeUsd)
@@ -288,6 +292,10 @@ contract PoolConfig is Ownable {
     emit DeleteTokenConfig(token);
   }
 
+  // ----------------
+  // Getter functions
+  // ----------------
+
   function isAcceptToken(address token) external view returns (bool) {
     return tokenMetas[token].accept;
   }
@@ -319,27 +327,43 @@ contract PoolConfig is Ownable {
     return allowTokens.getNextOf(token);
   }
 
-  function tokenBufferLiquidity(address token) external view returns (uint256) {
+  function getTokenBufferLiquidityOf(address token)
+    external
+    view
+    returns (uint256)
+  {
     return tokenMetas[token].bufferLiquidity;
   }
 
-  function tokenDecimals(address token) external view returns (uint8) {
+  function getTokenDecimalsOf(address token) external view returns (uint8) {
     return tokenMetas[token].decimals;
   }
 
-  function tokenMinProfitBps(address token) external view returns (uint256) {
+  function getTokenMinProfitBpsOf(address token)
+    external
+    view
+    returns (uint256)
+  {
     return tokenMetas[token].minProfitBps;
   }
 
-  function tokenWeight(address token) external view returns (uint256) {
+  function getTokenWeightOf(address token) external view returns (uint256) {
     return tokenMetas[token].weight;
   }
 
-  function tokenUsdDebtCeiling(address token) external view returns (uint256) {
+  function getTokenUsdDebtCeilingOf(address token)
+    external
+    view
+    returns (uint256)
+  {
     return tokenMetas[token].usdDebtCeiling;
   }
 
-  function tokenShortCeiling(address token) external view returns (uint256) {
+  function getTokenShortCeilingOf(address token)
+    external
+    view
+    returns (uint256)
+  {
     return tokenMetas[token].shortCeiling;
   }
 
