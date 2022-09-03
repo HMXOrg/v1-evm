@@ -14,6 +14,11 @@ contract PoolConfig is Ownable {
   // ---------
   uint256 public constant MAX_LIQUIDATION_FEE_USD = 100 * 10**30;
 
+  // --------
+  // Treasury
+  // --------
+  address public treasury;
+
   // --------------------
   // Token Configurations
   // --------------------
@@ -107,6 +112,7 @@ contract PoolConfig is Ownable {
     TokenConfig prevConfig,
     TokenConfig newConfig
   );
+  event SetTreasury(address prevTreasury, address newTreasury);
   event SetIsLeverageEnable(
     bool prevIsLeverageEnable,
     bool newIsLeverageEnable
@@ -115,6 +121,7 @@ contract PoolConfig is Ownable {
   event SetRouter(address prevRouter, address newRouter);
 
   constructor(
+    address _treasury,
     uint64 _fundingInterval,
     uint64 _mintBurnFeeBps,
     uint64 _taxBps,
@@ -124,6 +131,8 @@ contract PoolConfig is Ownable {
     uint256 _liquidationFeeUsd
   ) {
     allowTokens.init();
+
+    treasury = _treasury;
 
     fundingInterval = _fundingInterval;
     mintBurnFeeBps = _mintBurnFeeBps;
@@ -260,6 +269,11 @@ contract PoolConfig is Ownable {
         ++i;
       }
     }
+  }
+
+  function setTreasury(address newTreasury) external onlyOwner {
+    emit SetTreasury(treasury, newTreasury);
+    treasury = newTreasury;
   }
 
   function setRouter(address newRouter) external onlyOwner {

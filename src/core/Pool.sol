@@ -7,14 +7,18 @@ import { PoolOracle } from "./PoolOracle.sol";
 import { MintableTokenInterface } from "../interfaces/MintableTokenInterface.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import { Constants } from "./Constants.sol";
 
 import { console } from "../tests/utils/console.sol";
 
-contract Pool is Constants, ReentrancyGuard {
+contract Pool is Ownable, Constants, ReentrancyGuard {
   using SafeERC20 for IERC20;
 
+  error Pool_AllowTokensLengthMismatch();
+  error Pool_AllowTokensMismatch();
+  error Pool_AllowTokenNotFound();
   error Pool_BadAmountOut();
   error Pool_BadArgument();
   error Pool_BadCollateralDelta();
@@ -39,7 +43,10 @@ contract Pool is Constants, ReentrancyGuard {
   error Pool_SizeSmallerThanCollateral();
   error Pool_Slippage();
   error Pool_SwapDisabled();
+  error Pool_TokenDecimalsMismatch();
   error Pool_TokenMisMatch();
+  error Pool_TokenWeightMismatch();
+  error Pool_TotalTokenWeightMismatch();
 
   MintableTokenInterface public plp;
 
@@ -178,6 +185,9 @@ contract Pool is Constants, ReentrancyGuard {
     uint256 usdDebt,
     uint256 amountOut
   );
+  event SetPoolConfig(address prevPoolConfig, address newPoolConfig);
+  event SetPoolMath(address prevPoolMath, address newPoolMath);
+  event SetPoolOracle(address prevPoolOracle, address newPoolOracle);
   event Swap(
     address account,
     address tokenIn,
@@ -198,6 +208,7 @@ contract Pool is Constants, ReentrancyGuard {
     int256 realizedPnl,
     uint256 price
   );
+  event WithdrawFeeReserve(address token, address to, uint256 amount);
 
   constructor(
     MintableTokenInterface _plp,
@@ -1635,5 +1646,63 @@ contract Pool is Constants, ReentrancyGuard {
   ) internal {
     IERC20(token).safeTransfer(to, amount);
     totalOf[token] = IERC20(token).balanceOf(address(this));
+  }
+
+  /// --------------
+  /// Admin function
+  /// --------------
+
+  function setPoolConfig(PoolConfig newPoolConfig) external onlyOwner {
+    // Check if critical configuration is valid on a new pool config.
+    if (config.totalTokenWeight() != newPoolConfig.totalTokenWeight())
+      revert Pool_TotalTokenWeightMismatch();
+    if (config.getAllowTokensLength() != newPoolConfig.getAllowTokensLength())
+      revert Pool_AllowTokensLengthMismatch();
+
+    address oldConfigToken = config.getNextAllowTokenOf(LINKEDLIST_START);
+    address newConfigToken = config.getNextAllowTokenOf(LINKEDLIST_START);
+
+    while (oldConfigToken != LINKEDLIST_END) {
+      if (oldConfigToken != newConfigToken) revert Pool_AllowTokensMismatch();
+      if (
+        config.tokenDecimals(oldConfigToken) !=
+        newPoolConfig.tokenDecimals(oldConfigToken)
+      ) revert Pool_TokenDecimalsMismatch();
+      if (
+        config.tokenWeight(oldConfigToken) !=
+        newPoolConfig.tokenDecimals(oldConfigToken)
+      ) revert Pool_TokenWeightMismatch();
+
+      oldConfigToken = config.getNextAllowTokenOf(oldConfigToken);
+      newConfigToken = newPoolConfig.getNextAllowTokenOf(newConfigToken);
+    }
+
+    emit SetPoolConfig(address(config), address(newPoolConfig));
+    config = newPoolConfig;
+  }
+
+  function setPoolOracle(PoolOracle newPoolOracle) external onlyOwner {
+    // Sanity check
+    oracle.roundDepth();
+
+    emit SetPoolOracle(address(oracle), address(newPoolOracle));
+    oracle = newPoolOracle;
+  }
+
+  function setPoolMath(PoolMath newPoolMath) external onlyOwner {
+    emit SetPoolMath(address(poolMath), address(newPoolMath));
+    poolMath = newPoolMath;
+  }
+
+  function withdrawFeeReserve(
+    address token,
+    address to,
+    uint256 amount
+  ) external {
+    if (msg.sender != config.treasury()) revert Pool_Forbidden();
+    feeReserveOf[token] -= amount;
+    _pushTokens(token, to, amount);
+
+    emit WithdrawFeeReserve(token, to, amount);
   }
 }

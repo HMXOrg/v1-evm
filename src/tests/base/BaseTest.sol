@@ -22,6 +22,7 @@ import { Pool } from "../../core/Pool.sol";
 // solhint-disable no-inline-assembly
 contract BaseTest is DSTest, CoreConstants {
   struct PoolConfigConstructorParams {
+    address treasury;
     uint64 fundingInterval;
     uint64 mintBurnFeeBps;
     uint64 taxBps;
@@ -193,6 +194,7 @@ contract BaseTest is DSTest, CoreConstants {
   {
     return
       new PoolConfig(
+        params.treasury,
         params.fundingInterval,
         params.mintBurnFeeBps,
         params.taxBps,
