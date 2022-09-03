@@ -39,6 +39,8 @@ contract BaseTest is DSTest, CoreConstants {
   address internal constant CAT = address(3);
   address internal constant DAVE = address(4);
 
+  address internal constant TREASURY = address(168168168168);
+
   MockErc20 internal matic;
   MockErc20 internal weth;
   MockErc20 internal wbtc;
