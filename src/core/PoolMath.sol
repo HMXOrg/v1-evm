@@ -119,7 +119,7 @@ contract PoolMath is Constants {
 
     // If not then -> negative impact to the pool.
     // Should apply tax.
-    uint256 midDiff = startTargetDiff + nextTargetDiff / 2;
+    uint256 midDiff = (startTargetDiff + nextTargetDiff) / 2;
     if (midDiff > targetValue) {
       midDiff = targetValue;
     }
