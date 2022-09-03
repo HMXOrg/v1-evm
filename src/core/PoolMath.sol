@@ -235,7 +235,7 @@ contract PoolMath is Constants {
     uint256 sizeDelta
   ) public view returns (uint256) {
     if (sizeDelta == 0) return 0;
-    uint256 afterFeeUsd = (sizeDelta * (BPS - pool.config().marginFeeBps())) /
+    uint256 afterFeeUsd = (sizeDelta * (BPS - pool.config().positionFeeBps())) /
       BPS;
     return sizeDelta - afterFeeUsd;
   }
