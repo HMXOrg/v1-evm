@@ -112,6 +112,7 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
   }
 
   function testCorrectness_WhenLong_WhenProfitable() external {
+    // Initialized price feeds
     daiPriceFeed.setLatestAnswer(1 * 10**8);
     wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
     maticPriceFeed.setLatestAnswer(300 * 10**8);
