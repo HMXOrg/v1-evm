@@ -7,6 +7,15 @@
     "DragonPoint": "0x20E58fC5E1ee3C596fb3ebD6de6040e7800e82E6",
     "WMATIC": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270"
   },
+  "Pools": [
+    {
+      "name": "PLP",
+      "address": "",
+      "config": "0x046E067104249e031339a659BC2BA37B460F77db",
+      "math": "0x28706a8A160b7C5f547997bC9f8672059FD3BF5B",
+      "oracle": "0x7d259B6a09aad1d94f49fB1cbEB825C4E8854bbc"
+    }
+  ],
   "Vester": "0xD248b7B02E95189Ab23E821E79f3dEB033388E74",
   "Staking": {
     "Compounder": "0x0aA6DD7D094F1773fD7D91427232bA178F6fb955",
