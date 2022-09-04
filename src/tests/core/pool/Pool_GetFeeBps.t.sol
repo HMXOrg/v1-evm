@@ -52,7 +52,7 @@ contract Pool_GetFeeBpsTest is Pool_BaseTest {
     // = 29700 * 10000 / 10000
     // = 29700
     assertEq(pool.usdDebtOf(address(matic)), 29700);
-    assertEq(pool.getTargetValue(address(matic)), 29700);
+    assertEq(pool.poolMath().getTargetValue(pool, address(matic)), 29700);
 
     // MATIC's USD value is 29700, and the target value is 29700
     // Assuming:
@@ -129,8 +129,8 @@ contract Pool_GetFeeBpsTest is Pool_BaseTest {
     // 2. Pool's DAI target value should be:
     // = 29700 * 10000 / 20000
     // = 14850
-    assertEq(pool.getTargetValue(address(matic)), 14850);
-    assertEq(pool.getTargetValue(address(dai)), 14850);
+    assertEq(pool.poolMath().getTargetValue(pool, address(matic)), 14850);
+    assertEq(pool.poolMath().getTargetValue(pool, address(dai)), 14850);
 
     // MATIC's USD value is 29700, and the target value is 14850
     // Assuming:
@@ -192,8 +192,8 @@ contract Pool_GetFeeBpsTest is Pool_BaseTest {
     pool.addLiquidity(address(this), address(dai), address(this));
 
     // Assert target value.
-    assertEq(pool.getTargetValue(address(matic)), 24850);
-    assertEq(pool.getTargetValue(address(dai)), 24850);
+    assertEq(pool.poolMath().getTargetValue(pool, address(matic)), 24850);
+    assertEq(pool.poolMath().getTargetValue(pool, address(dai)), 24850);
 
     // Adjust MATIC's token weight
     tokens[0] = address(matic);
@@ -211,8 +211,8 @@ contract Pool_GetFeeBpsTest is Pool_BaseTest {
     poolConfig.setTokenConfigs(tokens, tokenConfigs);
 
     // Assert target value
-    assertEq(pool.getTargetValue(address(matic)), 37275);
-    assertEq(pool.getTargetValue(address(dai)), 12425);
+    assertEq(pool.poolMath().getTargetValue(pool, address(matic)), 37275);
+    assertEq(pool.poolMath().getTargetValue(pool, address(dai)), 12425);
 
     // Assert MATIC's USD debt should be the same
     assertEq(pool.usdDebtOf(address(matic)), 29700);
@@ -272,8 +272,8 @@ contract Pool_GetFeeBpsTest is Pool_BaseTest {
 
     // Assert USD debt and target value
     assertEq(pool.usdDebtOf(address(matic)), 89100);
-    assertEq(pool.getTargetValue(address(matic)), 36366);
-    assertEq(pool.getTargetValue(address(dai)), 72733);
+    assertEq(pool.poolMath().getTargetValue(pool, address(matic)), 36366);
+    assertEq(pool.poolMath().getTargetValue(pool, address(dai)), 72733);
 
     // MATIC's USD value is 89100, and the target value is 36366
     // Add more MATIC to the pool, high fee

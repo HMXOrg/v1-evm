@@ -112,7 +112,7 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
   }
 
   function testCorrectness_WhenLong_WhenProfitable() external {
-    // Initialized price feeds
+    // Initialized price
     daiPriceFeed.setLatestAnswer(1 * 10**8);
     wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
     maticPriceFeed.setLatestAnswer(300 * 10**8);
@@ -285,7 +285,8 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
 
     // Assert position leverage
     assertEq(
-      pool.getPositionLeverage(
+      pool.poolMath().getPositionLeverage(
+        pool,
         ALICE,
         0,
         address(wbtc),
@@ -324,7 +325,8 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
     assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 103.917746 * 10**18);
     assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 107.058666 * 10**18);
     assertEq(
-      pool.getPositionLeverage(
+      pool.poolMath().getPositionLeverage(
+        pool,
         ALICE,
         0,
         address(wbtc),
@@ -1207,7 +1209,8 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
 
     // Assert position's leverage
     assertEq(
-      pool.getPositionLeverage(
+      pool.poolMath().getPositionLeverage(
+        pool,
         address(this),
         0,
         address(dai),
@@ -1289,7 +1292,8 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
     assertEq(dai.balanceOf(BOB), 52.94875 * 10**18);
 
     assertEq(
-      pool.getPositionLeverage(
+      pool.poolMath().getPositionLeverage(
+        pool,
         address(this),
         0,
         address(dai),
@@ -1415,7 +1419,8 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
 
     // Assert position leverage
     assertEq(
-      pool.getPositionLeverage(
+      pool.poolMath().getPositionLeverage(
+        pool,
         address(this),
         0,
         address(dai),
@@ -1639,7 +1644,8 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
 
     // Assert position's leverage
     assertEq(
-      pool.getPositionLeverage(
+      pool.poolMath().getPositionLeverage(
+        pool,
         address(this),
         0,
         address(dai),
@@ -1813,7 +1819,8 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
 
     // Assert position's leverage
     assertEq(
-      pool.getPositionLeverage(
+      pool.poolMath().getPositionLeverage(
+        pool,
         address(this),
         0,
         address(dai),

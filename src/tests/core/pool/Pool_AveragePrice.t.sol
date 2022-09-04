@@ -111,7 +111,8 @@ contract Pool_AveragePriceTest is Pool_BaseTest {
 
     // Assert position's leverage
     assertEq(
-      pool.getPositionLeverage(
+      pool.poolMath().getPositionLeverage(
+        pool,
         address(this),
         0,
         address(wbtc),
@@ -201,7 +202,8 @@ contract Pool_AveragePriceTest is Pool_BaseTest {
 
     // Assert position's leverage
     assertEq(
-      pool.getPositionLeverage(
+      pool.poolMath().getPositionLeverage(
+        pool,
         address(this),
         0,
         address(wbtc),
@@ -346,7 +348,8 @@ contract Pool_AveragePriceTest is Pool_BaseTest {
 
     // Assert position's leverage
     assertEq(
-      pool.getPositionLeverage(
+      pool.poolMath().getPositionLeverage(
+        pool,
         address(this),
         0,
         address(wbtc),
@@ -436,7 +439,8 @@ contract Pool_AveragePriceTest is Pool_BaseTest {
 
     // Assert position's leverage
     assertEq(
-      pool.getPositionLeverage(
+      pool.poolMath().getPositionLeverage(
+        pool,
         address(this),
         0,
         address(wbtc),
@@ -598,7 +602,8 @@ contract Pool_AveragePriceTest is Pool_BaseTest {
 
     // Assert position's leverage
     assertEq(
-      pool.getPositionLeverage(
+      pool.poolMath().getPositionLeverage(
+        pool,
         address(this),
         0,
         address(wbtc),
@@ -690,7 +695,8 @@ contract Pool_AveragePriceTest is Pool_BaseTest {
 
     // Assert position's leverage
     assertEq(
-      pool.getPositionLeverage(
+      pool.poolMath().getPositionLeverage(
+        pool,
         address(this),
         0,
         address(wbtc),
