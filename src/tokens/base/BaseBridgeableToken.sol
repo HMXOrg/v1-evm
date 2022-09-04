@@ -1,21 +1,31 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.14;
 
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { IBridgeStrategy } from "../../interfaces/IBridgeStrategy.sol";
 import { BaseMintableToken } from "./BaseMintableToken.sol";
 
 contract BaseBridgeableToken is BaseMintableToken {
   mapping(address => bool) public bridgeStrategies;
+  bool public isBurnAndMint;
+  mapping(address => bool) isBridge;
 
   error BaseBridgeableToken_BadStrategy();
+  error BaseBridgeableToken_BadBridge();
 
   constructor(
-    string memory name,
-    string memory symbol,
-    uint8 __decimals
-  ) BaseMintableToken(name, symbol, __decimals) {}
+    string memory name_,
+    string memory symbol_,
+    uint8 __decimals,
+    uint256 maxSupply_,
+    bool isBurnAndMint_
+  ) BaseMintableToken(name_, symbol_, __decimals, maxSupply_) {
+    isBurnAndMint = isBurnAndMint_;
+  }
+
+  modifier onlyBridge() {
+    if (!isBridge[msg.sender]) revert BaseBridgeableToken_BadBridge();
+    _;
+  }
 
   function bridgeToken(
     uint256 destinationChainId,
@@ -29,7 +39,8 @@ contract BaseBridgeableToken is BaseMintableToken {
       revert BaseBridgeableToken_BadStrategy();
 
     // Burn token from user
-    _burn(msg.sender, amount);
+    if (isBurnAndMint) _burn(msg.sender, amount);
+    else _transfer(msg.sender, address(this), amount);
 
     // Execute bridge strategy
     IBridgeStrategy(bridgeStrategy).execute(
@@ -39,5 +50,24 @@ contract BaseBridgeableToken is BaseMintableToken {
       amount,
       payload
     );
+  }
+
+  function setBridgeStrategy(address strategy_, bool active_)
+    external
+    onlyOwner
+  {
+    bridgeStrategies[strategy_] = active_;
+  }
+
+  function setBridge(address bridge_, bool active_) external onlyOwner {
+    isBridge[bridge_] = active_;
+  }
+
+  function mintFromBridge(address to_, uint256 amount_) public onlyBridge {
+    if (!isBurnAndMint) {
+      _transfer(address(this), to_, amount_);
+    } else {
+      _mint(to_, amount_);
+    }
   }
 }

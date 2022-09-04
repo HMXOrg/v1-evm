@@ -8,7 +8,9 @@ contract DragonPoint is BaseMintableToken {
 
   error DragonPoint_isNotTransferrer();
 
-  constructor() BaseMintableToken("Dragon Point", "DP", 18) {}
+  constructor()
+    BaseMintableToken("Dragon Point", "DP", 18, type(uint256).max)
+  {}
 
   function setTransferrer(address transferrer, bool isActive) external {
     isTransferrer[transferrer] = isActive;

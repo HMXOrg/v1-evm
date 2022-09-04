@@ -1,14 +1,48 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.14;
 
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { IBridgeStrategy } from "../../interfaces/IBridgeStrategy.sol";
 import { ILayerZeroEndpoint } from "../../interfaces/ILayerZeroEndpoint.sol";
 
-contract LZBridgeStrategy is IBridgeStrategy {
-  error LZBridgeStrategy_UnknownChainId();
+contract LZBridgeStrategy is IBridgeStrategy, Ownable {
+  event SetDestinationTokenContracts(
+    uint256[] destChainIds,
+    address[] tokenContracts
+  );
+  event Execute(
+    address caller,
+    uint256 destinationChainId,
+    address tokenRecipient,
+    uint256 amount,
+    bytes _payload
+  );
 
-  ILayerZeroEndpoint public lzEndpoint;
+  error LZBridgeStrategy_UnknownChainId();
+  error LZBridgeStrategy_LengthMismatch();
+
+  ILayerZeroEndpoint public immutable lzEndpoint;
   mapping(uint256 => address) destinationTokenContracts;
+
+  constructor(address lzEndpoint_) {
+    lzEndpoint = ILayerZeroEndpoint(lzEndpoint_);
+  }
+
+  function setDestinationTokenContracts(
+    uint256[] calldata destChainIds,
+    address[] calldata destContracts
+  ) external onlyOwner {
+    if (destChainIds.length != destContracts.length)
+      revert LZBridgeStrategy_LengthMismatch();
+
+    for (uint256 i = 0; i < destChainIds.length; ) {
+      destinationTokenContracts[destChainIds[i]] = destContracts[i];
+      unchecked {
+        i++;
+      }
+    }
+    emit SetDestinationTokenContracts(destChainIds, destContracts);
+  }
 
   function execute(
     address caller,
@@ -33,5 +67,7 @@ contract LZBridgeStrategy is IBridgeStrategy {
       address(0),
       abi.encode(0)
     );
+
+    emit Execute(caller, destinationChainId, tokenRecipient, amount, _payload);
   }
 }

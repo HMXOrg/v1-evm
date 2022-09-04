@@ -156,7 +156,7 @@ contract BaseTest is DSTest, CoreConstants {
   }
 
   function deployP88() internal returns (P88) {
-    return new P88();
+    return new P88(true);
   }
 
   function deployEsP88() internal returns (EsP88) {
