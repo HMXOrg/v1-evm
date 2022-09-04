@@ -7,8 +7,16 @@ import { LinkedList } from "../libraries/LinkedList.sol";
 contract PoolConfig is OwnableUpgradeable {
   using LinkedList for LinkedList.List;
 
-  error PoolConfig_BadArguments();
+  error PoolConfig_BadArgument();
 
+  // ---------
+  // Constants
+  // ---------
+  uint256 public constant MAX_LIQUIDATION_FEE_USD = 100 * 10**30;
+
+  // --------------------
+  // Token Configurations
+  // --------------------
   struct TokenConfig {
     bool accept;
     bool isStable;
@@ -18,10 +26,21 @@ contract PoolConfig is OwnableUpgradeable {
     uint64 minProfitBps;
     uint256 usdDebtCeiling;
     uint256 shortCeiling;
+    uint256 bufferLiquidity;
   }
   LinkedList.List public allowTokens;
   mapping(address => TokenConfig) public tokenMetas;
   uint256 public totalTokenWeight;
+
+  uint256 public maxLeverage;
+
+  // --------------------------
+  // Liquidation configurations
+  // --------------------------
+  /// @notice liquidation fee in USD with 1e30 precision
+  uint256 public liquidationFeeUsd;
+  bool public isAllowAllLiquidators;
+  mapping(address => bool) public allowLiquidators;
 
   // ---------------------------
   // Funding rate configurations
@@ -30,27 +49,53 @@ contract PoolConfig is OwnableUpgradeable {
   uint64 public stableFundingRateFactor;
   uint64 public fundingRateFactor;
 
-  // ------------------
-  // Fee configurations
-  // ------------------
+  // ----------------------
+  // Fee bps configurations
+  // ----------------------
   uint64 public mintBurnFeeBps;
   uint64 public taxBps;
+  uint64 public stableTaxBps;
+  uint64 public swapFeeBps;
+  uint64 public stableSwapFeeBps;
+  uint64 public marginFeeBps;
 
   // -----
   // Misc.
   // -----
+  uint64 public minProfitDuration;
   uint64 public liquidityCoolDownDuration;
   bool public isDynamicFeeEnable;
+  bool public isSwapEnable;
+  bool public isLeverageEnable;
+
+  address public router;
 
   event DeleteTokenConfig(address token);
+  event SetIsAllowAllLiquidators(
+    bool prevIsAllowAllLiquidators,
+    bool isAllowAllLiquidators
+  );
   event SetIsDynamicFeeEnable(
     bool prevIsDynamicFeeEnable,
     bool newIsDynamicFeeEnable
   );
+  event SetMaxLeverage(uint256 prevMaxLeverage, uint256 newMaxLeverage);
+  event SetMinProfitDuration(
+    uint64 prevMinProfitDuration,
+    uint64 newMinProfitDuration
+  );
   event SetMintBurnFeeBps(uint256 prevFeeBps, uint256 newFeeBps);
-  event SetFundingInterval(
-    uint256 prevFundingInterval,
-    uint256 newFundingInterval
+  event SetFundingRate(
+    uint64 prevFundingInterval,
+    uint64 newFundingInterval,
+    uint64 prevFundingRateFactor,
+    uint64 newFundingRateFactor,
+    uint64 prevStableFundingRateFactor,
+    uint64 newStableFundingRateFactor
+  );
+  event SetLiquidationFeeUsd(
+    uint256 prevLiquidationFeeUsd,
+    uint256 newLiquidationFeeUsd
   );
   event SetLiquidityCoolDownDuration(
     uint256 prevCoolDownPeriod,
@@ -62,6 +107,12 @@ contract PoolConfig is OwnableUpgradeable {
     TokenConfig prevConfig,
     TokenConfig newConfig
   );
+  event SetIsLeverageEnable(
+    bool prevIsLeverageEnable,
+    bool newIsLeverageEnable
+  );
+  event SetIsSwapEnable(bool prevIsSwapEnable, bool newIsSwapEnable);
+  event SetRouter(address prevRouter, address newRouter);
 
   function initialize(
     uint64 _fundingInterval,
@@ -69,7 +120,8 @@ contract PoolConfig is OwnableUpgradeable {
     uint64 _taxBps,
     uint64 _stableFundingRateFactor,
     uint64 _fundingRateFactor,
-    uint64 _liquidityCoolDownDuration
+    uint64 _liquidityCoolDownDuration,
+    uint256 _liquidationFeeUsd
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
 
@@ -81,7 +133,29 @@ contract PoolConfig is OwnableUpgradeable {
     stableFundingRateFactor = _stableFundingRateFactor;
     fundingRateFactor = _fundingRateFactor;
     liquidityCoolDownDuration = _liquidityCoolDownDuration;
+    maxLeverage = 88 * 10000; // Max leverage at 88x
+
+    // toggle
     isDynamicFeeEnable = false;
+    isSwapEnable = true;
+    isLeverageEnable = true;
+
+    // Fee
+    liquidationFeeUsd = _liquidationFeeUsd;
+    stableSwapFeeBps = 4; // 0.04%
+    swapFeeBps = 30; // 0.3%
+    marginFeeBps = 10; // 0.1%
+  }
+
+  function setIsAllowAllLiquidators(bool _isAllowAllLiquidators)
+    external
+    onlyOwner
+  {
+    emit SetIsAllowAllLiquidators(
+      isAllowAllLiquidators,
+      _isAllowAllLiquidators
+    );
+    isAllowAllLiquidators = _isAllowAllLiquidators;
   }
 
   function setIsDynamicFeeEnable(bool newIsDynamicFeeEnable)
@@ -92,9 +166,43 @@ contract PoolConfig is OwnableUpgradeable {
     isDynamicFeeEnable = newIsDynamicFeeEnable;
   }
 
-  function setFundingInterval(uint64 newFundingInterval) external onlyOwner {
-    emit SetFundingInterval(fundingInterval, newFundingInterval);
+  function setIsLeverageEnable(bool newIsLeverageEnable) external onlyOwner {
+    emit SetIsLeverageEnable(isLeverageEnable, newIsLeverageEnable);
+    isLeverageEnable = newIsLeverageEnable;
+  }
+
+  function setIsSwapEnable(bool newIsSwapEnable) external onlyOwner {
+    emit SetIsSwapEnable(isSwapEnable, newIsSwapEnable);
+    isSwapEnable = newIsSwapEnable;
+  }
+
+  function setFundingRate(
+    uint64 newFundingInterval,
+    uint64 newFundingRateFactor,
+    uint64 newStableFundingRateFactor
+  ) external onlyOwner {
+    emit SetFundingRate(
+      fundingInterval,
+      newFundingInterval,
+      fundingRateFactor,
+      newFundingRateFactor,
+      stableFundingRateFactor,
+      newStableFundingRateFactor
+    );
     fundingInterval = newFundingInterval;
+    fundingRateFactor = newFundingRateFactor;
+    stableFundingRateFactor = newStableFundingRateFactor;
+  }
+
+  function setLiquidationFeeUsd(uint256 newLiquidationFeeUsd)
+    external
+    onlyOwner
+  {
+    if (newLiquidationFeeUsd > MAX_LIQUIDATION_FEE_USD)
+      revert PoolConfig_BadArgument();
+
+    emit SetLiquidationFeeUsd(liquidationFeeUsd, newLiquidationFeeUsd);
+    liquidationFeeUsd = newLiquidationFeeUsd;
   }
 
   function setLiquidityCoolDownDuration(uint64 newLiquidityCoolDownPeriod)
@@ -106,6 +214,19 @@ contract PoolConfig is OwnableUpgradeable {
       newLiquidityCoolDownPeriod
     );
     liquidityCoolDownDuration = newLiquidityCoolDownPeriod;
+  }
+
+  function setMaxLeverage(uint256 newMaxLeverage) external onlyOwner {
+    emit SetMaxLeverage(maxLeverage, newMaxLeverage);
+    maxLeverage = newMaxLeverage;
+  }
+
+  function setMinProfitDuration(uint64 newMinProfitDuration)
+    external
+    onlyOwner
+  {
+    emit SetMinProfitDuration(minProfitDuration, newMinProfitDuration);
+    minProfitDuration = newMinProfitDuration;
   }
 
   function setMintBurnFeeBps(uint64 newMintBurnFeeBps) external onlyOwner {
@@ -122,11 +243,11 @@ contract PoolConfig is OwnableUpgradeable {
     address[] calldata tokens,
     TokenConfig[] calldata configs
   ) external onlyOwner {
-    if (tokens.length != configs.length) revert PoolConfig_BadArguments();
+    if (tokens.length != configs.length) revert PoolConfig_BadArgument();
 
     for (uint256 i = 0; i < tokens.length; ) {
       // Enforce that accept must be true
-      if (!configs[i].accept) revert PoolConfig_BadArguments();
+      if (!configs[i].accept) revert PoolConfig_BadArgument();
 
       // If tokenMetas.accept previously false, then it is a new token to be added.
       if (!tokenMetas[tokens[i]].accept) allowTokens.add(tokens[i]);
@@ -143,6 +264,11 @@ contract PoolConfig is OwnableUpgradeable {
     }
   }
 
+  function setRouter(address newRouter) external onlyOwner {
+    emit SetRouter(router, newRouter);
+    router = newRouter;
+  }
+
   function deleteTokenConfig(address token) external onlyOwner {
     allowTokens.remove(token, allowTokens.getPreviousOf(token));
     delete tokenMetas[token];
@@ -154,8 +280,23 @@ contract PoolConfig is OwnableUpgradeable {
     return tokenMetas[token].accept;
   }
 
+  function isAllowedLiquidators(address liquidator)
+    external
+    view
+    returns (bool)
+  {
+    return
+      isAllowAllLiquidators
+        ? isAllowAllLiquidators
+        : allowLiquidators[liquidator];
+  }
+
   function isStableToken(address token) external view returns (bool) {
     return tokenMetas[token].isStable;
+  }
+
+  function isShortableToken(address token) external view returns (bool) {
+    return tokenMetas[token].isShortable;
   }
 
   function getAllowTokensLength() external view returns (uint256) {
@@ -166,8 +307,16 @@ contract PoolConfig is OwnableUpgradeable {
     return allowTokens.getNextOf(token);
   }
 
+  function tokenBufferLiquidity(address token) external view returns (uint256) {
+    return tokenMetas[token].bufferLiquidity;
+  }
+
   function tokenDecimals(address token) external view returns (uint8) {
     return tokenMetas[token].decimals;
+  }
+
+  function tokenMinProfitBps(address token) external view returns (uint256) {
+    return tokenMetas[token].minProfitBps;
   }
 
   function tokenWeight(address token) external view returns (uint256) {
@@ -180,6 +329,13 @@ contract PoolConfig is OwnableUpgradeable {
 
   function tokenShortCeiling(address token) external view returns (uint256) {
     return tokenMetas[token].shortCeiling;
+  }
+
+  function shouldUpdateFundingRate(
+    address, /* collateralToken */
+    address /* indexToken */
+  ) external pure returns (bool) {
+    return true;
   }
 
   /// @custom:oz-upgrades-unsafe-allow constructor

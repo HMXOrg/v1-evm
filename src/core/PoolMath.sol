@@ -5,9 +5,15 @@ import { Pool } from "./Pool.sol";
 import { Constants } from "./Constants.sol";
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
 import { console } from "../tests/utils/console.sol";
 
 contract PoolMath is Constants {
+  error PoolMath_FeeExceedCollateral();
+  error PoolMath_LiquidationFeeExceedCollateral();
+  error PoolMath_LossesExceedCollateral();
+  error PoolMath_MaxLeverageExceed();
+
   enum LiquidityDirection {
     ADD,
     REMOVE
@@ -83,11 +89,10 @@ contract PoolMath is Constants {
     Pool pool,
     address token,
     uint256 value,
+    uint256 feeBps,
+    uint256 taxBps,
     LiquidityDirection direction
   ) internal view returns (uint256) {
-    uint256 feeBps = pool.config().mintBurnFeeBps();
-    uint256 taxBps = pool.config().taxBps();
-
     if (!pool.config().isDynamicFeeEnable()) return feeBps;
 
     uint256 startValue = pool.usdDebtOf(token);
@@ -95,7 +100,7 @@ contract PoolMath is Constants {
     if (direction == LiquidityDirection.REMOVE)
       nextValue = value > startValue ? 0 : startValue - value;
 
-    uint256 targetValue = pool.targetValue(token);
+    uint256 targetValue = pool.getTargetValue(token);
     if (targetValue == 0) return feeBps;
 
     uint256 startTargetDiff = startValue > targetValue
@@ -127,15 +132,186 @@ contract PoolMath is Constants {
     Pool pool,
     address token,
     uint256 value
-  ) public view returns (uint256) {
-    return getFeeBps(pool, token, value, LiquidityDirection.ADD);
+  ) external view returns (uint256) {
+    return
+      getFeeBps(
+        pool,
+        token,
+        value,
+        pool.config().mintBurnFeeBps(),
+        pool.config().taxBps(),
+        LiquidityDirection.ADD
+      );
   }
 
   function getRemoveLiquidityFeeBps(
     Pool pool,
     address token,
     uint256 value
+  ) external view returns (uint256) {
+    return
+      getFeeBps(
+        pool,
+        token,
+        value,
+        pool.config().mintBurnFeeBps(),
+        pool.config().taxBps(),
+        LiquidityDirection.REMOVE
+      );
+  }
+
+  function getSwapFeeBps(
+    Pool pool,
+    address tokenIn,
+    address tokenOut,
+    uint256 usdDebt
+  ) external view returns (uint256) {
+    bool isStableSwap = pool.config().isStableToken(tokenIn) &&
+      pool.config().isStableToken(tokenOut);
+    uint64 baseFeeBps = isStableSwap
+      ? pool.config().stableSwapFeeBps()
+      : pool.config().swapFeeBps();
+    uint64 taxBps = isStableSwap
+      ? pool.config().stableTaxBps()
+      : pool.config().taxBps();
+    uint256 feeBpsIn = getFeeBps(
+      pool,
+      tokenIn,
+      usdDebt,
+      baseFeeBps,
+      taxBps,
+      LiquidityDirection.ADD
+    );
+    uint256 feeBpsOut = getFeeBps(
+      pool,
+      tokenOut,
+      usdDebt,
+      baseFeeBps,
+      taxBps,
+      LiquidityDirection.REMOVE
+    );
+
+    // Return the highest feeBps.
+    return feeBpsIn > feeBpsOut ? feeBpsIn : feeBpsOut;
+  }
+
+  // ---------------
+  // Margin Fee Math
+  // ---------------
+
+  function getEntryFundingRate(
+    Pool pool,
+    address collateralToken,
+    address, /* indexToken */
+    Exposure /* exposure */
+  ) external view returns (uint256) {
+    return pool.sumFundingRateOf(collateralToken);
+  }
+
+  function getFundingFee(
+    Pool pool,
+    address, /* account */
+    address collateralToken,
+    address, /* indexToken */
+    Exposure, /* exposure */
+    uint256 size,
+    uint256 entryFundingRate
   ) public view returns (uint256) {
-    return getFeeBps(pool, token, value, LiquidityDirection.REMOVE);
+    if (size == 0) return 0;
+
+    uint256 fundingRate = pool.sumFundingRateOf(collateralToken) -
+      entryFundingRate;
+    if (fundingRate == 0) return 0;
+
+    return (size * fundingRate) / FUNDING_RATE_PRECISION;
+  }
+
+  function getPositionFee(
+    Pool pool,
+    address, /* account */
+    address, /* collateralToken */
+    address, /* indexToken */
+    Exposure, /* exposure */
+    uint256 sizeDelta
+  ) public view returns (uint256) {
+    if (sizeDelta == 0) return 0;
+    uint256 afterFeeUsd = (sizeDelta * (BPS - pool.config().marginFeeBps())) /
+      BPS;
+    return sizeDelta - afterFeeUsd;
+  }
+
+  // ----------------
+  // Liquidation Math
+  // ----------------
+  function checkLiquidation(
+    Pool pool,
+    address account,
+    address collateralToken,
+    address indexToken,
+    Exposure exposure,
+    bool isRevertOnError
+  ) external view returns (LiquidationState, uint256) {
+    Pool.GetPositionReturnVars memory position = pool.getPosition(
+      account,
+      collateralToken,
+      indexToken,
+      exposure
+    );
+
+    (bool isProfit, uint256 delta) = pool.getDelta(
+      indexToken,
+      position.size,
+      position.averagePrice,
+      exposure,
+      position.lastIncreasedTime
+    );
+    uint256 marginFee = getFundingFee(
+      pool,
+      account,
+      collateralToken,
+      indexToken,
+      exposure,
+      position.size,
+      position.entryFundingRate
+    );
+    marginFee += getPositionFee(
+      pool,
+      account,
+      collateralToken,
+      indexToken,
+      exposure,
+      position.size
+    );
+
+    if (!isProfit && position.collateral < delta) {
+      if (isRevertOnError) revert PoolMath_LossesExceedCollateral();
+      return (LiquidationState.LIQUIDATE, marginFee);
+    }
+
+    uint256 remainingCollateral = position.collateral;
+    if (!isProfit) {
+      remainingCollateral -= delta;
+    }
+
+    if (remainingCollateral < marginFee) {
+      if (isRevertOnError) revert PoolMath_FeeExceedCollateral();
+      // Cap the fee to the remainingCollateral.
+      return (LiquidationState.LIQUIDATE, remainingCollateral);
+    }
+
+    if (remainingCollateral < marginFee + pool.config().liquidationFeeUsd()) {
+      if (isRevertOnError) revert PoolMath_LiquidationFeeExceedCollateral();
+      // Cap the fee to the margin fee
+      return (LiquidationState.LIQUIDATE, marginFee);
+    }
+
+    if (
+      remainingCollateral * pool.config().maxLeverage() < position.size * BPS
+    ) {
+      if (isRevertOnError) revert PoolMath_MaxLeverageExceed();
+      return (LiquidationState.SOFT_LIQUIDATE, marginFee);
+    }
+
+    return (LiquidationState.HEALTHY, marginFee);
   }
 }

@@ -6,8 +6,6 @@ import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { ChainlinkPriceFeedInterface } from "../interfaces/ChainLinkPriceFeedInterface.sol";
 import { Constants } from "./Constants.sol";
 
-import { console } from "../tests/utils/console.sol";
-
 contract PoolOracle is Constants, OwnableUpgradeable {
   using SafeCast for int256;
 
@@ -110,6 +108,14 @@ contract PoolOracle is Constants, OwnableUpgradeable {
       return (price * (BPS + priceFeed.spreadBps)) / BPS;
 
     return (price * (BPS - priceFeed.spreadBps)) / BPS;
+  }
+
+  function getPrice(address token, MinMax minOrMax)
+    external
+    view
+    returns (uint256)
+  {
+    return _getPrice(token, minOrMax);
   }
 
   function getMaxPrice(address token) external view returns (uint256) {
