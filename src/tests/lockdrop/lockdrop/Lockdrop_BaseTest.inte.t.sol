@@ -57,7 +57,8 @@ abstract contract Lockdrop_BaseTest is BaseTest {
         taxBps: 50,
         stableFundingRateFactor: 600,
         fundingRateFactor: 600,
-        liquidityCoolDownPeriod: 1 days
+        liquidityCoolDownPeriod: 1 days,
+        liquidationFeeUsd: 0
       });
 
     (poolOracle, poolConfig, poolMath, pool) = deployFullPool(poolConfigParams);
@@ -83,7 +84,8 @@ abstract contract Lockdrop_BaseTest is BaseTest {
       weight: 10000,
       minProfitBps: 75,
       usdDebtCeiling: 0,
-      shortCeiling: 0
+      shortCeiling: 0,
+      bufferLiquidity: 0
     });
 
     poolConfig.setTokenConfigs(poolTokens, poolTokenConfigs);

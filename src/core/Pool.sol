@@ -9,11 +9,10 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import { Constants } from "./Constants.sol";
-import { IPool } from "../interfaces/IPool.sol";
 
 import { console } from "../tests/utils/console.sol";
 
-contract Pool is IPool, Constants, ReentrancyGuardUpgradeable {
+contract Pool is Constants, ReentrancyGuardUpgradeable {
   using SafeERC20 for IERC20;
 
   error Pool_BadAmountOut();
