@@ -2,7 +2,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
 
-const startLockTimestamp = 0;
+const startLockTimestamp = 1662346800;
 const plpStaking = "0x7AAF085e43f059105F7e1ECc525E8142fF962159";
 const plpToken = "0xc88322Ec9526A7A98B7F58ff773b3B003C91ce71";
 const p88Token = "0xB853c09b6d03098b841300daD57701ABcFA80228";
