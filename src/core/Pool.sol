@@ -5,15 +5,13 @@ import { PoolConfig } from "./PoolConfig.sol";
 import { PoolMath } from "./PoolMath.sol";
 import { PoolOracle } from "./PoolOracle.sol";
 import { MintableTokenInterface } from "../interfaces/MintableTokenInterface.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import { SafeERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import { Constants } from "./Constants.sol";
 
-import { console } from "../tests/utils/console.sol";
-
 contract Pool is Constants, ReentrancyGuardUpgradeable {
-  using SafeERC20 for IERC20;
+  using SafeERC20Upgradeable for IERC20Upgradeable;
 
   error Pool_BadAmountOut();
   error Pool_BadArgument();
@@ -1340,7 +1338,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
 
   function _increasePoolLiquidity(address token, uint256 amount) internal {
     liquidityOf[token] += amount;
-    if (IERC20(token).balanceOf(address(this)) < liquidityOf[token])
+    if (IERC20Upgradeable(token).balanceOf(address(this)) < liquidityOf[token])
       revert Pool_LiquidityMismatch();
     emit IncreasePoolLiquidity(token, amount);
   }
@@ -1629,7 +1627,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
 
   function _pullTokens(address token) internal returns (uint256) {
     uint256 prevBalance = totalOf[token];
-    uint256 nextBalance = IERC20(token).balanceOf(address(this));
+    uint256 nextBalance = IERC20Upgradeable(token).balanceOf(address(this));
 
     totalOf[token] = nextBalance;
 
@@ -1641,8 +1639,8 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
     address to,
     uint256 amount
   ) internal {
-    IERC20(token).safeTransfer(to, amount);
-    totalOf[token] = IERC20(token).balanceOf(address(this));
+    IERC20Upgradeable(token).safeTransfer(to, amount);
+    totalOf[token] = IERC20Upgradeable(token).balanceOf(address(this));
   }
 
   /// @custom:oz-upgrades-unsafe-allow constructor
