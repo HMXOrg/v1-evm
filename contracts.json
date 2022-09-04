@@ -10,10 +10,10 @@
   "Pools": [
     {
       "name": "PLP",
-      "address": "",
-      "config": "0x046E067104249e031339a659BC2BA37B460F77db",
-      "math": "0x28706a8A160b7C5f547997bC9f8672059FD3BF5B",
-      "oracle": "0x7d259B6a09aad1d94f49fB1cbEB825C4E8854bbc"
+      "address": "0x48481A7172C83F1F78d84F943e388351068D3b23",
+      "config": "0x23628f0C68b3B77Ec2F5Cb3eeB480099c41c2cea",
+      "math": "0xad7dD51c21Ef3cD9dB66c0A78D3C1D99c94D5bAC",
+      "oracle": "0x5337672c258E5D7AFabe3104EA330C4CB2c6e44f"
     }
   ],
   "Vester": "0xD248b7B02E95189Ab23E821E79f3dEB033388E74",
