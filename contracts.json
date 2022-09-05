@@ -1,5 +1,5 @@
 {
-  "commit": "ddbd64e9435dc0a9cec3c925d48b4234e1b9e1df",
+  "commit": "ecfd7f896944a444e83bcc98479c0c4e4139a801",
   "Tokens": {
     "P88": "0xB853c09b6d03098b841300daD57701ABcFA80228",
     "esP88": "0xEB27B05178515c7E6E51dEE159c8487A011ac030",
@@ -7,6 +7,15 @@
     "DragonPoint": "0x20E58fC5E1ee3C596fb3ebD6de6040e7800e82E6",
     "WMATIC": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270"
   },
+  "Pools": [
+    {
+      "name": "PLP",
+      "address": "0x2f6d48e937704fD74454070C07F24F3E0d831F90",
+      "config": "0x3760f978AcE668209E415c0576a4d4f064850226",
+      "math": "0x741Cb3a65312ebf2312150010c2FD71013eFc6C5",
+      "oracle": "0x832a59773e7a0896cF348C5EA72670D7CD37572D"
+    }
+  ],
   "Vester": "0xD248b7B02E95189Ab23E821E79f3dEB033388E74",
   "Staking": {
     "Compounder": "0x0aA6DD7D094F1773fD7D91427232bA178F6fb955",

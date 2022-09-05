@@ -7,7 +7,8 @@ const roundDepth = 3;
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
   const PoolOracle = await ethers.getContractFactory("PoolOracle", deployer);
-  const poolOracle = await upgrades.deployProxy(PoolOracle, [roundDepth]);
+  // const poolOracle = await upgrades.deployProxy(PoolOracle, [roundDepth]);
+  const poolOracle = await PoolOracle.deploy(roundDepth);
   await poolOracle.deployed();
   console.log(`Deploying PoolOracle Contract`);
   console.log(`Deployed at: ${poolOracle.address}`);
