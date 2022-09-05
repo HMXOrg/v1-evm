@@ -1,0 +1,724 @@
+{
+  "manifestVersion": "3.2",
+  "admin": {
+    "address": "0xE0F6A9D50420e4415D4d378b2976685Dc7c6a9b3",
+    "txHash": "0x296b9aee8f2f6f5f23f8054e0af39796ecc12e43e514af819e8c4f7defc0698a"
+  },
+  "proxies": [
+    {
+      "address": "0x01F488b7446A4d96424a0DAC097C3aFEf9BaF626",
+      "txHash": "0x4a387ab4bbfe86b83273266de048db21a527f2869a28423547f7c06623f53423",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xf1A5509BaC7FeD77647507B4840003608CFAb025",
+      "txHash": "0x8adff5b08aec68b30f51f0a5c5f2cabd3c3476035f68b774612a89fcc65b5752",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xfdae5977d844F3eA33B1d7c5cC947F6D110A4CD2",
+      "txHash": "0xf081fcf0f3a09b92b128baf5c336bf977bbd1945cdf9f63df6682912f5ce987d",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x6199752F181dC74fCf887F9F0f7B7B6Eb26D5A7B",
+      "txHash": "0x954fd8931d2d6d5e880de57f1928ca932779b6a94cf515c95dd96cdfed3e2305",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x69F493e47C2793AbA58AbC5c1aaaA1d6DB60b608",
+      "txHash": "0x1d96cae4557382311c7a8061562acec2e12d82b3fe3c7bd95205a4ff184eb3d1",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x66B7b19E1A8D2DdED0566ce386c9bCEB7F4177ec",
+      "txHash": "0x3810433b5d114d7aa799b3662042265787abf336787a75a1725ec11d2fd04682",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xC44b8fb84B61AcEa1D46665999f4b0543AA1aF3B",
+      "txHash": "0x8062cbd09d3fcbc8c0aeae6c5bf85b9efd19dd70b53ef26c0fb3c4c7a0acb17e",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x176d0A1EBCBa7863a3AF7db989dedA867e587adf",
+      "txHash": "0xee8ea7f4c2d2cea1ff83734dc9935fe57fd10df2e726fea01a4163fa76779358",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x563960B166266b2bbaaC4561491603101C9Fa676",
+      "txHash": "0xe4e7b0a47a47093338da0e1c03dd79e35cd4f373d439e5aa0f56a0696acfacb0",
+      "kind": "transparent"
+    }
+  ],
+  "impls": {
+    "72c0d5b2a5b6a221a08ad7a97d508a166f1245b33009661b69d1e5b9e7534c7b": {
+      "address": "0x54d7818274E4F0E7ef222884c10E852F7cc14276",
+      "txHash": "0x1b3e5144c29785b063048b80a83c56c6c89bd2122722607991400dbadc650bd9",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "plpToken",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_contract(IERC20Upgradeable)419",
+            "contract": "LockdropGateway",
+            "src": "src/lockdrop/LockdropGateway.sol:38"
+          },
+          {
+            "label": "plpStaking",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_contract(IStaking)21869",
+            "contract": "LockdropGateway",
+            "src": "src/lockdrop/LockdropGateway.sol:39"
+          },
+          {
+            "label": "mapTokenLockdropInfo",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_mapping(t_address,t_struct(LockdropInfo)16690_storage)",
+            "contract": "LockdropGateway",
+            "src": "src/lockdrop/LockdropGateway.sol:40"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes_storage": {
+            "label": "bytes",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IERC20Upgradeable)419": {
+            "label": "contract IERC20Upgradeable",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IStaking)21869": {
+            "label": "contract IStaking",
+            "numberOfBytes": "20"
+          },
+          "t_enum(TokenType)16682": {
+            "label": "enum LockdropGateway.TokenType",
+            "members": [
+              "UninitializedToken",
+              "BaseToken",
+              "AToken",
+              "LpPairToken",
+              "CurveV3Token",
+              "CurveV5Token"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_address,t_struct(LockdropInfo)16690_storage)": {
+            "label": "mapping(address => struct LockdropGateway.LockdropInfo)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(LockdropInfo)16690_storage": {
+            "label": "struct LockdropGateway.LockdropInfo",
+            "members": [
+              {
+                "label": "tokenInType",
+                "type": "t_enum(TokenType)16682",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "lockdrop",
+                "type": "t_address",
+                "offset": 1,
+                "slot": "0"
+              },
+              {
+                "label": "metadata",
+                "type": "t_bytes_storage",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "627fc52d49bf51a52abd0fc474ac786b99cef023a9dd23d4335ea1b516931df6": {
+      "address": "0x22eF364C9e06f934d6F5334bc6faC2321De2Ac1b",
+      "txHash": "0x4b51d06c419a4bae25cba1276b40f34e081992d7a9b195bcaa310fef31544695",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "_status",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_uint256",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "label": "esp88Token",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_address",
+            "contract": "LockdropCompounder",
+            "src": "src/lockdrop/LockdropCompounder.sol:23"
+          },
+          {
+            "label": "dragonStaking",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_address",
+            "contract": "LockdropCompounder",
+            "src": "src/lockdrop/LockdropCompounder.sol:24"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "68d029e9f2bcd9766729e661801859dfd5d0051ce0ad2b4fe20f469c79fefe79": {
+      "address": "0xC138582ed381480856712A9607aB5537a2D5ee11",
+      "txHash": "0xa4a6ecb66a8bddf4e5077ad7b8f60b1717a78bfc9e2ae332cebe0845cb801828",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "plpStaking",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_contract(IStaking)21869",
+            "contract": "LockdropConfig",
+            "src": "src/lockdrop/LockdropConfig.sol:19"
+          },
+          {
+            "label": "p88Token",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_contract(IERC20Upgradeable)419",
+            "contract": "LockdropConfig",
+            "src": "src/lockdrop/LockdropConfig.sol:20"
+          },
+          {
+            "label": "plpToken",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_contract(IERC20Upgradeable)419",
+            "contract": "LockdropConfig",
+            "src": "src/lockdrop/LockdropConfig.sol:21"
+          },
+          {
+            "label": "gatewayAddress",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_address",
+            "contract": "LockdropConfig",
+            "src": "src/lockdrop/LockdropConfig.sol:22"
+          },
+          {
+            "label": "lockdropCompounderAddress",
+            "offset": 0,
+            "slot": "105",
+            "type": "t_address",
+            "contract": "LockdropConfig",
+            "src": "src/lockdrop/LockdropConfig.sol:23"
+          },
+          {
+            "label": "startLockTimestamp",
+            "offset": 0,
+            "slot": "106",
+            "type": "t_uint256",
+            "contract": "LockdropConfig",
+            "src": "src/lockdrop/LockdropConfig.sol:24"
+          },
+          {
+            "label": "endLockTimestamp",
+            "offset": 0,
+            "slot": "107",
+            "type": "t_uint256",
+            "contract": "LockdropConfig",
+            "src": "src/lockdrop/LockdropConfig.sol:25"
+          },
+          {
+            "label": "startDecayingWithdrawalTimestamp",
+            "offset": 0,
+            "slot": "108",
+            "type": "t_uint256",
+            "contract": "LockdropConfig",
+            "src": "src/lockdrop/LockdropConfig.sol:26"
+          },
+          {
+            "label": "startRestrictedWithdrawalTimestamp",
+            "offset": 0,
+            "slot": "109",
+            "type": "t_uint256",
+            "contract": "LockdropConfig",
+            "src": "src/lockdrop/LockdropConfig.sol:27"
+          },
+          {
+            "label": "decayStartPercentage",
+            "offset": 0,
+            "slot": "110",
+            "type": "t_uint256",
+            "contract": "LockdropConfig",
+            "src": "src/lockdrop/LockdropConfig.sol:28"
+          },
+          {
+            "label": "startTimeDecay",
+            "offset": 0,
+            "slot": "111",
+            "type": "t_uint256",
+            "contract": "LockdropConfig",
+            "src": "src/lockdrop/LockdropConfig.sol:29"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IERC20Upgradeable)419": {
+            "label": "contract IERC20Upgradeable",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IStaking)21869": {
+            "label": "contract IStaking",
+            "numberOfBytes": "20"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "a1e95813734e9c76c991388dccfb9dd56dc423beea543394e177f247924482f8": {
+      "address": "0xF15b286430987c2AD302e974C33AB99c68787b86",
+      "txHash": "0x79d074115d7e6c5139c68aba89032f242dd994e560b80f30c67ebd6c42b3620b",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "_status",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:74"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "lockdropToken",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_contract(IERC20Upgradeable)419",
+            "contract": "Lockdrop",
+            "src": "src/lockdrop/Lockdrop.sol:68"
+          },
+          {
+            "label": "lockdropConfig",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_contract(LockdropConfig)16637",
+            "contract": "Lockdrop",
+            "src": "src/lockdrop/Lockdrop.sol:69"
+          },
+          {
+            "label": "pool",
+            "offset": 0,
+            "slot": "153",
+            "type": "t_contract(IPool)14329",
+            "contract": "Lockdrop",
+            "src": "src/lockdrop/Lockdrop.sol:70"
+          },
+          {
+            "label": "totalAmount",
+            "offset": 0,
+            "slot": "154",
+            "type": "t_uint256",
+            "contract": "Lockdrop",
+            "src": "src/lockdrop/Lockdrop.sol:71"
+          },
+          {
+            "label": "totalP88Weight",
+            "offset": 0,
+            "slot": "155",
+            "type": "t_uint256",
+            "contract": "Lockdrop",
+            "src": "src/lockdrop/Lockdrop.sol:72"
+          },
+          {
+            "label": "totalP88",
+            "offset": 0,
+            "slot": "156",
+            "type": "t_uint256",
+            "contract": "Lockdrop",
+            "src": "src/lockdrop/Lockdrop.sol:73"
+          },
+          {
+            "label": "totalPLPAmount",
+            "offset": 0,
+            "slot": "157",
+            "type": "t_uint256",
+            "contract": "Lockdrop",
+            "src": "src/lockdrop/Lockdrop.sol:74"
+          },
+          {
+            "label": "rewardTokens",
+            "offset": 0,
+            "slot": "158",
+            "type": "t_array(t_address)dyn_storage",
+            "contract": "Lockdrop",
+            "src": "src/lockdrop/Lockdrop.sol:75"
+          },
+          {
+            "label": "accRewardPerShares",
+            "offset": 0,
+            "slot": "159",
+            "type": "t_array(t_uint256)dyn_storage",
+            "contract": "Lockdrop",
+            "src": "src/lockdrop/Lockdrop.sol:76"
+          },
+          {
+            "label": "nativeTokenAddress",
+            "offset": 0,
+            "slot": "160",
+            "type": "t_address",
+            "contract": "Lockdrop",
+            "src": "src/lockdrop/Lockdrop.sol:77"
+          },
+          {
+            "label": "lockdropStates",
+            "offset": 0,
+            "slot": "161",
+            "type": "t_mapping(t_address,t_struct(LockdropState)14895_storage)",
+            "contract": "Lockdrop",
+            "src": "src/lockdrop/Lockdrop.sol:79"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_array(t_uint256)dyn_storage": {
+            "label": "uint256[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(IERC20Upgradeable)419": {
+            "label": "contract IERC20Upgradeable",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IPool)14329": {
+            "label": "contract IPool",
+            "numberOfBytes": "20"
+          },
+          "t_contract(LockdropConfig)16637": {
+            "label": "contract LockdropConfig",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_struct(LockdropState)14895_storage)": {
+            "label": "mapping(address => struct Lockdrop.LockdropState)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(LockdropState)14895_storage": {
+            "label": "struct Lockdrop.LockdropState",
+            "members": [
+              {
+                "label": "lockdropTokenAmount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "lockPeriod",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "userRewardDebts",
+                "type": "t_array(t_uint256)dyn_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "p88Claimed",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "restrictedWithdrawn",
+                "type": "t_bool",
+                "offset": 1,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    }
+  }
+}

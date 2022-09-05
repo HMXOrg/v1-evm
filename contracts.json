@@ -62,39 +62,39 @@
     }
   },
   "Lockdrop": {
-    "config": "",
-    "compounder": "",
-    "gateway": "",
+    "config": "0xfdae5977d844F3eA33B1d7c5cC947F6D110A4CD2",
+    "compounder": "0xf1A5509BaC7FeD77647507B4840003608CFAb025",
+    "gateway": "0x01F488b7446A4d96424a0DAC097C3aFEf9BaF626",
     "lockdrops": [
       {
         "lockdropTokenSymbol": "WMATIC",
         "lockdropToken": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
-        "address": ""
+        "address": "0x6199752F181dC74fCf887F9F0f7B7B6Eb26D5A7B"
       },
       {
         "lockdropTokenSymbol": "WETH",
         "lockdropToken": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
-        "address": ""
+        "address": "0x69F493e47C2793AbA58AbC5c1aaaA1d6DB60b608"
       },
       {
         "lockdropTokenSymbol": "WBTC",
         "lockdropToken": "0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6",
-        "address": ""
+        "address": "0x66B7b19E1A8D2DdED0566ce386c9bCEB7F4177ec"
       },
       {
         "lockdropTokenSymbol": "DAI",
         "lockdropToken": "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063",
-        "address": ""
+        "address": "0xC44b8fb84B61AcEa1D46665999f4b0543AA1aF3B"
       },
       {
         "lockdropTokenSymbol": "USDC",
         "lockdropToken": "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
-        "address": ""
+        "address": "0x176d0A1EBCBa7863a3AF7db989dedA867e587adf"
       },
       {
         "lockdropTokenSymbol": "USDT",
         "lockdropToken": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
-        "address": ""
+        "address": "0x563960B166266b2bbaaC4561491603101C9Fa676"
       }
     ]
   }
