@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 import { PoolOracle__factory } from "../../typechain";
 
 // Testnet
-const ORACLE = "0x9375e7eE3a50E82D5C5CB34cf6AB2d8AdE4B469f";
+const ORACLE = "0xA9AA532ae9C3bd2Cf68A990e5478764C60f959D1";
 const TOKENS = [
   "0x9c3c9283d3e44854697cd22d3faa240cfb032889", // WMATIC
   "0x2859751c033E64b1050f5E9642C4848293D3caE1", // WETH

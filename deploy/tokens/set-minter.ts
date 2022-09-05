@@ -3,8 +3,8 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { MintableTokenInterface__factory } from "../../typechain";
 
-const TOKEN_ADDRESS = "0xc88322Ec9526A7A98B7F58ff773b3B003C91ce71";
-const MINTER_ADDRESSES = ["0x5A11B2328862527151fD2e7EaE02455E2e6b1d31"];
+const TOKEN_ADDRESS = "0xBb5e11926b8040ccFa67045aF552F47C735CfF87";
+const MINTER_ADDRESSES = ["0xC90466D18C402a0395CCe0B165D9fA1ae5CE43cB"];
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
