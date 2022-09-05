@@ -3,9 +3,9 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
 
 const PLP_TOKEN = "0xc88322Ec9526A7A98B7F58ff773b3B003C91ce71";
-const POOL_CONFIG = "0x3760f978AcE668209E415c0576a4d4f064850226";
-const POOL_MATH = "0x741Cb3a65312ebf2312150010c2FD71013eFc6C5";
-const POOL_ORACLE = "0x832a59773e7a0896cF348C5EA72670D7CD37572D";
+const POOL_CONFIG = "0x880676cfcB5895a1B3fA65AD6E5cfc335316901c";
+const POOL_MATH = "0xb758A54cE1eD2B618001005Eb82DD79DB002624C";
+const POOL_ORACLE = "0x9375e7eE3a50E82D5C5CB34cf6AB2d8AdE4B469f";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];

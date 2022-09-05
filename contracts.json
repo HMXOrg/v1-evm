@@ -15,10 +15,10 @@
   "Pools": [
     {
       "name": "PLP",
-      "address": "0x2f6d48e937704fD74454070C07F24F3E0d831F90",
-      "config": "0x3760f978AcE668209E415c0576a4d4f064850226",
-      "math": "0x741Cb3a65312ebf2312150010c2FD71013eFc6C5",
-      "oracle": "0x832a59773e7a0896cF348C5EA72670D7CD37572D"
+      "address": "0x5A11B2328862527151fD2e7EaE02455E2e6b1d31",
+      "config": "0x880676cfcB5895a1B3fA65AD6E5cfc335316901c",
+      "math": "0xb758A54cE1eD2B618001005Eb82DD79DB002624C",
+      "oracle": "0x9375e7eE3a50E82D5C5CB34cf6AB2d8AdE4B469f"
     }
   ],
   "Vester": "0xD248b7B02E95189Ab23E821E79f3dEB033388E74",
@@ -61,39 +61,39 @@
     }
   },
   "Lockdrop": {
-    "config": "0xE394fF8B542d8869DD308577650a4ae9Aaa3D652",
-    "compounder": "0xD941773cfaC0EaE3e2d790EaB7cCfADe0Ab87e23",
-    "gateway": "0xA9AA532ae9C3bd2Cf68A990e5478764C60f959D1",
+    "config": "",
+    "compounder": "",
+    "gateway": "",
     "lockdrops": [
       {
         "lockdropTokenSymbol": "WMATIC",
         "lockdropToken": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
-        "address": "0xf65C34cf5b1e4Fd74E148f31299166AD9AA8819B"
+        "address": ""
       },
       {
         "lockdropTokenSymbol": "WETH",
         "lockdropToken": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
-        "address": "0xC285a535403bfa849cdDA96EE85bc39D470f3416"
+        "address": ""
       },
       {
         "lockdropTokenSymbol": "WBTC",
         "lockdropToken": "0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6",
-        "address": "0xa0F61D4d1f069eCA065e9a63974E81E0a8FFf2b2"
+        "address": ""
       },
       {
         "lockdropTokenSymbol": "DAI",
         "lockdropToken": "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063",
-        "address": "0xa30497db527f7cc49a3AE8a16d9A16DA031f21b4"
+        "address": ""
       },
       {
         "lockdropTokenSymbol": "USDC",
         "lockdropToken": "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
-        "address": "0x07ddF7F41fa0129B8E3c74f8D0D529BECd06a7C5"
+        "address": ""
       },
       {
         "lockdropTokenSymbol": "USDT",
         "lockdropToken": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
-        "address": "0xBB4767E43A7066eFb87e292e55e63aE727a74d03"
+        "address": ""
       }
     ]
   }

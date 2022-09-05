@@ -3,14 +3,14 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { PoolConfig__factory } from "../../typechain";
 
-const CONFIG = "0x3760f978AcE668209E415c0576a4d4f064850226";
+const CONFIG = "0x880676cfcB5895a1B3fA65AD6E5cfc335316901c";
 const TOKENS = [
-  "0x9c3c9283d3e44854697cd22d3faa240cfb032889", // WMATIC
-  "0x2859751c033E64b1050f5E9642C4848293D3caE1", // WETH
-  "0xC4F51bc480154e5B270967C70B64b53d0C189079", // WBTC
-  "0x7FeC31e5966C84E8A81C574a0504ff637E3CC569", // DAI
-  "0xFc99D238c7A20895ba3756Ee04FD8BfD442c18fD", // USDC
-  "0xF21405bA59E79762C306c83298dbD10a8A285f2F", // USDT
+  "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270", // WMATIC
+  "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619", // WETH
+  "0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6", // WBTC
+  "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063", // DAI
+  "0x2791bca1f2de4661ed88a30c99a7a9449aa84174", // USDC
+  "0xc2132d05d31c914a87c6611c10748aeb04b58e8f", // USDT
 ];
 const TOKEN_CONFIGS = [
   {
