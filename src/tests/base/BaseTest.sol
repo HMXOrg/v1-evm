@@ -17,6 +17,7 @@ import { PoolConfig } from "../../core/PoolConfig.sol";
 import { PoolMath } from "../../core/PoolMath.sol";
 import { PLP } from "../../tokens/PLP.sol";
 import { Pool } from "../../core/Pool.sol";
+import { PoolRouter } from "src/core/pool-diamond/PoolRouter.sol";
 
 // Diamond things
 // Facets
@@ -428,5 +429,9 @@ contract BaseTest is DSTest, CoreConstants {
       address(diamondInitializer),
       abi.encodeWithSelector(bytes4(keccak256("initialize()")))
     );
+  }
+
+  function deployPoolRouter(address wNative) internal returns (PoolRouter) {
+    return new PoolRouter(wNative);
   }
 }
