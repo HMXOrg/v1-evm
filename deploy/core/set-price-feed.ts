@@ -3,7 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { PoolOracle__factory } from "../../typechain";
 
-const ORACLE = "0x28706a8A160b7C5f547997bC9f8672059FD3BF5B";
+const ORACLE = "0x832a59773e7a0896cF348C5EA72670D7CD37572D";
 const TOKENS = [
   "0x9c3c9283d3e44854697cd22d3faa240cfb032889", // WMATIC
   "0x2859751c033E64b1050f5E9642C4848293D3caE1", // WETH
@@ -54,7 +54,9 @@ const FEED_INFOS = [
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
   const oracle = PoolOracle__factory.connect(ORACLE, deployer);
-  const tx = await oracle.setPriceFeed(TOKENS, FEED_INFOS);
+  const tx = await oracle.setPriceFeed(TOKENS, FEED_INFOS, {
+    gasLimit: 10000000,
+  });
   const txReceipt = await tx.wait();
   console.log(`Execute  setPriceFeed`);
 };

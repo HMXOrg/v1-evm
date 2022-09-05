@@ -3,7 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { PoolConfig__factory } from "../../typechain";
 
-const CONFIG = "0x202310a1e88812d35B559f089eafa7E2Ae172286";
+const CONFIG = "0x3760f978AcE668209E415c0576a4d4f064850226";
 const TOKENS = [
   "0x9c3c9283d3e44854697cd22d3faa240cfb032889", // WMATIC
   "0x2859751c033E64b1050f5E9642C4848293D3caE1", // WETH
