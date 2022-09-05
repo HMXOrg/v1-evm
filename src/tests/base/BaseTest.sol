@@ -17,6 +17,8 @@ import { PoolConfig } from "../../core/PoolConfig.sol";
 import { PoolMath } from "../../core/PoolMath.sol";
 import { PLP } from "../../tokens/PLP.sol";
 import { Pool } from "../../core/Pool.sol";
+import { PoolRouter } from "../../core/PoolRouter.sol";
+import { MockWNative } from "src/tests/mocks/MockWNative.sol";
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
@@ -41,7 +43,7 @@ contract BaseTest is DSTest, CoreConstants {
 
   address internal constant TREASURY = address(168168168168);
 
-  MockErc20 internal matic;
+  MockWNative internal matic;
   MockErc20 internal weth;
   MockErc20 internal wbtc;
   MockErc20 internal dai;
@@ -55,7 +57,7 @@ contract BaseTest is DSTest, CoreConstants {
   MockChainlinkPriceFeed internal usdcPriceFeed;
 
   constructor() {
-    matic = deployMockErc20("Matic Token", "MATIC", 18);
+    matic = new MockWNative();
     weth = deployMockErc20("Wrapped Ethereum", "WETH", 18);
     wbtc = deployMockErc20("Wrapped Bitcoin", "WBTC", 8);
     dai = deployMockErc20("DAI Stablecoin", "DAI", 18);
@@ -235,5 +237,9 @@ contract BaseTest is DSTest, CoreConstants {
     plp.setMinter(address(pool), true);
 
     return (poolOracle, poolConfig, poolMath, pool);
+  }
+
+  function deployPoolRouter(address wNative) internal returns (PoolRouter) {
+    return new PoolRouter(wNative);
   }
 }

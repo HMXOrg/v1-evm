@@ -2,6 +2,7 @@
 pragma solidity 0.8.14;
 
 import { Pool_BaseTest, console, PoolConfig } from "./Pool_BaseTest.t.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract Pool_RemoveLiquidityTest is Pool_BaseTest {
   function setUp() public override {
@@ -200,5 +201,59 @@ contract Pool_RemoveLiquidityTest is Pool_BaseTest {
     assertEq(pool.liquidityOf(address(dai)), 0.7 ether);
     assertEq(pool.liquidityOf(address(wbtc)), 874);
     assertEq(pool.liquidityOf(address(matic)), 91770714285714286);
+  }
+
+  function testCorrectness_ViaRouter() external {
+    // Mint 100 DAI to Alice
+    dai.mint(ALICE, 100 ether);
+
+    // ------- Alice session -------
+    // Alice as a liquidity provider for DAI
+    vm.startPrank(ALICE);
+
+    // Perform add liquidity
+    dai.approve(address(poolRouter), 100 ether);
+    poolRouter.addLiquidity(pool, address(dai), 100 ether, ALICE, 99 ether);
+
+    vm.warp(block.timestamp + 1 days);
+
+    // Perform remove liquidity
+    uint256 plpBalance = IERC20(pool.plp()).balanceOf(ALICE);
+    IERC20(pool.plp()).approve(address(poolRouter), plpBalance);
+    poolRouter.removeLiquidity(pool, address(dai), plpBalance, ALICE, 0);
+
+    assertEq(IERC20(pool.plp()).balanceOf(ALICE), 0);
+
+    // TODO: Assert more
+    vm.stopPrank();
+  }
+
+  function testCorrectness_Native_ViaRouter() external {
+    // Mint 100 MATIC to Alice
+    vm.deal(BOB, 100 ether);
+
+    // ------- Alice session -------
+    // Alice as a liquidity provider for MATIC
+    vm.startPrank(BOB);
+
+    // Perform add liquidity
+    poolRouter.addLiquidityNative{ value: 100 ether }(
+      pool,
+      address(matic),
+      BOB,
+      29900 ether
+    );
+
+    vm.warp(block.timestamp + 1 days);
+
+    // Perform remove liquidity
+    uint256 plpBalance = IERC20(pool.plp()).balanceOf(BOB);
+    IERC20(pool.plp()).approve(address(poolRouter), plpBalance);
+    poolRouter.removeLiquidityNative(pool, address(matic), plpBalance, BOB, 0);
+
+    assertEq(IERC20(pool.plp()).balanceOf(BOB), 0);
+
+    // TODO: Assert more
+    vm.stopPrank();
   }
 }
