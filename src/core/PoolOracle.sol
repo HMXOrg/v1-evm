@@ -39,7 +39,7 @@ contract PoolOracle is Constants, Ownable {
     roundDepth = _roundDepth;
   }
 
-  function _getPrice(address token, MinMax minOrMax)
+  function _getPrice(address token, bool isUseMaxPrice)
     internal
     view
     returns (uint256)
@@ -71,12 +71,12 @@ contract PoolOracle is Constants, Ownable {
         continue;
       }
 
-      if (minOrMax == MinMax.MAX && price < priceCursor) {
+      if (isUseMaxPrice && price < priceCursor) {
         price = priceCursor;
         continue;
       }
 
-      if (minOrMax == MinMax.MIN && price > priceCursor) {
+      if (!isUseMaxPrice && price > priceCursor) {
         price = priceCursor;
       }
     }
@@ -94,34 +94,33 @@ contract PoolOracle is Constants, Ownable {
 
       if (delta <= maxStrictPriceDeviation) return ONE_USD;
 
-      if (minOrMax == MinMax.MAX && price > ONE_USD) return price;
+      if (isUseMaxPrice && price > ONE_USD) return price;
 
-      if (minOrMax == MinMax.MIN && price < ONE_USD) return price;
+      if (!isUseMaxPrice && price < ONE_USD) return price;
 
       return ONE_USD;
     }
 
     // Handle spreadBasisPoint
-    if (minOrMax == MinMax.MAX)
-      return (price * (BPS + priceFeed.spreadBps)) / BPS;
+    if (isUseMaxPrice) return (price * (BPS + priceFeed.spreadBps)) / BPS;
 
     return (price * (BPS - priceFeed.spreadBps)) / BPS;
   }
 
-  function getPrice(address token, MinMax minOrMax)
+  function getPrice(address token, bool isUseMaxPrice)
     external
     view
     returns (uint256)
   {
-    return _getPrice(token, minOrMax);
+    return _getPrice(token, isUseMaxPrice);
   }
 
   function getMaxPrice(address token) external view returns (uint256) {
-    return _getPrice(token, MinMax.MAX);
+    return _getPrice(token, true);
   }
 
   function getMinPrice(address token) external view returns (uint256) {
-    return _getPrice(token, MinMax.MIN);
+    return _getPrice(token, false);
   }
 
   function setMaxStrictPriceDeviation(uint256 _maxStrictPriceDeviation)

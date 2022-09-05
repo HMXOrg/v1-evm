@@ -18,6 +18,17 @@ import { PoolMath } from "../../core/PoolMath.sol";
 import { PLP } from "../../tokens/PLP.sol";
 import { Pool } from "../../core/Pool.sol";
 
+// Diamond things
+// Facets
+import { DiamondCutFacet, DiamondCutInterface } from "../../core/pool-diamond/facets/DiamondCutFacet.sol";
+import { DiamondLoupeFacet } from "../../core/pool-diamond/facets/DiamondLoupeFacet.sol";
+import { OwnershipFacet, OwnershipFacetInterface } from "../../core/pool-diamond/facets/OwnershipFacet.sol";
+import { GetterFacet, GetterFacetInterface } from "../../core/pool-diamond/facets/GetterFacet.sol";
+import { FundingRateFacet, FundingRateFacetInterface } from "../../core/pool-diamond/facets/FundingRateFacet.sol";
+import { LiquidityFacet, LiquidityFacetInterface } from "../../core/pool-diamond/facets/LiquidityFacet.sol";
+import { DiamondInitializer } from "../../core/pool-diamond/initializers/DiamondInitializer.sol";
+import { PoolDiamond } from "../../core/pool-diamond/PoolDiamond.sol";
+
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
 contract BaseTest is DSTest, CoreConstants {
@@ -167,6 +178,137 @@ contract BaseTest is DSTest, CoreConstants {
     return (tokens, tokenConfigs);
   }
 
+  function buildFacetCut(
+    address facet,
+    DiamondCutInterface.FacetCutAction cutAction,
+    bytes4[] memory selectors
+  ) internal pure returns (DiamondCutInterface.FacetCut[] memory) {
+    DiamondCutInterface.FacetCut[]
+      memory facetCuts = new DiamondCutInterface.FacetCut[](1);
+    facetCuts[0] = DiamondCutInterface.FacetCut({
+      action: cutAction,
+      facetAddress: facet,
+      functionSelectors: selectors
+    });
+
+    return facetCuts;
+  }
+
+  function deployDiamondCutFacet() internal returns (DiamondCutFacet) {
+    return new DiamondCutFacet();
+  }
+
+  function deployDiamondInitializer() internal returns (DiamondInitializer) {
+    return new DiamondInitializer();
+  }
+
+  function deployDiamondLoupeFacet(DiamondCutFacet diamondCutFacet)
+    internal
+    returns (DiamondLoupeFacet, bytes4[] memory functionSelectors)
+  {
+    DiamondLoupeFacet diamondLoupeFacet = new DiamondLoupeFacet();
+
+    bytes4[] memory selectors = new bytes4[](4);
+    selectors[0] = DiamondLoupeFacet.facets.selector;
+    selectors[1] = DiamondLoupeFacet.facetFunctionSelectors.selector;
+    selectors[2] = DiamondLoupeFacet.facetAddresses.selector;
+    selectors[3] = DiamondLoupeFacet.facetAddress.selector;
+
+    DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
+      address(diamondLoupeFacet),
+      DiamondCutInterface.FacetCutAction.Add,
+      selectors
+    );
+
+    diamondCutFacet.diamondCut(facetCuts, address(0), "");
+    return (diamondLoupeFacet, selectors);
+  }
+
+  function deployOwnershipFacet(DiamondCutFacet diamondCutFacet)
+    internal
+    returns (OwnershipFacet, bytes4[] memory functionSelectors)
+  {
+    OwnershipFacet ownershipFacet = new OwnershipFacet();
+
+    bytes4[] memory selectors = new bytes4[](2);
+    selectors[0] = OwnershipFacet.transferOwnership.selector;
+    selectors[1] = OwnershipFacet.owner.selector;
+
+    DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
+      address(ownershipFacet),
+      DiamondCutInterface.FacetCutAction.Add,
+      selectors
+    );
+
+    diamondCutFacet.diamondCut(facetCuts, address(0), "");
+    return (ownershipFacet, selectors);
+  }
+
+  function deployGetterFacet(DiamondCutFacet diamondCutFacet)
+    internal
+    returns (GetterFacet, bytes4[] memory functionSelectors)
+  {
+    GetterFacet getterFacet = new GetterFacet();
+
+    bytes4[] memory selectors = new bytes4[](9);
+    selectors[0] = GetterFacet.getAddLiquidityFeeBps.selector;
+    selectors[1] = GetterFacet.getRemoveLiquidityFeeBps.selector;
+    selectors[2] = GetterFacet.getSwapFeeBps.selector;
+    selectors[3] = GetterFacet.getAum.selector;
+    selectors[4] = GetterFacet.getAumE18.selector;
+    selectors[5] = GetterFacet.getNextFundingRate.selector;
+    selectors[6] = GetterFacet.plp.selector;
+    selectors[7] = GetterFacet.lastAddLiquidityAtOf.selector;
+    selectors[8] = GetterFacet.totalUsdDebt.selector;
+
+    DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
+      address(getterFacet),
+      DiamondCutInterface.FacetCutAction.Add,
+      selectors
+    );
+
+    diamondCutFacet.diamondCut(facetCuts, address(0), "");
+    return (getterFacet, selectors);
+  }
+
+  function deployFundingRateFacet(DiamondCutFacet diamondCutFacet)
+    internal
+    returns (FundingRateFacet, bytes4[] memory functionSelectors)
+  {
+    FundingRateFacet fundingRateFacet = new FundingRateFacet();
+
+    bytes4[] memory selectors = new bytes4[](1);
+    selectors[0] = FundingRateFacet.updateFundingRate.selector;
+
+    DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
+      address(fundingRateFacet),
+      DiamondCutInterface.FacetCutAction.Add,
+      selectors
+    );
+
+    diamondCutFacet.diamondCut(facetCuts, address(0), "");
+    return (fundingRateFacet, selectors);
+  }
+
+  function deployLiquidityFacet(DiamondCutFacet diamondCutFacet)
+    internal
+    returns (LiquidityFacet, bytes4[] memory functionSelectors)
+  {
+    LiquidityFacet liquidityFacet = new LiquidityFacet();
+
+    bytes4[] memory selectors = new bytes4[](1);
+    selectors[0] = LiquidityFacet.addLiquidity.selector;
+
+    DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
+      address(liquidityFacet),
+      DiamondCutInterface.FacetCutAction.Add,
+      selectors
+    );
+
+    diamondCutFacet.diamondCut(facetCuts, address(0), "");
+    return (liquidityFacet, selectors);
+  }
+
   function deployMockErc20(
     string memory name,
     string memory symbol,
@@ -235,5 +377,56 @@ contract BaseTest is DSTest, CoreConstants {
     plp.setMinter(address(pool), true);
 
     return (poolOracle, poolConfig, poolMath, pool);
+  }
+
+  function deployPoolDiamond(
+    PoolConfigConstructorParams memory poolConfigConstructorParams
+  )
+    internal
+    returns (
+      PoolOracle,
+      PoolConfig,
+      address
+    )
+  {
+    PoolOracle poolOracle = deployPoolOracle(3);
+    PoolConfig poolConfig = deployPoolConfig(poolConfigConstructorParams);
+    PLP plp = deployPLP();
+
+    // Deploy DimondCutFacet
+    DiamondCutFacet diamondCutFacet = deployDiamondCutFacet();
+
+    // Deploy Pool Diamond
+    PoolDiamond poolDiamond = new PoolDiamond(
+      address(diamondCutFacet),
+      plp,
+      poolConfig,
+      poolOracle
+    );
+
+    // Config
+    plp.setMinter(address(poolDiamond), true);
+
+    deployDiamondLoupeFacet(DiamondCutFacet(address(poolDiamond)));
+    deployFundingRateFacet(DiamondCutFacet(address(poolDiamond)));
+    deployGetterFacet(DiamondCutFacet(address(poolDiamond)));
+    deployLiquidityFacet(DiamondCutFacet(address(poolDiamond)));
+    deployOwnershipFacet(DiamondCutFacet(address(poolDiamond)));
+
+    initializeDiamond(DiamondCutFacet(address(poolDiamond)));
+
+    return (poolOracle, poolConfig, address(poolDiamond));
+  }
+
+  function initializeDiamond(DiamondCutFacet diamondCutFacet) internal {
+    // Deploy DiamondInitializer
+    DiamondInitializer diamondInitializer = deployDiamondInitializer();
+    DiamondCutInterface.FacetCut[]
+      memory facetCuts = new DiamondCutInterface.FacetCut[](0);
+    diamondCutFacet.diamondCut(
+      facetCuts,
+      address(diamondInitializer),
+      abi.encodeWithSelector(bytes4(keccak256("initialize()")))
+    );
   }
 }
