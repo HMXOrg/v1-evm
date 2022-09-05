@@ -91,7 +91,32 @@ contract PoolRouter {
     payable(receiver).transfer(receivedAmount);
   }
 
+  function increasePosition(
+    Pool pool,
+    uint256 subAccountId,
+    address collateralToken,
+    uint256 collateralAmount,
+    address indexToken,
+    uint256 sizeDelta,
+    Pool.Exposure exposure
+  ) external {
+    IERC20(collateralToken).safeTransferFrom(
+      msg.sender,
+      address(pool),
+      collateralAmount
+    );
+
+    pool.increasePosition(
+      msg.sender,
+      subAccountId,
+      collateralToken,
+      indexToken,
+      sizeDelta,
+      exposure
+    );
+  }
+
   receive() external payable {
-    // assert(msg.sender == address(WNATIVE)); // only accept NATIVE via fallback from the WNATIVE contract
+    assert(msg.sender == address(WNATIVE)); // only accept NATIVE via fallback from the WNATIVE contract
   }
 }
