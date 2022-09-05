@@ -3,6 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { PoolOracle__factory } from "../../typechain";
 
+// Mainnet
 const ORACLE = "0x9375e7eE3a50E82D5C5CB34cf6AB2d8AdE4B469f";
 const TOKENS = [
   "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270", // WMATIC
