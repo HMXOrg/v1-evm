@@ -13,6 +13,7 @@ abstract contract Pool_BaseTest is BaseTest {
   function setUp() public virtual {
     BaseTest.PoolConfigConstructorParams memory poolConfigParams = BaseTest
       .PoolConfigConstructorParams({
+        treasury: TREASURY,
         fundingInterval: 8 hours,
         mintBurnFeeBps: 30,
         taxBps: 50,

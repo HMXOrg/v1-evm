@@ -1,18 +1,22 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.14;
 
 import { PoolConfig } from "./PoolConfig.sol";
 import { PoolMath } from "./PoolMath.sol";
 import { PoolOracle } from "./PoolOracle.sol";
 import { MintableTokenInterface } from "../interfaces/MintableTokenInterface.sol";
-import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import { SafeERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
-import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import { Constants } from "./Constants.sol";
 
-contract Pool is Constants, ReentrancyGuardUpgradeable {
-  using SafeERC20Upgradeable for IERC20Upgradeable;
+contract Pool is Ownable, Constants, ReentrancyGuard {
+  using SafeERC20 for IERC20;
 
+  error Pool_AllowTokensLengthMismatch();
+  error Pool_AllowTokensMismatch();
+  error Pool_AllowTokenNotFound();
   error Pool_BadAmountOut();
   error Pool_BadArgument();
   error Pool_BadCollateralDelta();
@@ -37,7 +41,10 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
   error Pool_SizeSmallerThanCollateral();
   error Pool_Slippage();
   error Pool_SwapDisabled();
+  error Pool_TokenDecimalsMismatch();
   error Pool_TokenMisMatch();
+  error Pool_TokenWeightMismatch();
+  error Pool_TotalTokenWeightMismatch();
 
   MintableTokenInterface public plp;
 
@@ -176,6 +183,9 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
     uint256 usdDebt,
     uint256 amountOut
   );
+  event SetPoolConfig(address prevPoolConfig, address newPoolConfig);
+  event SetPoolMath(address prevPoolMath, address newPoolMath);
+  event SetPoolOracle(address prevPoolOracle, address newPoolOracle);
   event Swap(
     address account,
     address tokenIn,
@@ -196,15 +206,14 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
     int256 realizedPnl,
     uint256 price
   );
+  event WithdrawFeeReserve(address token, address to, uint256 amount);
 
-  function initialize(
+  constructor(
     MintableTokenInterface _plp,
     PoolConfig _config,
     PoolMath _poolMath,
     PoolOracle _oracle
-  ) external initializer {
-    ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
-
+  ) {
     config = _config;
     poolMath = _poolMath;
     oracle = _oracle;
@@ -242,11 +251,12 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
       return;
     }
 
-    uint256 fundingRate = getNextFundingRate(collateralToken);
+    uint256 fundingRate = poolMath.getNextFundingRate(
+      Pool(address(this)),
+      collateralToken
+    );
     unchecked {
-      sumFundingRateOf[collateralToken] =
-        sumFundingRateOf[collateralToken] +
-        fundingRate;
+      sumFundingRateOf[collateralToken] += fundingRate;
       lastFundingTimeOf[collateralToken] =
         (block.timestamp / fundingInterval) *
         fundingInterval;
@@ -300,7 +310,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
     uint256 price = oracle.getMinPrice(token);
 
     uint256 tokenValueUsd = (amount * price) / PRICE_PRECISION;
-    uint8 tokenDecimals = config.tokenDecimals(token);
+    uint8 tokenDecimals = config.getTokenDecimalsOf(token);
     tokenValueUsd = _convertTokenDecimals(
       tokenDecimals,
       USD_DECIMALS,
@@ -385,7 +395,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
     uint256 tokenPrice = oracle.getMaxPrice(token);
     uint256 amountOut = _convertTokenDecimals(
       18,
-      config.tokenDecimals(token),
+      config.getTokenDecimalsOf(token),
       (usdValue * PRICE_PRECISION) / tokenPrice
     );
     if (amountOut == 0) revert Pool_BadAmountOut();
@@ -436,15 +446,15 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
 
     uint256 amountOut = (amountIn * priceIn) / priceOut;
     amountOut = _convertTokenDecimals(
-      config.tokenDecimals(tokenIn),
-      config.tokenDecimals(tokenOut),
+      config.getTokenDecimalsOf(tokenIn),
+      config.getTokenDecimalsOf(tokenOut),
       amountOut
     );
 
     // Adjust USD debt as swap shifted the debt between two assets
     uint256 usdDebt = (amountIn * priceIn) / PRICE_PRECISION;
     usdDebt = _convertTokenDecimals(
-      config.tokenDecimals(tokenIn),
+      config.getTokenDecimalsOf(tokenIn),
       USD_DECIMALS,
       usdDebt
     );
@@ -469,7 +479,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
     _decreaseUsdDebt(tokenOut, usdDebt);
 
     // Buffer check
-    if (liquidityOf[tokenOut] < config.tokenBufferLiquidity(tokenOut))
+    if (liquidityOf[tokenOut] < config.getTokenBufferLiquidityOf(tokenOut))
       revert Pool_LiquidityBuffer();
 
     // Slippage check
@@ -517,7 +527,12 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
     Exposure exposure
   ) external nonReentrant allowed(primaryAccount) {
     if (!config.isLeverageEnable()) revert Pool_LeverageDisabled();
-    _checkTokenInputs(collateralToken, indexToken, exposure);
+    poolMath.checkTokenInputs(
+      Pool(address(this)),
+      collateralToken,
+      indexToken,
+      exposure
+    );
     // TODO: Add validate increase position
 
     updateFundingRate(collateralToken, indexToken);
@@ -549,7 +564,8 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
     if (position.size > 0 && sizeDelta > 0) {
       // If position size > 0, then position is existed.
       // Need to calculate the next average price.
-      position.averagePrice = getNextAveragePrice(
+      position.averagePrice = poolMath.getPositionNextAveragePrice(
+        Pool(address(this)),
         indexToken,
         position.size,
         position.averagePrice,
@@ -591,7 +607,8 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
 
     if (position.size == 0) revert Pool_BadPositionSize();
     _checkPosition(position.size, position.collateral);
-    checkLiquidation(
+    poolMath.checkLiquidation(
+      Pool(address(this)),
       vars.subAccount,
       collateralToken,
       indexToken,
@@ -628,7 +645,8 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
       if (shortSizeOf[indexToken] == 0)
         shortAveragePriceOf[indexToken] = vars.price;
       else
-        shortAveragePriceOf[indexToken] = getNextShortAveragePrice(
+        shortAveragePriceOf[indexToken] = poolMath.getNextShortAveragePrice(
+          Pool(address(this)),
           indexToken,
           vars.price,
           sizeDelta
@@ -878,13 +896,15 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
 
     if (position.size == 0) revert Pool_BadPositionSize();
 
-    (LiquidationState liquidationState, uint256 marginFee) = checkLiquidation(
-      subAccount,
-      collateralToken,
-      indexToken,
-      exposure,
-      false
-    );
+    (LiquidationState liquidationState, uint256 marginFee) = poolMath
+      .checkLiquidation(
+        Pool(address(this)),
+        subAccount,
+        collateralToken,
+        indexToken,
+        exposure,
+        false
+      );
     if (liquidationState == LiquidationState.SOFT_LIQUIDATE) {
       // Position's leverage is exceeded, but there is enough collateral to soft-liquidate.
       _decreasePosition(
@@ -977,155 +997,6 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
   // Getter functions
   // ----------------
 
-  function getRedemptionCollateral(address token)
-    public
-    view
-    returns (uint256)
-  {
-    if (config.isStableToken(token)) return liquidityOf[token];
-
-    uint256 collateral = _convertUsde30ToTokens(
-      token,
-      guaranteedUsdOf[token],
-      MinMax.MAX
-    );
-    return collateral + liquidityOf[token] - reservedOf[token];
-  }
-
-  function getRedemptionCollateralUsd(address token)
-    public
-    view
-    returns (uint256)
-  {
-    return
-      _convertTokensToUsde30(token, getRedemptionCollateral(token), MinMax.MIN);
-  }
-
-  function getDelta(
-    address indexToken,
-    uint256 size,
-    uint256 averagePrice,
-    Exposure exposure,
-    uint256 lastIncreasedTime
-  ) public view returns (bool, uint256) {
-    if (averagePrice == 0) revert Pool_BadArgument();
-    uint256 price = Exposure.LONG == exposure
-      ? oracle.getMinPrice(indexToken)
-      : oracle.getMaxPrice(indexToken);
-    uint256 priceDelta;
-    unchecked {
-      priceDelta = averagePrice > price
-        ? averagePrice - price
-        : price - averagePrice;
-    }
-    uint256 delta = (size * priceDelta) / averagePrice;
-
-    bool isProfit;
-    if (Exposure.LONG == exposure) {
-      isProfit = price > averagePrice;
-    } else {
-      isProfit = price < averagePrice;
-    }
-
-    uint256 minBps = block.timestamp >
-      lastIncreasedTime + config.minProfitDuration()
-      ? 0
-      : config.tokenMinProfitBps(indexToken);
-
-    if (isProfit && delta * BPS <= size * minBps) delta = 0;
-
-    return (isProfit, delta);
-  }
-
-  function getPoolShortDelta(address token)
-    public
-    view
-    returns (bool, uint256)
-  {
-    uint256 shortSize = shortSizeOf[token];
-    if (shortSize == 0) return (false, 0);
-
-    uint256 nextPrice = oracle.getMaxPrice(token);
-    uint256 averagePrice = shortAveragePriceOf[token];
-    uint256 priceDelta;
-    unchecked {
-      priceDelta = averagePrice > nextPrice
-        ? averagePrice - nextPrice
-        : nextPrice - averagePrice;
-    }
-    uint256 delta = (shortSize * priceDelta) / averagePrice;
-
-    return (averagePrice > nextPrice, delta);
-  }
-
-  function getNextAveragePrice(
-    address indexToken,
-    uint256 size,
-    uint256 averagePrice,
-    Exposure exposure,
-    uint256 nextPrice,
-    uint256 sizeDelta,
-    uint256 lastIncreasedTime
-  ) public view returns (uint256) {
-    (bool isProfit, uint256 delta) = getDelta(
-      indexToken,
-      size,
-      averagePrice,
-      exposure,
-      lastIncreasedTime
-    );
-    uint256 nextSize = size + sizeDelta;
-    uint256 divisor;
-    if (exposure == Exposure.LONG) {
-      divisor = isProfit ? nextSize + delta : nextSize - delta;
-    } else {
-      divisor = isProfit ? nextSize - delta : nextSize + delta;
-    }
-
-    return (nextPrice * nextSize) / divisor;
-  }
-
-  function getNextFundingRate(address token) public view returns (uint256) {
-    // SLOAD
-    uint256 fundingInterval = config.fundingInterval();
-
-    // If block.timestamp not pass the next funding time, return 0.
-    if (lastFundingTimeOf[token] + fundingInterval > block.timestamp) return 0;
-
-    uint256 intervals;
-    unchecked {
-      intervals = block.timestamp - lastFundingTimeOf[token] / fundingInterval;
-    }
-    // SLOAD
-    uint256 liquidity = liquidityOf[token];
-    if (liquidity == 0) return 0;
-
-    uint256 fundingRateFactor = config.isStableToken(token)
-      ? config.stableFundingRateFactor()
-      : config.fundingRateFactor();
-
-    return (fundingRateFactor * reservedOf[token] * intervals) / liquidity;
-  }
-
-  function getNextShortAveragePrice(
-    address indexToken,
-    uint256 nextPrice,
-    uint256 sizeDelta
-  ) public view returns (uint256) {
-    uint256 shortSize = shortSizeOf[indexToken];
-    uint256 shortAveragePrice = shortAveragePriceOf[indexToken];
-    uint256 priceDelta = shortAveragePrice > nextPrice
-      ? shortAveragePrice - nextPrice
-      : nextPrice - shortAveragePrice;
-    uint256 delta = (shortSize * priceDelta) / shortAveragePrice;
-    bool isProfit = nextPrice < shortAveragePrice;
-
-    uint256 nextSize = shortSize + sizeDelta;
-    uint256 divisor = isProfit ? nextSize - delta : nextSize + delta;
-
-    return (nextPrice * nextSize) / divisor;
-  }
-
   struct GetPositionReturnVars {
     address primaryAccount;
     uint256 size;
@@ -1181,32 +1052,23 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
   }
 
   function getPositionDelta(
-    address account,
+    address primaryAccount,
     uint256 subAccountId,
-    address collateralToken,
-    address indexToken,
-    Exposure exposure
-  ) external view returns (bool, uint256) {
-    return
-      getPositionDelta(
-        getSubAccount(account, subAccountId),
-        collateralToken,
-        indexToken,
-        exposure
-      );
-  }
-
-  function getPositionDelta(
-    address account,
     address collateralToken,
     address indexToken,
     Exposure exposure
   ) public view returns (bool, uint256) {
     Position memory position = positions[
-      getPositionId(account, collateralToken, indexToken, exposure)
+      getPositionId(
+        getSubAccount(primaryAccount, subAccountId),
+        collateralToken,
+        indexToken,
+        exposure
+      )
     ];
     return
-      getDelta(
+      poolMath.getDelta(
+        Pool(address(this)),
         indexToken,
         position.size,
         position.averagePrice,
@@ -1227,22 +1089,6 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
       );
   }
 
-  function getPositionLeverage(
-    address account,
-    address collateralToken,
-    address indexToken,
-    Exposure exposure
-  ) public view returns (uint256) {
-    bytes32 posId = getPositionId(
-      account,
-      collateralToken,
-      indexToken,
-      exposure
-    );
-    Position memory position = positions[posId];
-    return (position.size * BPS) / position.collateral;
-  }
-
   function getSubAccount(address primary, uint256 subAccountId)
     public
     pure
@@ -1250,24 +1096,6 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
   {
     if (subAccountId > 255) revert Pool_BadArgument();
     return address(uint160(primary) ^ uint160(subAccountId));
-  }
-
-  function getTargetValue(address token) public view returns (uint256) {
-    // SLOAD
-    uint256 cachedTotalUsdDebt = totalUsdDebt;
-    if (cachedTotalUsdDebt == 0) return 0;
-
-    return
-      (cachedTotalUsdDebt * config.tokenWeight(token)) /
-      config.totalTokenWeight();
-  }
-
-  function isSubAccountOf(address primary, address subAccount)
-    public
-    pure
-    returns (bool)
-  {
-    return (uint160(primary) | 0xFF) == (uint160(subAccount) | 0xFF);
   }
 
   // ------------------------
@@ -1338,7 +1166,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
 
   function _increasePoolLiquidity(address token, uint256 amount) internal {
     liquidityOf[token] += amount;
-    if (IERC20Upgradeable(token).balanceOf(address(this)) < liquidityOf[token])
+    if (IERC20(token).balanceOf(address(this)) < liquidityOf[token])
       revert Pool_LiquidityMismatch();
     emit IncreasePoolLiquidity(token, amount);
   }
@@ -1355,7 +1183,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
 
     // SLOAD
     uint256 newUsdDebt = usdDebtOf[token];
-    uint256 usdDebtCeiling = config.tokenUsdDebtCeiling(token);
+    uint256 usdDebtCeiling = config.getTokenUsdDebtCeilingOf(token);
 
     if (usdDebtCeiling != 0) {
       if (newUsdDebt > usdDebtCeiling) revert Pool_OverUsdDebtCeiling();
@@ -1401,7 +1229,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
 
   function _increaseShortSize(address token, uint256 amountUsd) internal {
     // SLOAD
-    uint256 shortCeiling = config.tokenShortCeiling(token);
+    uint256 shortCeiling = config.getTokenShortCeilingOf(token);
     shortSizeOf[token] += amountUsd;
 
     if (shortCeiling != 0) {
@@ -1461,7 +1289,8 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
     );
 
     // Calculate position's delta.
-    (vars.isProfit, vars.delta) = getDelta(
+    (vars.isProfit, vars.delta) = poolMath.getDelta(
+      Pool(address(this)),
       indexToken,
       position.size,
       position.averagePrice,
@@ -1547,45 +1376,6 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
     if (size < collateral) revert Pool_SizeSmallerThanCollateral();
   }
 
-  function _checkTokenInputs(
-    address collateralToken,
-    address indexToken,
-    Exposure exposure
-  ) internal view {
-    if (Exposure.LONG == exposure) {
-      if (collateralToken != indexToken) revert Pool_TokenMisMatch();
-      if (!config.isAcceptToken(collateralToken)) revert Pool_BadToken();
-      if (config.isStableToken(collateralToken))
-        revert Pool_CollateralTokenIsStable();
-      return;
-    }
-
-    if (!config.isAcceptToken(collateralToken)) revert Pool_BadToken();
-    if (!config.isStableToken(collateralToken))
-      revert Pool_CollateralTokenNotStable();
-    if (config.isStableToken(indexToken)) revert Pool_IndexTokenIsStable();
-    if (!config.isShortableToken(indexToken))
-      revert Pool_IndexTokenNotShortable();
-  }
-
-  function checkLiquidation(
-    address account,
-    address collateralToken,
-    address indexToken,
-    Exposure exposure,
-    bool isRevertWhenError
-  ) public view returns (LiquidationState, uint256) {
-    return
-      poolMath.checkLiquidation(
-        Pool(address(this)),
-        account,
-        collateralToken,
-        indexToken,
-        exposure,
-        isRevertWhenError
-      );
-  }
-
   /// --------------------
   /// Conversion functions
   /// --------------------
@@ -1606,7 +1396,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
   ) internal view returns (uint256) {
     if (amountUsd == 0) return 0;
     return
-      (amountUsd * (10**config.tokenDecimals(token))) /
+      (amountUsd * (10**config.getTokenDecimalsOf(token))) /
       oracle.getPrice(token, minOrMax);
   }
 
@@ -1618,7 +1408,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
     if (amountTokens == 0) return 0;
     return
       (amountTokens * oracle.getPrice(token, minOrMax)) /
-      (10**config.tokenDecimals(token));
+      (10**config.getTokenDecimalsOf(token));
   }
 
   /// ---------------------------
@@ -1627,7 +1417,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
 
   function _pullTokens(address token) internal returns (uint256) {
     uint256 prevBalance = totalOf[token];
-    uint256 nextBalance = IERC20Upgradeable(token).balanceOf(address(this));
+    uint256 nextBalance = IERC20(token).balanceOf(address(this));
 
     totalOf[token] = nextBalance;
 
@@ -1639,12 +1429,42 @@ contract Pool is Constants, ReentrancyGuardUpgradeable {
     address to,
     uint256 amount
   ) internal {
-    IERC20Upgradeable(token).safeTransfer(to, amount);
-    totalOf[token] = IERC20Upgradeable(token).balanceOf(address(this));
+    IERC20(token).safeTransfer(to, amount);
+    totalOf[token] = IERC20(token).balanceOf(address(this));
   }
 
-  /// @custom:oz-upgrades-unsafe-allow constructor
-  constructor() {
-    _disableInitializers();
+  /// --------------
+  /// Admin function
+  /// --------------
+
+  function setPoolConfig(PoolConfig newPoolConfig) external onlyOwner {
+    emit SetPoolConfig(address(config), address(newPoolConfig));
+    config = newPoolConfig;
+  }
+
+  function setPoolOracle(PoolOracle newPoolOracle) external onlyOwner {
+    // Sanity check
+    oracle.roundDepth();
+
+    emit SetPoolOracle(address(oracle), address(newPoolOracle));
+    oracle = newPoolOracle;
+  }
+
+  function setPoolMath(PoolMath newPoolMath) external onlyOwner {
+    emit SetPoolMath(address(poolMath), address(newPoolMath));
+    poolMath = newPoolMath;
+  }
+
+  function withdrawFeeReserve(
+    address token,
+    address to,
+    uint256 amount
+  ) external {
+    if (msg.sender != config.treasury()) revert Pool_Forbidden();
+
+    feeReserveOf[token] -= amount;
+    _pushTokens(token, to, amount);
+
+    emit WithdrawFeeReserve(token, to, amount);
   }
 }

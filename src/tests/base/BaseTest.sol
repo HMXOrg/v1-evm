@@ -43,6 +43,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // solhint-disable no-inline-assembly
 contract BaseTest is DSTest, CoreConstants {
   struct PoolConfigConstructorParams {
+    address treasury;
     uint64 fundingInterval;
     uint64 mintBurnFeeBps;
     uint64 taxBps;
@@ -62,6 +63,8 @@ contract BaseTest is DSTest, CoreConstants {
   address internal constant BOB = address(2);
   address internal constant CAT = address(3);
   address internal constant DAVE = address(4);
+
+  address internal constant TREASURY = address(168168168168);
 
   MockErc20 internal matic;
   MockErc20 internal weth;
@@ -286,25 +289,17 @@ contract BaseTest is DSTest, CoreConstants {
     internal
     returns (PoolConfig)
   {
-    bytes memory _logicBytecode = abi.encodePacked(
-      vm.getCode("./out/PoolConfig.sol/PoolConfig.json")
-    );
-    bytes memory _initializer = abi.encodeWithSelector(
-      bytes4(
-        keccak256(
-          "initialize(uint64,uint64,uint64,uint64,uint64,uint64,uint256)"
-        )
-      ),
-      params.fundingInterval,
-      params.mintBurnFeeBps,
-      params.taxBps,
-      params.stableFundingRateFactor,
-      params.fundingRateFactor,
-      params.liquidityCoolDownPeriod,
-      params.liquidationFeeUsd
-    );
-    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
-    return PoolConfig(payable(_proxy));
+    return
+      new PoolConfig(
+        params.treasury,
+        params.fundingInterval,
+        params.mintBurnFeeBps,
+        params.taxBps,
+        params.stableFundingRateFactor,
+        params.fundingRateFactor,
+        params.liquidityCoolDownPeriod,
+        params.liquidationFeeUsd
+      );
   }
 
   function deployPoolMath() internal returns (PoolMath) {

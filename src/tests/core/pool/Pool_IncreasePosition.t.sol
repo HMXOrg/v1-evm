@@ -42,7 +42,7 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
   }
 
   function testRevert_WhenLong_WhenMisMatchToken() external {
-    vm.expectRevert(abi.encodeWithSignature("Pool_TokenMisMatch()"));
+    vm.expectRevert(abi.encodeWithSignature("PoolMath_TokenMisMatch()"));
     pool.increasePosition(
       address(this),
       0,
@@ -54,7 +54,9 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
   }
 
   function testRevert_WhenLong_WhenCollateralIsStable() external {
-    vm.expectRevert(abi.encodeWithSignature("Pool_CollateralTokenIsStable()"));
+    vm.expectRevert(
+      abi.encodeWithSignature("PoolMath_CollateralTokenIsStable()")
+    );
     pool.increasePosition(
       address(this),
       0,
@@ -66,7 +68,7 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
   }
 
   function testRevert_WhenLong_WhenCollateralTokenNotAllow() external {
-    vm.expectRevert(abi.encodeWithSignature("Pool_BadToken()"));
+    vm.expectRevert(abi.encodeWithSignature("PoolMath_BadToken()"));
     pool.increasePosition(
       address(this),
       0,
@@ -240,7 +242,10 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 48.02986 * 10**18);
     assertEq(pool.usdDebtOf(address(wbtc)), 46.8584 * 10**18);
     assertEq(pool.liquidityOf(address(wbtc)), 117146);
-    assertEq(pool.getRedemptionCollateralUsd(address(wbtc)), 46.8584 * 10**30);
+    assertEq(
+      pool.poolMath().getRedemptionCollateralUsd(pool, address(wbtc)),
+      46.8584 * 10**30
+    );
 
     // Alice add liquidity again with 117499 satoshi
     wbtc.transfer(address(pool), 117499);
@@ -263,7 +268,10 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 96.05972 * 10**18);
     assertEq(pool.usdDebtOf(address(wbtc)), 93.7168 * 10**18);
     assertEq(pool.liquidityOf(address(wbtc)), 234292);
-    assertEq(pool.getRedemptionCollateralUsd(address(wbtc)), 93.7168 * 10**30);
+    assertEq(
+      pool.poolMath().getRedemptionCollateralUsd(pool, address(wbtc)),
+      93.7168 * 10**30
+    );
 
     // Alice increase long position with sub account id = 0
     wbtc.transfer(address(pool), 22500);
@@ -297,7 +305,10 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     assertEq(pool.liquidityOf(address(wbtc)), 256678);
     assertEq(pool.reservedOf(address(wbtc)), 117500);
     assertEq(pool.guaranteedUsdOf(address(wbtc)), 38.047 * 10**30);
-    assertEq(pool.getRedemptionCollateralUsd(address(wbtc)), 92.79 * 10**30);
+    assertEq(
+      pool.poolMath().getRedemptionCollateralUsd(pool, address(wbtc)),
+      92.79 * 10**30
+    );
     assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 93.7182 * 10**18);
     assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 95.10998 * 10**18);
     assertEq(pool.feeReserveOf(address(wbtc)), 820);
@@ -391,7 +402,10 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     assertEq(pool.liquidityOf(address(wbtc)), 1.4962 * 10**8);
     assertEq(pool.reservedOf(address(wbtc)), 0.8 * 10**8);
     assertEq(pool.guaranteedUsdOf(address(wbtc)), 30080 * 10**30);
-    assertEq(pool.getRedemptionCollateralUsd(address(wbtc)), 99700 * 10**30);
+    assertEq(
+      pool.poolMath().getRedemptionCollateralUsd(pool, address(wbtc)),
+      99700 * 10**30
+    );
     assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 99700 * 10**18);
     assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 99700 * 10**18);
     assertEq(pool.feeReserveOf(address(wbtc)), 0.0038 * 10**8);
@@ -493,7 +507,10 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     assertEq(pool.liquidityOf(address(wbtc)), 117146);
     assertEq(pool.feeReserveOf(address(wbtc)), 353);
     assertEq(pool.usdDebtOf(address(wbtc)), 46.8584 * 10**18);
-    assertEq(pool.getRedemptionCollateralUsd(address(wbtc)), 46.8584 * 10**30);
+    assertEq(
+      pool.poolMath().getRedemptionCollateralUsd(pool, address(wbtc)),
+      46.8584 * 10**30
+    );
 
     // Add 117499 sathoshi as liquidity
     wbtc.mint(address(pool), 117499);
@@ -521,7 +538,10 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     assertEq(pool.liquidityOf(address(wbtc)), 234292);
     assertEq(pool.feeReserveOf(address(wbtc)), 706);
     assertEq(pool.usdDebtOf(address(wbtc)), 93.7168 * 10**18);
-    assertEq(pool.getRedemptionCollateralUsd(address(wbtc)), 93.7168 * 10**30);
+    assertEq(
+      pool.poolMath().getRedemptionCollateralUsd(pool, address(wbtc)),
+      93.7168 * 10**30
+    );
     assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 93.7168 * 10**18);
     assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 96.05972 * 10**18);
 
@@ -563,7 +583,10 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     assertEq(pool.feeReserveOf(address(wbtc)), 820);
     assertEq(pool.reservedOf(address(wbtc)), 117500);
     assertEq(pool.guaranteedUsdOf(address(wbtc)), 38.047 * 10**30);
-    assertEq(pool.getRedemptionCollateralUsd(address(wbtc)), 92.79 * 10**30);
+    assertEq(
+      pool.poolMath().getRedemptionCollateralUsd(pool, address(wbtc)),
+      92.79 * 10**30
+    );
     assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 93.7182 * 10**18);
     assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 95.10998 * 10**18);
 
@@ -593,8 +616,10 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     // Assert position's leverage
     // 1. Position leverage should be ~5.2x
     assertEq(
-      pool.getPositionLeverage(
+      pool.poolMath().getPositionLeverage(
+        pool,
         address(this),
+        0,
         address(wbtc),
         address(wbtc),
         Exposure.LONG
@@ -637,7 +662,10 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     assertEq(pool.feeReserveOf(address(wbtc)), 820);
     assertEq(pool.reservedOf(address(wbtc)), 117500);
     assertEq(pool.guaranteedUsdOf(address(wbtc)), 29.047 * 10**30);
-    assertEq(pool.getRedemptionCollateralUsd(address(wbtc)), 93.0096 * 10**30);
+    assertEq(
+      pool.poolMath().getRedemptionCollateralUsd(pool, address(wbtc)),
+      93.0096 * 10**30
+    );
     assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 93.7182 * 10**18);
     assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 95.33498 * 10**18);
 
@@ -667,8 +695,10 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     // Assert position's leverage
     // 1. Position leverage should be ~2.6x
     assertEq(
-      pool.getPositionLeverage(
+      pool.poolMath().getPositionLeverage(
+        pool,
         address(this),
+        0,
         address(wbtc),
         address(wbtc),
         Exposure.LONG
@@ -727,8 +757,10 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     // Assert position's leverage
     // 1. Position leverage should be ~2.6x
     assertEq(
-      pool.getPositionLeverage(
+      pool.poolMath().getPositionLeverage(
+        pool,
         address(this),
+        0,
         address(wbtc),
         address(wbtc),
         Exposure.LONG
@@ -740,7 +772,9 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
   }
 
   function testRevert_WhenShort_WhenCollateralNotStable() external {
-    vm.expectRevert(abi.encodeWithSignature("Pool_CollateralTokenNotStable()"));
+    vm.expectRevert(
+      abi.encodeWithSignature("PoolMath_CollateralTokenNotStable()")
+    );
     pool.increasePosition(
       address(this),
       0,
@@ -752,7 +786,7 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
   }
 
   function testRevert_WhenShort_WhenIndexTokenIsStable() external {
-    vm.expectRevert(abi.encodeWithSignature("Pool_IndexTokenIsStable()"));
+    vm.expectRevert(abi.encodeWithSignature("PoolMath_IndexTokenIsStable()"));
     pool.increasePosition(
       address(this),
       0,
@@ -783,7 +817,9 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     });
     poolConfig.setTokenConfigs(tokens, tokenConfigs);
 
-    vm.expectRevert(abi.encodeWithSignature("Pool_IndexTokenNotShortable()"));
+    vm.expectRevert(
+      abi.encodeWithSignature("PoolMath_IndexTokenNotShortable()")
+    );
     pool.increasePosition(
       address(this),
       0,
@@ -965,7 +1001,10 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     assertEq(pool.liquidityOf(address(dai)), 499.8 * 10**18);
     assertEq(pool.feeReserveOf(address(dai)), 0.2 * 10**18);
     assertEq(pool.usdDebtOf(address(dai)), 499.8 * 10**18);
-    assertEq(pool.getRedemptionCollateralUsd(address(dai)), 499.8 * 10**30);
+    assertEq(
+      pool.poolMath().getRedemptionCollateralUsd(pool, address(dai)),
+      499.8 * 10**30
+    );
     assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 499.8 * 10**18);
     assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 499.8 * 10**18);
 
@@ -999,7 +1038,10 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     assertEq(pool.usdDebtOf(address(dai)), 499.8 * 10**18);
     assertEq(pool.reservedOf(address(dai)), 90 * 10**18);
     assertEq(pool.guaranteedUsdOf(address(dai)), 0 * 10**18);
-    assertEq(pool.getRedemptionCollateralUsd(address(dai)), 499.8 * 10**30);
+    assertEq(
+      pool.poolMath().getRedemptionCollateralUsd(pool, address(dai)),
+      499.8 * 10**30
+    );
     assertEq(pool.feeReserveOf(address(dai)), 0.29 * 10**18);
     assertEq(pool.shortSizeOf(address(wbtc)), 90 * 10**30);
     assertEq(pool.shortAveragePriceOf(address(wbtc)), 40_000 * 10**30);
@@ -1030,7 +1072,10 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     // Assert pool's short delta
     // 1. Pool's delta should be (90 * (40000 - 41000)) / 40000 = -2.25 USD
     // 2. Pool's short should be not profitable
-    (bool isProfit, uint256 delta) = pool.getPoolShortDelta(address(wbtc));
+    (bool isProfit, uint256 delta) = pool.poolMath().getPoolShortDelta(
+      pool,
+      address(wbtc)
+    );
     assertFalse(isProfit);
     assertEq(delta, 2.25 * 10**30);
 
@@ -1059,7 +1104,7 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     // Assert pool's short delta
     // 1. Pool's delta should be (90 * (40000 - 42000)) / 40000 = -4.5 USD
     // 2. Pool's short should be not profitable
-    (isProfit, delta) = pool.getPoolShortDelta(address(wbtc));
+    (isProfit, delta) = pool.poolMath().getPoolShortDelta(pool, address(wbtc));
     assertFalse(isProfit);
     assertEq(delta, 4.5 * 10**30);
 

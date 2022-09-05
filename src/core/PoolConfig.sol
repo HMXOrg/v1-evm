@@ -1,18 +1,42 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.14;
 
-import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { LinkedList } from "../libraries/LinkedList.sol";
 
-contract PoolConfig is OwnableUpgradeable {
+contract PoolConfig is Ownable {
   using LinkedList for LinkedList.List;
 
-  error PoolConfig_BadArgument();
+  error PoolConfig_BadNewFundingInterval();
+  error PoolConfig_BadNewFundingRateFactor();
+  error PoolConfig_BadNewLiquidationFeeUsd();
+  error PoolConfig_BadNewLiquidityCoolDownDuration();
+  error PoolConfig_BadNewMaxLeverage();
+  error PoolConfig_BadNewMintBurnFeeBps();
+  error PoolConfig_BadNewPositionFeeBps();
+  error PoolConfig_BadNewStableFundingRateFactor();
+  error PoolConfig_BadNewStableTaxBps();
+  error PoolConfig_BadNewStableSwapFeeBps();
+  error PoolConfig_BadNewSwapFeeBps();
+  error PoolConfig_BadNewTaxBps();
+  error PoolConfig_ConfigContainsNotAcceptToken();
+  error PoolConfig_TokensConfigsLengthMisMatch();
 
   // ---------
   // Constants
   // ---------
-  uint256 public constant MAX_LIQUIDATION_FEE_USD = 100 * 10**30;
+  uint256 internal constant MAX_COOLDOWN_DURATION = 48 hours;
+  uint256 internal constant MAX_FEE_BPS = 500;
+  uint256 internal constant MIN_FUNDING_INTERVAL = 1 hours;
+  // Max funding rate factor at 1% (10000 / 1000000 * 100 = 1%)
+  uint256 internal constant MAX_FUNDING_RATE_FACTOR = 10000;
+  uint256 internal constant MAX_LIQUIDATION_FEE_USD = 100 * 10**30;
+  uint256 internal constant MIN_LEVERAGE = 10000;
+
+  // --------
+  // Treasury
+  // --------
+  address public treasury;
 
   // --------------------
   // Token Configurations
@@ -32,8 +56,6 @@ contract PoolConfig is OwnableUpgradeable {
   mapping(address => TokenConfig) public tokenMetas;
   uint256 public totalTokenWeight;
 
-  uint256 public maxLeverage;
-
   // --------------------------
   // Liquidation configurations
   // --------------------------
@@ -41,6 +63,11 @@ contract PoolConfig is OwnableUpgradeable {
   uint256 public liquidationFeeUsd;
   bool public isAllowAllLiquidators;
   mapping(address => bool) public allowLiquidators;
+
+  // -----------------------
+  // Leverage configurations
+  // -----------------------
+  uint64 public maxLeverage;
 
   // ---------------------------
   // Funding rate configurations
@@ -57,7 +84,7 @@ contract PoolConfig is OwnableUpgradeable {
   uint64 public stableTaxBps;
   uint64 public swapFeeBps;
   uint64 public stableSwapFeeBps;
-  uint64 public marginFeeBps;
+  uint64 public positionFeeBps;
 
   // -----
   // Misc.
@@ -71,6 +98,7 @@ contract PoolConfig is OwnableUpgradeable {
   address public router;
 
   event DeleteTokenConfig(address token);
+  event SetAllowLiquidator(address liquidator, bool allow);
   event SetIsAllowAllLiquidators(
     bool prevIsAllowAllLiquidators,
     bool isAllowAllLiquidators
@@ -79,6 +107,11 @@ contract PoolConfig is OwnableUpgradeable {
     bool prevIsDynamicFeeEnable,
     bool newIsDynamicFeeEnable
   );
+  event SetIsLeverageEnable(
+    bool prevIsLeverageEnable,
+    bool newIsLeverageEnable
+  );
+  event SetIsSwapEnable(bool prevIsSwapEnable, bool newIsSwapEnable);
   event SetMaxLeverage(uint256 prevMaxLeverage, uint256 newMaxLeverage);
   event SetMinProfitDuration(
     uint64 prevMinProfitDuration,
@@ -101,20 +134,27 @@ contract PoolConfig is OwnableUpgradeable {
     uint256 prevCoolDownPeriod,
     uint256 newCoolDownPeriod
   );
+  event SetPositionFeeBps(
+    uint256 prevPositionFeeBps,
+    uint256 newPositionFeeBps
+  );
+  event SetRouter(address prevRouter, address newRouter);
+  event SetStableSwapFeeBps(
+    uint256 prevStableSwapFeeBps,
+    uint256 newStableSwapFeeBps
+  );
+  event SetStableTaxBps(uint256 prevStableTaxBps, uint256 newStableTaxBps);
+  event SetSwapFeeBps(uint256 prevSwapFeeBps, uint256 newSwapFeeBps);
   event SetTaxBps(uint256 prevTaxBps, uint256 newTaxBps);
   event SetTokenConfig(
     address token,
     TokenConfig prevConfig,
     TokenConfig newConfig
   );
-  event SetIsLeverageEnable(
-    bool prevIsLeverageEnable,
-    bool newIsLeverageEnable
-  );
-  event SetIsSwapEnable(bool prevIsSwapEnable, bool newIsSwapEnable);
-  event SetRouter(address prevRouter, address newRouter);
+  event SetTreasury(address prevTreasury, address newTreasury);
 
-  function initialize(
+  constructor(
+    address _treasury,
     uint64 _fundingInterval,
     uint64 _mintBurnFeeBps,
     uint64 _taxBps,
@@ -122,10 +162,10 @@ contract PoolConfig is OwnableUpgradeable {
     uint64 _fundingRateFactor,
     uint64 _liquidityCoolDownDuration,
     uint256 _liquidationFeeUsd
-  ) external initializer {
-    OwnableUpgradeable.__Ownable_init();
-
+  ) {
     allowTokens.init();
+
+    treasury = _treasury;
 
     fundingInterval = _fundingInterval;
     mintBurnFeeBps = _mintBurnFeeBps;
@@ -144,7 +184,46 @@ contract PoolConfig is OwnableUpgradeable {
     liquidationFeeUsd = _liquidationFeeUsd;
     stableSwapFeeBps = 4; // 0.04%
     swapFeeBps = 30; // 0.3%
-    marginFeeBps = 10; // 0.1%
+    positionFeeBps = 10; // 0.1%
+  }
+
+  // ---------------
+  // Admin functions
+  // ---------------
+
+  function setAllowLiquidators(address[] calldata liquidators, bool allow)
+    external
+    onlyOwner
+  {
+    for (uint256 i = 0; i < liquidators.length; i++) {
+      allowLiquidators[liquidators[i]] = allow;
+      emit SetAllowLiquidator(liquidators[i], allow);
+    }
+  }
+
+  function setFundingRate(
+    uint64 newFundingInterval,
+    uint64 newFundingRateFactor,
+    uint64 newStableFundingRateFactor
+  ) external onlyOwner {
+    if (newFundingInterval < MIN_FUNDING_INTERVAL)
+      revert PoolConfig_BadNewFundingInterval();
+    if (newFundingRateFactor > MAX_FUNDING_RATE_FACTOR)
+      revert PoolConfig_BadNewFundingRateFactor();
+    if (newStableFundingRateFactor > MAX_FUNDING_RATE_FACTOR)
+      revert PoolConfig_BadNewStableFundingRateFactor();
+
+    emit SetFundingRate(
+      fundingInterval,
+      newFundingInterval,
+      fundingRateFactor,
+      newFundingRateFactor,
+      stableFundingRateFactor,
+      newStableFundingRateFactor
+    );
+    fundingInterval = newFundingInterval;
+    fundingRateFactor = newFundingRateFactor;
+    stableFundingRateFactor = newStableFundingRateFactor;
   }
 
   function setIsAllowAllLiquidators(bool _isAllowAllLiquidators)
@@ -176,30 +255,12 @@ contract PoolConfig is OwnableUpgradeable {
     isSwapEnable = newIsSwapEnable;
   }
 
-  function setFundingRate(
-    uint64 newFundingInterval,
-    uint64 newFundingRateFactor,
-    uint64 newStableFundingRateFactor
-  ) external onlyOwner {
-    emit SetFundingRate(
-      fundingInterval,
-      newFundingInterval,
-      fundingRateFactor,
-      newFundingRateFactor,
-      stableFundingRateFactor,
-      newStableFundingRateFactor
-    );
-    fundingInterval = newFundingInterval;
-    fundingRateFactor = newFundingRateFactor;
-    stableFundingRateFactor = newStableFundingRateFactor;
-  }
-
   function setLiquidationFeeUsd(uint256 newLiquidationFeeUsd)
     external
     onlyOwner
   {
     if (newLiquidationFeeUsd > MAX_LIQUIDATION_FEE_USD)
-      revert PoolConfig_BadArgument();
+      revert PoolConfig_BadNewLiquidationFeeUsd();
 
     emit SetLiquidationFeeUsd(liquidationFeeUsd, newLiquidationFeeUsd);
     liquidationFeeUsd = newLiquidationFeeUsd;
@@ -209,6 +270,9 @@ contract PoolConfig is OwnableUpgradeable {
     external
     onlyOwner
   {
+    if (newLiquidityCoolDownPeriod > MAX_COOLDOWN_DURATION)
+      revert PoolConfig_BadNewLiquidityCoolDownDuration();
+
     emit SetLiquidityCoolDownDuration(
       liquidityCoolDownDuration,
       newLiquidityCoolDownPeriod
@@ -216,7 +280,9 @@ contract PoolConfig is OwnableUpgradeable {
     liquidityCoolDownDuration = newLiquidityCoolDownPeriod;
   }
 
-  function setMaxLeverage(uint256 newMaxLeverage) external onlyOwner {
+  function setMaxLeverage(uint64 newMaxLeverage) external onlyOwner {
+    if (newMaxLeverage <= MIN_LEVERAGE) revert PoolConfig_BadNewMaxLeverage();
+
     emit SetMaxLeverage(maxLeverage, newMaxLeverage);
     maxLeverage = newMaxLeverage;
   }
@@ -230,32 +296,74 @@ contract PoolConfig is OwnableUpgradeable {
   }
 
   function setMintBurnFeeBps(uint64 newMintBurnFeeBps) external onlyOwner {
+    if (newMintBurnFeeBps > MAX_FEE_BPS)
+      revert PoolConfig_BadNewMintBurnFeeBps();
+
     emit SetMintBurnFeeBps(mintBurnFeeBps, newMintBurnFeeBps);
     mintBurnFeeBps = newMintBurnFeeBps;
   }
 
-  function setTaxBps(uint64 newTaxBps) external onlyOwner {
+  function setPositionFeeBps(uint64 newPositionFeeBps) external onlyOwner {
+    if (newPositionFeeBps > MAX_FEE_BPS)
+      revert PoolConfig_BadNewPositionFeeBps();
+
+    emit SetPositionFeeBps(positionFeeBps, newPositionFeeBps);
+    positionFeeBps = newPositionFeeBps;
+  }
+
+  function setRouter(address newRouter) external onlyOwner {
+    emit SetRouter(router, newRouter);
+    router = newRouter;
+  }
+
+  function setSwapFeeBps(uint64 newSwapFeeBps, uint64 newStableSwapFeeBps)
+    external
+    onlyOwner
+  {
+    if (newSwapFeeBps > MAX_FEE_BPS) revert PoolConfig_BadNewSwapFeeBps();
+    if (newStableSwapFeeBps > MAX_FEE_BPS)
+      revert PoolConfig_BadNewStableSwapFeeBps();
+
+    emit SetSwapFeeBps(swapFeeBps, newSwapFeeBps);
+    emit SetStableSwapFeeBps(stableSwapFeeBps, newStableSwapFeeBps);
+
+    swapFeeBps = newSwapFeeBps;
+    stableSwapFeeBps = newStableSwapFeeBps;
+  }
+
+  function setTaxBps(uint64 newTaxBps, uint64 newStableTaxBps)
+    external
+    onlyOwner
+  {
+    if (newTaxBps > MAX_FEE_BPS) revert PoolConfig_BadNewTaxBps();
+    if (newStableTaxBps > MAX_FEE_BPS) revert PoolConfig_BadNewStableTaxBps();
+
     emit SetTaxBps(taxBps, newTaxBps);
+    emit SetStableTaxBps(stableTaxBps, newStableTaxBps);
+
     taxBps = newTaxBps;
+    stableTaxBps = newStableTaxBps;
   }
 
   function setTokenConfigs(
     address[] calldata tokens,
     TokenConfig[] calldata configs
   ) external onlyOwner {
-    if (tokens.length != configs.length) revert PoolConfig_BadArgument();
+    if (tokens.length != configs.length)
+      revert PoolConfig_TokensConfigsLengthMisMatch();
 
     for (uint256 i = 0; i < tokens.length; ) {
       // Enforce that accept must be true
-      if (!configs[i].accept) revert PoolConfig_BadArgument();
+      if (!configs[i].accept) revert PoolConfig_ConfigContainsNotAcceptToken();
 
       // If tokenMetas.accept previously false, then it is a new token to be added.
       if (!tokenMetas[tokens[i]].accept) allowTokens.add(tokens[i]);
 
       emit SetTokenConfig(tokens[i], tokenMetas[tokens[i]], configs[i]);
 
-      totalTokenWeight -= tokenMetas[tokens[i]].weight;
-      totalTokenWeight += configs[i].weight;
+      totalTokenWeight =
+        (totalTokenWeight - tokenMetas[tokens[i]].weight) +
+        configs[i].weight;
       tokenMetas[tokens[i]] = configs[i];
 
       unchecked {
@@ -264,17 +372,25 @@ contract PoolConfig is OwnableUpgradeable {
     }
   }
 
-  function setRouter(address newRouter) external onlyOwner {
-    emit SetRouter(router, newRouter);
-    router = newRouter;
+  function setTreasury(address newTreasury) external onlyOwner {
+    emit SetTreasury(treasury, newTreasury);
+    treasury = newTreasury;
   }
 
   function deleteTokenConfig(address token) external onlyOwner {
+    // Update totalTokenWeight
+    totalTokenWeight -= tokenMetas[token].weight;
+
+    // Delete configs from storage
     allowTokens.remove(token, allowTokens.getPreviousOf(token));
     delete tokenMetas[token];
 
     emit DeleteTokenConfig(token);
   }
+
+  // ----------------
+  // Getter functions
+  // ----------------
 
   function isAcceptToken(address token) external view returns (bool) {
     return tokenMetas[token].accept;
@@ -307,27 +423,43 @@ contract PoolConfig is OwnableUpgradeable {
     return allowTokens.getNextOf(token);
   }
 
-  function tokenBufferLiquidity(address token) external view returns (uint256) {
+  function getTokenBufferLiquidityOf(address token)
+    external
+    view
+    returns (uint256)
+  {
     return tokenMetas[token].bufferLiquidity;
   }
 
-  function tokenDecimals(address token) external view returns (uint8) {
+  function getTokenDecimalsOf(address token) external view returns (uint8) {
     return tokenMetas[token].decimals;
   }
 
-  function tokenMinProfitBps(address token) external view returns (uint256) {
+  function getTokenMinProfitBpsOf(address token)
+    external
+    view
+    returns (uint256)
+  {
     return tokenMetas[token].minProfitBps;
   }
 
-  function tokenWeight(address token) external view returns (uint256) {
+  function getTokenWeightOf(address token) external view returns (uint256) {
     return tokenMetas[token].weight;
   }
 
-  function tokenUsdDebtCeiling(address token) external view returns (uint256) {
+  function getTokenUsdDebtCeilingOf(address token)
+    external
+    view
+    returns (uint256)
+  {
     return tokenMetas[token].usdDebtCeiling;
   }
 
-  function tokenShortCeiling(address token) external view returns (uint256) {
+  function getTokenShortCeilingOf(address token)
+    external
+    view
+    returns (uint256)
+  {
     return tokenMetas[token].shortCeiling;
   }
 
@@ -336,10 +468,5 @@ contract PoolConfig is OwnableUpgradeable {
     address /* indexToken */
   ) external pure returns (bool) {
     return true;
-  }
-
-  /// @custom:oz-upgrades-unsafe-allow constructor
-  constructor() {
-    _disableInitializers();
   }
 }

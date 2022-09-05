@@ -432,6 +432,7 @@ contract Pool_LiquidateTest is Pool_BaseTest {
     // 2. Position should be profitable
     (bool isProfit, uint256 delta) = pool.getPositionDelta(
       address(this),
+      0,
       address(wbtc),
       address(wbtc),
       Exposure.LONG
@@ -448,6 +449,7 @@ contract Pool_LiquidateTest is Pool_BaseTest {
     // 2. Position should be losses.
     (isProfit, delta) = pool.getPositionDelta(
       address(this),
+      0,
       address(wbtc),
       address(wbtc),
       Exposure.LONG
@@ -464,6 +466,7 @@ contract Pool_LiquidateTest is Pool_BaseTest {
     // 2. Position should be losses.
     (isProfit, delta) = pool.getPositionDelta(
       address(this),
+      0,
       address(wbtc),
       address(wbtc),
       Exposure.LONG
