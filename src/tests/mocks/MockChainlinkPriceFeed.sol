@@ -4,7 +4,7 @@ pragma solidity 0.8.16;
 import "../../interfaces/ChainLinkPriceFeedInterface.sol";
 
 /// @title MockChainlinkPriceFeed - for testing purposes ONLY.
-contract MockChainlinkPriceFeed is ChainlinkPriceFeedInterface {
+contract MockChainlinkPriceFeed is ChainLinkPriceFeedInterface {
   int256 public answer;
   uint80 public roundId;
 

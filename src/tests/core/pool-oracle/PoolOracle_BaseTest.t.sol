@@ -2,7 +2,7 @@
 pragma solidity 0.8.16;
 
 import { BaseTest, console, PoolOracle } from "../../base/BaseTest.sol";
-import { ChainlinkPriceFeedInterface } from "../../../interfaces/ChainLinkPriceFeedInterface.sol";
+import { ChainLinkPriceFeedInterface } from "../../../interfaces/ChainLinkPriceFeedInterface.sol";
 
 abstract contract PoolOracle_BaseTest is BaseTest {
   PoolOracle internal poolOracle;

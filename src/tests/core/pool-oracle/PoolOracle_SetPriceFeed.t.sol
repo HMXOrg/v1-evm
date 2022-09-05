@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.16;
 
-import { PoolOracle_BaseTest, PoolOracle, ChainlinkPriceFeedInterface } from "./PoolOracle_BaseTest.t.sol";
+import { PoolOracle_BaseTest, PoolOracle, ChainLinkPriceFeedInterface } from "./PoolOracle_BaseTest.t.sol";
 
 contract PoolOracle_SetPriceFeedTest is PoolOracle_BaseTest {
   function setUp() public override {
@@ -16,7 +16,7 @@ contract PoolOracle_SetPriceFeedTest is PoolOracle_BaseTest {
     PoolOracle.PriceFeedInfo[]
       memory priceFeedInfo = new PoolOracle.PriceFeedInfo[](1);
     priceFeedInfo[0] = PoolOracle.PriceFeedInfo({
-      priceFeed: ChainlinkPriceFeedInterface(address(0)),
+      priceFeed: ChainLinkPriceFeedInterface(address(0)),
       decimals: 0,
       spreadBps: 0,
       isStrictStable: false
@@ -33,7 +33,7 @@ contract PoolOracle_SetPriceFeedTest is PoolOracle_BaseTest {
     PoolOracle.PriceFeedInfo[]
       memory priceFeedInfo = new PoolOracle.PriceFeedInfo[](1);
     priceFeedInfo[0] = PoolOracle.PriceFeedInfo({
-      priceFeed: ChainlinkPriceFeedInterface(address(0)),
+      priceFeed: ChainLinkPriceFeedInterface(address(0)),
       decimals: 0,
       spreadBps: 0,
       isStrictStable: false
@@ -51,7 +51,7 @@ contract PoolOracle_SetPriceFeedTest is PoolOracle_BaseTest {
     PoolOracle.PriceFeedInfo[]
       memory priceFeedInfo = new PoolOracle.PriceFeedInfo[](1);
     priceFeedInfo[0] = PoolOracle.PriceFeedInfo({
-      priceFeed: ChainlinkPriceFeedInterface(address(0)),
+      priceFeed: ChainLinkPriceFeedInterface(address(0)),
       decimals: 0,
       spreadBps: 0,
       isStrictStable: false
@@ -77,7 +77,7 @@ contract PoolOracle_SetPriceFeedTest is PoolOracle_BaseTest {
     poolOracle.setPriceFeed(tokens, priceFeedInfo);
 
     (
-      ChainlinkPriceFeedInterface feed,
+      ChainLinkPriceFeedInterface feed,
       uint8 decimals,
       uint64 spreadBps,
       bool isStrictStable

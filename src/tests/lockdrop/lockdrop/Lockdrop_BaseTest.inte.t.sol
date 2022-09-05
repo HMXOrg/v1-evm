@@ -52,6 +52,7 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     //  Setup for Pool
     BaseTest.PoolConfigConstructorParams memory poolConfigParams = BaseTest
       .PoolConfigConstructorParams({
+        treasury: address(1),
         fundingInterval: 8 hours,
         mintBurnFeeBps: 30,
         taxBps: 50,
