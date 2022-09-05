@@ -11,6 +11,7 @@
     "USDC": "0xFc99D238c7A20895ba3756Ee04FD8BfD442c18fD",
     "USDT": "0xF21405bA59E79762C306c83298dbD10a8A285f2F"
   },
+  "PoolRouter": "0xC285a535403bfa849cdDA96EE85bc39D470f3416",
   "Pools": [
     {
       "name": "PLP",
