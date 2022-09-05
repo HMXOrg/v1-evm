@@ -274,11 +274,12 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     );
 
     // Alice increase long position with sub account id = 0
-    wbtc.transfer(address(pool), 22500);
-    pool.increasePosition(
-      ALICE,
+    wbtc.approve(address(poolRouter), 22500);
+    poolRouter.increasePosition(
+      pool,
       0,
       address(wbtc),
+      22500,
       address(wbtc),
       47 * 10**30,
       Exposure.LONG

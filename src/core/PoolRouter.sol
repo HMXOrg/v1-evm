@@ -116,6 +116,28 @@ contract PoolRouter {
     );
   }
 
+  function decreasePosition(
+    Pool pool,
+    uint256 subAccountId,
+    address collateralToken,
+    address indexToken,
+    uint256 collateralDelta,
+    uint256 sizeDelta,
+    Pool.Exposure exposure,
+    address receiver
+  ) external {
+    pool.decreasePosition(
+      msg.sender,
+      subAccountId,
+      collateralToken,
+      indexToken,
+      collateralDelta,
+      sizeDelta,
+      exposure,
+      receiver
+    );
+  }
+
   receive() external payable {
     assert(msg.sender == address(WNATIVE)); // only accept NATIVE via fallback from the WNATIVE contract
   }
