@@ -8,21 +8,26 @@ import { MintableTokenInterface } from "../../interfaces/MintableTokenInterface.
 contract BaseMintableToken is Ownable, ERC20, MintableTokenInterface {
   error BaseMintableToken_NotMinter();
   error BaseMintableToken_MintExceedMaxSupply();
+  error BaseMintableToken_ExceedMaxSupplyCap();
 
   uint8 private _decimals;
   uint256 public maxSupply;
+  uint256 public maxSupplyCap;
   mapping(address => bool) public isMinter;
 
   event SetMinter(address minter, bool prevAllow, bool newAllow);
+  event SetMaxSupply(uint256 oldMaxSupply, uint256 newMaxSupply);
 
   constructor(
     string memory name,
     string memory symbol,
     uint8 __decimals,
-    uint256 maxSupply_
+    uint256 maxSupply_,
+    uint256 maxSupplyCap_
   ) ERC20(name, symbol) {
     _decimals = __decimals;
     maxSupply = maxSupply_;
+    maxSupplyCap = maxSupplyCap_;
   }
 
   modifier onlyMinter() {
@@ -47,5 +52,14 @@ contract BaseMintableToken is Ownable, ERC20, MintableTokenInterface {
 
   function burn(address from, uint256 amount) public override onlyMinter {
     _burn(from, amount);
+  }
+
+  function setMaxSupply(uint256 newMaxSupply_) external onlyOwner {
+    if (newMaxSupply_ > maxSupplyCap)
+      revert BaseMintableToken_ExceedMaxSupplyCap();
+    uint256 oldMaxSupply = maxSupplyCap;
+    maxSupplyCap = newMaxSupply_;
+
+    emit SetMaxSupply(oldMaxSupply, newMaxSupply_);
   }
 }

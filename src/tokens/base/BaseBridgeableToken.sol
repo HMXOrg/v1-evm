@@ -18,8 +18,9 @@ contract BaseBridgeableToken is BaseMintableToken {
     string memory symbol_,
     uint8 __decimals,
     uint256 maxSupply_,
+    uint256 maxSupplyCap_,
     bool isBurnAndMint_
-  ) BaseMintableToken(name_, symbol_, __decimals, maxSupply_) {
+  ) BaseMintableToken(name_, symbol_, __decimals, maxSupply_, maxSupplyCap_) {
     isBurnAndMint = isBurnAndMint_;
   }
 

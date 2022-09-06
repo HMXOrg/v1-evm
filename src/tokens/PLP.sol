@@ -5,6 +5,12 @@ import { BaseMintableToken } from "./base/BaseMintableToken.sol";
 
 contract PLP is BaseMintableToken {
   constructor()
-    BaseMintableToken("P88 Liquidity Provider", "PLP", 18, type(uint256).max)
+    BaseMintableToken(
+      "P88 Liquidity Provider",
+      "PLP",
+      18,
+      type(uint256).max,
+      type(uint256).max
+    )
   {}
 }

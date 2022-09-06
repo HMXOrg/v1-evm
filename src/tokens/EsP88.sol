@@ -5,6 +5,12 @@ import { BaseMintableToken } from "./base/BaseMintableToken.sol";
 
 contract EsP88 is BaseMintableToken {
   constructor()
-    BaseMintableToken("Escrowed P88", "esP88", 18, type(uint256).max)
+    BaseMintableToken(
+      "Escrowed P88",
+      "esP88",
+      18,
+      type(uint256).max,
+      type(uint256).max
+    )
   {}
 }
