@@ -3,6 +3,7 @@ pragma solidity 0.8.16;
 
 import { IBridgeStrategy } from "../../interfaces/IBridgeStrategy.sol";
 import { BaseMintableToken } from "./BaseMintableToken.sol";
+import { console } from "src/tests/utils/console.sol";
 
 contract BaseBridgeableToken is BaseMintableToken {
   mapping(address => bool) public bridgeStrategies;

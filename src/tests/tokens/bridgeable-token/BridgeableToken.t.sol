@@ -6,6 +6,7 @@ import { P88 } from "../../../tokens/P88.sol";
 import { LZBridgeStrategy } from "../../../tokens/bridge-strategies/LZBridgeStrategy.sol";
 import { LZBridgeReceiver } from "../../../tokens/bridge-receiver/LZBridgeReceiver.sol";
 import { MockLZEndpoint } from "src/tests/mocks/MockLZEndpoint.sol";
+import { console } from "src/tests/utils/console.sol";
 
 contract BridgeableToken is BaseTest {
   P88 internal p88OnETH;
@@ -162,5 +163,114 @@ contract BridgeableToken is BaseTest {
       1 ether,
       "Total supply on ETH should stay the same."
     );
+  }
+
+  function testRevert_BadStrategy() external {
+    p88OnETH.mint(ALICE, 1 ether);
+    vm.startPrank(ALICE);
+
+    vm.expectRevert(
+      abi.encodeWithSignature("BaseBridgeableToken_BadStrategy()")
+    );
+    p88OnETH.bridgeToken(
+      POLYGON_CHAIN_ID,
+      BOB,
+      1 ether,
+      address(1),
+      abi.encode(0)
+    );
+    vm.stopPrank();
+  }
+
+  function testRevert_UnknownChainId() external {
+    p88OnETH.mint(ALICE, 1 ether);
+
+    lzEndpoint.setSource(
+      uint16(ETHEREUM_CHAIN_ID),
+      abi.encode(bridgeStratOnETH)
+    );
+
+    vm.startPrank(ALICE);
+    vm.expectRevert(
+      abi.encodeWithSignature("LZBridgeStrategy_UnknownChainId()")
+    );
+    p88OnETH.bridgeToken(
+      0,
+      BOB,
+      1 ether,
+      address(bridgeStratOnETH),
+      abi.encode(0)
+    );
+    vm.stopPrank();
+  }
+
+  function testRevert_InvalidSource() external {
+    p88OnETH.mint(ALICE, 1 ether);
+
+    lzEndpoint.setSource(
+      uint16(ETHEREUM_CHAIN_ID),
+      abi.encode(bridgeStratOnETH)
+    );
+
+    uint16[] memory srcChainIds = new uint16[](1);
+    bytes[] memory remoteAddresses = new bytes[](1);
+    srcChainIds[0] = uint16(ETHEREUM_CHAIN_ID);
+    remoteAddresses[0] = abi.encode(address(0));
+    bridgeReceiverOnPolygon.setTrustedRemotes(srcChainIds, remoteAddresses);
+
+    vm.startPrank(ALICE);
+    vm.expectRevert(
+      abi.encodeWithSignature("LZBridgeReceiver_InvalidSource()")
+    );
+    p88OnETH.bridgeToken(
+      POLYGON_CHAIN_ID,
+      BOB,
+      1 ether,
+      address(bridgeStratOnETH),
+      abi.encode(0)
+    );
+    vm.stopPrank();
+  }
+
+  function testCorrectness_exploitOnPolygon() external {
+    p88OnETH.mint(ALICE, 1000 ether);
+
+    lzEndpoint.setSource(
+      uint16(ETHEREUM_CHAIN_ID),
+      abi.encode(bridgeStratOnETH)
+    );
+
+    vm.startPrank(ALICE);
+    p88OnETH.bridgeToken(
+      POLYGON_CHAIN_ID,
+      BOB,
+      1 ether,
+      address(bridgeStratOnETH),
+      abi.encode(0)
+    );
+    vm.stopPrank();
+
+    assertEq(p88OnPolygon.balanceOf(BOB), 1 ether);
+
+    lzEndpoint.setSource(
+      uint16(POLYGON_CHAIN_ID),
+      abi.encode(bridgeStratOnPolygon)
+    );
+
+    // Hacker mint the full supply
+    p88OnPolygon.setMinter(address(this), true);
+    p88OnPolygon.mint(BOB, 99_999_999 ether);
+
+    vm.startPrank(BOB);
+    p88OnPolygon.bridgeToken(
+      ETHEREUM_CHAIN_ID,
+      ALICE,
+      100_000_000 ether,
+      address(bridgeStratOnPolygon),
+      abi.encode(0)
+    );
+    vm.stopPrank();
+
+    assertEq(p88OnETH.totalSupply(), 1000 ether);
   }
 }
