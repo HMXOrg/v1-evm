@@ -4,9 +4,6 @@ pragma solidity 0.8.14;
 import { PoolDiamond_BaseTest, PoolConfig, Pool, console, GetterFacetInterface, LiquidityFacetInterface } from "./PoolDiamond_BaseTest.t.sol";
 
 contract PoolDiamond_AddLiquidity is PoolDiamond_BaseTest {
-  GetterFacetInterface internal poolGetterFacet;
-  LiquidityFacetInterface internal poolLiquidityFacet;
-
   function setUp() public override {
     super.setUp();
 
@@ -21,10 +18,25 @@ contract PoolDiamond_AddLiquidity is PoolDiamond_BaseTest {
     daiPriceFeed.setLatestAnswer(1 * 10**8);
     wbtcPriceFeed.setLatestAnswer(60000 * 10**8);
     maticPriceFeed.setLatestAnswer(300 * 10**8);
+  }
 
-    // Assign facet
-    poolGetterFacet = GetterFacetInterface(poolDiamond);
-    poolLiquidityFacet = LiquidityFacetInterface(poolDiamond);
+  function testRevert_WhenTokenNotListed() external {
+    vm.expectRevert(abi.encodeWithSignature("LiquidityFacet_BadToken()"));
+    poolLiquidityFacet.addLiquidity(
+      address(this),
+      address(usdc),
+      address(this)
+    );
+  }
+
+  function testRevert_WhenAmountZero() external {
+    vm.expectRevert(abi.encodeWithSignature("LiquidityFacet_BadAmount()"));
+    poolLiquidityFacet.addLiquidity(address(this), address(dai), address(this));
+  }
+
+  function testRevert_WhenTryToAddLiquidityUnderOtherAccount() external {
+    vm.expectRevert(abi.encodeWithSignature("LibPoolV1_Forbidden()"));
+    poolLiquidityFacet.addLiquidity(ALICE, address(dai), address(this));
   }
 
   function testCorrectness_WhenDynamicFeeOff() external {

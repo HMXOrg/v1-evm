@@ -11,6 +11,7 @@ import { Constants } from "../../Constants.sol";
 library LibPoolV1 {
   using SafeERC20 for IERC20;
 
+  error LibPoolV1_BadSubAccountId();
   error LibPoolV1_Forbidden();
   error LibPoolV1_LiquidityMismatch();
   error LibPoolV1_InsufficientLiquidity();
@@ -125,6 +126,28 @@ library LibPoolV1 {
       if (!poolV1ds.approvedPlugins[account][msg.sender])
         revert LibPoolV1_Forbidden();
     }
+  }
+
+  // -----------------
+  // Queries functions
+  // -----------------
+  function getPositionId(
+    address account,
+    address collateralToken,
+    address indexToken,
+    bool isLong
+  ) internal pure returns (bytes32) {
+    return
+      keccak256(abi.encodePacked(account, collateralToken, indexToken, isLong));
+  }
+
+  function getSubAccount(address primary, uint256 subAccountId)
+    internal
+    pure
+    returns (address)
+  {
+    if (subAccountId > 255) revert LibPoolV1_BadSubAccountId();
+    return address(uint160(primary) ^ uint160(subAccountId));
   }
 
   // ------------------------------

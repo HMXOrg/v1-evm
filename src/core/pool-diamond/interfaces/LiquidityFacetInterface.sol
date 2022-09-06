@@ -7,4 +7,17 @@ interface LiquidityFacetInterface {
     address token,
     address receiver
   ) external returns (uint256);
+
+  function removeLiquidity(
+    address account,
+    address tokenOut,
+    address receiver
+  ) external returns (uint256);
+
+  function swap(
+    address tokenIn,
+    address tokenOut,
+    uint256 minAmountOut,
+    address receiver
+  ) external returns (uint256);
 }

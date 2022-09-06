@@ -26,6 +26,7 @@ import { OwnershipFacet, OwnershipFacetInterface } from "../../core/pool-diamond
 import { GetterFacet, GetterFacetInterface } from "../../core/pool-diamond/facets/GetterFacet.sol";
 import { FundingRateFacet, FundingRateFacetInterface } from "../../core/pool-diamond/facets/FundingRateFacet.sol";
 import { LiquidityFacet, LiquidityFacetInterface } from "../../core/pool-diamond/facets/LiquidityFacet.sol";
+import { PerpTradeFacet, PerpTradeFacetInterface } from "../../core/pool-diamond/facets/PerpTradeFacet.sol";
 import { DiamondInitializer } from "../../core/pool-diamond/initializers/DiamondInitializer.sol";
 import { PoolDiamond } from "../../core/pool-diamond/PoolDiamond.sol";
 
@@ -250,7 +251,7 @@ contract BaseTest is DSTest, CoreConstants {
   {
     GetterFacet getterFacet = new GetterFacet();
 
-    bytes4[] memory selectors = new bytes4[](9);
+    bytes4[] memory selectors = new bytes4[](27);
     selectors[0] = GetterFacet.getAddLiquidityFeeBps.selector;
     selectors[1] = GetterFacet.getRemoveLiquidityFeeBps.selector;
     selectors[2] = GetterFacet.getSwapFeeBps.selector;
@@ -260,6 +261,24 @@ contract BaseTest is DSTest, CoreConstants {
     selectors[6] = GetterFacet.plp.selector;
     selectors[7] = GetterFacet.lastAddLiquidityAtOf.selector;
     selectors[8] = GetterFacet.totalUsdDebt.selector;
+    selectors[9] = GetterFacet.liquidityOf.selector;
+    selectors[10] = GetterFacet.feeReserveOf.selector;
+    selectors[11] = GetterFacet.usdDebtOf.selector;
+    selectors[12] = GetterFacet.getDelta.selector;
+    selectors[13] = GetterFacet.getEntryFundingRate.selector;
+    selectors[14] = GetterFacet.getFundingFee.selector;
+    selectors[15] = GetterFacet.getNextShortAveragePrice.selector;
+    selectors[16] = GetterFacet.getPositionFee.selector;
+    selectors[17] = GetterFacet.getPositionNextAveragePrice.selector;
+    selectors[18] = GetterFacet.getSubAccount.selector;
+    selectors[19] = GetterFacet.guaranteedUsdOf.selector;
+    selectors[20] = GetterFacet.reservedOf.selector;
+    selectors[21] = GetterFacet.getPosition.selector;
+    selectors[22] = GetterFacet.getPositionWithSubAccountId.selector;
+    selectors[23] = GetterFacet.getPositionDelta.selector;
+    selectors[24] = GetterFacet.getPositionLeverage.selector;
+    selectors[25] = GetterFacet.getRedemptionCollateral.selector;
+    selectors[26] = GetterFacet.getRedemptionCollateralUsd.selector;
 
     DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
       address(getterFacet),
@@ -296,8 +315,10 @@ contract BaseTest is DSTest, CoreConstants {
   {
     LiquidityFacet liquidityFacet = new LiquidityFacet();
 
-    bytes4[] memory selectors = new bytes4[](1);
+    bytes4[] memory selectors = new bytes4[](3);
     selectors[0] = LiquidityFacet.addLiquidity.selector;
+    selectors[1] = LiquidityFacet.removeLiquidity.selector;
+    selectors[2] = LiquidityFacet.swap.selector;
 
     DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
       address(liquidityFacet),
@@ -307,6 +328,26 @@ contract BaseTest is DSTest, CoreConstants {
 
     diamondCutFacet.diamondCut(facetCuts, address(0), "");
     return (liquidityFacet, selectors);
+  }
+
+  function deployPerpTradeFacet(DiamondCutFacet diamondCutFacet)
+    internal
+    returns (PerpTradeFacet, bytes4[] memory functionSelectors)
+  {
+    PerpTradeFacet perpTradeFacet = new PerpTradeFacet();
+
+    bytes4[] memory selectors = new bytes4[](2);
+    selectors[0] = PerpTradeFacet.checkLiquidation.selector;
+    selectors[1] = PerpTradeFacet.increasePosition.selector;
+
+    DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
+      address(perpTradeFacet),
+      DiamondCutInterface.FacetCutAction.Add,
+      selectors
+    );
+
+    diamondCutFacet.diamondCut(facetCuts, address(0), "");
+    return (perpTradeFacet, selectors);
   }
 
   function deployMockErc20(
@@ -412,6 +453,7 @@ contract BaseTest is DSTest, CoreConstants {
     deployGetterFacet(DiamondCutFacet(address(poolDiamond)));
     deployLiquidityFacet(DiamondCutFacet(address(poolDiamond)));
     deployOwnershipFacet(DiamondCutFacet(address(poolDiamond)));
+    deployPerpTradeFacet(DiamondCutFacet(address(poolDiamond)));
 
     initializeDiamond(DiamondCutFacet(address(poolDiamond)));
 
