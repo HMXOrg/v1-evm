@@ -677,8 +677,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
         position.primaryAccount
       );
 
-      // TODO: Uncomment below after test
-      // LibReentrancyGuard.unlock();
+      LibReentrancyGuard.unlock();
       return;
     }
 

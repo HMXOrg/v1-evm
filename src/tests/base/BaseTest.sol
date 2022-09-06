@@ -340,10 +340,11 @@ contract BaseTest is DSTest, CoreConstants {
   {
     PerpTradeFacet perpTradeFacet = new PerpTradeFacet();
 
-    bytes4[] memory selectors = new bytes4[](3);
+    bytes4[] memory selectors = new bytes4[](4);
     selectors[0] = PerpTradeFacet.checkLiquidation.selector;
     selectors[1] = PerpTradeFacet.increasePosition.selector;
     selectors[2] = PerpTradeFacet.decreasePosition.selector;
+    selectors[3] = PerpTradeFacet.liquidate.selector;
 
     DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
       address(perpTradeFacet),
