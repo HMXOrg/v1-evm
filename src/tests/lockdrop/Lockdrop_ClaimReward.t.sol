@@ -14,8 +14,8 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     uint256 lockPeriod = 8 days;
 
     vm.startPrank(ALICE);
-    mockERC20.mint(ALICE, 1e12 ether);
-    mockERC20.approve(address(lockdrop), 1e12 ether);
+    mockERC20.mint(ALICE, 1000 ether);
+    mockERC20.approve(address(lockdrop), 1000 ether);
     vm.warp(120000);
     lockdrop.lockToken(lockAmount, lockPeriod);
     (
@@ -35,8 +35,8 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     // Mint P88
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
     vm.startPrank(address(this));
-    mockP88Token.mint(address(this), 1e12 ether);
-    mockP88Token.approve(address(lockdrop), 1e12 ether);
+    mockP88Token.mint(address(this), 1000 ether);
+    mockP88Token.approve(address(lockdrop), 1000 ether);
     lockdrop.allocateP88(100);
     vm.stopPrank();
 
@@ -64,8 +64,8 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
 
     // ------- Alice session -------
     vm.startPrank(ALICE);
-    mockERC20.mint(ALICE, 1e12 ether);
-    mockERC20.approve(address(lockdrop), 1e12 ether);
+    mockERC20.mint(ALICE, 1000 ether);
+    mockERC20.approve(address(lockdrop), 1000 ether);
     vm.warp(120000);
     lockdrop.lockToken(lockAmount1, lockPeriod1);
     (
@@ -83,8 +83,8 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
 
     // ------- Bob session -------
     vm.startPrank(BOB);
-    mockERC20.mint(BOB, 1e12 ether);
-    mockERC20.approve(address(lockdrop), 1e12 ether);
+    mockERC20.mint(BOB, 1000 ether);
+    mockERC20.approve(address(lockdrop), 1000 ether);
     vm.warp(130000);
     lockdrop.lockToken(lockAmount2, lockPeriod2);
     (
@@ -107,8 +107,8 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     // Mint P88
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
     vm.startPrank(address(this));
-    mockP88Token.mint(address(this), 1e12 ether);
-    mockP88Token.approve(address(lockdrop), 1e12 ether);
+    mockP88Token.mint(address(this), 1000 ether);
+    mockP88Token.approve(address(lockdrop), 1000 ether);
     lockdrop.allocateP88(100);
     vm.stopPrank();
 
@@ -154,8 +154,8 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
 
     // ------- Alice session -------
     vm.startPrank(ALICE);
-    mockERC20.mint(ALICE, 1e12 ether);
-    mockERC20.approve(address(lockdrop), 1e12 ether);
+    mockERC20.mint(ALICE, 1000 ether);
+    mockERC20.approve(address(lockdrop), 1000 ether);
     vm.warp(120000);
     lockdrop.lockToken(userLockAmount * multiplier, userLockPeriod);
     (
@@ -176,8 +176,8 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
 
     // ------- Bob session -------
     vm.startPrank(BOB);
-    mockERC20.mint(BOB, 1e12 ether);
-    mockERC20.approve(address(lockdrop), 1e12 ether);
+    mockERC20.mint(BOB, 1000 ether);
+    mockERC20.approve(address(lockdrop), 1000 ether);
     vm.warp(130000);
     lockdrop.lockToken(userLockAmount, userLockPeriod);
     (
@@ -203,8 +203,8 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     // Mint P88
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
     vm.startPrank(address(this));
-    mockP88Token.mint(address(this), 1e12 ether);
-    mockP88Token.approve(address(lockdrop), 1e12 ether);
+    mockP88Token.mint(address(this), 1000 ether);
+    mockP88Token.approve(address(lockdrop), 1000 ether);
     lockdrop.allocateP88(100 ether);
     vm.stopPrank();
 
@@ -252,8 +252,8 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
 
     // ------- Alice session -------
     vm.startPrank(ALICE);
-    mockERC20.mint(ALICE, 1e12 ether);
-    mockERC20.approve(address(lockdrop), 1e12 ether);
+    mockERC20.mint(ALICE, 1000 ether);
+    mockERC20.approve(address(lockdrop), 1000 ether);
     vm.warp(120000);
     lockdrop.lockToken(userLockAmount, userLockPeriod * multiplier);
     (
@@ -274,8 +274,8 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
 
     // ------- Bob session -------
     vm.startPrank(BOB);
-    mockERC20.mint(BOB, 1e12 ether);
-    mockERC20.approve(address(lockdrop), 1e12 ether);
+    mockERC20.mint(BOB, 1000 ether);
+    mockERC20.approve(address(lockdrop), 1000 ether);
     vm.warp(130000);
     lockdrop.lockToken(userLockAmount, userLockPeriod);
     (
@@ -301,8 +301,8 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     // Mint P88
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
     vm.startPrank(address(this));
-    mockP88Token.mint(address(this), 1e12 ether);
-    mockP88Token.approve(address(lockdrop), 1e12 ether);
+    mockP88Token.mint(address(this), 1000 ether);
+    mockP88Token.approve(address(lockdrop), 1000 ether);
     lockdrop.allocateP88(100 ether);
     vm.stopPrank();
 
@@ -346,8 +346,8 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     uint256 lockPeriod = 8 days;
 
     vm.startPrank(ALICE);
-    mockERC20.mint(ALICE, 1e12 ether);
-    mockERC20.approve(address(lockdrop), 1e12 ether);
+    mockERC20.mint(ALICE, 1000 ether);
+    mockERC20.approve(address(lockdrop), 1000 ether);
     vm.warp(120000);
     lockdrop.lockToken(lockAmount, lockPeriod);
     (
@@ -368,8 +368,8 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
 
     vm.startPrank(address(this));
-    mockP88Token.mint(address(this), 1e12 ether);
-    mockP88Token.approve(address(lockdrop), 1e12 ether);
+    mockP88Token.mint(address(this), 1000 ether);
+    mockP88Token.approve(address(lockdrop), 1000 ether);
     vm.stopPrank();
 
     vm.startPrank(ALICE);
@@ -386,8 +386,8 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     uint256 lockPeriod = 8 days;
 
     vm.startPrank(ALICE);
-    mockERC20.mint(ALICE, 1e12 ether);
-    mockERC20.approve(address(lockdrop), 1e12 ether);
+    mockERC20.mint(ALICE, 1000 ether);
+    mockERC20.approve(address(lockdrop), 1000 ether);
     vm.warp(120000);
     lockdrop.lockToken(lockAmount, lockPeriod);
     (
@@ -408,8 +408,8 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
 
     vm.startPrank(address(this));
-    mockP88Token.mint(address(this), 1e12 ether);
-    mockP88Token.approve(address(lockdrop), 1e12 ether);
+    mockP88Token.mint(address(this), 1000 ether);
+    mockP88Token.approve(address(lockdrop), 1000 ether);
     lockdrop.allocateP88(100);
     vm.stopPrank();
 
