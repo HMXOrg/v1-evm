@@ -88,6 +88,17 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     uint256 price
   );
 
+  modifier allowed(address account) {
+    LibPoolV1.allowed(account);
+    _;
+  }
+
+  modifier nonReentrant() {
+    LibReentrancyGuard.lock();
+    _;
+    LibReentrancyGuard.unlock();
+  }
+
   function checkLiquidation(
     address account,
     address collateralToken,
@@ -262,17 +273,13 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     address indexToken,
     uint256 sizeDelta,
     bool isLong
-  ) external {
-    LibReentrancyGuard.lock();
-    LibPoolV1.allowed(primaryAccount);
-
+  ) external nonReentrant allowed(primaryAccount) {
     // Load diamond storage
     LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
       .poolV1DiamondStorage();
 
     if (!ds.config.isLeverageEnable()) revert PerpTradeFacet_LeverageDisabled();
     _checkTokenInputs(collateralToken, indexToken, isLong);
-    // TODO: Add validate increase position
 
     FundingRateFacetInterface(address(this)).updateFundingRate(
       collateralToken,
@@ -411,8 +418,6 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       position.realizedPnl,
       vars.price
     );
-
-    LibReentrancyGuard.unlock();
   }
 
   struct DecreasePositionLocalVars {
@@ -434,10 +439,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     uint256 sizeDelta,
     bool isLong,
     address receiver
-  ) external returns (uint256) {
-    LibReentrancyGuard.lock();
-    LibPoolV1.allowed(primaryAccount);
-
+  ) external nonReentrant allowed(primaryAccount) returns (uint256) {
     uint256 amountOut = _decreasePosition(
       primaryAccount,
       subAccountId,
@@ -448,8 +450,6 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       isLong,
       receiver
     );
-
-    LibReentrancyGuard.unlock();
 
     return amountOut;
   }
@@ -628,8 +628,6 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     bool isLong,
     address to
   ) external {
-    LibReentrancyGuard.lock();
-
     // Load diamond storage
     LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
       .poolV1DiamondStorage();
@@ -676,8 +674,6 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
         isLong,
         position.primaryAccount
       );
-
-      LibReentrancyGuard.unlock();
       return;
     }
 
@@ -756,8 +752,6 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
         true
       )
     );
-
-    LibReentrancyGuard.unlock();
   }
 
   struct ReduceCollateralLocalVars {

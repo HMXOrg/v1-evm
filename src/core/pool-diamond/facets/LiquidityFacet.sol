@@ -88,14 +88,22 @@ contract LiquidityFacet is LiquidityFacetInterface {
     return amountAfterFee;
   }
 
+  modifier allowed(address account) {
+    LibPoolV1.allowed(account);
+    _;
+  }
+
+  modifier nonReentrant() {
+    LibReentrancyGuard.lock();
+    _;
+    LibReentrancyGuard.unlock();
+  }
+
   function addLiquidity(
     address account,
     address token,
     address receiver
-  ) external returns (uint256) {
-    LibReentrancyGuard.lock();
-    LibPoolV1.allowed(account);
-
+  ) external nonReentrant allowed(account) returns (uint256) {
     // LOAD diamond storage
     LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
       .poolV1DiamondStorage();
@@ -126,8 +134,6 @@ contract LiquidityFacet is LiquidityFacetInterface {
       usdDebt,
       mintAmount
     );
-
-    LibReentrancyGuard.unlock();
 
     return mintAmount;
   }
@@ -184,10 +190,7 @@ contract LiquidityFacet is LiquidityFacetInterface {
     address account,
     address tokenOut,
     address receiver
-  ) external returns (uint256) {
-    LibReentrancyGuard.lock();
-    LibPoolV1.allowed(account);
-
+  ) external nonReentrant allowed(account) returns (uint256) {
     // LOAD diamond storage
     LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
       .poolV1DiamondStorage();
@@ -226,8 +229,6 @@ contract LiquidityFacet is LiquidityFacetInterface {
       lpUsdValue,
       amountOut
     );
-
-    LibReentrancyGuard.unlock();
 
     return amountOut;
   }
@@ -276,9 +277,7 @@ contract LiquidityFacet is LiquidityFacetInterface {
     address tokenOut,
     uint256 minAmountOut,
     address receiver
-  ) external returns (uint256) {
-    LibReentrancyGuard.lock();
-
+  ) external nonReentrant returns (uint256) {
     // LOAD diamond storage
     LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
       .poolV1DiamondStorage();
@@ -360,8 +359,6 @@ contract LiquidityFacet is LiquidityFacetInterface {
       amountOutAfterFee,
       swapFeeBps
     );
-
-    LibReentrancyGuard.unlock();
 
     return amountOutAfterFee;
   }
