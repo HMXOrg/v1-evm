@@ -28,6 +28,7 @@ import { GetterFacet, GetterFacetInterface } from "../../core/pool-diamond/facet
 import { FundingRateFacet, FundingRateFacetInterface } from "../../core/pool-diamond/facets/FundingRateFacet.sol";
 import { LiquidityFacet, LiquidityFacetInterface } from "../../core/pool-diamond/facets/LiquidityFacet.sol";
 import { PerpTradeFacet, PerpTradeFacetInterface } from "../../core/pool-diamond/facets/PerpTradeFacet.sol";
+import { AdminFacet, AdminFacetInterface } from "../../core/pool-diamond/facets/AdminFacet.sol";
 import { DiamondInitializer } from "../../core/pool-diamond/initializers/DiamondInitializer.sol";
 import { PoolDiamond } from "../../core/pool-diamond/PoolDiamond.sol";
 
@@ -206,7 +207,7 @@ contract BaseTest is DSTest, CoreConstants {
 
   function deployDiamondLoupeFacet(DiamondCutFacet diamondCutFacet)
     internal
-    returns (DiamondLoupeFacet, bytes4[] memory functionSelectors)
+    returns (DiamondLoupeFacet, bytes4[] memory)
   {
     DiamondLoupeFacet diamondLoupeFacet = new DiamondLoupeFacet();
 
@@ -228,7 +229,7 @@ contract BaseTest is DSTest, CoreConstants {
 
   function deployOwnershipFacet(DiamondCutFacet diamondCutFacet)
     internal
-    returns (OwnershipFacet, bytes4[] memory functionSelectors)
+    returns (OwnershipFacet, bytes4[] memory)
   {
     OwnershipFacet ownershipFacet = new OwnershipFacet();
 
@@ -248,7 +249,7 @@ contract BaseTest is DSTest, CoreConstants {
 
   function deployGetterFacet(DiamondCutFacet diamondCutFacet)
     internal
-    returns (GetterFacet, bytes4[] memory functionSelectors)
+    returns (GetterFacet, bytes4[] memory)
   {
     GetterFacet getterFacet = new GetterFacet();
 
@@ -297,7 +298,7 @@ contract BaseTest is DSTest, CoreConstants {
 
   function deployFundingRateFacet(DiamondCutFacet diamondCutFacet)
     internal
-    returns (FundingRateFacet, bytes4[] memory functionSelectors)
+    returns (FundingRateFacet, bytes4[] memory)
   {
     FundingRateFacet fundingRateFacet = new FundingRateFacet();
 
@@ -316,7 +317,7 @@ contract BaseTest is DSTest, CoreConstants {
 
   function deployLiquidityFacet(DiamondCutFacet diamondCutFacet)
     internal
-    returns (LiquidityFacet, bytes4[] memory functionSelectors)
+    returns (LiquidityFacet, bytes4[] memory)
   {
     LiquidityFacet liquidityFacet = new LiquidityFacet();
 
@@ -355,6 +356,27 @@ contract BaseTest is DSTest, CoreConstants {
 
     diamondCutFacet.diamondCut(facetCuts, address(0), "");
     return (perpTradeFacet, selectors);
+  }
+
+  function deployAdminFacet(DiamondCutFacet diamondCutFacet)
+    internal
+    returns (AdminFacet, bytes4[] memory)
+  {
+    AdminFacet adminFacet = new AdminFacet();
+
+    bytes4[] memory selectors = new bytes4[](3);
+    selectors[0] = AdminFacet.setPoolConfig.selector;
+    selectors[1] = AdminFacet.setPoolOracle.selector;
+    selectors[2] = AdminFacet.withdrawFeeReserve.selector;
+
+    DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
+      address(adminFacet),
+      DiamondCutInterface.FacetCutAction.Add,
+      selectors
+    );
+
+    diamondCutFacet.diamondCut(facetCuts, address(0), "");
+    return (adminFacet, selectors);
   }
 
   function deployMockErc20(
@@ -461,6 +483,7 @@ contract BaseTest is DSTest, CoreConstants {
     deployLiquidityFacet(DiamondCutFacet(address(poolDiamond)));
     deployOwnershipFacet(DiamondCutFacet(address(poolDiamond)));
     deployPerpTradeFacet(DiamondCutFacet(address(poolDiamond)));
+    deployAdminFacet(DiamondCutFacet(address(poolDiamond)));
 
     initializeDiamond(DiamondCutFacet(address(poolDiamond)));
 

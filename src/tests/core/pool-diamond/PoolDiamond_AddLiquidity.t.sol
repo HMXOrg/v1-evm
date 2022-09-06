@@ -3,7 +3,7 @@ pragma solidity 0.8.14;
 
 import { PoolDiamond_BaseTest, PoolConfig, Pool, console, GetterFacetInterface, LiquidityFacetInterface } from "./PoolDiamond_BaseTest.t.sol";
 
-contract PoolDiamond_AddLiquidity is PoolDiamond_BaseTest {
+contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
   function setUp() public override {
     super.setUp();
 
