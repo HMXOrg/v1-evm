@@ -16,6 +16,10 @@ interface GetterFacetInterface {
 
   function reservedOf(address token) external view returns (uint256);
 
+  function shortAveragePriceOf(address token) external view returns (uint256);
+
+  function shortSizeOf(address token) external view returns (uint256);
+
   function totalUsdDebt() external view returns (uint256);
 
   function usdDebtOf(address token) external view returns (uint256);
@@ -60,6 +64,11 @@ interface GetterFacetInterface {
     bool hasProfit;
     uint256 lastIncreasedTime;
   }
+
+  function getPoolShortDelta(address token)
+    external
+    view
+    returns (bool, uint256);
 
   function getPosition(
     address account,

@@ -61,6 +61,14 @@ contract GetterFacet is GetterFacetInterface {
     return LibPoolV1.poolV1DiamondStorage().reservedOf[token];
   }
 
+  function shortSizeOf(address token) external view returns (uint256) {
+    return LibPoolV1.poolV1DiamondStorage().shortSizeOf[token];
+  }
+
+  function shortAveragePriceOf(address token) external view returns (uint256) {
+    return LibPoolV1.poolV1DiamondStorage().shortAveragePriceOf[token];
+  }
+
   function totalUsdDebt() external view returns (uint256) {
     return LibPoolV1.poolV1DiamondStorage().totalUsdDebt;
   }
@@ -159,6 +167,31 @@ contract GetterFacet is GetterFacetInterface {
     uint256 divisor = isProfit ? nextSize - delta : nextSize + delta;
 
     return (nextPrice * nextSize) / divisor;
+  }
+
+  function getPoolShortDelta(address token)
+    external
+    view
+    returns (bool, uint256)
+  {
+    // Load Diamond Storage
+    LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
+      .poolV1DiamondStorage();
+
+    uint256 shortSize = ds.shortSizeOf[token];
+    if (shortSize == 0) return (false, 0);
+
+    uint256 nextPrice = ds.oracle.getMaxPrice(token);
+    uint256 averagePrice = ds.shortAveragePriceOf[token];
+    uint256 priceDelta;
+    unchecked {
+      priceDelta = averagePrice > nextPrice
+        ? averagePrice - nextPrice
+        : nextPrice - averagePrice;
+    }
+    uint256 delta = (shortSize * priceDelta) / averagePrice;
+
+    return (averagePrice > nextPrice, delta);
   }
 
   function getPositionWithSubAccountId(

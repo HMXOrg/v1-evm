@@ -24,4 +24,24 @@ interface PerpTradeFacetInterface {
     uint256 sizeDelta,
     bool isLong
   ) external;
+
+  function decreasePosition(
+    address primaryAccount,
+    uint256 subAccountId,
+    address collateralToken,
+    address indexToken,
+    uint256 collateralDelta,
+    uint256 sizeDelta,
+    bool isLong,
+    address receiver
+  ) external returns (uint256);
+
+  function liquidate(
+    address primaryAccount,
+    uint256 subAccountId,
+    address collateralToken,
+    address indexToken,
+    bool isLong,
+    address to
+  ) external;
 }

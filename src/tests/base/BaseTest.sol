@@ -252,7 +252,7 @@ contract BaseTest is DSTest, CoreConstants {
   {
     GetterFacet getterFacet = new GetterFacet();
 
-    bytes4[] memory selectors = new bytes4[](27);
+    bytes4[] memory selectors = new bytes4[](30);
     selectors[0] = GetterFacet.getAddLiquidityFeeBps.selector;
     selectors[1] = GetterFacet.getRemoveLiquidityFeeBps.selector;
     selectors[2] = GetterFacet.getSwapFeeBps.selector;
@@ -280,6 +280,9 @@ contract BaseTest is DSTest, CoreConstants {
     selectors[24] = GetterFacet.getPositionLeverage.selector;
     selectors[25] = GetterFacet.getRedemptionCollateral.selector;
     selectors[26] = GetterFacet.getRedemptionCollateralUsd.selector;
+    selectors[27] = GetterFacet.shortSizeOf.selector;
+    selectors[28] = GetterFacet.getPoolShortDelta.selector;
+    selectors[29] = GetterFacet.shortAveragePriceOf.selector;
 
     DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
       address(getterFacet),
@@ -337,9 +340,10 @@ contract BaseTest is DSTest, CoreConstants {
   {
     PerpTradeFacet perpTradeFacet = new PerpTradeFacet();
 
-    bytes4[] memory selectors = new bytes4[](2);
+    bytes4[] memory selectors = new bytes4[](3);
     selectors[0] = PerpTradeFacet.checkLiquidation.selector;
     selectors[1] = PerpTradeFacet.increasePosition.selector;
+    selectors[2] = PerpTradeFacet.decreasePosition.selector;
 
     DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
       address(perpTradeFacet),

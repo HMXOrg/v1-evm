@@ -792,4 +792,480 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
 
     checkPoolBalanceWithState(address(wbtc), 0);
   }
+
+  function testRevert_WhenShort_WhenCollateralNotStable() external {
+    vm.expectRevert(
+      abi.encodeWithSignature("PerpTradeFacet_CollateralTokenNotStable()")
+    );
+    poolPerpTradeFacet.increasePosition(
+      address(this),
+      0,
+      address(wbtc),
+      address(wbtc),
+      1,
+      false
+    );
+  }
+
+  function testRevert_WhenShort_WhenIndexTokenIsStable() external {
+    vm.expectRevert(
+      abi.encodeWithSignature("PerpTradeFacet_IndexTokenIsStable()")
+    );
+    poolPerpTradeFacet.increasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(dai),
+      1,
+      false
+    );
+  }
+
+  function testRevert_WhenShort_WhenIndexTokenNotShortable() external {
+    address[] memory tokens = new address[](1);
+    tokens[0] = address(matic);
+
+    PoolConfig.TokenConfig[] memory tokenConfigs = new PoolConfig.TokenConfig[](
+      1
+    );
+    tokenConfigs[0] = PoolConfig.TokenConfig({
+      accept: true,
+      isStable: false,
+      isShortable: false,
+      decimals: matic.decimals(),
+      weight: 10000,
+      minProfitBps: 75,
+      usdDebtCeiling: 0,
+      shortCeiling: 0,
+      bufferLiquidity: 0
+    });
+    poolConfig.setTokenConfigs(tokens, tokenConfigs);
+
+    vm.expectRevert(
+      abi.encodeWithSignature("PerpTradeFacet_IndexTokenNotShortable()")
+    );
+    poolPerpTradeFacet.increasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(matic),
+      1,
+      false
+    );
+  }
+
+  function testRevert_WhenShort_WhenCollateralTooSmallForFee() external {
+    daiPriceFeed.setLatestAnswer(1 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(50000 * 10**8);
+
+    vm.expectRevert(
+      abi.encodeWithSignature("PerpTradeFacet_CollateralNotCoverFee()")
+    );
+    poolPerpTradeFacet.increasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      1000 * 10**30,
+      false
+    );
+  }
+
+  function testRevert_WhenShort_WhenPositionSizeInvalid() external {
+    daiPriceFeed.setLatestAnswer(1 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(50000 * 10**8);
+
+    vm.expectRevert(
+      abi.encodeWithSignature("PerpTradeFacet_BadPositionSize()")
+    );
+    poolPerpTradeFacet.increasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      0,
+      false
+    );
+  }
+
+  function testRevert_WhenShort_WhenLossesExceedCollateral() external {
+    daiPriceFeed.setLatestAnswer(1 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(50000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(60000 * 10**8);
+
+    dai.mint(address(poolDiamond), 4 * 10**18);
+
+    vm.expectRevert(
+      abi.encodeWithSignature("PerpTradeFacet_LossesExceedCollateral()")
+    );
+    poolPerpTradeFacet.increasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      1000 * 10**30,
+      false
+    );
+  }
+
+  function testRevert_WhenShort_WhenLiquidationFeeExceedCollateral() external {
+    daiPriceFeed.setLatestAnswer(1 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+
+    dai.mint(address(poolDiamond), 4.9 * 10**18);
+
+    vm.expectRevert(
+      abi.encodeWithSignature("PerpTradeFacet_LiquidationFeeExceedCollateral()")
+    );
+    poolPerpTradeFacet.increasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      100 * 10**30,
+      false
+    );
+  }
+
+  function testRevert_WhenShort_WhenMaxLeverageExceed() external {
+    daiPriceFeed.setLatestAnswer(1 * 10**8);
+
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+
+    dai.mint(address(poolDiamond), 10.9 * 10**18);
+
+    // Max leverage is 88x
+    // We use 10.9 DAI = 10.9 USD as a collateral
+    // Short position size at 10.9 * 88 = 959.2 USD should be reverted as max leverage is exceeded
+    vm.expectRevert(
+      abi.encodeWithSignature("PerpTradeFacet_MaxLeverageExceed()")
+    );
+    poolPerpTradeFacet.increasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      959.2 * 10**30,
+      false
+    );
+  }
+
+  function testRevert_WhenShort_WhenSizeMoreThanCollateral() external {
+    daiPriceFeed.setLatestAnswer(1 * 10**8);
+
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+
+    dai.mint(address(poolDiamond), 10.9 * 10**18);
+
+    vm.expectRevert(
+      abi.encodeWithSignature("PerpTradeFacet_SizeSmallerThanCollateral()")
+    );
+    poolPerpTradeFacet.increasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      8 * 10**30,
+      false
+    );
+  }
+
+  function testRevert_WhenShort_WhenNotEnoughLiquidity() external {
+    daiPriceFeed.setLatestAnswer(1 * 10**8);
+
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+
+    dai.mint(address(poolDiamond), 10.9 * 10**18);
+
+    vm.expectRevert(
+      abi.encodeWithSignature("LibPoolV1_InsufficientLiquidity()")
+    );
+    poolPerpTradeFacet.increasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      100 * 10**30,
+      false
+    );
+  }
+
+  function testCorrectness_WhenShort() external {
+    // Initialized price feeds
+    daiPriceFeed.setLatestAnswer(1 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(60_000 * 10**8);
+    maticPriceFeed.setLatestAnswer(1000 * 10**8);
+
+    // Set mintBurnFeeBps to 4 BPS
+    poolConfig.setMintBurnFeeBps(4);
+
+    // Feed WBTC price to be 40,000 USD
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+
+    // Mint 1,000 DAI to Alice
+    dai.mint(ALICE, 1000 * 10**18);
+
+    // --- Start Alice session --- //
+    vm.startPrank(ALICE);
+
+    // Alice performs add liquidity by a 500 DAI
+    dai.transfer(address(poolDiamond), 500 * 10**18);
+    poolLiquidityFacet.addLiquidity(ALICE, address(dai), ALICE);
+
+    // The following conditions need to be met:
+    // 1. Pool's DAI liquidity should be 500 * (1-0.0004) = 499.8 DAI
+    // 2. Pool should make 0.2 DAI in fee
+    // 3. Pool's DAI usd debt should be 499.8 USD
+    // 4. Redemptable DAI collateral should be 499.8 USD
+    // 5. Pool's AUM by min price should be 499.8 USD
+    // 6. Pool's AUM by max price should be 499.8 USD
+    assertEq(poolGetterFacet.liquidityOf(address(dai)), 499.8 * 10**18);
+    assertEq(poolGetterFacet.feeReserveOf(address(dai)), 0.2 * 10**18);
+    assertEq(poolGetterFacet.usdDebtOf(address(dai)), 499.8 * 10**18);
+    assertEq(
+      poolGetterFacet.getRedemptionCollateralUsd(address(dai)),
+      499.8 * 10**30
+    );
+    assertEq(poolGetterFacet.getAumE18(false), 499.8 * 10**18);
+    assertEq(poolGetterFacet.getAumE18(true), 499.8 * 10**18);
+
+    vm.stopPrank();
+    // ---- Stop Alice session ---- //
+
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+
+    // ---- Start Alice session ---- //
+    vm.startPrank(ALICE);
+
+    // Alice opens a 90 USD WBTC short position with 20 DAI as a collateral
+    dai.transfer(address(poolDiamond), 20 * 10**18);
+    poolPerpTradeFacet.increasePosition(
+      ALICE,
+      0,
+      address(dai),
+      address(wbtc),
+      90 * 10**30,
+      false
+    );
+
+    // The following conditions need to be met:
+    // 1. Pool's DAI liquidity should be the same.
+    // 2. Pool's DAI USD debt should be the same.
+    // 2. Pool's DAI reserved should be 90 DAI
+    // 3. Pool's guaranteed USD should be 0
+    // 4. Redemptable DAI collateral should be 499.8 USD (same as liquidity)
+    // 5. Pool should makes 0.2 + ((90 * 0.001)) = 0.29 DAI
+    assertEq(poolGetterFacet.liquidityOf(address(dai)), 499.8 * 10**18);
+    assertEq(poolGetterFacet.usdDebtOf(address(dai)), 499.8 * 10**18);
+    assertEq(poolGetterFacet.reservedOf(address(dai)), 90 * 10**18);
+    assertEq(poolGetterFacet.guaranteedUsdOf(address(dai)), 0 * 10**18);
+    assertEq(
+      poolGetterFacet.getRedemptionCollateralUsd(address(dai)),
+      499.8 * 10**30
+    );
+    assertEq(poolGetterFacet.feeReserveOf(address(dai)), 0.29 * 10**18);
+    assertEq(poolGetterFacet.shortSizeOf(address(wbtc)), 90 * 10**30);
+    assertEq(
+      poolGetterFacet.shortAveragePriceOf(address(wbtc)),
+      40_000 * 10**30
+    );
+
+    // Assert a position:
+    // 1. Position's size should be 90
+    // 2. Position's collateral should be 20 - (90 * 0.001) = 19.91 DAI
+    // 3. Position's averagePrice should be 40,000 USD
+    // 4. Position's entry funding rate should be 0
+    // 5. Position's reserve amount should be 90 DAI
+    // 6. Position should be in profit
+    // 7. Position's lastIncreasedTime should be block.timestamp
+    GetterFacetInterface.GetPositionReturnVars memory position = poolGetterFacet
+      .getPositionWithSubAccountId(
+        ALICE,
+        0,
+        address(dai),
+        address(wbtc),
+        false
+      );
+    assertEq(position.size, 90 * 10**30);
+    assertEq(position.collateral, 19.91 * 10**30);
+    assertEq(position.averagePrice, 40_000 * 10**30);
+    assertEq(position.entryFundingRate, 0);
+    assertEq(position.reserveAmount, 90 * 10**18);
+    assertTrue(position.hasProfit);
+    assertEq(position.lastIncreasedTime, block.timestamp);
+
+    // Assert pool's short delta
+    // 1. Pool's delta should be (90 * (40000 - 41000)) / 40000 = -2.25 USD
+    // 2. Pool's short should be not profitable
+    (bool isProfit, uint256 delta) = poolGetterFacet.getPoolShortDelta(
+      address(wbtc)
+    );
+    assertFalse(isProfit);
+    assertEq(delta, 2.25 * 10**30);
+
+    // Assert position's delta
+    // 1. Position's delta should be (90 * (40000 - 41000)) / 40000 = -2.25 USD
+    // 2. Position's short should be not profitable
+    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+      ALICE,
+      0,
+      address(dai),
+      address(wbtc),
+      false
+    );
+    assertFalse(isProfit);
+    assertEq(delta, 2.25 * 10**30);
+
+    vm.stopPrank();
+
+    // Make WBTC price pump to 42,000 USD
+    wbtcPriceFeed.setLatestAnswer(42_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(42_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(42_000 * 10**8);
+
+    vm.startPrank(ALICE);
+
+    // Assert pool's short delta
+    // 1. Pool's delta should be (90 * (40000 - 42000)) / 40000 = -4.5 USD
+    // 2. Pool's short should be not profitable
+    (isProfit, delta) = poolGetterFacet.getPoolShortDelta(address(wbtc));
+    assertFalse(isProfit);
+    assertEq(delta, 4.5 * 10**30);
+
+    // Assert position's delta
+    // 1. Position's delta should be (90 * (40000 - 42000)) / 40000 = -4.5 USD
+    // 2. Position's short should be not profitable
+    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+      ALICE,
+      0,
+      address(dai),
+      address(wbtc),
+      false
+    );
+    assertFalse(isProfit);
+    assertEq(delta, 4.5 * 10**30);
+  }
+
+  function testCorrectness_WhenShort_MinProfitBps() external {
+    poolConfig.setMintBurnFeeBps(4);
+    poolConfig.setMinProfitDuration(8 hours);
+
+    maticPriceFeed.setLatestAnswer(300 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    daiPriceFeed.setLatestAnswer(1 * 10**8);
+
+    // Add 100 as a liquidity
+    dai.mint(address(poolDiamond), 100 * 10**18);
+    poolLiquidityFacet.addLiquidity(address(this), address(dai), address(this));
+
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+
+    // Open a 90 USD WBTC short position with 10 DAI as a collateral
+    dai.mint(address(poolDiamond), 10 * 10**18);
+    poolPerpTradeFacet.increasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      90 * 10**30,
+      false
+    );
+
+    // The following conditions need to be met:
+    // 1. Pool's AUM by min price should be:
+    // = 100 * (1-0.0004) + (90 * (40000-40000) / 40000)
+    // = 99.96 USD
+    // 2. Pool's AUM by max price should be:
+    // = 100 * (1-0.0004) + (90 * (41000-40000) / 40000)
+    // = 102.21 USD
+    assertEq(poolGetterFacet.getAumE18(false), 99.96 * 10**18);
+    assertEq(poolGetterFacet.getAumE18(true), 102.21 * 10**18);
+
+    // Assert position
+    // 1. Position's size should be 90 USD
+    // 2. Position's collateral should be 10 * (1-0.001) = 9.91
+    // 3. Position's average price should be 40,000 USD
+    // 4. Position's entry funding rate should be: 0
+    // 5. Position's reserve amount: 90
+    // 6. Position's realized PnL should be: 0
+    // 7. Position's has realized profit should be true
+    GetterFacetInterface.GetPositionReturnVars memory position = poolGetterFacet
+      .getPositionWithSubAccountId(
+        address(this),
+        0,
+        address(dai),
+        address(wbtc),
+        false
+      );
+    assertEq(position.size, 90 * 10**30);
+    assertEq(position.collateral, 9.91 * 10**30);
+    assertEq(position.averagePrice, 40_000 * 10**30);
+    assertEq(position.entryFundingRate, 0);
+    assertEq(position.reserveAmount, 90 * 10**18);
+    assertEq(position.realizedPnl, 0 * 10**30);
+    assertTrue(position.hasProfit);
+
+    // Oracle fed WBTC to be at 40,000 * (100 - 0.75)% = 39700
+    wbtcPriceFeed.setLatestAnswer(39_700 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(39_700 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(39_700 * 10**8);
+
+    // Assert position delta
+    // Profit not pass minBps so delta is 0
+    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      false
+    );
+    assertTrue(isProfit);
+    assertEq(delta, 0);
+
+    // increase time 1 hour (not pass minProfitDuration)
+    vm.warp(block.timestamp + 1 hours);
+
+    // Assert position delta again after time passed.
+    // Profit pass minBps so delta is 0
+    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      false
+    );
+    assertTrue(isProfit);
+    assertEq(delta, 0);
+
+    // increase time 7 hours and 1 second (pass minProfitDuration)
+    vm.warp(block.timestamp + 7 hours + 1 seconds);
+
+    // Assert position delta again after time passed.
+    // Time passed minProfitDuration, so delta needs to calculate.
+    // Position's delta should be:
+    // = 90 * (40000 - 39700) / 40000
+    // = 0.675 USD
+    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      false
+    );
+    assertTrue(isProfit);
+    assertEq(delta, 0.675 * 10**30);
+  }
 }
