@@ -310,8 +310,8 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
     vm.startPrank(ALICE);
 
     // Alice performs decrease position
-    pool.decreasePosition(
-      ALICE,
+    poolRouter.decreasePosition(
+      pool,
       0,
       address(wbtc),
       address(wbtc),
