@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { SafeERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { IAaveAToken } from "../interfaces/IAaveAToken.sol";
@@ -16,10 +16,9 @@ import { IUniswapPair } from "../interfaces/IUniswapPair.sol";
 import { ILockdrop } from "./interfaces/ILockdrop.sol";
 import { ILockdropGateway } from "./interfaces/ILockdropGateway.sol";
 import { IStaking } from "../staking/interfaces/IStaking.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract LockdropGateway is ILockdropGateway, Ownable {
-  using SafeERC20 for IERC20;
+contract LockdropGateway is ILockdropGateway, OwnableUpgradeable {
+  using SafeERC20Upgradeable for IERC20Upgradeable;
 
   enum TokenType {
     UninitializedToken,
@@ -36,7 +35,7 @@ contract LockdropGateway is ILockdropGateway, Ownable {
     bytes metadata;
   }
 
-  IERC20 public plpToken;
+  IERC20Upgradeable public plpToken;
   IStaking public plpStaking;
   mapping(address => LockdropInfo) public mapTokenLockdropInfo;
 
@@ -50,7 +49,11 @@ contract LockdropGateway is ILockdropGateway, Ownable {
   error LockdropGateway_NothingToDoWithPosition();
   error LockdropGateway_NonBaseTokenZeroLockedAmount();
 
-  constructor(IERC20 plpToken_, IStaking plpStaking_) {
+  function initialize(IERC20Upgradeable plpToken_, IStaking plpStaking_)
+    external
+    initializer
+  {
+    OwnableUpgradeable.__Ownable_init();
     plpToken = plpToken_;
     plpStaking = plpStaking_;
   }
@@ -168,7 +171,11 @@ contract LockdropGateway is ILockdropGateway, Ownable {
       revert LockdropGateway_UninitializedToken();
 
     // Transfer user's token
-    IERC20(token).safeTransferFrom(msg.sender, address(this), lockAmount);
+    IERC20Upgradeable(token).safeTransferFrom(
+      msg.sender,
+      address(this),
+      lockAmount
+    );
 
     // Call lock function correctly according to its type
     if (tokenInType == TokenType.BaseToken) {
@@ -208,7 +215,10 @@ contract LockdropGateway is ILockdropGateway, Ownable {
       revert LockdropGateway_NotBaseToken();
 
     if (lockAmount > 0)
-      IERC20(token).approve(mapTokenLockdropInfo[token].lockdrop, lockAmount);
+      IERC20Upgradeable(token).approve(
+        mapTokenLockdropInfo[token].lockdrop,
+        lockAmount
+      );
 
     _lockBaseTokenAtLockdrop(token, lockAmount, lockPeriod);
   }
@@ -223,7 +233,7 @@ contract LockdropGateway is ILockdropGateway, Ownable {
 
     // Approve pool
     address pool = IAaveAToken(token).POOL();
-    IERC20(token).approve(pool, lockAmount);
+    IERC20Upgradeable(token).approve(pool, lockAmount);
 
     // Convert AToken to base token
     address baseToken = IAaveAToken(token).UNDERLYING_ASSET_ADDRESS();
@@ -252,7 +262,7 @@ contract LockdropGateway is ILockdropGateway, Ownable {
     );
 
     // Approve router
-    IERC20(token).approve(router, lockAmount);
+    IERC20Upgradeable(token).approve(router, lockAmount);
 
     (uint256 baseToken0Amount, uint256 baseToken1Amount) = IUniswapRouter(
       router
@@ -286,14 +296,14 @@ contract LockdropGateway is ILockdropGateway, Ownable {
     ];
 
     uint256[3] memory baseTokenAmountsBefore = [
-      IERC20(baseTokens[0]).balanceOf(address(this)),
-      IERC20(baseTokens[1]).balanceOf(address(this)),
-      IERC20(baseTokens[2]).balanceOf(address(this))
+      IERC20Upgradeable(baseTokens[0]).balanceOf(address(this)),
+      IERC20Upgradeable(baseTokens[1]).balanceOf(address(this)),
+      IERC20Upgradeable(baseTokens[2]).balanceOf(address(this))
     ];
     uint256[3] memory minAmounts;
 
     // approve
-    IERC20(token).approve(remover, lockAmount);
+    IERC20Upgradeable(token).approve(remover, lockAmount);
 
     // remove
     ICurveTokenV3Remover(remover).remove_liquidity(
@@ -305,11 +315,11 @@ contract LockdropGateway is ILockdropGateway, Ownable {
     // Find the actual receive amount, and then lock those tokens
     {
       uint256[3] memory baseTokenAmounts = [
-        IERC20(baseTokens[0]).balanceOf(address(this)) -
+        IERC20Upgradeable(baseTokens[0]).balanceOf(address(this)) -
           baseTokenAmountsBefore[0],
-        IERC20(baseTokens[1]).balanceOf(address(this)) -
+        IERC20Upgradeable(baseTokens[1]).balanceOf(address(this)) -
           baseTokenAmountsBefore[1],
-        IERC20(baseTokens[2]).balanceOf(address(this)) -
+        IERC20Upgradeable(baseTokens[2]).balanceOf(address(this)) -
           baseTokenAmountsBefore[2]
       ];
       _handleLockBaseToken(baseTokens[0], baseTokenAmounts[0], lockPeriod);
@@ -340,16 +350,16 @@ contract LockdropGateway is ILockdropGateway, Ownable {
     ];
 
     uint256[5] memory baseTokenAmountsBefore = [
-      IERC20(baseTokens[0]).balanceOf(address(this)),
-      IERC20(baseTokens[1]).balanceOf(address(this)),
-      IERC20(baseTokens[2]).balanceOf(address(this)),
-      IERC20(baseTokens[3]).balanceOf(address(this)),
-      IERC20(baseTokens[4]).balanceOf(address(this))
+      IERC20Upgradeable(baseTokens[0]).balanceOf(address(this)),
+      IERC20Upgradeable(baseTokens[1]).balanceOf(address(this)),
+      IERC20Upgradeable(baseTokens[2]).balanceOf(address(this)),
+      IERC20Upgradeable(baseTokens[3]).balanceOf(address(this)),
+      IERC20Upgradeable(baseTokens[4]).balanceOf(address(this))
     ];
     uint256[5] memory minAmounts;
 
     // approve
-    IERC20(token).approve(remover, lockAmount);
+    IERC20Upgradeable(token).approve(remover, lockAmount);
 
     // remove
     ICurveTokenV5Remover(remover).remove_liquidity(
@@ -361,15 +371,15 @@ contract LockdropGateway is ILockdropGateway, Ownable {
     // Find the actual receive amount, and then lock those tokens
     {
       uint256[5] memory baseTokenAmounts = [
-        IERC20(baseTokens[0]).balanceOf(address(this)) -
+        IERC20Upgradeable(baseTokens[0]).balanceOf(address(this)) -
           baseTokenAmountsBefore[0],
-        IERC20(baseTokens[1]).balanceOf(address(this)) -
+        IERC20Upgradeable(baseTokens[1]).balanceOf(address(this)) -
           baseTokenAmountsBefore[1],
-        IERC20(baseTokens[2]).balanceOf(address(this)) -
+        IERC20Upgradeable(baseTokens[2]).balanceOf(address(this)) -
           baseTokenAmountsBefore[2],
-        IERC20(baseTokens[3]).balanceOf(address(this)) -
+        IERC20Upgradeable(baseTokens[3]).balanceOf(address(this)) -
           baseTokenAmountsBefore[3],
-        IERC20(baseTokens[4]).balanceOf(address(this)) -
+        IERC20Upgradeable(baseTokens[4]).balanceOf(address(this)) -
           baseTokenAmountsBefore[4]
       ];
 
@@ -405,5 +415,10 @@ contract LockdropGateway is ILockdropGateway, Ownable {
       }
       return;
     }
+  }
+
+  /// @custom:oz-upgrades-unsafe-allow constructor
+  constructor() {
+    _disableInitializers();
   }
 }

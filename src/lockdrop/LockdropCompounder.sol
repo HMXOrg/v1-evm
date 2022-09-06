@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import { SafeERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import { ILockdrop } from "./interfaces/ILockdrop.sol";
 import { IStaking } from "../staking/interfaces/IStaking.sol";
 
-contract LockdropCompounder is Ownable, ReentrancyGuard {
+contract LockdropCompounder is OwnableUpgradeable, ReentrancyGuardUpgradeable {
   // --- Libraries ---
-  using SafeERC20 for IERC20;
+  using SafeERC20Upgradeable for IERC20Upgradeable;
 
   // --- Events ---
   event LogCompound(address indexed user, uint256 amount);
@@ -23,7 +23,13 @@ contract LockdropCompounder is Ownable, ReentrancyGuard {
   address public esp88Token;
   address public dragonStaking;
 
-  constructor(address esp88Token_, address dragonStaking_) {
+  function initialize(address esp88Token_, address dragonStaking_)
+    external
+    initializer
+  {
+    OwnableUpgradeable.__Ownable_init();
+    ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
+
     esp88Token = esp88Token_;
     dragonStaking = dragonStaking_;
   }
@@ -51,15 +57,27 @@ contract LockdropCompounder is Ownable, ReentrancyGuard {
   /// @dev Users can compound their EsP88 reward into dragon staking.
   /// @param lockdrops array of lockdrop addresses
   function compound(address[] memory lockdrops) external nonReentrant {
-    uint256 esp88AmountBefore = IERC20(esp88Token).balanceOf(address(this));
+    uint256 esp88AmountBefore = IERC20Upgradeable(esp88Token).balanceOf(
+      address(this)
+    );
     uint256 nativeAmountBefore = address(this).balance;
     _claimAllFor(lockdrops, msg.sender);
-    uint256 esp88AmountAfter = IERC20(esp88Token).balanceOf(address(this)) -
-      esp88AmountBefore;
-    IStaking(dragonStaking).deposit(address(this), esp88Token, esp88AmountAfter);
+    uint256 esp88AmountAfter = IERC20Upgradeable(esp88Token).balanceOf(
+      address(this)
+    ) - esp88AmountBefore;
+    IStaking(dragonStaking).deposit(
+      address(this),
+      esp88Token,
+      esp88AmountAfter
+    );
     payable(msg.sender).transfer(address(this).balance - nativeAmountBefore);
     emit LogCompound(msg.sender, esp88AmountAfter);
   }
 
   receive() external payable {}
+
+  /// @custom:oz-upgrades-unsafe-allow constructor
+  constructor() {
+    _disableInitializers();
+  }
 }

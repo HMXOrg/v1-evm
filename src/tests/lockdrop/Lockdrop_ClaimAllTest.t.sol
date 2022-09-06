@@ -1,4 +1,4 @@
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
 import { console } from "../utils/console.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -48,22 +48,22 @@ contract Lockdrop_ClaimReward is BaseTest {
       address(mockEsP88)
     );
 
-    lockdropConfig = new LockdropConfig(
+    lockdropConfig = deployLockdropConfig(
       1 days,
-      mockPLPStaking,
-      mockPLP,
-      mockP88,
-      mockGateway,
-      mockLockdropCompounder
+      address(mockPLPStaking),
+      address(mockPLP),
+      address(mockP88),
+      address(mockGateway),
+      address(mockLockdropCompounder)
     );
 
     rewardsTokenList.push(address(mockEsP88));
     rewardsTokenList.push(address(mockWMatic));
 
-    lockdrop = new Lockdrop(
+    lockdrop = deployLockdrop(
       address(lockdropToken),
-      pool,
-      lockdropConfig,
+      address(pool),
+      address(lockdropConfig),
       rewardsTokenList,
       address(mockWMatic)
     );

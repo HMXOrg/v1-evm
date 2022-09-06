@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { SafeERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
 import { IStaking } from "./interfaces/IStaking.sol";
 
-contract Compounder is Ownable {
-  using SafeERC20 for IERC20;
+contract Compounder is OwnableUpgradeable {
+  using SafeERC20Upgradeable for IERC20Upgradeable;
 
   error Compounder_InconsistentLength();
 
@@ -17,12 +17,14 @@ contract Compounder is Ownable {
   address[] public tokens;
   mapping(address => bool) public isCompoundableTokens;
 
-  constructor(
+  function initialize(
     address dp_,
     address destinationCompundPool_,
     address[] memory tokens_,
     bool[] memory isCompoundTokens_
-  ) {
+  ) external initializer {
+    OwnableUpgradeable.__Ownable_init();
+
     dp = dp_;
     destinationCompundPool = destinationCompundPool_;
     addToken(tokens_, isCompoundTokens_);
@@ -71,7 +73,10 @@ contract Compounder is Ownable {
     isCompoundableTokens[token] = isCompoundToken;
 
     if (isCompoundToken)
-      IERC20(token).approve(destinationCompundPool, type(uint256).max);
+      IERC20Upgradeable(token).approve(
+        destinationCompundPool,
+        type(uint256).max
+      );
   }
 
   function claimAll(address[] memory pools, address[][] memory rewarders)
@@ -91,7 +96,7 @@ contract Compounder is Ownable {
   function _compoundOrTransfer(bool isCompound) internal {
     uint256 length = tokens.length;
     for (uint256 i = 0; i < length; ) {
-      uint256 amount = IERC20(tokens[i]).balanceOf(address(this));
+      uint256 amount = IERC20Upgradeable(tokens[i]).balanceOf(address(this));
       if (amount > 0) {
         // always compound dragon point
         if (
@@ -103,7 +108,7 @@ contract Compounder is Ownable {
             amount
           );
         } else {
-          IERC20(tokens[i]).safeTransfer(msg.sender, amount);
+          IERC20Upgradeable(tokens[i]).safeTransfer(msg.sender, amount);
         }
       }
 
@@ -129,4 +134,9 @@ contract Compounder is Ownable {
   }
 
   receive() external payable {}
+
+  /// @custom:oz-upgrades-unsafe-allow constructor
+  constructor() {
+    _disableInitializers();
+  }
 }

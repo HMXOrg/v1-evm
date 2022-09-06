@@ -17,7 +17,7 @@ contract FeedableRewarderTest is BaseTest {
     mockStaking = new MockStaking();
 
     rewardToken = new MockErc20("Reward Token", "REW", 18);
-    rewarder = new FeedableRewarder(
+    rewarder = deployFeedableRewarder(
       "REWRewarder",
       address(rewardToken),
       address(mockStaking)

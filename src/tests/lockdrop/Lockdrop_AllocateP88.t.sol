@@ -1,4 +1,4 @@
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
 import { Lockdrop_BaseTest, console } from "./Lockdrop_BaseTest.t.sol";
 
@@ -17,7 +17,6 @@ contract Lockdrop_AllocateP88 is Lockdrop_BaseTest {
     vm.warp(120000);
     lockdrop.lockToken(lockAmount, lockPeriod);
     (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod, , ) = lockdrop
-
       .lockdropStates(ALICE);
     vm.stopPrank();
     assertEq(mockERC20.balanceOf(ALICE), 4 ether);
@@ -51,7 +50,6 @@ contract Lockdrop_AllocateP88 is Lockdrop_BaseTest {
     vm.warp(120000);
     lockdrop.lockToken(lockAmount, lockPeriod);
     (uint256 aliceLockdropTokenAmount, uint256 aliceLockPeriod, , ) = lockdrop
-
       .lockdropStates(ALICE);
     vm.stopPrank();
     assertEq(mockERC20.balanceOf(ALICE), 4 ether);

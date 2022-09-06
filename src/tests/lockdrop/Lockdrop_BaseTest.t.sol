@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
 import "../base/DSTest.sol";
 import { console } from "../utils/console.sol";
@@ -45,17 +45,17 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     rewardsTokenList.push(address(mockEsP88));
     rewardsTokenList.push(address(mockMatic));
 
-    plpStaking = new PLPStaking();
+    plpStaking = deployPLPStaking();
     mockGateway = address(0x88);
     mockLockdropCompounder = address(0x77);
 
-    lockdropConfig = new LockdropConfig(
+    lockdropConfig = deployLockdropConfig(
       100000,
-      plpStaking,
-      mockPLPToken,
-      mockP88Token,
-      mockGateway,
-      mockLockdropCompounder
+      address(plpStaking),
+      address(mockPLPToken),
+      address(mockP88Token),
+      address(mockGateway),
+      address(mockLockdropCompounder)
     );
     PRRewarder = new MockRewarder();
     address[] memory rewarders1 = new address[](1);
@@ -63,10 +63,10 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     plpStaking.addStakingToken(address(mockPLPToken), rewarders1);
     mockP88Token.setMinter(address(this), true);
 
-    lockdrop = new Lockdrop(
+    lockdrop = deployLockdrop(
       address(mockERC20),
-      pool,
-      lockdropConfig,
+      address(pool),
+      address(lockdropConfig),
       rewardsTokenList,
       address(mockMatic)
     );
