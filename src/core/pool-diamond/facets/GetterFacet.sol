@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.14;
 
+import { PoolConfig } from "../../PoolConfig.sol";
+import { PoolOracle } from "../../PoolOracle.sol";
 import { LibPoolV1 } from "../libraries/LibPoolV1.sol";
 
 import { GetterFacetInterface } from "../interfaces/GetterFacetInterface.sol";
@@ -9,16 +11,6 @@ import { MintableTokenInterface } from "../../../interfaces/MintableTokenInterfa
 contract GetterFacet is GetterFacetInterface {
   error GetterFacet_BadSubAccountId();
   error GetterFacet_InvalidAveragePrice();
-
-  enum Exposure {
-    LONG,
-    SHORT
-  }
-
-  enum MinMax {
-    MIN,
-    MAX
-  }
 
   enum LiquidityDirection {
     ADD,
@@ -37,6 +29,26 @@ contract GetterFacet is GetterFacetInterface {
   // ---------------------------
   // Simple info functions
   // ---------------------------
+  function additionalAum() external view returns (uint256) {
+    return LibPoolV1.poolV1DiamondStorage().additionalAum;
+  }
+
+  function approvedPlugins(address user, address plugin)
+    external
+    view
+    returns (bool)
+  {
+    return LibPoolV1.poolV1DiamondStorage().approvedPlugins[user][plugin];
+  }
+
+  function config() external view returns (PoolConfig) {
+    return LibPoolV1.poolV1DiamondStorage().config;
+  }
+
+  function discountedAum() external view returns (uint256) {
+    return LibPoolV1.poolV1DiamondStorage().discountedAum;
+  }
+
   function feeReserveOf(address token) external view returns (uint256) {
     return LibPoolV1.poolV1DiamondStorage().feeReserveOf[token];
   }
@@ -45,16 +57,24 @@ contract GetterFacet is GetterFacetInterface {
     return LibPoolV1.poolV1DiamondStorage().guaranteedUsdOf[token];
   }
 
-  function plp() external view returns (MintableTokenInterface) {
-    return LibPoolV1.poolV1DiamondStorage().plp;
-  }
-
   function lastAddLiquidityAtOf(address user) external view returns (uint256) {
     return LibPoolV1.poolV1DiamondStorage().lastAddLiquidityAtOf[user];
   }
 
+  function lastFundingTimeOf(address user) external view returns (uint256) {
+    return LibPoolV1.poolV1DiamondStorage().lastFundingTimeOf[user];
+  }
+
   function liquidityOf(address token) external view returns (uint256) {
     return LibPoolV1.poolV1DiamondStorage().liquidityOf[token];
+  }
+
+  function oracle() external view returns (PoolOracle) {
+    return LibPoolV1.poolV1DiamondStorage().oracle;
+  }
+
+  function plp() external view returns (MintableTokenInterface) {
+    return LibPoolV1.poolV1DiamondStorage().plp;
   }
 
   function reservedOf(address token) external view returns (uint256) {
@@ -67,6 +87,14 @@ contract GetterFacet is GetterFacetInterface {
 
   function shortAveragePriceOf(address token) external view returns (uint256) {
     return LibPoolV1.poolV1DiamondStorage().shortAveragePriceOf[token];
+  }
+
+  function sumFundingRateOf(address token) external view returns (uint256) {
+    return LibPoolV1.poolV1DiamondStorage().sumFundingRateOf[token];
+  }
+
+  function totalOf(address token) external view returns (uint256) {
+    return LibPoolV1.poolV1DiamondStorage().totalOf[token];
   }
 
   function totalUsdDebt() external view returns (uint256) {
