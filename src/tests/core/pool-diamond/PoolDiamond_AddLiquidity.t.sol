@@ -48,8 +48,14 @@ contract PoolDiamond_AddLiquidity is PoolDiamond_BaseTest {
     vm.startPrank(ALICE);
 
     // Perform add liquidity
-    dai.transfer(address(poolDiamond), 100 ether);
-    poolLiquidityFacet.addLiquidity(ALICE, address(dai), ALICE);
+    dai.approve(address(poolRouter), 100 ether);
+    poolRouter.addLiquidity(
+      poolDiamond,
+      address(dai),
+      100 ether,
+      ALICE,
+      99 ether
+    );
 
     // After Alice added DAI liquidity, the following criteria needs to satisfy:
     // 1. DAI balance of Alice should be 0
