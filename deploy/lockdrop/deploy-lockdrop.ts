@@ -3,8 +3,8 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
 
 const lockdropToken = "0xc2132d05d31c914a87c6611c10748aeb04b58e8f";
-const pool = "0x48481A7172C83F1F78d84F943e388351068D3b23";
-const lockdropConfig = "0xE394fF8B542d8869DD308577650a4ae9Aaa3D652";
+const pool = "0x5A11B2328862527151fD2e7EaE02455E2e6b1d31";
+const lockdropConfig = "0xfdae5977d844F3eA33B1d7c5cC947F6D110A4CD2";
 const rewardTokens: any[] = [
   "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
   "0xEB27B05178515c7E6E51dEE159c8487A011ac030",
