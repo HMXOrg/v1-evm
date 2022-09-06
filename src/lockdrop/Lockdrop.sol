@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import { SafeERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import { IPool } from "../interfaces/IPool.sol";
 import { IStaking } from "../staking/interfaces/IStaking.sol";
 import { LockdropConfig } from "./LockdropConfig.sol";
 import { ILockdrop } from "./interfaces/ILockdrop.sol";
 import { P88 } from "../tokens/P88.sol";
 
-contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
+contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable, ILockdrop {
   // --- Libraries ---
-  using SafeERC20 for IERC20;
+  using SafeERC20Upgradeable for IERC20Upgradeable;
 
   // --- Events ---
   event LogLockToken(address indexed user, uint256 amount, uint256 lockPeriod);
@@ -65,7 +65,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   }
 
   // --- States ---
-  IERC20 public lockdropToken; // lockdrop token address
+  IERC20Upgradeable public lockdropToken; // lockdrop token address
   LockdropConfig public lockdropConfig;
   IPool public pool;
   uint256 public totalAmount; // total amount of token
@@ -109,19 +109,22 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     _;
   }
 
-  constructor(
+  function initialize(
     address lockdropToken_,
     IPool pool_,
     LockdropConfig lockdropConfig_,
     address[] memory rewardTokens_,
     address nativeTokenAddress_
-  ) {
+  ) external initializer {
+    OwnableUpgradeable.__Ownable_init();
+    ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
+
     // Sanity check
-    IERC20(lockdropToken_).balanceOf(address(this));
+    IERC20Upgradeable(lockdropToken_).balanceOf(address(this));
     if (block.timestamp > lockdropConfig_.startLockTimestamp())
       revert Lockdrop_InvalidStartLockTimestamp();
 
-    lockdropToken = IERC20(lockdropToken_);
+    lockdropToken = IERC20Upgradeable(lockdropToken_);
     lockdropConfig = lockdropConfig_;
     rewardTokens = rewardTokens_;
     pool = pool_;
@@ -398,7 +401,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
       if (rewardTokens[i] == nativeTokenAddress) {
         rewardBeforeHarvest[i] = address(this).balance;
       } else {
-        rewardBeforeHarvest[i] = IERC20(rewardTokens[i]).balanceOf(
+        rewardBeforeHarvest[i] = IERC20Upgradeable(rewardTokens[i]).balanceOf(
           address(this)
         );
       }
@@ -419,7 +422,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
         harvestedReward[i] = address(this).balance - rewardBeforeHarvest[i];
       } else {
         harvestedReward[i] =
-          IERC20(rewardTokens[i]).balanceOf(address(this)) -
+          IERC20Upgradeable(rewardTokens[i]).balanceOf(address(this)) -
           rewardBeforeHarvest[i];
       }
 
@@ -468,7 +471,10 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
       if (rewardTokens[i] == nativeTokenAddress) {
         payable(receiver).transfer(pendingReward);
       } else {
-        IERC20(rewardTokens[i]).safeTransfer(receiver, pendingReward);
+        IERC20Upgradeable(rewardTokens[i]).safeTransfer(
+          receiver,
+          pendingReward
+        );
       }
 
       // calculate for update user reward dept
@@ -491,7 +497,7 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
     _claimAllRewardsFor(user, user);
   }
 
-  /// @dev Receiver can claim users reward 
+  /// @dev Receiver can claim users reward
   /// @param user Address of user that own the reward
   /// @param receiver Address of receiver that claim the reward for user
   function claimAllRewardsFor(address user, address receiver)
@@ -530,4 +536,9 @@ contract Lockdrop is ReentrancyGuard, Ownable, ILockdrop {
   }
 
   receive() external payable {}
+
+  /// @custom:oz-upgrades-unsafe-allow constructor
+  constructor() {
+    _disableInitializers();
+  }
 }

@@ -26,14 +26,17 @@ import { DragonStaking } from "../../staking/DragonStaking.sol";
 import { FeedableRewarder } from "../../staking/FeedableRewarder.sol";
 import { AdHocMintRewarder } from "../../staking/AdHocMintRewarder.sol";
 import { WFeedableRewarder } from "../../staking/WFeedableRewarder.sol";
+import { RewardDistributor } from "../../staking/RewardDistributor.sol";
 import { Compounder } from "../../staking/Compounder.sol";
+import { Vester } from "../../vesting/Vester.sol";
+import { ProxyAdmin } from "../interfaces/ProxyAdmin.sol";
 import { Lockdrop } from "../../lockdrop/Lockdrop.sol";
-import { LockdropCompounder } from "../../lockdrop/LockdropCompounder.sol";
+import { LockdropGateway } from "../../lockdrop/LockdropGateway.sol";
 import { LockdropConfig } from "../../lockdrop/LockdropConfig.sol";
+import { LockdropCompounder } from "../../lockdrop/LockdropCompounder.sol";
 import { IPool } from "../../interfaces/IPool.sol";
 import { IStaking } from "../../staking/interfaces/IStaking.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { LockdropGateway } from "../../lockdrop/LockdropGateway.sol";
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
@@ -70,6 +73,8 @@ contract BaseTest is DSTest, CoreConstants {
   MockChainlinkPriceFeed internal daiPriceFeed;
   MockChainlinkPriceFeed internal usdcPriceFeed;
 
+  ProxyAdmin internal proxyAdmin;
+
   constructor() {
     matic = deployMockErc20("Matic Token", "MATIC", 18);
     weth = deployMockErc20("Wrapped Ethereum", "WETH", 18);
@@ -82,6 +87,19 @@ contract BaseTest is DSTest, CoreConstants {
     wbtcPriceFeed = deployMockChainlinkPriceFeed();
     daiPriceFeed = deployMockChainlinkPriceFeed();
     usdcPriceFeed = deployMockChainlinkPriceFeed();
+
+    proxyAdmin = _setupProxyAdmin();
+  }
+
+  function _setupProxyAdmin() internal returns (ProxyAdmin) {
+    bytes memory _bytecode = abi.encodePacked(
+      vm.getCode("./out/ProxyAdmin.sol/ProxyAdmin.json")
+    );
+    address _address;
+    assembly {
+      _address := create(0, add(_bytecode, 0x20), mload(_bytecode))
+    }
+    return ProxyAdmin(address(_address));
   }
 
   function buildDefaultSetPriceFeedInput()
@@ -132,6 +150,37 @@ contract BaseTest is DSTest, CoreConstants {
     return (tokens, priceFeedInfo);
   }
 
+  function _setupUpgradeable(
+    bytes memory _logicBytecode,
+    bytes memory _initializer
+  ) internal returns (address) {
+    bytes memory _proxyBytecode = abi.encodePacked(
+      vm.getCode(
+        "./out/TransparentUpgradeableProxy.sol/TransparentUpgradeableProxy.json"
+      )
+    );
+
+    address _logic;
+    assembly {
+      _logic := create(0, add(_logicBytecode, 0x20), mload(_logicBytecode))
+    }
+
+    _proxyBytecode = abi.encodePacked(
+      _proxyBytecode,
+      abi.encode(_logic, address(proxyAdmin), _initializer)
+    );
+
+    address _proxy;
+    assembly {
+      _proxy := create(0, add(_proxyBytecode, 0x20), mload(_proxyBytecode))
+      if iszero(extcodesize(_proxy)) {
+        revert(0, 0)
+      }
+    }
+
+    return _proxy;
+  }
+
   function deployMockWNative() internal returns (MockWNative) {
     return new MockWNative();
   }
@@ -168,22 +217,37 @@ contract BaseTest is DSTest, CoreConstants {
   }
 
   function deployPoolOracle(uint80 roundDepth) internal returns (PoolOracle) {
-    return new PoolOracle(roundDepth);
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/PoolOracle.sol/PoolOracle.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(uint80)")),
+      roundDepth
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return PoolOracle(payable(_proxy));
   }
 
   function deployPoolConfig(PoolConfigConstructorParams memory params)
     internal
     returns (PoolConfig)
   {
-    return
-      new PoolConfig(
-        params.fundingInterval,
-        params.mintBurnFeeBps,
-        params.taxBps,
-        params.stableFundingRateFactor,
-        params.fundingRateFactor,
-        params.liquidityCoolDownPeriod
-      );
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/PoolConfig.sol/PoolConfig.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(
+        keccak256("initialize(uint64,uint64,uint64,uint64,uint64,uint64)")
+      ),
+      params.fundingInterval,
+      params.mintBurnFeeBps,
+      params.taxBps,
+      params.stableFundingRateFactor,
+      params.fundingRateFactor,
+      params.liquidityCoolDownPeriod
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return PoolConfig(payable(_proxy));
   }
 
   function deployPoolMath() internal returns (PoolMath) {
@@ -208,7 +272,18 @@ contract BaseTest is DSTest, CoreConstants {
     PLP plp = deployPLP();
 
     // Deploy Pool
-    Pool pool = new Pool(plp, poolConfig, poolMath, poolOracle);
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/Pool.sol/Pool.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(address,address,address,address)")),
+      address(plp),
+      address(poolConfig),
+      address(poolMath),
+      address(poolOracle)
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    Pool pool = Pool(payable(_proxy));
 
     // Config
     plp.setMinter(address(pool), true);
@@ -217,14 +292,29 @@ contract BaseTest is DSTest, CoreConstants {
   }
 
   function deployPLPStaking() internal returns (PLPStaking) {
-    return new PLPStaking();
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/PLPStaking.sol/PLPStaking.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize()"))
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return PLPStaking(payable(_proxy));
   }
 
   function deployDragonStaking(address dragonPointToken)
     internal
     returns (DragonStaking)
   {
-    return new DragonStaking(dragonPointToken);
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/DragonStaking.sol/DragonStaking.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(address)")),
+      dragonPointToken
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return DragonStaking(payable(_proxy));
   }
 
   function deployFeedableRewarder(
@@ -232,7 +322,17 @@ contract BaseTest is DSTest, CoreConstants {
     address rewardToken,
     address staking
   ) internal returns (FeedableRewarder) {
-    return new FeedableRewarder(name, rewardToken, staking);
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/FeedableRewarder.sol/FeedableRewarder.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(string,address,address)")),
+      name,
+      rewardToken,
+      staking
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return FeedableRewarder(payable(_proxy));
   }
 
   function deployAdHocMintRewarder(
@@ -240,7 +340,17 @@ contract BaseTest is DSTest, CoreConstants {
     address rewardToken,
     address staking
   ) internal returns (AdHocMintRewarder) {
-    return new AdHocMintRewarder(name, rewardToken, staking);
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/AdHocMintRewarder.sol/AdHocMintRewarder.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(string,address,address)")),
+      name,
+      rewardToken,
+      staking
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return AdHocMintRewarder(payable(_proxy));
   }
 
   function deployWFeedableRewarder(
@@ -248,65 +358,156 @@ contract BaseTest is DSTest, CoreConstants {
     address rewardToken,
     address staking
   ) internal returns (WFeedableRewarder) {
-    return new WFeedableRewarder(name, rewardToken, staking);
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/WFeedableRewarder.sol/WFeedableRewarder.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(string,address,address)")),
+      name,
+      rewardToken,
+      staking
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return WFeedableRewarder(payable(_proxy));
   }
 
   function deployCompounder(
     address dp,
     address compoundPool,
     address[] memory tokens,
-    bool[] memory isCompoundTokens_
+    bool[] memory isCompoundTokens
   ) internal returns (Compounder) {
-    return new Compounder(dp, compoundPool, tokens, isCompoundTokens_);
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/Compounder.sol/Compounder.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(address,address,address[],bool[])")),
+      dp,
+      compoundPool,
+      tokens,
+      isCompoundTokens
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return Compounder(payable(_proxy));
   }
 
-  function deployLockdrop(
-    address lockdropToken,
-    IPool pool,
-    LockdropConfig lockdropConfig,
-    address[] memory rewardTokens,
-    address nativeTokenAddress
-  ) internal returns (Lockdrop) {
-    return
-      new Lockdrop(
-        lockdropToken,
-        pool,
-        lockdropConfig,
-        rewardTokens,
-        nativeTokenAddress
-      );
+  function deployVester(
+    address esP88Address,
+    address p88Address,
+    address vestedEsp88DestinationAddress,
+    address unusedEsp88DestinationAddress
+  ) internal returns (Vester) {
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/Vester.sol/Vester.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(address,address,address,address)")),
+      esP88Address,
+      p88Address,
+      vestedEsp88DestinationAddress,
+      unusedEsp88DestinationAddress
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return Vester(payable(_proxy));
+  }
+
+  function deployRewardDistributor(
+    address rewardToken,
+    address pool,
+    address feedableRewarder
+  ) internal returns (RewardDistributor) {
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/RewardDistributor.sol/RewardDistributor.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(address,address,address)")),
+      rewardToken,
+      pool,
+      feedableRewarder
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return RewardDistributor(payable(_proxy));
   }
 
   function deployLockdropConfig(
     uint256 startLockTimestamp,
-    IStaking plpStaking,
-    IERC20 plpToken,
-    IERC20 p88Token,
+    address plpStaking,
+    address plpToken,
+    address p88Token,
     address gatewayAddress,
     address lockdropCompounder
   ) internal returns (LockdropConfig) {
-    return
-      new LockdropConfig(
-        startLockTimestamp,
-        plpStaking,
-        plpToken,
-        p88Token,
-        gatewayAddress,
-        lockdropCompounder
-      );
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/LockdropConfig.sol/LockdropConfig.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(
+        keccak256("initialize(uint256,address,address,address,address,address)")
+      ),
+      startLockTimestamp,
+      plpStaking,
+      plpToken,
+      p88Token,
+      gatewayAddress,
+      lockdropCompounder
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return LockdropConfig(payable(_proxy));
   }
 
-  function deployLockdropGateway(IERC20 plpToken, IStaking plpStaking)
+  function deployLockdrop(
+    address lockdropToken_,
+    address pool_,
+    address lockdropConfig_,
+    address[] memory rewardTokens_,
+    address nativeTokenAddress_
+  ) internal returns (Lockdrop) {
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/Lockdrop.sol/Lockdrop.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(
+        keccak256("initialize(address,address,address,address[],address)")
+      ),
+      lockdropToken_,
+      pool_,
+      lockdropConfig_,
+      rewardTokens_,
+      nativeTokenAddress_
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return Lockdrop(payable(_proxy));
+  }
+
+  function deployLockdropGateway(address plpToken, address plpStaking)
     internal
     returns (LockdropGateway)
   {
-    return new LockdropGateway(plpToken, plpStaking);
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/LockdropGateway.sol/LockdropGateway.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(address,address)")),
+      plpToken,
+      plpStaking
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return LockdropGateway(payable(_proxy));
   }
 
   function deployLockdropCompounder(address esp88Token, address dragonStaking)
     internal
     returns (LockdropCompounder)
   {
-    return new LockdropCompounder(esp88Token, dragonStaking);
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/LockdropCompounder.sol/LockdropCompounder.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(address,address)")),
+      esp88Token,
+      dragonStaking
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return LockdropCompounder(payable(_proxy));
   }
 }

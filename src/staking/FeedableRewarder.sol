@@ -1,17 +1,17 @@
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import { SafeCastUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
+import { SafeERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import { IRewarder } from "./interfaces/IRewarder.sol";
 import { IStaking } from "./interfaces/IStaking.sol";
 
-contract FeedableRewarder is IRewarder, Ownable {
-  using SafeCast for uint256;
-  using SafeCast for uint128;
-  using SafeCast for int256;
-  using SafeERC20 for IERC20;
+contract FeedableRewarder is IRewarder, OwnableUpgradeable {
+  using SafeCastUpgradeable for uint256;
+  using SafeCastUpgradeable for uint128;
+  using SafeCastUpgradeable for int256;
+  using SafeERC20Upgradeable for IERC20Upgradeable;
 
   string public name;
   address public rewardToken;
@@ -46,13 +46,15 @@ contract FeedableRewarder is IRewarder, Ownable {
     _;
   }
 
-  constructor(
+  function initialize(
     string memory name_,
     address rewardToken_,
     address staking_
-  ) {
+  ) external virtual initializer {
+    OwnableUpgradeable.__Ownable_init();
+
     // Sanity check
-    IERC20(rewardToken_).totalSupply();
+    IERC20Upgradeable(rewardToken_).totalSupply();
     IStaking(staking_).isRewarder(address(this));
 
     name = name_;
@@ -134,15 +136,18 @@ contract FeedableRewarder is IRewarder, Ownable {
 
     {
       // Transfer token, with decay check
-      uint256 balanceBefore = IERC20(rewardToken).balanceOf(address(this));
-      IERC20(rewardToken).safeTransferFrom(
+      uint256 balanceBefore = IERC20Upgradeable(rewardToken).balanceOf(
+        address(this)
+      );
+      IERC20Upgradeable(rewardToken).safeTransferFrom(
         msg.sender,
         address(this),
         feedAmount
       );
 
       if (
-        IERC20(rewardToken).balanceOf(address(this)) - balanceBefore !=
+        IERC20Upgradeable(rewardToken).balanceOf(address(this)) -
+          balanceBefore !=
         feedAmount
       ) revert FeedableRewarderError_FeedAmountDecayed();
     }
@@ -205,6 +210,11 @@ contract FeedableRewarder is IRewarder, Ownable {
     internal
     virtual
   {
-    IERC20(rewardToken).safeTransfer(receiver, pendingRewardAmount);
+    IERC20Upgradeable(rewardToken).safeTransfer(receiver, pendingRewardAmount);
+  }
+
+  /// @custom:oz-upgrades-unsafe-allow constructor
+  constructor() {
+    _disableInitializers();
   }
 }

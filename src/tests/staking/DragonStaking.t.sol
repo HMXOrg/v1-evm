@@ -37,7 +37,7 @@ contract DragonStakingTest is BaseTest {
     rewarders2[0] = address(prRewarder);
     rewarders2[1] = address(pRewarder);
 
-    staking = new DragonStaking(address(dp));
+    staking = deployDragonStaking(address(dp));
     staking.addStakingToken(address(p88), rewarders1);
     staking.addStakingToken(address(esP88), rewarders1);
     staking.addStakingToken(address(dp), rewarders2);

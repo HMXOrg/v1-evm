@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { ChainlinkPriceFeedInterface } from "../interfaces/ChainLinkPriceFeedInterface.sol";
 import { Constants } from "./Constants.sol";
 
 import { console } from "../tests/utils/console.sol";
 
-contract PoolOracle is Constants, Ownable {
+contract PoolOracle is Constants, OwnableUpgradeable {
   using SafeCast for int256;
 
   error PoolOracle_BadArguments();
@@ -36,7 +36,9 @@ contract PoolOracle is Constants, Ownable {
   );
   event SetRoundDepth(uint80 prevRoundDepth, uint80 newRoundDepth);
 
-  constructor(uint80 _roundDepth) {
+  function initialize(uint80 _roundDepth) external initializer {
+    OwnableUpgradeable.__Ownable_init();
+
     if (_roundDepth == 0) revert PoolOracle_BadArguments();
     roundDepth = _roundDepth;
   }
@@ -154,5 +156,10 @@ contract PoolOracle is Constants, Ownable {
 
     emit SetRoundDepth(roundDepth, _roundDepth);
     roundDepth = _roundDepth;
+  }
+
+  /// @custom:oz-upgrades-unsafe-allow constructor
+  constructor() {
+    _disableInitializers();
   }
 }

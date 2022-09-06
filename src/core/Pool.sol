@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
 import { PoolConfig } from "./PoolConfig.sol";
 import { PoolMath } from "./PoolMath.sol";
@@ -7,13 +7,13 @@ import { PoolOracle } from "./PoolOracle.sol";
 import { MintableTokenInterface } from "../interfaces/MintableTokenInterface.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import { Constants } from "./Constants.sol";
 import { IPool } from "../interfaces/IPool.sol";
 
 import { console } from "../tests/utils/console.sol";
 
-contract Pool is IPool, Constants, ReentrancyGuard {
+contract Pool is IPool, Constants, ReentrancyGuardUpgradeable {
   using SafeERC20 for IERC20;
 
   error Pool_BadAmountOut();
@@ -100,12 +100,14 @@ contract Pool is IPool, Constants, ReentrancyGuard {
     uint256 amountOut
   );
 
-  constructor(
+  function initialize(
     MintableTokenInterface _plp,
     PoolConfig _config,
     PoolMath _poolMath,
     PoolOracle _oracle
-  ) {
+  ) external initializer {
+    ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
+
     config = _config;
     poolMath = _poolMath;
     oracle = _oracle;
@@ -413,5 +415,10 @@ contract Pool is IPool, Constants, ReentrancyGuard {
     address receiver
   ) external nonReentrant returns (uint256) {
     return 0;
+  }
+
+  /// @custom:oz-upgrades-unsafe-allow constructor
+  constructor() {
+    _disableInitializers();
   }
 }

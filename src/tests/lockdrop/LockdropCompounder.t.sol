@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { EsP88 } from "../../tokens/EsP88.sol";
@@ -46,29 +46,29 @@ contract Lockdrop_StakePLP is BaseTest {
     mockP88Token = new P88();
     mockEsP88Token = new EsP88();
     mockWMaticToken = deployMockWNative();
-    dragonStaking = new DragonStaking(address(0x99));
+    dragonStaking = deployDragonStaking(address(0x99));
     mockWMaticToken.deposit{ value: 100 ether }();
 
     mockPLPToken.setMinter(address(this), true);
     mockEsP88Token.setMinter(address(this), true);
 
-    plpStaking = new PLPStaking();
+    plpStaking = deployPLPStaking();
 
     // For PLPStaking
-    esP88rewarder1 = new FeedableRewarder(
+    esP88rewarder1 = deployFeedableRewarder(
       "EsP88rewarder",
       address(mockEsP88Token),
       address(plpStaking)
     );
 
-    wMaticRewarder = new WFeedableRewarder(
+    wMaticRewarder = deployWFeedableRewarder(
       "WMaticRewarder",
       address(mockWMaticToken),
       address(plpStaking)
     );
 
     // For DragonStaking
-    esP88rewarder2 = new FeedableRewarder(
+    esP88rewarder2 = deployFeedableRewarder(
       "EsP88rewarder",
       address(mockEsP88Token),
       address(dragonStaking)
@@ -108,24 +108,24 @@ contract Lockdrop_StakePLP is BaseTest {
     mockGateway = address(0x88);
     pool = new MockPool();
 
-    lockdropCompounder = new LockdropCompounder(
+    lockdropCompounder = deployLockdropCompounder(
       address(mockEsP88Token),
       address(dragonStaking)
     );
 
-    lockdropConfig = new LockdropConfig(
+    lockdropConfig = deployLockdropConfig(
       1 days,
-      plpStaking,
-      mockPLPToken,
-      mockP88Token,
-      mockGateway,
+      address(plpStaking),
+      address(mockPLPToken),
+      address(mockP88Token),
+      address(mockGateway),
       address(lockdropCompounder)
     );
 
-    lockdrop = new Lockdrop(
+    lockdrop = deployLockdrop(
       address(mockERC20),
-      pool,
-      lockdropConfig,
+      address(pool),
+      address(lockdropConfig),
       rewardsTokenList,
       address(mockWMaticToken)
     );

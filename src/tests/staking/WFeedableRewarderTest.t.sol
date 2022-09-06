@@ -18,7 +18,7 @@ contract WFeedableRewarderTest is BaseTest {
     mockStaking = new MockStaking();
 
     rewardToken = new MockWNative();
-    rewarder = new WFeedableRewarder(
+    rewarder = deployWFeedableRewarder(
       "WNATIVERewarder",
       address(rewardToken),
       address(mockStaking)

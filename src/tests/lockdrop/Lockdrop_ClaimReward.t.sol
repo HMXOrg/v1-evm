@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
 import { Lockdrop_BaseTest, console, math } from "./Lockdrop_BaseTest.t.sol";
 
@@ -231,7 +231,7 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     // 1. The amount of Alice's P88 should be almost equal to xN of Bob amount)
     // 2. Status of Alice claiming P88 should be true
     // 3. Status of Bob claiming P88 should be true
-     assertTrue(
+    assertTrue(
       math.almostEqual(
         (mockP88Token.balanceOf(BOB) * multiplier),
         mockP88Token.balanceOf(ALICE),
@@ -241,7 +241,6 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     assertTrue(aliceP88Claimed);
     assertTrue(bobP88Claimed);
   }
-
 
   function testCorrectness_ClaimAllP88_MultipleUserWithNTimesLockPeriod(
     uint8 multiplier
@@ -261,7 +260,6 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
       uint256 aliceLockdropTokenAmount,
       uint256 aliceLockdropLockPeriod,
       bool aliceP88Claimed,
-
 
     ) = lockdrop.lockdropStates(ALICE);
     vm.stopPrank();
@@ -319,7 +317,6 @@ contract Lockdrop_ClaimReward is Lockdrop_BaseTest {
     vm.stopPrank();
 
     (bobLockdropTokenAmount, bobLockdropLockPeriod, bobP88Claimed, ) = lockdrop
-
       .lockdropStates(BOB);
     (
       aliceLockdropTokenAmount,
