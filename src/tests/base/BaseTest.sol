@@ -305,7 +305,7 @@ contract BaseTest is DSTest, CoreConstants {
   {
     GetterFacet getterFacet = new GetterFacet();
 
-    bytes4[] memory selectors = new bytes4[](33);
+    bytes4[] memory selectors = new bytes4[](52);
     selectors[0] = GetterFacet.getAddLiquidityFeeBps.selector;
     selectors[1] = GetterFacet.getRemoveLiquidityFeeBps.selector;
     selectors[2] = GetterFacet.getSwapFeeBps.selector;
@@ -339,6 +339,25 @@ contract BaseTest is DSTest, CoreConstants {
     selectors[30] = GetterFacet.getTargetValue.selector;
     selectors[31] = GetterFacet.isAllowedLiquidators.selector;
     selectors[32] = GetterFacet.isAllowAllLiquidators.selector;
+    selectors[33] = GetterFacet.fundingInterval.selector;
+    selectors[34] = GetterFacet.fundingRateFactor.selector;
+    selectors[35] = GetterFacet.isDynamicFeeEnable.selector;
+    selectors[36] = GetterFacet.isLeverageEnable.selector;
+    selectors[37] = GetterFacet.isSwapEnable.selector;
+    selectors[38] = GetterFacet.liquidationFeeUsd.selector;
+    selectors[39] = GetterFacet.liquidityCoolDownDuration.selector;
+    selectors[40] = GetterFacet.maxLeverage.selector;
+    selectors[41] = GetterFacet.minProfitDuration.selector;
+    selectors[42] = GetterFacet.mintBurnFeeBps.selector;
+    selectors[43] = GetterFacet.positionFeeBps.selector;
+    selectors[44] = GetterFacet.router.selector;
+    selectors[45] = GetterFacet.stableFundingRateFactor.selector;
+    selectors[46] = GetterFacet.stableTaxBps.selector;
+    selectors[47] = GetterFacet.stableSwapFeeBps.selector;
+    selectors[48] = GetterFacet.swapFeeBps.selector;
+    selectors[49] = GetterFacet.taxBps.selector;
+    selectors[50] = GetterFacet.tokenMetas.selector;
+    selectors[51] = GetterFacet.totalTokenWeight.selector;
 
     DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
       address(getterFacet),
