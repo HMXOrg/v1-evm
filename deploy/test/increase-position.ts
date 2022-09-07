@@ -29,18 +29,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   //   )
   // ).wait();
 
-  await (
-    await poolRouter.increasePosition(
-      POOL,
-      0,
-      COLLATERAL_TOKEN,
-      ethers.utils.parseUnits("1", 8),
-      COLLATERAL_TOKEN,
-      ethers.utils.parseUnits("50000", 30),
-      Exposure.LONG,
-      { gasLimit: 10000000 }
-    )
-  ).wait();
+  // await (
+  //   await poolRouter.increasePosition(
+  //     POOL,
+  //     0,
+  //     COLLATERAL_TOKEN,
+  //     ethers.utils.parseUnits("1", 8),
+  //     COLLATERAL_TOKEN,
+  //     ethers.utils.parseUnits("50000", 30),
+  //     Exposure.LONG,
+  //     { gasLimit: 10000000 }
+  //   )
+  // ).wait();
   console.log(`Execute increasePosition`);
 };
 
