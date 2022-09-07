@@ -52,7 +52,6 @@ import { LockdropCompounder } from "../../lockdrop/LockdropCompounder.sol";
 import { IPool } from "../../interfaces/IPool.sol";
 import { IStaking } from "../../staking/interfaces/IStaking.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { PoolRouter } from "../../core/PoolRouter.sol";
 import { MockWNative } from "src/tests/mocks/MockWNative.sol";
 
 // solhint-disable const-name-snakecase
@@ -555,6 +554,59 @@ contract BaseTest is DSTest, CoreConstants {
     plp.setMinter(address(pool), true);
 
     return (poolOracle, poolConfig, poolMath, pool);
+  }
+
+  function deployPoolDiamond(
+    PoolConfigConstructorParams memory poolConfigConstructorParams
+  )
+    internal
+    returns (
+      PoolOracle,
+      PoolConfig,
+      address
+    )
+  {
+    PoolOracle poolOracle = deployPoolOracle(3);
+    PoolConfig poolConfig = deployPoolConfig(poolConfigConstructorParams);
+    PLP plp = deployPLP();
+
+    // Deploy DimondCutFacet
+    DiamondCutFacet diamondCutFacet = deployDiamondCutFacet();
+
+    // Deploy Pool Diamond
+    PoolDiamond poolDiamond = new PoolDiamond(
+      address(diamondCutFacet),
+      plp,
+      poolConfig,
+      poolOracle
+    );
+
+    // Config
+    plp.setMinter(address(poolDiamond), true);
+
+    deployDiamondLoupeFacet(DiamondCutFacet(address(poolDiamond)));
+    deployFundingRateFacet(DiamondCutFacet(address(poolDiamond)));
+    deployGetterFacet(DiamondCutFacet(address(poolDiamond)));
+    deployLiquidityFacet(DiamondCutFacet(address(poolDiamond)));
+    deployOwnershipFacet(DiamondCutFacet(address(poolDiamond)));
+    deployPerpTradeFacet(DiamondCutFacet(address(poolDiamond)));
+    deployAdminFacet(DiamondCutFacet(address(poolDiamond)));
+
+    initializeDiamond(DiamondCutFacet(address(poolDiamond)));
+
+    return (poolOracle, poolConfig, address(poolDiamond));
+  }
+
+  function initializeDiamond(DiamondCutFacet diamondCutFacet) internal {
+    // Deploy DiamondInitializer
+    DiamondInitializer diamondInitializer = deployDiamondInitializer();
+    DiamondCutInterface.FacetCut[]
+      memory facetCuts = new DiamondCutInterface.FacetCut[](0);
+    diamondCutFacet.diamondCut(
+      facetCuts,
+      address(diamondInitializer),
+      abi.encodeWithSelector(bytes4(keccak256("initialize()")))
+    );
   }
 
   function deployPoolRouter(address wNative) internal returns (PoolRouter) {

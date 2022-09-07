@@ -142,7 +142,13 @@ contract Pool_AddLiquidity is Pool_BaseTest {
 
     // Perform add liquidity
     dai.approve(address(poolRouter), 100 ether);
-    poolRouter.addLiquidity(pool, address(dai), 100 ether, ALICE, 99 ether);
+    poolRouter.addLiquidity(
+      address(pool),
+      address(dai),
+      100 ether,
+      ALICE,
+      99 ether
+    );
 
     // After Alice added DAI liquidity, the following criteria needs to satisfy:
     // 1. DAI balance of Alice should be 0
@@ -373,7 +379,13 @@ contract Pool_AddLiquidity is Pool_BaseTest {
 
     // Perform add liquidity
     dai.approve(address(poolRouter), 100 ether);
-    poolRouter.addLiquidity(pool, address(dai), 100 ether, ALICE, 99 ether);
+    poolRouter.addLiquidity(
+      address(pool),
+      address(dai),
+      100 ether,
+      ALICE,
+      99 ether
+    );
 
     // After Alice added DAI liquidity, the following criteria needs to satisfy:
     // 1. DAI balance of Alice should be 0
@@ -490,7 +502,7 @@ contract Pool_AddLiquidity is Pool_BaseTest {
     // Perform add liquidity
     // TODO: assert and add more comments
     poolRouter.addLiquidityNative{ value: 100 ether }(
-      pool,
+      address(pool),
       address(poolRouter.WNATIVE()),
       ALICE,
       29900 ether
