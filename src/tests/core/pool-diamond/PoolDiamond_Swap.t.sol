@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.16;
 
-import { PoolDiamond_BaseTest, PoolConfig, Pool, stdError, console, GetterFacetInterface, LiquidityFacetInterface } from "./PoolDiamond_BaseTest.t.sol";
+import { PoolDiamond_BaseTest, LibPoolConfigV1, Pool, stdError, console, GetterFacetInterface, LiquidityFacetInterface } from "./PoolDiamond_BaseTest.t.sol";
 
-contract Pool_SwapTest is PoolDiamond_BaseTest {
+contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
   function setUp() public override {
     super.setUp();
 
     (
-      address[] memory tokens,
-      PoolConfig.TokenConfig[] memory tokenConfigs
-    ) = buildDefaultSetTokenConfigInput();
+      address[] memory tokens2,
+      LibPoolConfigV1.TokenConfig[] memory tokenConfigs2
+    ) = buildDefaultSetTokenConfigInput2();
 
-    poolConfig.setTokenConfigs(tokens, tokenConfigs);
+    poolAdminFacet.setTokenConfigs(tokens2, tokenConfigs2);
   }
 
   function testRevert_WhenTokenInIsRandomErc20() external {
@@ -37,7 +37,7 @@ contract Pool_SwapTest is PoolDiamond_BaseTest {
 
   function testRevert_WhenSwapIsDisabled() external {
     // Disable Swap
-    poolConfig.setIsSwapEnable(false);
+    poolAdminFacet.setIsSwapEnable(false);
 
     vm.expectRevert(abi.encodeWithSignature("LiquidityFacet_SwapDisabled()"));
     poolLiquidityFacet.swap(address(dai), address(wbtc), 0, address(this));
@@ -77,10 +77,9 @@ contract Pool_SwapTest is PoolDiamond_BaseTest {
     // Set DAI's debt ceiling to be 200100 USD
     address[] memory tokens = new address[](1);
     tokens[0] = address(dai);
-    PoolConfig.TokenConfig[] memory tokenConfigs = new PoolConfig.TokenConfig[](
-      1
-    );
-    tokenConfigs[0] = PoolConfig.TokenConfig({
+    LibPoolConfigV1.TokenConfig[]
+      memory tokenConfigs = new LibPoolConfigV1.TokenConfig[](1);
+    tokenConfigs[0] = LibPoolConfigV1.TokenConfig({
       accept: true,
       isStable: true,
       isShortable: false,
@@ -91,7 +90,7 @@ contract Pool_SwapTest is PoolDiamond_BaseTest {
       shortCeiling: 0,
       bufferLiquidity: 0
     });
-    poolConfig.setTokenConfigs(tokens, tokenConfigs);
+    poolAdminFacet.setTokenConfigs(tokens, tokenConfigs);
 
     // Mint more DAI
     dai.mint(address(this), 701 ether);
@@ -126,10 +125,9 @@ contract Pool_SwapTest is PoolDiamond_BaseTest {
     // Set WBTC's liquidity buffer to be 9.97 WBTC
     address[] memory tokens = new address[](1);
     tokens[0] = address(wbtc);
-    PoolConfig.TokenConfig[] memory tokenConfigs = new PoolConfig.TokenConfig[](
-      1
-    );
-    tokenConfigs[0] = PoolConfig.TokenConfig({
+    LibPoolConfigV1.TokenConfig[]
+      memory tokenConfigs = new LibPoolConfigV1.TokenConfig[](1);
+    tokenConfigs[0] = LibPoolConfigV1.TokenConfig({
       accept: true,
       isStable: false,
       isShortable: true,
@@ -140,7 +138,7 @@ contract Pool_SwapTest is PoolDiamond_BaseTest {
       shortCeiling: 0,
       bufferLiquidity: 9.97 * 10**8
     });
-    poolConfig.setTokenConfigs(tokens, tokenConfigs);
+    poolAdminFacet.setTokenConfigs(tokens, tokenConfigs);
 
     dai.mint(address(this), 1 ether);
     dai.transfer(address(poolDiamond), 1 ether);

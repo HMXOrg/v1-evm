@@ -3,10 +3,13 @@ pragma solidity 0.8.16;
 
 import { LibReentrancyGuard } from "../libraries/LibReentrancyGuard.sol";
 import { LibPoolV1 } from "../libraries/LibPoolV1.sol";
+import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
 
 import { GetterFacetInterface } from "../interfaces/GetterFacetInterface.sol";
 import { FundingRateFacetInterface } from "../interfaces/FundingRateFacetInterface.sol";
 import { LiquidityFacetInterface } from "../interfaces/LiquidityFacetInterface.sol";
+
+import { console } from "../../../tests/utils/console.sol";
 
 contract LiquidityFacet is LiquidityFacetInterface {
   error LiquidityFacet_BadAmount();
@@ -104,7 +107,7 @@ contract LiquidityFacet is LiquidityFacetInterface {
     address token,
     address receiver
   ) external nonReentrant allowed(account) returns (uint256) {
-    // LOAD diamond storage
+    // LOAD poolV1 diamond storage
     LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
       .poolV1DiamondStorage();
 
@@ -112,7 +115,7 @@ contract LiquidityFacet is LiquidityFacetInterface {
     uint256 amount = LibPoolV1.pullTokens(token);
 
     // Check
-    if (!poolV1ds.config.isAcceptToken(token)) revert LiquidityFacet_BadToken();
+    if (!LibPoolConfigV1.isAcceptToken(token)) revert LiquidityFacet_BadToken();
     if (amount == 0) revert LiquidityFacet_BadAmount();
 
     uint256 aum = GetterFacetInterface(address(this)).getAumE18(true);
@@ -152,7 +155,7 @@ contract LiquidityFacet is LiquidityFacetInterface {
     uint256 price = poolV1ds.oracle.getMinPrice(token);
 
     uint256 tokenValueUsd = (amount * price) / PRICE_PRECISION;
-    uint8 tokenDecimals = poolV1ds.config.getTokenDecimalsOf(token);
+    uint8 tokenDecimals = LibPoolConfigV1.getTokenDecimalsOf(token);
     tokenValueUsd = LibPoolV1.convertTokenDecimals(
       tokenDecimals,
       USD_DECIMALS,
@@ -197,12 +200,12 @@ contract LiquidityFacet is LiquidityFacetInterface {
 
     uint256 liquidity = poolV1ds.plp.balanceOf(address(this));
 
-    if (!poolV1ds.config.isAcceptToken(tokenOut))
+    if (!LibPoolConfigV1.isAcceptToken(tokenOut))
       revert LiquidityFacet_BadToken();
     if (liquidity == 0) revert LiquidityFacet_BadAmount();
     if (
       poolV1ds.lastAddLiquidityAtOf[account] +
-        poolV1ds.config.liquidityCoolDownDuration() >
+        LibPoolConfigV1.liquidityCoolDownDuration() >
       block.timestamp
     ) {
       revert LiquidityFacet_CoolDown();
@@ -247,7 +250,7 @@ contract LiquidityFacet is LiquidityFacetInterface {
     uint256 tokenPrice = poolV1ds.oracle.getMaxPrice(token);
     uint256 amountOut = LibPoolV1.convertTokenDecimals(
       18,
-      poolV1ds.config.getTokenDecimalsOf(token),
+      LibPoolConfigV1.getTokenDecimalsOf(token),
       (usdValue * PRICE_PRECISION) / tokenPrice
     );
     if (amountOut == 0) revert LiquidityFacet_BadAmountOut();
@@ -285,10 +288,10 @@ contract LiquidityFacet is LiquidityFacetInterface {
     // Pull Tokens
     uint256 amountIn = LibPoolV1.pullTokens(tokenIn);
 
-    if (!poolV1ds.config.isSwapEnable()) revert LiquidityFacet_SwapDisabled();
-    if (!poolV1ds.config.isAcceptToken(tokenIn))
+    if (!LibPoolConfigV1.isSwapEnable()) revert LiquidityFacet_SwapDisabled();
+    if (!LibPoolConfigV1.isAcceptToken(tokenIn))
       revert LiquidityFacet_BadTokenIn();
-    if (!poolV1ds.config.isAcceptToken(tokenOut))
+    if (!LibPoolConfigV1.isAcceptToken(tokenOut))
       revert LiquidityFacet_BadTokenOut();
     if (tokenIn == tokenOut) revert LiquidityFacet_SameTokenInTokenOut();
     if (amountIn == 0) revert LiquidityFacet_BadAmount();
@@ -307,15 +310,15 @@ contract LiquidityFacet is LiquidityFacetInterface {
 
     uint256 amountOut = (amountIn * priceIn) / priceOut;
     amountOut = LibPoolV1.convertTokenDecimals(
-      poolV1ds.config.getTokenDecimalsOf(tokenIn),
-      poolV1ds.config.getTokenDecimalsOf(tokenOut),
+      LibPoolConfigV1.getTokenDecimalsOf(tokenIn),
+      LibPoolConfigV1.getTokenDecimalsOf(tokenOut),
       amountOut
     );
 
     // Adjust USD debt as swap shifted the debt between two assets
     uint256 usdDebt = (amountIn * priceIn) / PRICE_PRECISION;
     usdDebt = LibPoolV1.convertTokenDecimals(
-      poolV1ds.config.getTokenDecimalsOf(tokenIn),
+      LibPoolConfigV1.getTokenDecimalsOf(tokenIn),
       USD_DECIMALS,
       usdDebt
     );
@@ -341,7 +344,7 @@ contract LiquidityFacet is LiquidityFacetInterface {
     // Buffer check
     if (
       poolV1ds.liquidityOf[tokenOut] <
-      poolV1ds.config.getTokenBufferLiquidityOf(tokenOut)
+      LibPoolConfigV1.getTokenBufferLiquidityOf(tokenOut)
     ) revert LiquidityFacet_LiquidityBuffer();
 
     // Slippage check

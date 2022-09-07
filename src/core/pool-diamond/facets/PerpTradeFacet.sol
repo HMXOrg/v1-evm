@@ -3,6 +3,7 @@ pragma solidity 0.8.16;
 
 import { LibReentrancyGuard } from "../libraries/LibReentrancyGuard.sol";
 import { LibPoolV1 } from "../libraries/LibPoolV1.sol";
+import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
 
 import { PerpTradeFacetInterface } from "../interfaces/PerpTradeFacetInterface.sol";
 import { GetterFacetInterface } from "../interfaces/GetterFacetInterface.sol";
@@ -154,14 +155,16 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       return (LiquidationState.LIQUIDATE, remainingCollateral);
     }
 
-    if (remainingCollateral < marginFee + ds.config.liquidationFeeUsd()) {
+    if (remainingCollateral < marginFee + LibPoolConfigV1.liquidationFeeUsd()) {
       if (isRevertOnError)
         revert PerpTradeFacet_LiquidationFeeExceedCollateral();
       // Cap the fee to the margin fee
       return (LiquidationState.LIQUIDATE, marginFee);
     }
 
-    if (remainingCollateral * ds.config.maxLeverage() < position.size * BPS) {
+    if (
+      remainingCollateral * LibPoolConfigV1.maxLeverage() < position.size * BPS
+    ) {
       if (isRevertOnError) revert PerpTradeFacet_MaxLeverageExceed();
       return (LiquidationState.SOFT_LIQUIDATE, marginFee);
     }
@@ -182,26 +185,26 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     address indexToken,
     bool isLong
   ) internal view {
-    // Load diamond storage
-    LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
-      .poolV1DiamondStorage();
+    // Load PoolConfigV1 diamond storage
+    LibPoolConfigV1.PoolConfigV1DiamondStorage
+      storage poolConfigV1ds = LibPoolConfigV1.poolConfigV1DiamondStorage();
 
     if (isLong) {
       if (collateralToken != indexToken) revert PerpTradeFacet_TokenMisMatch();
-      if (!ds.config.isAcceptToken(collateralToken))
+      if (!poolConfigV1ds.tokenMetas[collateralToken].accept)
         revert PerpTradeFacet_BadToken();
-      if (ds.config.isStableToken(collateralToken))
+      if (poolConfigV1ds.tokenMetas[collateralToken].isStable)
         revert PerpTradeFacet_CollateralTokenIsStable();
       return;
     }
 
-    if (!ds.config.isAcceptToken(collateralToken))
+    if (!poolConfigV1ds.tokenMetas[collateralToken].accept)
       revert PerpTradeFacet_BadToken();
-    if (!ds.config.isStableToken(collateralToken))
+    if (!poolConfigV1ds.tokenMetas[collateralToken].isStable)
       revert PerpTradeFacet_CollateralTokenNotStable();
-    if (ds.config.isStableToken(indexToken))
+    if (poolConfigV1ds.tokenMetas[indexToken].isStable)
       revert PerpTradeFacet_IndexTokenIsStable();
-    if (!ds.config.isShortableToken(indexToken))
+    if (!poolConfigV1ds.tokenMetas[indexToken].isShortable)
       revert PerpTradeFacet_IndexTokenNotShortable();
   }
 
@@ -278,7 +281,8 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
       .poolV1DiamondStorage();
 
-    if (!ds.config.isLeverageEnable()) revert PerpTradeFacet_LeverageDisabled();
+    if (!LibPoolConfigV1.isLeverageEnable())
+      revert PerpTradeFacet_LeverageDisabled();
     _checkTokenInputs(collateralToken, indexToken, isLong);
 
     FundingRateFacetInterface(address(this)).updateFundingRate(
@@ -632,7 +636,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
       .poolV1DiamondStorage();
 
-    if (!ds.config.isAllowedLiquidators(msg.sender))
+    if (!LibPoolConfigV1.isAllowedLiquidators(msg.sender))
       revert PerpTradeFacet_BadLiquidator();
 
     FundingRateFacetInterface(address(this)).updateFundingRate(
@@ -739,7 +743,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       collateralToken,
       LibPoolV1.convertUsde30ToTokens(
         collateralToken,
-        ds.config.liquidationFeeUsd(),
+        LibPoolConfigV1.liquidationFeeUsd(),
         true
       )
     );
@@ -748,7 +752,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       to,
       LibPoolV1.convertUsde30ToTokens(
         collateralToken,
-        ds.config.liquidationFeeUsd(),
+        LibPoolConfigV1.liquidationFeeUsd(),
         true
       )
     );

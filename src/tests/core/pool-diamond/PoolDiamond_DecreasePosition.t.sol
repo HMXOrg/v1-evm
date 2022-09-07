@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.16;
 
-import { PoolDiamond_BaseTest, console, Pool, PoolConfig, LiquidityFacetInterface, GetterFacetInterface, PerpTradeFacetInterface } from "./PoolDiamond_BaseTest.t.sol";
+import { PoolDiamond_BaseTest, console, Pool, LibPoolConfigV1, LiquidityFacetInterface, GetterFacetInterface, PerpTradeFacetInterface } from "./PoolDiamond_BaseTest.t.sol";
 
 contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
   function setUp() public override {
     super.setUp();
 
     (
-      address[] memory tokens,
-      PoolConfig.TokenConfig[] memory tokenConfigs
-    ) = buildDefaultSetTokenConfigInput();
+      address[] memory tokens2,
+      LibPoolConfigV1.TokenConfig[] memory tokenConfigs2
+    ) = buildDefaultSetTokenConfigInput2();
 
-    poolConfig.setTokenConfigs(tokens, tokenConfigs);
+    poolAdminFacet.setTokenConfigs(tokens2, tokenConfigs2);
   }
 
   function testRevert_WhenMsgSenderNotAllowed() external {
@@ -1095,7 +1095,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
   }
 
   function testCorrectness_WhenShort_WhenProfitable() external {
-    poolConfig.setMintBurnFeeBps(4);
+    poolAdminFacet.setMintBurnFeeBps(4);
 
     maticPriceFeed.setLatestAnswer(300 * 10**8);
     wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
@@ -1326,7 +1326,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
   }
 
   function testCorrectness_WhenShort_WhenLoss() external {
-    poolConfig.setMintBurnFeeBps(4);
+    poolAdminFacet.setMintBurnFeeBps(4);
 
     maticPriceFeed.setLatestAnswer(300 * 10**8);
     daiPriceFeed.setLatestAnswer(1 * 10**8);
@@ -1566,7 +1566,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
   function testCorrectness_WhenShort_WhenProfitable_WhenClosePosition()
     external
   {
-    poolConfig.setMintBurnFeeBps(4);
+    poolAdminFacet.setMintBurnFeeBps(4);
 
     maticPriceFeed.setLatestAnswer(300 * 10**8);
     wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
@@ -1744,7 +1744,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
   }
 
   function testCorrectness_WhenShort_WhenLoss_WhenClosePosition() external {
-    poolConfig.setMintBurnFeeBps(4);
+    poolAdminFacet.setMintBurnFeeBps(4);
 
     maticPriceFeed.setLatestAnswer(300 * 10**8);
     wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);

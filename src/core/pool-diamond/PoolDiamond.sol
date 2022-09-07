@@ -16,7 +16,6 @@ contract PoolDiamond {
   constructor(
     address diamondCutFacet,
     MintableTokenInterface plp,
-    PoolConfig poolConfig,
     PoolOracle poolOracle
   ) payable {
     // Set contract owner
@@ -24,7 +23,6 @@ contract PoolDiamond {
 
     // Set LibPool dependencies
     LibPoolV1.setPLP(plp);
-    LibPoolV1.setPoolConfig(poolConfig);
     LibPoolV1.setPoolOracle(poolOracle);
 
     // Set LibReentrancyGuard

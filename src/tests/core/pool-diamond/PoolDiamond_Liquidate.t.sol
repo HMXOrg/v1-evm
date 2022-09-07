@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.16;
 
-import { PoolDiamond_BaseTest, console, Pool, PoolConfig, LiquidityFacetInterface, GetterFacetInterface, PerpTradeFacetInterface } from "./PoolDiamond_BaseTest.t.sol";
+import { PoolDiamond_BaseTest, console, Pool, LibPoolConfigV1, LiquidityFacetInterface, GetterFacetInterface, PerpTradeFacetInterface } from "./PoolDiamond_BaseTest.t.sol";
 
 contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
   function setUp() public override {
     super.setUp();
 
     (
-      address[] memory tokens,
-      PoolConfig.TokenConfig[] memory tokenConfigs
-    ) = buildDefaultSetTokenConfigInput();
+      address[] memory tokens2,
+      LibPoolConfigV1.TokenConfig[] memory tokenConfigs2
+    ) = buildDefaultSetTokenConfigInput2();
 
-    poolConfig.setTokenConfigs(tokens, tokenConfigs);
+    poolAdminFacet.setTokenConfigs(tokens2, tokenConfigs2);
   }
 
   function testRevert_WhenNotWhitelistedLiquidatorTryToLiquidate() external {
@@ -73,7 +73,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
     maticPriceFeed.setLatestAnswer(400 * 10**8);
 
-    poolConfig.setIsAllowAllLiquidators(true);
+    poolAdminFacet.setIsAllowAllLiquidators(true);
 
     vm.expectRevert(
       abi.encodeWithSignature("PerpTradeFacet_BadPositionSize()")
@@ -97,7 +97,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     maticPriceFeed.setLatestAnswer(400 * 10**8);
 
     // Set max leverage to 50x
-    poolConfig.setMaxLeverage(50 * 10000);
+    poolAdminFacet.setMaxLeverage(50 * 10000);
 
     // Set WBTC price to be 40,000 - 41,000 USD
     wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
@@ -277,7 +277,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     );
 
     // Allow anyone to liquidate
-    poolConfig.setIsAllowAllLiquidators(true);
+    poolAdminFacet.setIsAllowAllLiquidators(true);
 
     // --- Start Bob session ---
     // Assuming Bob try to liquidate
@@ -505,9 +505,9 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     assertFalse(isProfit);
 
     // Allow anyone to liquidate the position
-    assertFalse(poolConfig.isAllowAllLiquidators());
-    poolConfig.setIsAllowAllLiquidators(true);
-    assertTrue(poolConfig.isAllowAllLiquidators());
+    assertFalse(poolGetterFacet.isAllowAllLiquidators());
+    poolAdminFacet.setIsAllowAllLiquidators(true);
+    assertTrue(poolGetterFacet.isAllowAllLiquidators());
 
     // Assuming Bob is a liquidator
     // --- Start Bob session ---
@@ -595,7 +595,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     maticPriceFeed.setLatestAnswer(400 * 10**8);
 
     // Set mintBurnFeeBps to 4 bps
-    poolConfig.setMintBurnFeeBps(4);
+    poolAdminFacet.setMintBurnFeeBps(4);
 
     // Feed WBTC prices
     wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
@@ -829,7 +829,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     assertEq(poolGetterFacet.getAumE18(false), 1090.5996 * 10**18);
 
     // Allow anyone to liquidate
-    poolConfig.setIsAllowAllLiquidators(true);
+    poolAdminFacet.setIsAllowAllLiquidators(true);
 
     // Assuming Bob wants to liquidate the position
     // --- Start Bob session ---
@@ -920,7 +920,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
     maticPriceFeed.setLatestAnswer(400 * 10**8);
 
-    poolConfig.setMintBurnFeeBps(4);
+    poolAdminFacet.setMintBurnFeeBps(4);
 
     // Add 100 DAI as a liquidity to the pool
     dai.mint(address(poolDiamond), 100 * 10**18);
@@ -1116,7 +1116,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     );
 
     // Enable anyone to be a liquidator
-    poolConfig.setIsAllowAllLiquidators(true);
+    poolAdminFacet.setIsAllowAllLiquidators(true);
 
     // Bob try to liquidate the position
     // --- Start Bob session ---

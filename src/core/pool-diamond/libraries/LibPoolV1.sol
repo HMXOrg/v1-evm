@@ -4,9 +4,9 @@ pragma solidity 0.8.16;
 import { MintableTokenInterface } from "../../../interfaces/MintableTokenInterface.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { PoolConfig } from "../../PoolConfig.sol";
 import { PoolOracle } from "../../PoolOracle.sol";
 import { Constants } from "../../Constants.sol";
+import { LibPoolConfigV1 } from "./LibPoolConfigV1.sol";
 
 library LibPoolV1 {
   using SafeERC20 for IERC20;
@@ -47,7 +47,6 @@ library LibPoolV1 {
   struct PoolV1DiamondStorage {
     // Dependent contracts
     MintableTokenInterface plp;
-    PoolConfig config;
     PoolOracle oracle;
     // Liquidity
     mapping(address => uint256) totalOf;
@@ -105,12 +104,6 @@ library LibPoolV1 {
     poolV1ds.plp = newPLP;
   }
 
-  function setPoolConfig(PoolConfig newConfig) internal {
-    PoolV1DiamondStorage storage poolV1ds = poolV1DiamondStorage();
-    emit SetPoolConfig(address(poolV1ds.config), address(newConfig));
-    poolV1ds.config = newConfig;
-  }
-
   function setPoolOracle(PoolOracle newOracle) internal {
     PoolV1DiamondStorage storage poolV1ds = poolV1DiamondStorage();
     emit SetPoolOracle(address(poolV1ds.oracle), address(newOracle));
@@ -122,7 +115,11 @@ library LibPoolV1 {
   // --------------
   function allowed(address account) internal view {
     PoolV1DiamondStorage storage poolV1ds = poolV1DiamondStorage();
-    if (account != msg.sender && poolV1ds.config.router() != msg.sender) {
+    // Load PoolConfigV1 diamond storage
+    LibPoolConfigV1.PoolConfigV1DiamondStorage
+      storage poolConfigds = LibPoolConfigV1.poolConfigV1DiamondStorage();
+
+    if (account != msg.sender && poolConfigds.router != msg.sender) {
       if (!poolV1ds.approvedPlugins[account][msg.sender])
         revert LibPoolV1_Forbidden();
     }
@@ -179,7 +176,7 @@ library LibPoolV1 {
 
     // SLOAD
     uint256 newUsdDebt = poolV1ds.usdDebtOf[token];
-    uint256 usdDebtCeiling = poolV1ds.config.getTokenUsdDebtCeilingOf(token);
+    uint256 usdDebtCeiling = LibPoolConfigV1.getTokenUsdDebtCeilingOf(token);
 
     if (usdDebtCeiling != 0) {
       if (newUsdDebt > usdDebtCeiling) revert LibPoolV1_OverUsdDebtCeiling();
@@ -237,7 +234,7 @@ library LibPoolV1 {
     PoolV1DiamondStorage storage poolV1ds = poolV1DiamondStorage();
 
     // SLOAD
-    uint256 shortCeiling = poolV1ds.config.getTokenShortCeilingOf(token);
+    uint256 shortCeiling = LibPoolConfigV1.getTokenShortCeilingOf(token);
     poolV1ds.shortSizeOf[token] += amountUsd;
 
     if (shortCeiling != 0) {
@@ -310,7 +307,7 @@ library LibPoolV1 {
     PoolV1DiamondStorage storage poolV1ds = poolV1DiamondStorage();
 
     return
-      (amountUsd * (10**poolV1ds.config.getTokenDecimalsOf(token))) /
+      (amountUsd * (10**LibPoolConfigV1.getTokenDecimalsOf(token))) /
       poolV1ds.oracle.getPrice(token, isUseMaxPrice);
   }
 
@@ -326,6 +323,6 @@ library LibPoolV1 {
 
     return
       (amountTokens * poolV1ds.oracle.getPrice(token, isUseMaxPrice)) /
-      (10**poolV1ds.config.getTokenDecimalsOf(token));
+      (10**LibPoolConfigV1.getTokenDecimalsOf(token));
   }
 }

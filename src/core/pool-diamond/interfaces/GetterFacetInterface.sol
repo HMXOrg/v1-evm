@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.16;
 
-import { PoolConfig } from "../../PoolConfig.sol";
+import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
 import { PoolOracle } from "../../PoolOracle.sol";
 import { MintableTokenInterface } from "../../../interfaces/MintableTokenInterface.sol";
 
@@ -13,33 +13,79 @@ interface GetterFacetInterface {
     view
     returns (bool);
 
-  function config() external view returns (PoolConfig);
-
   function discountedAum() external view returns (uint256);
 
   function feeReserveOf(address token) external view returns (uint256);
 
+  function fundingInterval() external view returns (uint64);
+
+  function fundingRateFactor() external view returns (uint64);
+
   function guaranteedUsdOf(address token) external view returns (uint256);
+
+  function isAllowAllLiquidators() external view returns (bool);
+
+  function isAllowedLiquidators(address liquidator)
+    external
+    view
+    returns (bool);
+
+  function isDynamicFeeEnable() external view returns (bool);
+
+  function isLeverageEnable() external view returns (bool);
+
+  function isSwapEnable() external view returns (bool);
 
   function lastAddLiquidityAtOf(address user) external view returns (uint256);
 
   function lastFundingTimeOf(address token) external view returns (uint256);
 
+  function liquidationFeeUsd() external view returns (uint256);
+
+  function liquidityCoolDownDuration() external view returns (uint64);
+
   function liquidityOf(address token) external view returns (uint256);
+
+  function maxLeverage() external view returns (uint64);
+
+  function minProfitDuration() external view returns (uint64);
+
+  function mintBurnFeeBps() external view returns (uint64);
 
   function oracle() external view returns (PoolOracle);
 
   function plp() external view returns (MintableTokenInterface);
 
+  function positionFeeBps() external view returns (uint64);
+
   function reservedOf(address token) external view returns (uint256);
 
-  function shortAveragePriceOf(address token) external view returns (uint256);
+  function router() external view returns (address);
 
   function shortSizeOf(address token) external view returns (uint256);
 
+  function shortAveragePriceOf(address token) external view returns (uint256);
+
+  function stableFundingRateFactor() external view returns (uint64);
+
+  function stableTaxBps() external view returns (uint64);
+
+  function stableSwapFeeBps() external view returns (uint64);
+
   function sumFundingRateOf(address token) external view returns (uint256);
 
+  function swapFeeBps() external view returns (uint64);
+
+  function taxBps() external view returns (uint64);
+
   function totalOf(address token) external view returns (uint256);
+
+  function tokenMetas(address token)
+    external
+    view
+    returns (LibPoolConfigV1.TokenConfig memory);
+
+  function totalTokenWeight() external view returns (uint256);
 
   function totalUsdDebt() external view returns (uint256);
 

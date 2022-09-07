@@ -7,7 +7,7 @@ library LibReentrancyGuard {
   // -------------
   //    Constants
   // -------------
-  // POOL_V1_STORAGE_POSITION = keccak256("com.perp88.reentrancyguard.diamond.storage")
+  // keccak256("com.perp88.reentrancyguard.diamond.storage")
   bytes32 internal constant REENTRANCY_GUARD_STORAGE_POSITION =
     0xfd6169b5c507ad45678acd2f1b847ecc173862dd71c1994b14dc7b671ec4ff6b;
 

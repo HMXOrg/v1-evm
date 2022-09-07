@@ -2,6 +2,7 @@
 pragma solidity 0.8.16;
 
 import { LibPoolV1 } from "../libraries/LibPoolV1.sol";
+import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
 
 import { FundingRateFacetInterface } from "../interfaces/FundingRateFacetInterface.sol";
 import { GetterFacetInterface } from "../interfaces/GetterFacetInterface.sol";
@@ -9,16 +10,14 @@ import { GetterFacetInterface } from "../interfaces/GetterFacetInterface.sol";
 contract FundingRateFacet is FundingRateFacetInterface {
   event UpdateFundingRate(address token, uint256 sumFundingRate);
 
-  function updateFundingRate(address collateralToken, address indexToken)
-    external
-  {
+  function updateFundingRate(
+    address collateralToken,
+    address /* indexToken */
+  ) external {
     LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
       .poolV1DiamondStorage();
 
-    if (!poolV1ds.config.shouldUpdateFundingRate(collateralToken, indexToken))
-      return;
-
-    uint256 fundingInterval = poolV1ds.config.fundingInterval();
+    uint256 fundingInterval = LibPoolConfigV1.fundingInterval();
 
     if (poolV1ds.lastFundingTimeOf[collateralToken] == 0) {
       poolV1ds.lastFundingTimeOf[collateralToken] =
