@@ -20,7 +20,12 @@
       "oracle": "0x9375e7eE3a50E82D5C5CB34cf6AB2d8AdE4B469f",
       "facets": {
         "diamondCut": "0x0b3E70B2dAe86C7ceAE8Bb4a1F2388eb48887f3E",
-        "liquidity": "0x1BE63A4D24a8AaffaB26745Bde8be0B6887241C8"
+        "diamondLoupe": "0x78CF50D43D377da23FA761D5AE4912f86af5896F",
+        "liquidity": "0x1BE63A4D24a8AaffaB26745Bde8be0B6887241C8",
+        "fundingRate": "0xA2Daf47841F7921e31A361E8eB1b593ee826977f",
+        "getter": "0xd639863Ca964e6dd7d9799D7b2eE2462A76d932c",
+        "ownership": "0x7B0cB4016F7302dE98609d7a3207C0a8d0Fb86DC",
+        "perpTrade": "0xc0659DC4610A342d1eE6B2f5e620fd6A0437d2c5"
       }
     }
   },

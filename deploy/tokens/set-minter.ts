@@ -2,9 +2,12 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { MintableTokenInterface__factory } from "../../typechain";
+import { getConfig } from "../utils/config";
 
-const TOKEN_ADDRESS = "0xBb5e11926b8040ccFa67045aF552F47C735CfF87";
-const MINTER_ADDRESSES = ["0xC90466D18C402a0395CCe0B165D9fA1ae5CE43cB"];
+const config = getConfig();
+
+const TOKEN_ADDRESS = config.Tokens.PLP;
+const MINTER_ADDRESSES = [config.Pools.PLP.poolDiamond];
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
