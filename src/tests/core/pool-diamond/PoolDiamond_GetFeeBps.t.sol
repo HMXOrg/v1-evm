@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.14;
 
-import { PoolDiamond_BaseTest, console, Pool, PoolConfig, LiquidityFacetInterface, GetterFacetInterface, PerpTradeFacetInterface } from "./PoolDiamond_BaseTest.t.sol";
+import { PoolDiamond_BaseTest, console, Pool, LibPoolConfigV1, LiquidityFacetInterface, GetterFacetInterface, PerpTradeFacetInterface } from "./PoolDiamond_BaseTest.t.sol";
 
 contract PoolDiamond_GetFeeBpsTest is PoolDiamond_BaseTest {
   function setUp() public override {
@@ -10,10 +10,9 @@ contract PoolDiamond_GetFeeBpsTest is PoolDiamond_BaseTest {
     address[] memory tokens = new address[](1);
     tokens[0] = address(matic);
 
-    PoolConfig.TokenConfig[] memory tokenConfigs = new PoolConfig.TokenConfig[](
-      1
-    );
-    tokenConfigs[0] = PoolConfig.TokenConfig({
+    LibPoolConfigV1.TokenConfig[]
+      memory tokenConfigs = new LibPoolConfigV1.TokenConfig[](1);
+    tokenConfigs[0] = LibPoolConfigV1.TokenConfig({
       accept: true,
       isStable: false,
       isShortable: true,
@@ -25,7 +24,7 @@ contract PoolDiamond_GetFeeBpsTest is PoolDiamond_BaseTest {
       bufferLiquidity: 0
     });
 
-    poolConfig.setTokenConfigs(tokens, tokenConfigs);
+    poolAdminFacet.setTokenConfigs(tokens, tokenConfigs);
   }
 
   function testCorrectness_GetFeeBps() external {
@@ -35,10 +34,10 @@ contract PoolDiamond_GetFeeBpsTest is PoolDiamond_BaseTest {
     wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
 
     // Set Mint Burn Fee Bps to 20 BPS
-    poolConfig.setMintBurnFeeBps(20);
+    poolAdminFacet.setMintBurnFeeBps(20);
 
     // Turn on dynamic fee
-    poolConfig.setIsDynamicFeeEnable(true);
+    poolAdminFacet.setIsDynamicFeeEnable(true);
 
     // Add 100 wei of MATIC as a liquidity
     matic.mint(address(poolDiamond), 100);
@@ -62,8 +61,8 @@ contract PoolDiamond_GetFeeBpsTest is PoolDiamond_BaseTest {
     // Assuming:
     // 1. mintBurnFeeBps is 100 BPS
     // 2. taxBps is 50 BPS
-    poolConfig.setMintBurnFeeBps(100);
-    poolConfig.setTaxBps(50, 50);
+    poolAdminFacet.setMintBurnFeeBps(100);
+    poolAdminFacet.setTaxBps(50, 50);
 
     // Assert with the given conditions.
     assertEq(poolGetterFacet.getAddLiquidityFeeBps(address(matic), 1000), 100);
@@ -80,8 +79,8 @@ contract PoolDiamond_GetFeeBpsTest is PoolDiamond_BaseTest {
     // Assuming:
     // 1. mintBurnFeeBps is 50 BPS
     // 2. taxBps is 100 BPS
-    poolConfig.setMintBurnFeeBps(50);
-    poolConfig.setTaxBps(100, 100);
+    poolAdminFacet.setMintBurnFeeBps(50);
+    poolAdminFacet.setTaxBps(100, 100);
 
     // Assert with the given conditions.
     assertEq(poolGetterFacet.getAddLiquidityFeeBps(address(matic), 1000), 51);
@@ -98,10 +97,9 @@ contract PoolDiamond_GetFeeBpsTest is PoolDiamond_BaseTest {
     // Add DAI to the allow token list
     address[] memory tokens = new address[](1);
     tokens[0] = address(dai);
-    PoolConfig.TokenConfig[] memory tokenConfigs = new PoolConfig.TokenConfig[](
-      1
-    );
-    tokenConfigs[0] = PoolConfig.TokenConfig({
+    LibPoolConfigV1.TokenConfig[]
+      memory tokenConfigs = new LibPoolConfigV1.TokenConfig[](1);
+    tokenConfigs[0] = LibPoolConfigV1.TokenConfig({
       accept: true,
       isStable: true,
       isShortable: false,
@@ -112,7 +110,7 @@ contract PoolDiamond_GetFeeBpsTest is PoolDiamond_BaseTest {
       shortCeiling: 0,
       bufferLiquidity: 0
     });
-    poolConfig.setTokenConfigs(tokens, tokenConfigs);
+    poolAdminFacet.setTokenConfigs(tokens, tokenConfigs);
 
     // Assert target value.
     // 1. Pool's MATIC target value should be:
@@ -128,8 +126,8 @@ contract PoolDiamond_GetFeeBpsTest is PoolDiamond_BaseTest {
     // Assuming:
     // 1. mintBurnFeeBps is 100 BPS
     // 2. taxBps is 50 BPS
-    poolConfig.setMintBurnFeeBps(100);
-    poolConfig.setTaxBps(50, 50);
+    poolAdminFacet.setMintBurnFeeBps(100);
+    poolAdminFacet.setTaxBps(50, 50);
 
     assertEq(poolGetterFacet.getAddLiquidityFeeBps(address(matic), 1000), 150);
     assertEq(poolGetterFacet.getAddLiquidityFeeBps(address(matic), 5000), 150);
@@ -164,8 +162,8 @@ contract PoolDiamond_GetFeeBpsTest is PoolDiamond_BaseTest {
     // 1. mintBurnFeeBps is 20 BPS
     // 2. taxBps is 50 BPS
     // 3. stableTaxBps is 10 BPS
-    poolConfig.setMintBurnFeeBps(20);
-    poolConfig.setTaxBps(50, 10);
+    poolAdminFacet.setMintBurnFeeBps(20);
+    poolAdminFacet.setTaxBps(50, 10);
 
     // Add 20000 wei of DAI as a liquidity
     dai.mint(address(poolDiamond), 20000);
@@ -177,7 +175,7 @@ contract PoolDiamond_GetFeeBpsTest is PoolDiamond_BaseTest {
 
     // Adjust MATIC's token weight
     tokens[0] = address(matic);
-    tokenConfigs[0] = PoolConfig.TokenConfig({
+    tokenConfigs[0] = LibPoolConfigV1.TokenConfig({
       accept: true,
       isStable: false,
       isShortable: true,
@@ -188,7 +186,7 @@ contract PoolDiamond_GetFeeBpsTest is PoolDiamond_BaseTest {
       shortCeiling: 0,
       bufferLiquidity: 0
     });
-    poolConfig.setTokenConfigs(tokens, tokenConfigs);
+    poolAdminFacet.setTokenConfigs(tokens, tokenConfigs);
 
     // Assert target value
     assertEq(poolGetterFacet.getTargetValue(address(matic)), 37275);
@@ -204,8 +202,8 @@ contract PoolDiamond_GetFeeBpsTest is PoolDiamond_BaseTest {
     // 1. mintBurnFeeBps is 100 BPS
     // 2. taxBps is 50 BPS
     // 3. stableTaxBps is 10 BPS
-    poolConfig.setMintBurnFeeBps(100);
-    poolConfig.setTaxBps(50, 10);
+    poolAdminFacet.setMintBurnFeeBps(100);
+    poolAdminFacet.setTaxBps(50, 10);
 
     // Assert add liquidity fee, should be low fee
     assertEq(poolGetterFacet.getAddLiquidityFeeBps(address(matic), 1000), 90);
@@ -230,12 +228,12 @@ contract PoolDiamond_GetFeeBpsTest is PoolDiamond_BaseTest {
     // 1. mintBurnFeeBps is 20 BPS
     // 2. taxBps is 50 BPS
     // 3. stableTaxBps is 10 BPS
-    poolConfig.setMintBurnFeeBps(20);
-    poolConfig.setTaxBps(50, 10);
+    poolAdminFacet.setMintBurnFeeBps(20);
+    poolAdminFacet.setTaxBps(50, 10);
 
     // Reduce MATIC's token weight to 5000
     tokenConfigs[0].weight = 5000;
-    poolConfig.setTokenConfigs(tokens, tokenConfigs);
+    poolAdminFacet.setTokenConfigs(tokens, tokenConfigs);
 
     // Add 200 wei of MATIC as a liquidity
     matic.mint(address(poolDiamond), 200);
@@ -257,8 +255,8 @@ contract PoolDiamond_GetFeeBpsTest is PoolDiamond_BaseTest {
     // 1. mintBurnFeeBps is 100 BPS
     // 2. taxBps is 50 BPS
     // 3. stableTaxBps is 10 BPS
-    poolConfig.setMintBurnFeeBps(100);
-    poolConfig.setTaxBps(50, 10);
+    poolAdminFacet.setMintBurnFeeBps(100);
+    poolAdminFacet.setTaxBps(50, 10);
 
     // Assert add liquidity, result in high fee
     assertEq(poolGetterFacet.getAddLiquidityFeeBps(address(matic), 1000), 150);
@@ -291,8 +289,8 @@ contract PoolDiamond_GetFeeBpsTest is PoolDiamond_BaseTest {
     // 1. mintBurnFeeBps is 50 BPS
     // 2. taxBps is 100 BPS
     // 3. stableTaxBps is 10 BPS
-    poolConfig.setMintBurnFeeBps(50);
-    poolConfig.setTaxBps(100, 10);
+    poolAdminFacet.setMintBurnFeeBps(50);
+    poolAdminFacet.setTaxBps(100, 10);
 
     // Assert add liquidity, result in high fee
     assertEq(poolGetterFacet.getAddLiquidityFeeBps(address(matic), 1000), 150);

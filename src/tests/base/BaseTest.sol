@@ -20,6 +20,8 @@ import { Pool } from "../../core/Pool.sol";
 import { PoolRouter } from "src/core/pool-diamond/PoolRouter.sol";
 
 // Diamond things
+// Libs
+import { LibPoolConfigV1 } from "../../core/pool-diamond/libraries/LibPoolConfigV1.sol";
 // Facets
 import { DiamondCutFacet, DiamondCutInterface } from "../../core/pool-diamond/facets/DiamondCutFacet.sol";
 import { DiamondLoupeFacet } from "../../core/pool-diamond/facets/DiamondLoupeFacet.sol";
@@ -30,6 +32,7 @@ import { LiquidityFacet, LiquidityFacetInterface } from "../../core/pool-diamond
 import { PerpTradeFacet, PerpTradeFacetInterface } from "../../core/pool-diamond/facets/PerpTradeFacet.sol";
 import { AdminFacet, AdminFacetInterface } from "../../core/pool-diamond/facets/AdminFacet.sol";
 import { DiamondInitializer } from "../../core/pool-diamond/initializers/DiamondInitializer.sol";
+import { PoolConfigInitializer } from "../../core/pool-diamond/initializers/PoolConfigInitializer.sol";
 import { PoolDiamond } from "../../core/pool-diamond/PoolDiamond.sol";
 
 // solhint-disable const-name-snakecase
@@ -181,6 +184,55 @@ contract BaseTest is DSTest, CoreConstants {
     return (tokens, tokenConfigs);
   }
 
+  function buildDefaultSetTokenConfigInput2()
+    internal
+    view
+    returns (address[] memory, LibPoolConfigV1.TokenConfig[] memory)
+  {
+    address[] memory tokens = new address[](3);
+    tokens[0] = address(dai);
+    tokens[1] = address(wbtc);
+    tokens[2] = address(matic);
+
+    LibPoolConfigV1.TokenConfig[]
+      memory tokenConfigs = new LibPoolConfigV1.TokenConfig[](3);
+    tokenConfigs[0] = LibPoolConfigV1.TokenConfig({
+      accept: true,
+      isStable: true,
+      isShortable: false,
+      decimals: dai.decimals(),
+      weight: 10000,
+      minProfitBps: 75,
+      usdDebtCeiling: 0,
+      shortCeiling: 0,
+      bufferLiquidity: 0
+    });
+    tokenConfigs[1] = LibPoolConfigV1.TokenConfig({
+      accept: true,
+      isStable: false,
+      isShortable: true,
+      decimals: wbtc.decimals(),
+      weight: 10000,
+      minProfitBps: 75,
+      usdDebtCeiling: 0,
+      shortCeiling: 0,
+      bufferLiquidity: 0
+    });
+    tokenConfigs[2] = LibPoolConfigV1.TokenConfig({
+      accept: true,
+      isStable: false,
+      isShortable: true,
+      decimals: matic.decimals(),
+      weight: 10000,
+      minProfitBps: 75,
+      usdDebtCeiling: 0,
+      shortCeiling: 0,
+      bufferLiquidity: 0
+    });
+
+    return (tokens, tokenConfigs);
+  }
+
   function buildFacetCut(
     address facet,
     DiamondCutInterface.FacetCutAction cutAction,
@@ -253,7 +305,7 @@ contract BaseTest is DSTest, CoreConstants {
   {
     GetterFacet getterFacet = new GetterFacet();
 
-    bytes4[] memory selectors = new bytes4[](31);
+    bytes4[] memory selectors = new bytes4[](33);
     selectors[0] = GetterFacet.getAddLiquidityFeeBps.selector;
     selectors[1] = GetterFacet.getRemoveLiquidityFeeBps.selector;
     selectors[2] = GetterFacet.getSwapFeeBps.selector;
@@ -285,6 +337,8 @@ contract BaseTest is DSTest, CoreConstants {
     selectors[28] = GetterFacet.getPoolShortDelta.selector;
     selectors[29] = GetterFacet.shortAveragePriceOf.selector;
     selectors[30] = GetterFacet.getTargetValue.selector;
+    selectors[31] = GetterFacet.isAllowedLiquidators.selector;
+    selectors[32] = GetterFacet.isAllowAllLiquidators.selector;
 
     DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
       address(getterFacet),
@@ -358,16 +412,40 @@ contract BaseTest is DSTest, CoreConstants {
     return (perpTradeFacet, selectors);
   }
 
+  function deployPoolConfigInitializer()
+    internal
+    returns (PoolConfigInitializer)
+  {
+    return new PoolConfigInitializer();
+  }
+
   function deployAdminFacet(DiamondCutFacet diamondCutFacet)
     internal
     returns (AdminFacet, bytes4[] memory)
   {
     AdminFacet adminFacet = new AdminFacet();
 
-    bytes4[] memory selectors = new bytes4[](3);
-    selectors[0] = AdminFacet.setPoolConfig.selector;
-    selectors[1] = AdminFacet.setPoolOracle.selector;
-    selectors[2] = AdminFacet.withdrawFeeReserve.selector;
+    bytes4[] memory selectors = new bytes4[](20);
+    selectors[0] = AdminFacet.setPoolOracle.selector;
+    selectors[1] = AdminFacet.withdrawFeeReserve.selector;
+    selectors[2] = AdminFacet.setAllowLiquidators.selector;
+    selectors[3] = AdminFacet.setFundingRate.selector;
+    selectors[4] = AdminFacet.setIsAllowAllLiquidators.selector;
+    selectors[5] = AdminFacet.setIsDynamicFeeEnable.selector;
+    selectors[6] = AdminFacet.setIsLeverageEnable.selector;
+    selectors[7] = AdminFacet.setIsSwapEnable.selector;
+    selectors[8] = AdminFacet.setLiquidationFeeUsd.selector;
+    selectors[9] = AdminFacet.setLiquidityCoolDownDuration.selector;
+    selectors[10] = AdminFacet.setMaxLeverage.selector;
+    selectors[11] = AdminFacet.setMinProfitDuration.selector;
+    selectors[12] = AdminFacet.setMintBurnFeeBps.selector;
+    selectors[13] = AdminFacet.setPositionFeeBps.selector;
+    selectors[14] = AdminFacet.setRouter.selector;
+    selectors[15] = AdminFacet.setSwapFeeBps.selector;
+    selectors[16] = AdminFacet.setTaxBps.selector;
+    selectors[17] = AdminFacet.setTokenConfigs.selector;
+    selectors[18] = AdminFacet.setTreasury.selector;
+    selectors[19] = AdminFacet.deleteTokenConfig.selector;
 
     DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
       address(adminFacet),
@@ -451,16 +529,8 @@ contract BaseTest is DSTest, CoreConstants {
 
   function deployPoolDiamond(
     PoolConfigConstructorParams memory poolConfigConstructorParams
-  )
-    internal
-    returns (
-      PoolOracle,
-      PoolConfig,
-      address
-    )
-  {
+  ) internal returns (PoolOracle, address) {
     PoolOracle poolOracle = deployPoolOracle(3);
-    PoolConfig poolConfig = deployPoolConfig(poolConfigConstructorParams);
     PLP plp = deployPLP();
 
     // Deploy DimondCutFacet
@@ -470,7 +540,6 @@ contract BaseTest is DSTest, CoreConstants {
     PoolDiamond poolDiamond = new PoolDiamond(
       address(diamondCutFacet),
       plp,
-      poolConfig,
       poolOracle
     );
 
@@ -486,8 +555,12 @@ contract BaseTest is DSTest, CoreConstants {
     deployAdminFacet(DiamondCutFacet(address(poolDiamond)));
 
     initializeDiamond(DiamondCutFacet(address(poolDiamond)));
+    initializePoolConfig(
+      DiamondCutFacet(address(poolDiamond)),
+      poolConfigConstructorParams
+    );
 
-    return (poolOracle, poolConfig, address(poolDiamond));
+    return (poolOracle, address(poolDiamond));
   }
 
   function initializeDiamond(DiamondCutFacet diamondCutFacet) internal {
@@ -499,6 +572,35 @@ contract BaseTest is DSTest, CoreConstants {
       facetCuts,
       address(diamondInitializer),
       abi.encodeWithSelector(bytes4(keccak256("initialize()")))
+    );
+  }
+
+  function initializePoolConfig(
+    DiamondCutFacet diamondCutFacet,
+    PoolConfigConstructorParams memory params
+  ) internal {
+    // Deploy PoolConfigInitializer
+    PoolConfigInitializer poolConfigInitializer = deployPoolConfigInitializer();
+    DiamondCutInterface.FacetCut[]
+      memory facetCuts = new DiamondCutInterface.FacetCut[](0);
+    diamondCutFacet.diamondCut(
+      facetCuts,
+      address(poolConfigInitializer),
+      abi.encodeWithSelector(
+        bytes4(
+          keccak256(
+            "initialize(address,uint64,uint64,uint64,uint64,uint64,uint64,uint256)"
+          )
+        ),
+        params.treasury,
+        params.fundingInterval,
+        params.mintBurnFeeBps,
+        params.taxBps,
+        params.stableFundingRateFactor,
+        params.fundingRateFactor,
+        params.liquidityCoolDownPeriod,
+        params.liquidationFeeUsd
+      )
     );
   }
 

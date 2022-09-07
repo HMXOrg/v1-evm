@@ -2,66 +2,113 @@
 pragma solidity 0.8.14;
 
 import { LibPoolV1 } from "../libraries/LibPoolV1.sol";
+import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
 import { LibDiamond } from "../libraries/LibDiamond.sol";
-import { PoolConfig } from "../../PoolConfig.sol";
+import { LinkedList } from "../../../libraries/LinkedList.sol";
 import { PoolOracle } from "../../PoolOracle.sol";
 
 import { AdminFacetInterface } from "../interfaces/AdminFacetInterface.sol";
 
 contract AdminFacet is AdminFacetInterface {
+  using LinkedList for LinkedList.List;
+
   error AdminFacet_AllowTokensLengthMismatch();
   error AdminFacet_AllowTokensMismatch();
+  error AdminFacet_BadNewFundingInterval();
+  error AdminFacet_BadNewFundingRateFactor();
+  error AdminFacet_BadNewLiquidationFeeUsd();
+  error AdminFacet_BadNewLiquidityCoolDownDuration();
+  error AdminFacet_BadNewMaxLeverage();
+  error AdminFacet_BadNewMintBurnFeeBps();
+  error AdminFacet_BadNewPositionFeeBps();
+  error AdminFacet_BadNewStableFundingRateFactor();
+  error AdminFacet_BadNewStableTaxBps();
+  error AdminFacet_BadNewStableSwapFeeBps();
+  error AdminFacet_BadNewSwapFeeBps();
+  error AdminFacet_BadNewTaxBps();
+  error AdminFacet_ConfigContainsNotAcceptToken();
   error AdminFacet_Forbidden();
   error AdminFacet_TokenDecimalsMismatch();
+  error AdminFacet_TokensConfigsLengthMisMatch();
   error AdminFacet_TokenWeightMismatch();
   error AdminFacet_TotalTokenWeightMismatch();
+
+  // ---------
+  // Constants
+  // ---------
+  uint256 internal constant MAX_COOLDOWN_DURATION = 48 hours;
+  uint256 internal constant MAX_FEE_BPS = 500;
+  uint256 internal constant MIN_FUNDING_INTERVAL = 1 hours;
+  // Max funding rate factor at 1% (10000 / 1000000 * 100 = 1%)
+  uint256 internal constant MAX_FUNDING_RATE_FACTOR = 10000;
+  uint256 internal constant MAX_LIQUIDATION_FEE_USD = 100 * 10**30;
+  uint256 internal constant MIN_LEVERAGE = 10000;
 
   address internal constant LINKEDLIST_START = address(1);
   address internal constant LINKEDLIST_END = address(1);
   address internal constant LINKEDLIST_EMPTY = address(0);
 
-  event SetPoolConfig(PoolConfig prevPoolConfig, PoolConfig newPoolConfig);
+  event DeleteTokenConfig(address token);
+  event SetAllowLiquidator(address liquidator, bool allow);
+  event SetIsAllowAllLiquidators(
+    bool prevIsAllowAllLiquidators,
+    bool isAllowAllLiquidators
+  );
+  event SetIsDynamicFeeEnable(
+    bool prevIsDynamicFeeEnable,
+    bool newIsDynamicFeeEnable
+  );
+  event SetIsLeverageEnable(
+    bool prevIsLeverageEnable,
+    bool newIsLeverageEnable
+  );
   event SetPoolOracle(PoolOracle prevPoolOracle, PoolOracle newPoolOracle);
+  event SetIsSwapEnable(bool prevIsSwapEnable, bool newIsSwapEnable);
+  event SetMaxLeverage(uint256 prevMaxLeverage, uint256 newMaxLeverage);
+  event SetMinProfitDuration(
+    uint64 prevMinProfitDuration,
+    uint64 newMinProfitDuration
+  );
+  event SetMintBurnFeeBps(uint256 prevFeeBps, uint256 newFeeBps);
+  event SetFundingRate(
+    uint64 prevFundingInterval,
+    uint64 newFundingInterval,
+    uint64 prevFundingRateFactor,
+    uint64 newFundingRateFactor,
+    uint64 prevStableFundingRateFactor,
+    uint64 newStableFundingRateFactor
+  );
+  event SetLiquidationFeeUsd(
+    uint256 prevLiquidationFeeUsd,
+    uint256 newLiquidationFeeUsd
+  );
+  event SetLiquidityCoolDownDuration(
+    uint256 prevCoolDownPeriod,
+    uint256 newCoolDownPeriod
+  );
+  event SetPositionFeeBps(
+    uint256 prevPositionFeeBps,
+    uint256 newPositionFeeBps
+  );
+  event SetRouter(address prevRouter, address newRouter);
+  event SetStableSwapFeeBps(
+    uint256 prevStableSwapFeeBps,
+    uint256 newStableSwapFeeBps
+  );
+  event SetStableTaxBps(uint256 prevStableTaxBps, uint256 newStableTaxBps);
+  event SetSwapFeeBps(uint256 prevSwapFeeBps, uint256 newSwapFeeBps);
+  event SetTaxBps(uint256 prevTaxBps, uint256 newTaxBps);
+  event SetTokenConfig(
+    address token,
+    LibPoolConfigV1.TokenConfig prevConfig,
+    LibPoolConfigV1.TokenConfig newConfig
+  );
+  event SetTreasury(address prevTreasury, address newTreasury);
   event WithdrawFeeReserve(address token, address to, uint256 amount);
 
   modifier onlyOwner() {
     LibDiamond.enforceIsContractOwner();
     _;
-  }
-
-  function setPoolConfig(PoolConfig newPoolConfig) external onlyOwner {
-    // Load diamond storage
-    LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
-      .poolV1DiamondStorage();
-
-    // Check if critical configuration is valid on a new pool config.
-    if (ds.config.totalTokenWeight() != newPoolConfig.totalTokenWeight())
-      revert AdminFacet_TotalTokenWeightMismatch();
-    if (
-      ds.config.getAllowTokensLength() != newPoolConfig.getAllowTokensLength()
-    ) revert AdminFacet_AllowTokensLengthMismatch();
-
-    address oldConfigToken = ds.config.getNextAllowTokenOf(LINKEDLIST_START);
-    address newConfigToken = ds.config.getNextAllowTokenOf(LINKEDLIST_START);
-
-    while (oldConfigToken != LINKEDLIST_END) {
-      if (oldConfigToken != newConfigToken)
-        revert AdminFacet_AllowTokensMismatch();
-      if (
-        ds.config.getTokenDecimalsOf(oldConfigToken) !=
-        newPoolConfig.getTokenDecimalsOf(oldConfigToken)
-      ) revert AdminFacet_TokenDecimalsMismatch();
-      if (
-        ds.config.getTokenWeightOf(oldConfigToken) !=
-        newPoolConfig.getTokenWeightOf(oldConfigToken)
-      ) revert AdminFacet_TokenWeightMismatch();
-
-      oldConfigToken = ds.config.getNextAllowTokenOf(oldConfigToken);
-      newConfigToken = newPoolConfig.getNextAllowTokenOf(newConfigToken);
-    }
-
-    emit SetPoolConfig(ds.config, newPoolConfig);
-    LibPoolV1.setPoolConfig(newPoolConfig);
   }
 
   function setPoolOracle(PoolOracle newPoolOracle) external onlyOwner {
@@ -76,6 +123,299 @@ contract AdminFacet is AdminFacetInterface {
     ds.oracle = newPoolOracle;
   }
 
+  function setAllowLiquidators(address[] calldata liquidators, bool allow)
+    external
+    onlyOwner
+  {
+    // Load PoolConfig Diamond storage
+    LibPoolConfigV1.PoolConfigV1DiamondStorage
+      storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
+
+    for (uint256 i = 0; i < liquidators.length; i++) {
+      poolConfigDs.allowLiquidators[liquidators[i]] = allow;
+      emit SetAllowLiquidator(liquidators[i], allow);
+    }
+  }
+
+  function setFundingRate(
+    uint64 newFundingInterval,
+    uint64 newFundingRateFactor,
+    uint64 newStableFundingRateFactor
+  ) external onlyOwner {
+    if (newFundingInterval < MIN_FUNDING_INTERVAL)
+      revert AdminFacet_BadNewFundingInterval();
+    if (newFundingRateFactor > MAX_FUNDING_RATE_FACTOR)
+      revert AdminFacet_BadNewFundingRateFactor();
+    if (newStableFundingRateFactor > MAX_FUNDING_RATE_FACTOR)
+      revert AdminFacet_BadNewStableFundingRateFactor();
+
+    // Load PoolConfig Diamond storage
+    LibPoolConfigV1.PoolConfigV1DiamondStorage
+      storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
+
+    emit SetFundingRate(
+      poolConfigDs.fundingInterval,
+      newFundingInterval,
+      poolConfigDs.fundingRateFactor,
+      newFundingRateFactor,
+      poolConfigDs.stableFundingRateFactor,
+      newStableFundingRateFactor
+    );
+    poolConfigDs.fundingInterval = newFundingInterval;
+    poolConfigDs.fundingRateFactor = newFundingRateFactor;
+    poolConfigDs.stableFundingRateFactor = newStableFundingRateFactor;
+  }
+
+  function setIsAllowAllLiquidators(bool _isAllowAllLiquidators)
+    external
+    onlyOwner
+  {
+    // Load PoolConfig Diamond storage
+    LibPoolConfigV1.PoolConfigV1DiamondStorage
+      storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
+
+    emit SetIsAllowAllLiquidators(
+      poolConfigDs.isAllowAllLiquidators,
+      _isAllowAllLiquidators
+    );
+    poolConfigDs.isAllowAllLiquidators = _isAllowAllLiquidators;
+  }
+
+  function setIsDynamicFeeEnable(bool newIsDynamicFeeEnable)
+    external
+    onlyOwner
+  {
+    // Load PoolConfig Diamond storage
+    LibPoolConfigV1.PoolConfigV1DiamondStorage
+      storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
+
+    emit SetIsDynamicFeeEnable(
+      poolConfigDs.isDynamicFeeEnable,
+      newIsDynamicFeeEnable
+    );
+    poolConfigDs.isDynamicFeeEnable = newIsDynamicFeeEnable;
+  }
+
+  function setIsLeverageEnable(bool newIsLeverageEnable) external onlyOwner {
+    // Load PoolConfig Diamond storage
+    LibPoolConfigV1.PoolConfigV1DiamondStorage
+      storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
+
+    emit SetIsLeverageEnable(
+      poolConfigDs.isLeverageEnable,
+      newIsLeverageEnable
+    );
+    poolConfigDs.isLeverageEnable = newIsLeverageEnable;
+  }
+
+  function setIsSwapEnable(bool newIsSwapEnable) external onlyOwner {
+    // Load PoolConfig Diamond storage
+    LibPoolConfigV1.PoolConfigV1DiamondStorage
+      storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
+
+    emit SetIsSwapEnable(poolConfigDs.isSwapEnable, newIsSwapEnable);
+    poolConfigDs.isSwapEnable = newIsSwapEnable;
+  }
+
+  function setLiquidationFeeUsd(uint256 newLiquidationFeeUsd)
+    external
+    onlyOwner
+  {
+    if (newLiquidationFeeUsd > MAX_LIQUIDATION_FEE_USD)
+      revert AdminFacet_BadNewLiquidationFeeUsd();
+
+    // Load PoolConfig Diamond storage
+    LibPoolConfigV1.PoolConfigV1DiamondStorage
+      storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
+
+    emit SetLiquidationFeeUsd(
+      poolConfigDs.liquidationFeeUsd,
+      newLiquidationFeeUsd
+    );
+    poolConfigDs.liquidationFeeUsd = newLiquidationFeeUsd;
+  }
+
+  function setLiquidityCoolDownDuration(uint64 newLiquidityCoolDownPeriod)
+    external
+    onlyOwner
+  {
+    if (newLiquidityCoolDownPeriod > MAX_COOLDOWN_DURATION)
+      revert AdminFacet_BadNewLiquidityCoolDownDuration();
+
+    // Load PoolConfig Diamond storage
+    LibPoolConfigV1.PoolConfigV1DiamondStorage
+      storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
+
+    emit SetLiquidityCoolDownDuration(
+      poolConfigDs.liquidityCoolDownDuration,
+      newLiquidityCoolDownPeriod
+    );
+    poolConfigDs.liquidityCoolDownDuration = newLiquidityCoolDownPeriod;
+  }
+
+  function setMaxLeverage(uint64 newMaxLeverage) external onlyOwner {
+    if (newMaxLeverage <= MIN_LEVERAGE) revert AdminFacet_BadNewMaxLeverage();
+
+    // Load PoolConfig Diamond storage
+    LibPoolConfigV1.PoolConfigV1DiamondStorage
+      storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
+
+    emit SetMaxLeverage(poolConfigDs.maxLeverage, newMaxLeverage);
+    poolConfigDs.maxLeverage = newMaxLeverage;
+  }
+
+  function setMinProfitDuration(uint64 newMinProfitDuration)
+    external
+    onlyOwner
+  {
+    // Load PoolConfig Diamond storage
+    LibPoolConfigV1.PoolConfigV1DiamondStorage
+      storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
+
+    emit SetMinProfitDuration(
+      poolConfigDs.minProfitDuration,
+      newMinProfitDuration
+    );
+    poolConfigDs.minProfitDuration = newMinProfitDuration;
+  }
+
+  function setMintBurnFeeBps(uint64 newMintBurnFeeBps) external onlyOwner {
+    if (newMintBurnFeeBps > MAX_FEE_BPS)
+      revert AdminFacet_BadNewMintBurnFeeBps();
+
+    // Load PoolConfig Diamond storage
+    LibPoolConfigV1.PoolConfigV1DiamondStorage
+      storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
+
+    emit SetMintBurnFeeBps(poolConfigDs.mintBurnFeeBps, newMintBurnFeeBps);
+    poolConfigDs.mintBurnFeeBps = newMintBurnFeeBps;
+  }
+
+  function setPositionFeeBps(uint64 newPositionFeeBps) external onlyOwner {
+    if (newPositionFeeBps > MAX_FEE_BPS)
+      revert AdminFacet_BadNewPositionFeeBps();
+
+    // Load PoolConfig Diamond storage
+    LibPoolConfigV1.PoolConfigV1DiamondStorage
+      storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
+
+    emit SetPositionFeeBps(poolConfigDs.positionFeeBps, newPositionFeeBps);
+    poolConfigDs.positionFeeBps = newPositionFeeBps;
+  }
+
+  function setRouter(address newRouter) external onlyOwner {
+    // Load PoolConfig Diamond storage
+    LibPoolConfigV1.PoolConfigV1DiamondStorage
+      storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
+
+    emit SetRouter(poolConfigDs.router, newRouter);
+    poolConfigDs.router = newRouter;
+  }
+
+  function setSwapFeeBps(uint64 newSwapFeeBps, uint64 newStableSwapFeeBps)
+    external
+    onlyOwner
+  {
+    if (newSwapFeeBps > MAX_FEE_BPS) revert AdminFacet_BadNewSwapFeeBps();
+    if (newStableSwapFeeBps > MAX_FEE_BPS)
+      revert AdminFacet_BadNewStableSwapFeeBps();
+
+    // Load PoolConfig Diamond storage
+    LibPoolConfigV1.PoolConfigV1DiamondStorage
+      storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
+
+    emit SetSwapFeeBps(poolConfigDs.swapFeeBps, newSwapFeeBps);
+    emit SetStableSwapFeeBps(
+      poolConfigDs.stableSwapFeeBps,
+      newStableSwapFeeBps
+    );
+
+    poolConfigDs.swapFeeBps = newSwapFeeBps;
+    poolConfigDs.stableSwapFeeBps = newStableSwapFeeBps;
+  }
+
+  function setTaxBps(uint64 newTaxBps, uint64 newStableTaxBps)
+    external
+    onlyOwner
+  {
+    if (newTaxBps > MAX_FEE_BPS) revert AdminFacet_BadNewTaxBps();
+    if (newStableTaxBps > MAX_FEE_BPS) revert AdminFacet_BadNewStableTaxBps();
+
+    // Load PoolConfig Diamond storage
+    LibPoolConfigV1.PoolConfigV1DiamondStorage
+      storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
+
+    emit SetTaxBps(poolConfigDs.taxBps, newTaxBps);
+    emit SetStableTaxBps(poolConfigDs.stableTaxBps, newStableTaxBps);
+
+    poolConfigDs.taxBps = newTaxBps;
+    poolConfigDs.stableTaxBps = newStableTaxBps;
+  }
+
+  function setTokenConfigs(
+    address[] calldata tokens,
+    LibPoolConfigV1.TokenConfig[] calldata configs
+  ) external onlyOwner {
+    if (tokens.length != configs.length)
+      revert AdminFacet_TokensConfigsLengthMisMatch();
+
+    // Load PoolConfig Diamond storage
+    LibPoolConfigV1.PoolConfigV1DiamondStorage
+      storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
+
+    for (uint256 i = 0; i < tokens.length; ) {
+      // Enforce that accept must be true
+      if (!configs[i].accept) revert AdminFacet_ConfigContainsNotAcceptToken();
+
+      // If tokenMetas.accept previously false, then it is a new token to be added.
+      if (!poolConfigDs.tokenMetas[tokens[i]].accept)
+        poolConfigDs.allowTokens.add(tokens[i]);
+
+      emit SetTokenConfig(
+        tokens[i],
+        poolConfigDs.tokenMetas[tokens[i]],
+        configs[i]
+      );
+
+      poolConfigDs.totalTokenWeight =
+        (poolConfigDs.totalTokenWeight -
+          poolConfigDs.tokenMetas[tokens[i]].weight) +
+        configs[i].weight;
+      poolConfigDs.tokenMetas[tokens[i]] = configs[i];
+
+      unchecked {
+        ++i;
+      }
+    }
+  }
+
+  function setTreasury(address newTreasury) external onlyOwner {
+    // Load PoolConfig Diamond storage
+    LibPoolConfigV1.PoolConfigV1DiamondStorage
+      storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
+
+    emit SetTreasury(poolConfigDs.treasury, newTreasury);
+    poolConfigDs.treasury = newTreasury;
+  }
+
+  function deleteTokenConfig(address token) external onlyOwner {
+    // Load PoolConfig Diamond storage
+    LibPoolConfigV1.PoolConfigV1DiamondStorage
+      storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
+
+    // Update totalTokenWeight
+    poolConfigDs.totalTokenWeight -= poolConfigDs.tokenMetas[token].weight;
+
+    // Delete configs from storage
+    poolConfigDs.allowTokens.remove(
+      token,
+      poolConfigDs.allowTokens.getPreviousOf(token)
+    );
+    delete poolConfigDs.tokenMetas[token];
+
+    emit DeleteTokenConfig(token);
+  }
+
   function withdrawFeeReserve(
     address token,
     address to,
@@ -85,7 +425,7 @@ contract AdminFacet is AdminFacetInterface {
     LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
       .poolV1DiamondStorage();
 
-    if (msg.sender != ds.config.treasury()) revert AdminFacet_Forbidden();
+    if (msg.sender != LibPoolConfigV1.treasury()) revert AdminFacet_Forbidden();
 
     ds.feeReserveOf[token] -= amount;
     LibPoolV1.pushTokens(token, to, amount);

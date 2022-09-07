@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.14;
 
-import { PoolDiamond_BaseTest, PoolConfig, Pool, console, GetterFacetInterface, LiquidityFacetInterface } from "./PoolDiamond_BaseTest.t.sol";
+import { PoolDiamond_BaseTest, LibPoolConfigV1, PoolConfig, Pool, console, GetterFacetInterface, LiquidityFacetInterface } from "./PoolDiamond_BaseTest.t.sol";
 
 contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
   function setUp() public override {
     super.setUp();
 
     (
-      address[] memory tokens,
-      PoolConfig.TokenConfig[] memory tokenConfigs
-    ) = buildDefaultSetTokenConfigInput();
+      address[] memory tokens2,
+      LibPoolConfigV1.TokenConfig[] memory tokenConfigs2
+    ) = buildDefaultSetTokenConfigInput2();
 
-    poolConfig.setTokenConfigs(tokens, tokenConfigs);
+    poolAdminFacet.setTokenConfigs(tokens2, tokenConfigs2);
 
     // Feed prices
     daiPriceFeed.setLatestAnswer(1 * 10**8);
@@ -159,7 +159,7 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
 
   function testCorrectness_WhenDynamicFeeOn() external {
     // Enable dynamic fee
-    poolConfig.setIsDynamicFeeEnable(true);
+    poolAdminFacet.setIsDynamicFeeEnable(true);
 
     // Mint 100 DAI to Alice
     dai.mint(ALICE, 100 ether);

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.14;
 
-import { PoolConfig } from "../../PoolConfig.sol";
 import { PoolOracle } from "../../PoolOracle.sol";
 import { MintableTokenInterface } from "../../../interfaces/MintableTokenInterface.sol";
 
@@ -13,13 +12,18 @@ interface GetterFacetInterface {
     view
     returns (bool);
 
-  function config() external view returns (PoolConfig);
-
   function discountedAum() external view returns (uint256);
 
   function feeReserveOf(address token) external view returns (uint256);
 
   function guaranteedUsdOf(address token) external view returns (uint256);
+
+  function isAllowAllLiquidators() external view returns (bool);
+
+  function isAllowedLiquidators(address liquidator)
+    external
+    view
+    returns (bool);
 
   function lastAddLiquidityAtOf(address user) external view returns (uint256);
 

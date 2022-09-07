@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.14;
 
-import { BaseTest, console, stdError, PoolConfig, PoolMath, PoolOracle, Pool, PoolRouter, OwnershipFacetInterface, GetterFacetInterface, LiquidityFacetInterface, PerpTradeFacetInterface, AdminFacetInterface } from "../../base/BaseTest.sol";
+import { BaseTest, console, stdError, PoolConfig, LibPoolConfigV1, PoolOracle, Pool, PoolRouter, OwnershipFacetInterface, GetterFacetInterface, LiquidityFacetInterface, PerpTradeFacetInterface, AdminFacetInterface } from "../../base/BaseTest.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 abstract contract PoolDiamond_BaseTest is BaseTest {
-  PoolConfig internal poolConfig;
   PoolOracle internal poolOracle;
   address internal poolDiamond;
   PoolRouter internal poolRouter;
@@ -28,7 +27,7 @@ abstract contract PoolDiamond_BaseTest is BaseTest {
         liquidationFeeUsd: 5 * 10**30
       });
 
-    (poolOracle, poolConfig, poolDiamond) = deployPoolDiamond(poolConfigParams);
+    (poolOracle, poolDiamond) = deployPoolDiamond(poolConfigParams);
 
     (
       address[] memory tokens,
@@ -42,7 +41,7 @@ abstract contract PoolDiamond_BaseTest is BaseTest {
     poolPerpTradeFacet = PerpTradeFacetInterface(poolDiamond);
 
     poolRouter = deployPoolRouter(address(matic));
-    poolConfig.setRouter(address(poolRouter));
+    poolAdminFacet.setRouter(address(poolRouter));
   }
 
   function checkPoolBalanceWithState(address token, uint256 offset) internal {

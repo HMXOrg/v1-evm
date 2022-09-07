@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.14;
 
-import { PoolDiamond_BaseTest, console, Pool, PoolConfig, LiquidityFacetInterface, GetterFacetInterface, PerpTradeFacetInterface } from "./PoolDiamond_BaseTest.t.sol";
+import { PoolDiamond_BaseTest, console, Pool, LibPoolConfigV1, LiquidityFacetInterface, GetterFacetInterface, PerpTradeFacetInterface } from "./PoolDiamond_BaseTest.t.sol";
 
 contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
   function setUp() public override {
     super.setUp();
 
     (
-      address[] memory tokens,
-      PoolConfig.TokenConfig[] memory tokenConfigs
-    ) = buildDefaultSetTokenConfigInput();
+      address[] memory tokens2,
+      LibPoolConfigV1.TokenConfig[] memory tokenConfigs2
+    ) = buildDefaultSetTokenConfigInput2();
 
-    poolConfig.setTokenConfigs(tokens, tokenConfigs);
+    poolAdminFacet.setTokenConfigs(tokens2, tokenConfigs2);
   }
 
   function testCorrectness_FundingRate() external {
