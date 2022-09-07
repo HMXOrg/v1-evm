@@ -421,7 +421,7 @@ contract PoolMath is Constants {
       pool,
       token,
       pool.guaranteedUsdOf(token),
-      MinMax.MAX
+      true
     );
     return collateral + pool.liquidityOf(token) - pool.reservedOf(token);
   }
@@ -436,7 +436,7 @@ contract PoolMath is Constants {
         pool,
         token,
         getRedemptionCollateral(pool, token),
-        MinMax.MIN
+        false
       );
   }
 
@@ -568,23 +568,23 @@ contract PoolMath is Constants {
     Pool pool,
     address token,
     uint256 amountUsd,
-    MinMax minOrMax
+    bool isUseMaxPrice
   ) internal view returns (uint256) {
     if (amountUsd == 0) return 0;
     return
       (amountUsd * (10**pool.config().getTokenDecimalsOf(token))) /
-      pool.oracle().getPrice(token, minOrMax);
+      pool.oracle().getPrice(token, isUseMaxPrice);
   }
 
   function _convertTokensToUsde30(
     Pool pool,
     address token,
     uint256 amountTokens,
-    MinMax minOrMax
+    bool isUseMaxPrice
   ) internal view returns (uint256) {
     if (amountTokens == 0) return 0;
     return
-      (amountTokens * pool.oracle().getPrice(token, minOrMax)) /
+      (amountTokens * pool.oracle().getPrice(token, isUseMaxPrice)) /
       (10**pool.config().getTokenDecimalsOf(token));
   }
 }

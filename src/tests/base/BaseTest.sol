@@ -22,6 +22,20 @@ import { P88 } from "../../tokens/P88.sol";
 import { EsP88 } from "../../tokens/EsP88.sol";
 import { DragonPoint } from "../../tokens/DragonPoint.sol";
 import { Pool } from "../../core/Pool.sol";
+import { PoolRouter } from "src/core/pool-diamond/PoolRouter.sol";
+
+// Diamond things
+// Facets
+import { DiamondCutFacet, DiamondCutInterface } from "../../core/pool-diamond/facets/DiamondCutFacet.sol";
+import { DiamondLoupeFacet } from "../../core/pool-diamond/facets/DiamondLoupeFacet.sol";
+import { OwnershipFacet, OwnershipFacetInterface } from "../../core/pool-diamond/facets/OwnershipFacet.sol";
+import { GetterFacet, GetterFacetInterface } from "../../core/pool-diamond/facets/GetterFacet.sol";
+import { FundingRateFacet, FundingRateFacetInterface } from "../../core/pool-diamond/facets/FundingRateFacet.sol";
+import { LiquidityFacet, LiquidityFacetInterface } from "../../core/pool-diamond/facets/LiquidityFacet.sol";
+import { PerpTradeFacet, PerpTradeFacetInterface } from "../../core/pool-diamond/facets/PerpTradeFacet.sol";
+import { AdminFacet, AdminFacetInterface } from "../../core/pool-diamond/facets/AdminFacet.sol";
+import { DiamondInitializer } from "../../core/pool-diamond/initializers/DiamondInitializer.sol";
+import { PoolDiamond } from "../../core/pool-diamond/PoolDiamond.sol";
 import { PLPStaking } from "../../staking/PLPStaking.sol";
 import { DragonStaking } from "../../staking/DragonStaking.sol";
 import { FeedableRewarder } from "../../staking/FeedableRewarder.sol";
@@ -207,6 +221,204 @@ contract BaseTest is DSTest, CoreConstants {
     });
 
     return (tokens, tokenConfigs);
+  }
+
+  function buildFacetCut(
+    address facet,
+    DiamondCutInterface.FacetCutAction cutAction,
+    bytes4[] memory selectors
+  ) internal pure returns (DiamondCutInterface.FacetCut[] memory) {
+    DiamondCutInterface.FacetCut[]
+      memory facetCuts = new DiamondCutInterface.FacetCut[](1);
+    facetCuts[0] = DiamondCutInterface.FacetCut({
+      action: cutAction,
+      facetAddress: facet,
+      functionSelectors: selectors
+    });
+
+    return facetCuts;
+  }
+
+  function deployDiamondCutFacet() internal returns (DiamondCutFacet) {
+    return new DiamondCutFacet();
+  }
+
+  function deployDiamondInitializer() internal returns (DiamondInitializer) {
+    return new DiamondInitializer();
+  }
+
+  function deployDiamondLoupeFacet(DiamondCutFacet diamondCutFacet)
+    internal
+    returns (DiamondLoupeFacet, bytes4[] memory)
+  {
+    DiamondLoupeFacet diamondLoupeFacet = new DiamondLoupeFacet();
+
+    bytes4[] memory selectors = new bytes4[](4);
+    selectors[0] = DiamondLoupeFacet.facets.selector;
+    selectors[1] = DiamondLoupeFacet.facetFunctionSelectors.selector;
+    selectors[2] = DiamondLoupeFacet.facetAddresses.selector;
+    selectors[3] = DiamondLoupeFacet.facetAddress.selector;
+
+    DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
+      address(diamondLoupeFacet),
+      DiamondCutInterface.FacetCutAction.Add,
+      selectors
+    );
+
+    diamondCutFacet.diamondCut(facetCuts, address(0), "");
+    return (diamondLoupeFacet, selectors);
+  }
+
+  function deployOwnershipFacet(DiamondCutFacet diamondCutFacet)
+    internal
+    returns (OwnershipFacet, bytes4[] memory)
+  {
+    OwnershipFacet ownershipFacet = new OwnershipFacet();
+
+    bytes4[] memory selectors = new bytes4[](2);
+    selectors[0] = OwnershipFacet.transferOwnership.selector;
+    selectors[1] = OwnershipFacet.owner.selector;
+
+    DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
+      address(ownershipFacet),
+      DiamondCutInterface.FacetCutAction.Add,
+      selectors
+    );
+
+    diamondCutFacet.diamondCut(facetCuts, address(0), "");
+    return (ownershipFacet, selectors);
+  }
+
+  function deployGetterFacet(DiamondCutFacet diamondCutFacet)
+    internal
+    returns (GetterFacet, bytes4[] memory)
+  {
+    GetterFacet getterFacet = new GetterFacet();
+
+    bytes4[] memory selectors = new bytes4[](31);
+    selectors[0] = GetterFacet.getAddLiquidityFeeBps.selector;
+    selectors[1] = GetterFacet.getRemoveLiquidityFeeBps.selector;
+    selectors[2] = GetterFacet.getSwapFeeBps.selector;
+    selectors[3] = GetterFacet.getAum.selector;
+    selectors[4] = GetterFacet.getAumE18.selector;
+    selectors[5] = GetterFacet.getNextFundingRate.selector;
+    selectors[6] = GetterFacet.plp.selector;
+    selectors[7] = GetterFacet.lastAddLiquidityAtOf.selector;
+    selectors[8] = GetterFacet.totalUsdDebt.selector;
+    selectors[9] = GetterFacet.liquidityOf.selector;
+    selectors[10] = GetterFacet.feeReserveOf.selector;
+    selectors[11] = GetterFacet.usdDebtOf.selector;
+    selectors[12] = GetterFacet.getDelta.selector;
+    selectors[13] = GetterFacet.getEntryFundingRate.selector;
+    selectors[14] = GetterFacet.getFundingFee.selector;
+    selectors[15] = GetterFacet.getNextShortAveragePrice.selector;
+    selectors[16] = GetterFacet.getPositionFee.selector;
+    selectors[17] = GetterFacet.getPositionNextAveragePrice.selector;
+    selectors[18] = GetterFacet.getSubAccount.selector;
+    selectors[19] = GetterFacet.guaranteedUsdOf.selector;
+    selectors[20] = GetterFacet.reservedOf.selector;
+    selectors[21] = GetterFacet.getPosition.selector;
+    selectors[22] = GetterFacet.getPositionWithSubAccountId.selector;
+    selectors[23] = GetterFacet.getPositionDelta.selector;
+    selectors[24] = GetterFacet.getPositionLeverage.selector;
+    selectors[25] = GetterFacet.getRedemptionCollateral.selector;
+    selectors[26] = GetterFacet.getRedemptionCollateralUsd.selector;
+    selectors[27] = GetterFacet.shortSizeOf.selector;
+    selectors[28] = GetterFacet.getPoolShortDelta.selector;
+    selectors[29] = GetterFacet.shortAveragePriceOf.selector;
+    selectors[30] = GetterFacet.getTargetValue.selector;
+
+    DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
+      address(getterFacet),
+      DiamondCutInterface.FacetCutAction.Add,
+      selectors
+    );
+
+    diamondCutFacet.diamondCut(facetCuts, address(0), "");
+    return (getterFacet, selectors);
+  }
+
+  function deployFundingRateFacet(DiamondCutFacet diamondCutFacet)
+    internal
+    returns (FundingRateFacet, bytes4[] memory)
+  {
+    FundingRateFacet fundingRateFacet = new FundingRateFacet();
+
+    bytes4[] memory selectors = new bytes4[](1);
+    selectors[0] = FundingRateFacet.updateFundingRate.selector;
+
+    DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
+      address(fundingRateFacet),
+      DiamondCutInterface.FacetCutAction.Add,
+      selectors
+    );
+
+    diamondCutFacet.diamondCut(facetCuts, address(0), "");
+    return (fundingRateFacet, selectors);
+  }
+
+  function deployLiquidityFacet(DiamondCutFacet diamondCutFacet)
+    internal
+    returns (LiquidityFacet, bytes4[] memory)
+  {
+    LiquidityFacet liquidityFacet = new LiquidityFacet();
+
+    bytes4[] memory selectors = new bytes4[](3);
+    selectors[0] = LiquidityFacet.addLiquidity.selector;
+    selectors[1] = LiquidityFacet.removeLiquidity.selector;
+    selectors[2] = LiquidityFacet.swap.selector;
+
+    DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
+      address(liquidityFacet),
+      DiamondCutInterface.FacetCutAction.Add,
+      selectors
+    );
+
+    diamondCutFacet.diamondCut(facetCuts, address(0), "");
+    return (liquidityFacet, selectors);
+  }
+
+  function deployPerpTradeFacet(DiamondCutFacet diamondCutFacet)
+    internal
+    returns (PerpTradeFacet, bytes4[] memory functionSelectors)
+  {
+    PerpTradeFacet perpTradeFacet = new PerpTradeFacet();
+
+    bytes4[] memory selectors = new bytes4[](4);
+    selectors[0] = PerpTradeFacet.checkLiquidation.selector;
+    selectors[1] = PerpTradeFacet.increasePosition.selector;
+    selectors[2] = PerpTradeFacet.decreasePosition.selector;
+    selectors[3] = PerpTradeFacet.liquidate.selector;
+
+    DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
+      address(perpTradeFacet),
+      DiamondCutInterface.FacetCutAction.Add,
+      selectors
+    );
+
+    diamondCutFacet.diamondCut(facetCuts, address(0), "");
+    return (perpTradeFacet, selectors);
+  }
+
+  function deployAdminFacet(DiamondCutFacet diamondCutFacet)
+    internal
+    returns (AdminFacet, bytes4[] memory)
+  {
+    AdminFacet adminFacet = new AdminFacet();
+
+    bytes4[] memory selectors = new bytes4[](3);
+    selectors[0] = AdminFacet.setPoolConfig.selector;
+    selectors[1] = AdminFacet.setPoolOracle.selector;
+    selectors[2] = AdminFacet.withdrawFeeReserve.selector;
+
+    DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
+      address(adminFacet),
+      DiamondCutInterface.FacetCutAction.Add,
+      selectors
+    );
+
+    diamondCutFacet.diamondCut(facetCuts, address(0), "");
+    return (adminFacet, selectors);
   }
 
   function _setupUpgradeable(

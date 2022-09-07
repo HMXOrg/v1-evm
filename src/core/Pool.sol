@@ -589,7 +589,7 @@ contract Pool is Ownable, Constants, ReentrancyGuard {
     vars.collateralDeltaUsd = _convertTokensToUsde30(
       collateralToken,
       vars.collateralDelta,
-      MinMax.MIN
+      false
     );
 
     position.collateral += vars.collateralDeltaUsd;
@@ -620,7 +620,7 @@ contract Pool is Ownable, Constants, ReentrancyGuard {
     uint256 reserveDelta = _convertUsde30ToTokens(
       collateralToken,
       sizeDelta,
-      MinMax.MIN
+      false
     );
     position.reserveAmount += reserveDelta;
     _increaseReserved(collateralToken, reserveDelta);
@@ -639,7 +639,7 @@ contract Pool is Ownable, Constants, ReentrancyGuard {
       // and collateral is treated as part of the pool
       _decreasePoolLiquidity(
         collateralToken,
-        _convertUsde30ToTokens(collateralToken, vars.feeUsd, MinMax.MAX)
+        _convertUsde30ToTokens(collateralToken, vars.feeUsd, true)
       );
     } else {
       if (shortSizeOf[indexToken] == 0)
@@ -857,12 +857,12 @@ contract Pool is Ownable, Constants, ReentrancyGuard {
       if (Exposure.LONG == exposure)
         _decreasePoolLiquidity(
           collateralToken,
-          _convertUsde30ToTokens(collateralToken, vars.usdOut, MinMax.MAX)
+          _convertUsde30ToTokens(collateralToken, vars.usdOut, true)
         );
       uint256 amountOutAfterFee = _convertUsde30ToTokens(
         collateralToken,
         vars.usdOutAfterFee,
-        MinMax.MAX
+        true
       );
       _pushTokens(collateralToken, receiver, amountOutAfterFee);
 
@@ -923,7 +923,7 @@ contract Pool is Ownable, Constants, ReentrancyGuard {
     uint256 feeTokens = _convertUsde30ToTokens(
       collateralToken,
       marginFee,
-      MinMax.MAX
+      true
     );
     feeReserveOf[collateralToken] += feeTokens;
     emit CollectMarginFee(collateralToken, marginFee, feeTokens);
@@ -939,7 +939,7 @@ contract Pool is Ownable, Constants, ReentrancyGuard {
       );
       _decreasePoolLiquidity(
         collateralToken,
-        _convertUsde30ToTokens(collateralToken, marginFee, MinMax.MAX)
+        _convertUsde30ToTokens(collateralToken, marginFee, true)
       );
     }
 
@@ -964,7 +964,7 @@ contract Pool is Ownable, Constants, ReentrancyGuard {
       uint256 remainingCollateral = position.collateral - marginFee;
       _increasePoolLiquidity(
         collateralToken,
-        _convertUsde30ToTokens(collateralToken, remainingCollateral, MinMax.MAX)
+        _convertUsde30ToTokens(collateralToken, remainingCollateral, true)
       );
     }
 
@@ -976,20 +976,12 @@ contract Pool is Ownable, Constants, ReentrancyGuard {
     // Pay liquidation bounty with the pool's liquidity
     _decreasePoolLiquidity(
       collateralToken,
-      _convertUsde30ToTokens(
-        collateralToken,
-        config.liquidationFeeUsd(),
-        MinMax.MAX
-      )
+      _convertUsde30ToTokens(collateralToken, config.liquidationFeeUsd(), true)
     );
     _pushTokens(
       collateralToken,
       to,
-      _convertUsde30ToTokens(
-        collateralToken,
-        config.liquidationFeeUsd(),
-        MinMax.MAX
-      )
+      _convertUsde30ToTokens(collateralToken, config.liquidationFeeUsd(), true)
     );
   }
 
@@ -1132,11 +1124,7 @@ contract Pool is Ownable, Constants, ReentrancyGuard {
 
     feeUsd += fundingFeeUsd;
 
-    uint256 feeTokens = _convertUsde30ToTokens(
-      collateralToken,
-      feeUsd,
-      MinMax.MAX
-    );
+    uint256 feeTokens = _convertUsde30ToTokens(collateralToken, feeUsd, true);
     feeReserveOf[collateralToken] += feeTokens;
 
     emit CollectMarginFee(collateralToken, feeUsd, feeTokens);
@@ -1311,7 +1299,7 @@ contract Pool is Ownable, Constants, ReentrancyGuard {
         // If it is a short position, payout profits from the liquidity.
         _decreasePoolLiquidity(
           collateralToken,
-          _convertUsde30ToTokens(collateralToken, vars.delta, MinMax.MAX)
+          _convertUsde30ToTokens(collateralToken, vars.delta, true)
         );
     }
 
@@ -1325,7 +1313,7 @@ contract Pool is Ownable, Constants, ReentrancyGuard {
         // If it is a short position, add short losses to pool liquidity.
         _increasePoolLiquidity(
           collateralToken,
-          _convertUsde30ToTokens(collateralToken, vars.delta, MinMax.MAX)
+          _convertUsde30ToTokens(collateralToken, vars.delta, true)
         );
 
       // realized PnL
@@ -1354,7 +1342,7 @@ contract Pool is Ownable, Constants, ReentrancyGuard {
       if (Exposure.LONG == exposure) {
         _decreasePoolLiquidity(
           collateralToken,
-          _convertUsde30ToTokens(collateralToken, vars.feeUsd, MinMax.MAX)
+          _convertUsde30ToTokens(collateralToken, vars.feeUsd, true)
         );
       }
     }
@@ -1392,22 +1380,22 @@ contract Pool is Ownable, Constants, ReentrancyGuard {
   function _convertUsde30ToTokens(
     address token,
     uint256 amountUsd,
-    MinMax minOrMax
+    bool isUseMaxPrice
   ) internal view returns (uint256) {
     if (amountUsd == 0) return 0;
     return
       (amountUsd * (10**config.getTokenDecimalsOf(token))) /
-      oracle.getPrice(token, minOrMax);
+      oracle.getPrice(token, isUseMaxPrice);
   }
 
   function _convertTokensToUsde30(
     address token,
     uint256 amountTokens,
-    MinMax minOrMax
+    bool isUseMaxPrice
   ) internal view returns (uint256) {
     if (amountTokens == 0) return 0;
     return
-      (amountTokens * oracle.getPrice(token, minOrMax)) /
+      (amountTokens * oracle.getPrice(token, isUseMaxPrice)) /
       (10**config.getTokenDecimalsOf(token));
   }
 
