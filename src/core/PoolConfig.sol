@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { LinkedList } from "../libraries/LinkedList.sol";
 
-contract PoolConfig is Ownable {
+contract PoolConfig is OwnableUpgradeable {
   using LinkedList for LinkedList.List;
 
   error PoolConfig_BadNewFundingInterval();
@@ -153,7 +153,7 @@ contract PoolConfig is Ownable {
   );
   event SetTreasury(address prevTreasury, address newTreasury);
 
-  constructor(
+  function initialize(
     address _treasury,
     uint64 _fundingInterval,
     uint64 _mintBurnFeeBps,
@@ -162,7 +162,9 @@ contract PoolConfig is Ownable {
     uint64 _fundingRateFactor,
     uint64 _liquidityCoolDownDuration,
     uint256 _liquidationFeeUsd
-  ) {
+  ) external initializer {
+    OwnableUpgradeable.__Ownable_init();
+
     allowTokens.init();
 
     treasury = _treasury;
@@ -468,5 +470,10 @@ contract PoolConfig is Ownable {
     address /* indexToken */
   ) external pure returns (bool) {
     return true;
+  }
+
+  /// @custom:oz-upgrades-unsafe-allow constructor
+  constructor() {
+    _disableInitializers();
   }
 }
