@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
 import { Pool_BaseTest, console, Pool, PoolConfig } from "./Pool_BaseTest.t.sol";
 
@@ -274,12 +274,11 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     );
 
     // Alice increase long position with sub account id = 0
-    wbtc.approve(address(poolRouter), 22500);
-    poolRouter.increasePosition(
-      pool,
+    wbtc.transfer(address(pool), 22500);
+    pool.increasePosition(
+      ALICE,
       0,
       address(wbtc),
-      22500,
       address(wbtc),
       47 * 10**30,
       Exposure.LONG

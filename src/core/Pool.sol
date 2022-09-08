@@ -9,9 +9,9 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import { Constants } from "./Constants.sol";
-import { IPool } from "../interfaces/IPool.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract Pool is IPool, Constants, ReentrancyGuardUpgradeable {
+contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
   using SafeERC20 for IERC20;
 
   error Pool_AllowTokensLengthMismatch();
@@ -214,6 +214,7 @@ contract Pool is IPool, Constants, ReentrancyGuardUpgradeable {
     PoolMath _poolMath,
     PoolOracle _oracle
   ) external initializer {
+    OwnableUpgradeable.__Ownable_init();
     ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
 
     config = _config;

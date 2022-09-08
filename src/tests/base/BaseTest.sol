@@ -55,7 +55,7 @@ import { DiamondInitializer } from "../../core/pool-diamond/initializers/Diamond
 import { PoolConfigInitializer } from "../../core/pool-diamond/initializers/PoolConfigInitializer.sol";
 import { PoolDiamond } from "../../core/pool-diamond/PoolDiamond.sol";
 
-import { PoolRouter } from "../../core/PoolRouter.sol";
+import { PoolRouter } from "../../core/pool-diamond/PoolRouter.sol";
 import { MockWNative } from "src/tests/mocks/MockWNative.sol";
 
 // solhint-disable const-name-snakecase
@@ -605,14 +605,18 @@ contract BaseTest is DSTest, CoreConstants {
     );
     bytes memory _initializer = abi.encodeWithSelector(
       bytes4(
-        keccak256("initialize(uint64,uint64,uint64,uint64,uint64,uint64)")
+        keccak256(
+          "initialize(address,uint64,uint64,uint64,uint64,uint64,uint64,uint256)"
+        )
       ),
+      params.treasury,
       params.fundingInterval,
       params.mintBurnFeeBps,
       params.taxBps,
       params.stableFundingRateFactor,
       params.fundingRateFactor,
-      params.liquidityCoolDownPeriod
+      params.liquidityCoolDownPeriod,
+      params.liquidationFeeUsd
     );
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
     return PoolConfig(payable(_proxy));
