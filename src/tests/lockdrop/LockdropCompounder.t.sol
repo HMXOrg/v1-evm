@@ -10,6 +10,7 @@ import { BaseTest, MockWNative, console } from "../base/BaseTest.sol";
 import { MockRewarder } from "../mocks/MockRewarder.sol";
 import { Lockdrop } from "../../lockdrop/Lockdrop.sol";
 import { MockPool } from "../mocks/MockPool.sol";
+import { MockPoolRouter } from "../mocks/MockPoolRouter.sol";
 import { LockdropConfig } from "../../lockdrop/LockdropConfig.sol";
 import { MockErc20 } from "../mocks/MockERC20.sol";
 import { P88 } from "../../tokens/P88.sol";
@@ -27,6 +28,7 @@ contract Lockdrop_StakePLP is BaseTest {
   LockdropConfig internal lockdropConfig;
   Lockdrop internal lockdrop;
   MockPool internal pool;
+  MockPoolRouter internal poolRouter;
   DragonStaking internal dragonStaking;
   LockdropCompounder internal lockdropCompounder;
   PLPStaking internal plpStaking;
@@ -107,6 +109,7 @@ contract Lockdrop_StakePLP is BaseTest {
 
     mockGateway = address(0x88);
     pool = new MockPool();
+    poolRouter = new MockPoolRouter();
 
     lockdropCompounder = deployLockdropCompounder(
       address(mockEsP88Token),
@@ -125,6 +128,7 @@ contract Lockdrop_StakePLP is BaseTest {
     lockdrop = deployLockdrop(
       address(mockERC20),
       address(pool),
+      address(poolRouter),
       address(lockdropConfig),
       rewardsTokenList,
       address(mockWMaticToken)
