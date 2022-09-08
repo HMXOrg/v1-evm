@@ -65,6 +65,7 @@ library LibPoolConfigV1 {
     uint64 swapFeeBps;
     uint64 stableSwapFeeBps;
     uint64 positionFeeBps;
+    uint64 flashLoanFeeBps;
     // -----
     // Misc.
     // -----
@@ -88,6 +89,10 @@ library LibPoolConfigV1 {
 
   function fundingInterval() internal view returns (uint256) {
     return poolConfigV1DiamondStorage().fundingInterval;
+  }
+
+  function flashLoanFeeBps() internal view returns (uint256) {
+    return poolConfigV1DiamondStorage().flashLoanFeeBps;
   }
 
   function getAllowTokensLength() internal view returns (uint256) {
