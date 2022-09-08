@@ -1,0 +1,63 @@
+{
+  "Tokens": {
+    "P88": "0xc88322Ec9526A7A98B7F58ff773b3B003C91ce71",
+    "esP88": "0xB853c09b6d03098b841300daD57701ABcFA80228",
+    "PLP": "0xBb5e11926b8040ccFa67045aF552F47C735CfF87",
+    "DragonPoint": "0x029c919Cf951C588819Acb7d95eeC1780E53f89C",
+    "WMATIC": "0x9c3c9283d3e44854697cd22d3faa240cfb032889",
+    "WETH": "0x2859751c033E64b1050f5E9642C4848293D3caE1",
+    "WBTC": "0xC4F51bc480154e5B270967C70B64b53d0C189079",
+    "DAI": "0x7FeC31e5966C84E8A81C574a0504ff637E3CC569",
+    "USDC": "0xFc99D238c7A20895ba3756Ee04FD8BfD442c18fD",
+    "USDT": "0xF21405bA59E79762C306c83298dbD10a8A285f2F"
+  },
+  "PoolRouter": "0x3760f978AcE668209E415c0576a4d4f064850226",
+  "Pools": [
+    {
+      "name": "PLP",
+      "address": "0xC90466D18C402a0395CCe0B165D9fA1ae5CE43cB",
+      "config": "0xD941773cfaC0EaE3e2d790EaB7cCfADe0Ab87e23",
+      "math": "0x66C329DBFAa943E44Eb0402012229465550b35E0",
+      "oracle": "0xA9AA532ae9C3bd2Cf68A990e5478764C60f959D1"
+    }
+  ],
+  "Vester": "0x0e6441C3D17c401030F5bea80aDc993a44926b91",
+  "Staking": {
+    "Compounder": "0xA227221350f1D0Ca119be424710aCD9df89151c3",
+    "PLPStaking": {
+      "address": "0x995F553c6EF760ACB6EED102b376c3f159014e3c",
+      "rewarders": [
+        {
+          "name": "PLP Staking Protocol Revenue",
+          "address": "0x28826219ffb76aa41a56a40e875709391795e512",
+          "rewardToken": "0x9c3c9283d3e44854697cd22d3faa240cfb032889"
+        },
+        {
+          "name": "PLP Staking esP88 Emission",
+          "address": "0x3f78cEc168AdF9242a3d2F04A0ab1E312c26b3Ec",
+          "rewardToken": "0xB853c09b6d03098b841300daD57701ABcFA80228"
+        }
+      ]
+    },
+    "DragonStaking": {
+      "address": "0xCB1EaA1E9Fd640c3900a4325440c80FEF4b1b16d",
+      "rewarders": [
+        {
+          "name": "Dragon Staking Protocol Revenue",
+          "address": "0x68DaEB1C169d16395Bd03C2d0776A3e54015323e",
+          "rewardToken": "0x9c3c9283d3e44854697cd22d3faa240cfb032889"
+        },
+        {
+          "name": "Dragon Staking esP88 Emission",
+          "address": "0xf944690f3B7436161BA27B47799Bd06EA4154C0e",
+          "rewardToken": "0xB853c09b6d03098b841300daD57701ABcFA80228"
+        },
+        {
+          "name": "Dragon Staking Dragon Point Emission",
+          "address": "0xfc51C8c673C27e1b3D89688ef46D706A77CA28DB",
+          "rewardToken": "0x029c919Cf951C588819Acb7d95eeC1780E53f89C"
+        }
+      ]
+    }
+  }
+}
