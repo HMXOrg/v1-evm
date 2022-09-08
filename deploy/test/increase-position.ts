@@ -6,11 +6,12 @@ import {
   MintableTokenInterface__factory,
   PoolRouter__factory,
 } from "../../typechain";
-import config from "../../contracts.mumbai.json";
+import { getConfig } from "../utils/config";
+
+const config = getConfig();
 
 const POOL_ROUTER = config.PoolRouter;
-const COLLATERAL_TOKEN = config.Tokens.WBTC;
-const POOL = config.Pools[0].address;
+const COLLATERAL_TOKEN = config.Tokens.DAI;
 
 enum Exposure {
   LONG,
@@ -22,22 +23,23 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const poolRouter = PoolRouter__factory.connect(POOL_ROUTER, deployer);
   const collateralToken = ERC20__factory.connect(COLLATERAL_TOKEN, deployer);
 
-  // await (
-  //   await collateralToken.approve(
-  //     poolRouter.address,
-  //     ethers.constants.MaxUint256
-  //   )
-  // ).wait();
+  await (
+    await collateralToken.approve(
+      poolRouter.address,
+      ethers.constants.MaxUint256
+    )
+  ).wait();
 
   await (
     await poolRouter.increasePosition(
-      POOL,
+      config.Pools.PLP.poolDiamond,
       0,
       COLLATERAL_TOKEN,
-      ethers.utils.parseUnits("1", 8),
-      COLLATERAL_TOKEN,
-      ethers.utils.parseUnits("50000", 30),
-      Exposure.LONG,
+      ethers.utils.parseUnits("1000", 18),
+      config.Tokens.WBTC,
+      ethers.utils.parseUnits("10000", 30),
+      false,
+      ethers.constants.Zero,
       { gasLimit: 10000000 }
     )
   ).wait();

@@ -1,8 +1,11 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers, upgrades } from "hardhat";
+import { ethers } from "hardhat";
+import { getConfig } from "../utils/config";
 
-const WNATIVE = "0x9c3c9283d3e44854697cd22d3faa240cfb032889";
+const config = getConfig();
+
+const WNATIVE = config.Tokens.WMATIC;
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
