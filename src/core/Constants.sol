@@ -2,9 +2,20 @@
 pragma solidity 0.8.16;
 
 abstract contract Constants {
+  enum Exposure {
+    LONG,
+    SHORT
+  }
+
   enum MinMax {
     MIN,
     MAX
+  }
+
+  enum LiquidationState {
+    HEALTHY,
+    SOFT_LIQUIDATE,
+    LIQUIDATE
   }
 
   address internal constant LINKEDLIST_START = address(1);

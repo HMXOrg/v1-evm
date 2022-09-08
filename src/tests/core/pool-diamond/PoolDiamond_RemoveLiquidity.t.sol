@@ -1,52 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.16;
 
-import { Pool_BaseTest, console, PoolConfig } from "./Pool_BaseTest.t.sol";
+import { PoolDiamond_BaseTest, PoolConfig, LibPoolConfigV1, Pool, console, GetterFacetInterface, LiquidityFacetInterface } from "./PoolDiamond_BaseTest.t.sol";
 
-contract Pool_RemoveLiquidityTest is Pool_BaseTest {
+contract PoolDiamond_RemoveLiquidityTest is PoolDiamond_BaseTest {
   function setUp() public override {
     super.setUp();
 
-    address[] memory tokens = new address[](3);
-    tokens[0] = address(dai);
-    tokens[1] = address(wbtc);
-    tokens[2] = address(matic);
+    (
+      address[] memory tokens2,
+      LibPoolConfigV1.TokenConfig[] memory tokenConfigs2
+    ) = buildDefaultSetTokenConfigInput2();
 
-    PoolConfig.TokenConfig[] memory tokenConfigs = new PoolConfig.TokenConfig[](
-      3
-    );
-    tokenConfigs[0] = PoolConfig.TokenConfig({
-      accept: true,
-      isStable: true,
-      isShortable: false,
-      decimals: dai.decimals(),
-      weight: 10000,
-      minProfitBps: 75,
-      usdDebtCeiling: 0,
-      shortCeiling: 0
-    });
-    tokenConfigs[1] = PoolConfig.TokenConfig({
-      accept: true,
-      isStable: false,
-      isShortable: true,
-      decimals: wbtc.decimals(),
-      weight: 10000,
-      minProfitBps: 75,
-      usdDebtCeiling: 0,
-      shortCeiling: 0
-    });
-    tokenConfigs[2] = PoolConfig.TokenConfig({
-      accept: true,
-      isStable: false,
-      isShortable: true,
-      decimals: matic.decimals(),
-      weight: 10000,
-      minProfitBps: 75,
-      usdDebtCeiling: 0,
-      shortCeiling: 0
-    });
-
-    poolConfig.setTokenConfigs(tokens, tokenConfigs);
+    poolAdminFacet.setTokenConfigs(tokens2, tokenConfigs2);
 
     // Feed prices
     daiPriceFeed.setLatestAnswer(1 * 10**8);
@@ -54,22 +20,39 @@ contract Pool_RemoveLiquidityTest is Pool_BaseTest {
     maticPriceFeed.setLatestAnswer(300 * 10**8);
   }
 
+  function testRevert_WhenTryToAddLiquidityUnderOtherAccount() external {
+    vm.expectRevert(abi.encodeWithSignature("LibPoolV1_Forbidden()"));
+    poolLiquidityFacet.removeLiquidity(ALICE, address(dai), address(this));
+  }
+
   function testRevert_WhenAmountOutZero() external {
     dai.mint(address(this), 100 ether);
-    dai.approve(address(pool), type(uint256).max);
-    pool.addLiquidity(address(dai), 100 ether, address(this), 99.7 ether);
 
-    vm.expectRevert(abi.encodeWithSignature("Pool_BadArgument()"));
-    pool.removeLiquidity(address(dai), 0 ether, address(this), 99.7 ether);
+    dai.transfer(address(poolDiamond), 100 ether);
+    poolLiquidityFacet.addLiquidity(address(this), address(dai), address(this));
+
+    vm.expectRevert(abi.encodeWithSignature("LiquidityFacet_BadAmount()"));
+    poolLiquidityFacet.removeLiquidity(
+      address(this),
+      address(dai),
+      address(this)
+    );
   }
 
   function testRevert_WhenCoolDownNotPassed() external {
     dai.mint(address(this), 100 ether);
-    dai.approve(address(pool), type(uint256).max);
-    pool.addLiquidity(address(dai), 100 ether, address(this), 99.7 ether);
 
-    vm.expectRevert(abi.encodeWithSignature("Pool_CoolDown()"));
-    pool.removeLiquidity(address(dai), 100 ether, address(this), 0 ether);
+    dai.transfer(address(poolDiamond), 100 ether);
+    poolLiquidityFacet.addLiquidity(address(this), address(dai), address(this));
+
+    poolGetterFacet.plp().transfer(address(poolDiamond), 1);
+
+    vm.expectRevert(abi.encodeWithSignature("LiquidityFacet_CoolDown()"));
+    poolLiquidityFacet.removeLiquidity(
+      address(this),
+      address(dai),
+      address(this)
+    );
   }
 
   function testCorrectness_WhenDynamicFeeOff() external {
@@ -79,10 +62,10 @@ contract Pool_RemoveLiquidityTest is Pool_BaseTest {
     // ------- Alice session -------
     // Alice as a liquidity provider for DAI
     vm.startPrank(ALICE);
-    dai.approve(address(pool), type(uint256).max);
 
     // Perform add liquidity
-    pool.addLiquidity(address(dai), 100 ether, ALICE, 99 ether);
+    dai.transfer(address(poolDiamond), 100 ether);
+    poolLiquidityFacet.addLiquidity(ALICE, address(dai), ALICE);
 
     vm.stopPrank();
     // ------- Finish Alice session -------
@@ -97,10 +80,10 @@ contract Pool_RemoveLiquidityTest is Pool_BaseTest {
 
     // ------- Bob session -------
     vm.startPrank(BOB);
-    matic.approve(address(pool), type(uint256).max);
 
     // Perform add liquidity
-    pool.addLiquidity(address(matic), 1 ether, BOB, 297.6 ether);
+    matic.transfer(address(poolDiamond), 1 ether);
+    poolLiquidityFacet.addLiquidity(BOB, address(matic), BOB);
 
     vm.stopPrank();
     // ------- Finish Bob session -------
@@ -109,8 +92,8 @@ contract Pool_RemoveLiquidityTest is Pool_BaseTest {
     maticPriceFeed.setLatestAnswer(500 * 10**8);
     maticPriceFeed.setLatestAnswer(400 * 10**8);
 
-    assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 598.2 ether);
-    assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 498.5 ether);
+    assertEq(poolGetterFacet.getAumE18(true), 598.2 ether);
+    assertEq(poolGetterFacet.getAumE18(false), 498.5 ether);
 
     wbtcPriceFeed.setLatestAnswer(60000 * 10**8);
     wbtcPriceFeed.setLatestAnswer(60000 * 10**8);
@@ -122,15 +105,16 @@ contract Pool_RemoveLiquidityTest is Pool_BaseTest {
 
     // ------- Cat session -------
     vm.startPrank(CAT);
-    wbtc.approve(address(pool), type(uint256).max);
+    wbtc.approve(address(poolDiamond), type(uint256).max);
 
     // Perform add liquidity
-    pool.addLiquidity(address(wbtc), 1000000, CAT, 396 ether);
+    wbtc.transfer(address(poolDiamond), 1000000);
+    poolLiquidityFacet.addLiquidity(CAT, address(wbtc), CAT);
 
     vm.stopPrank();
     // ------- Finish Cat session -------
 
-    assertEq(pool.totalUsdDebt(), 997 ether);
+    assertEq(poolGetterFacet.totalUsdDebt(), 997 ether);
 
     // Warp so that the cool down is passed.
     vm.warp(block.timestamp + 1 days + 1);
@@ -139,16 +123,18 @@ contract Pool_RemoveLiquidityTest is Pool_BaseTest {
     vm.startPrank(ALICE);
 
     // Perform remove liquidity
-    pool.removeLiquidity(address(dai), 72 ether, ALICE, 98 ether);
+    poolGetterFacet.plp().transfer(address(poolDiamond), 72 ether);
+    poolLiquidityFacet.removeLiquidity(ALICE, address(dai), ALICE);
 
     // Alice remove 72 PLP, the following criteria needs to statisfy:
     // 1. Alice should get ((72 * 1096.7) / 797.6) * (1-0.003) / 1 ~= 98.703 DAI
     // 2. Alice should have 99.7 - 72 = 27.7 PLP
     assertEq(dai.balanceOf(ALICE), 98703000000000000000);
-    assertEq(pool.plp().balanceOf(ALICE), 27.7 ether);
+    assertEq(poolGetterFacet.plp().balanceOf(ALICE), 27.7 ether);
 
     // Alice remove 27.7 PLP to MATIC
-    pool.removeLiquidity(address(matic), 27.7 ether, ALICE, 0.0759 ether);
+    poolGetterFacet.plp().transfer(address(poolDiamond), 27.7 ether);
+    poolLiquidityFacet.removeLiquidity(ALICE, address(matic), ALICE);
 
     // Alice remove 27.7 PLP, the following criteria needs to statisfy:
     // 1. Alice should get ((27.7 * 997.7) / 725.6) * (1-0.003) / 500 ~= 0.0759 MATIC
@@ -161,10 +147,10 @@ contract Pool_RemoveLiquidityTest is Pool_BaseTest {
     // 5. Pool's aum by min price should be:
     // 0.7 + ((1 * (1-0.003) - 0.076175) * 400) + (0.01 * (1-0.003) * 60000) ~= 967.23 USD
     assertEq(matic.balanceOf(ALICE), 75946475000000000);
-    assertEq(pool.plp().balanceOf(ALICE), 0 ether);
-    assertEq(pool.plp().totalSupply(), 697.9 ether);
-    assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 1059.3125 ether);
-    assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 967.23 ether);
+    assertEq(poolGetterFacet.plp().balanceOf(ALICE), 0 ether);
+    assertEq(poolGetterFacet.plp().totalSupply(), 697.9 ether);
+    assertEq(poolGetterFacet.getAumE18(true), 1059.3125 ether);
+    assertEq(poolGetterFacet.getAumE18(false), 967.23 ether);
 
     vm.stopPrank();
     // ------- Finish Alice session -------
@@ -173,7 +159,8 @@ contract Pool_RemoveLiquidityTest is Pool_BaseTest {
     vm.startPrank(BOB);
 
     // Bob remove 299.1 PLP to MATIC
-    pool.removeLiquidity(address(matic), 299.1 ether, BOB, 0.8265 ether);
+    poolGetterFacet.plp().transfer(address(poolDiamond), 299.1 ether);
+    poolLiquidityFacet.removeLiquidity(BOB, address(matic), BOB);
 
     // Bob remove 299.1 PLP, the following criteria needs to statisfy:
     // 1. Bob should get ((299.1 * 967.23) / 697.9) * (1-0.003) / 500 ~= 0.826567122857143 MATIC
@@ -187,14 +174,14 @@ contract Pool_RemoveLiquidityTest is Pool_BaseTest {
     // 6. Pool should have 0.7 DAI left in liquidity.
     // 7. Pool should have 0.0997 WBTC left in liquidity.
     // 8. Pool should have 0.09177071428571415 MATIC left in liquidity.
-    assertEq(matic.balanceOf(BOB), 826567122857142857);
-    assertEq(pool.plp().balanceOf(BOB), 0 ether);
-    assertEq(pool.plp().totalSupply(), 398.8 ether);
-    assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 644785357142857143000);
-    assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 635608285714285714400);
-    assertEq(pool.liquidityOf(address(dai)), 0.7 ether);
-    assertEq(pool.liquidityOf(address(wbtc)), 997000);
-    assertEq(pool.liquidityOf(address(matic)), 91770714285714286);
+    assertEq(matic.balanceOf(BOB), 826567122857142856);
+    assertEq(poolGetterFacet.plp().balanceOf(BOB), 0 ether);
+    assertEq(poolGetterFacet.plp().totalSupply(), 398.8 ether);
+    assertEq(poolGetterFacet.getAumE18(true), 644785357142857143000);
+    assertEq(poolGetterFacet.getAumE18(false), 635608285714285714400);
+    assertEq(poolGetterFacet.liquidityOf(address(dai)), 0.7 ether);
+    assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 997000);
+    assertEq(poolGetterFacet.liquidityOf(address(matic)), 91770714285714286);
 
     vm.stopPrank();
     // ------- Finish Bob session -------
@@ -203,7 +190,8 @@ contract Pool_RemoveLiquidityTest is Pool_BaseTest {
     vm.startPrank(CAT);
 
     // Cat remove 375 PLP to WBTC
-    pool.removeLiquidity(address(wbtc), 375 ether, CAT, 990000);
+    poolGetterFacet.plp().transfer(address(poolDiamond), 375 ether);
+    poolLiquidityFacet.removeLiquidity(CAT, address(wbtc), CAT);
 
     // Cat removed 375 PLP, the following criteria needs to statisfy:
     // 1. Cat should get ((375 * 635.6082857142857) / 398.8) * (1-0.003) / 60000 ~= 0.009931379464285715 WBTC
@@ -217,13 +205,13 @@ contract Pool_RemoveLiquidityTest is Pool_BaseTest {
     // 6. Pool should have 0.7 DAI left in liquidity.
     // 7. Pool should have 0.00000874 WBTC left in liquidity.
     // 8. Pool should have 0.09177071428571415 MATIC left in liquidity.
-    assertEq(wbtc.balanceOf(CAT), 993138);
-    assertEq(pool.plp().balanceOf(CAT), 23.8 ether);
-    assertEq(pool.plp().totalSupply(), 23.8 ether);
-    assertEq(pool.poolMath().getAum18(pool, MinMax.MAX), 47109757142857143000);
-    assertEq(pool.poolMath().getAum18(pool, MinMax.MIN), 37932685714285714400);
-    assertEq(pool.liquidityOf(address(dai)), 0.7 ether);
-    assertEq(pool.liquidityOf(address(wbtc)), 874);
-    assertEq(pool.liquidityOf(address(matic)), 91770714285714286);
+    assertEq(wbtc.balanceOf(CAT), 993137);
+    assertEq(poolGetterFacet.plp().balanceOf(CAT), 23.8 ether);
+    assertEq(poolGetterFacet.plp().totalSupply(), 23.8 ether);
+    assertEq(poolGetterFacet.getAumE18(true), 47109757142857143000);
+    assertEq(poolGetterFacet.getAumE18(false), 37932685714285714400);
+    assertEq(poolGetterFacet.liquidityOf(address(dai)), 0.7 ether);
+    assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 874);
+    assertEq(poolGetterFacet.liquidityOf(address(matic)), 91770714285714286);
   }
 }

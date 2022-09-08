@@ -74,7 +74,7 @@ contract Lockdrop_StakePLP is Lockdrop_BaseTest {
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
 
     vm.startPrank(address(lockdrop));
-    usdc.approve(address(pool), lockAmount_ALICE + lockAmount_BOB);
+    usdc.approve(address(poolDiamond), lockAmount_ALICE + lockAmount_BOB);
     plp.approve(address(plpStaking), type(uint256).max);
     vm.stopPrank();
 
@@ -125,7 +125,7 @@ contract Lockdrop_StakePLP is Lockdrop_BaseTest {
     vm.warp(lockdropConfig.startLockTimestamp() + 5 days);
 
     vm.startPrank(address(lockdrop));
-    usdc.approve(address(pool), lockAmount_ALICE);
+    usdc.approve(address(poolDiamond), lockAmount_ALICE);
     plp.approve(address(plpStaking), type(uint256).max);
     vm.stopPrank();
 
