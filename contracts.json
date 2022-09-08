@@ -12,7 +12,7 @@
     "USDC": "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
     "USDT": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f"
   },
-  "PoolRouter": "",
+  "PoolRouter": "0x6B4A737a8d2c5a7694C73FC57C8800de1D1bb3BD",
   "Pools": {
     "PLP": {
       "poolDiamond": "0x705634fc96665f7aE75F805ADCC373596001DaE0",

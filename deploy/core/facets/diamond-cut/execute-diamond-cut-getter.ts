@@ -85,8 +85,8 @@ const methods = [
 
 const facetCuts = [
   {
-    facetAddress: config.Pools.PLP.facets.admin,
-    action: FacetCutAction.Add,
+    facetAddress: config.Pools.PLP.facets.getter,
+    action: FacetCutAction.Replace,
     functionSelectors: methods.map((each) => {
       return GetterFacet__factory.createInterface().getSighash(each);
     }),

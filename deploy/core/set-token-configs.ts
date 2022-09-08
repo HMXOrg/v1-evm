@@ -1,17 +1,22 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
-import { PoolConfig__factory } from "../../typechain";
+import {
+  AdminFacetInterface__factory,
+  PoolConfig__factory,
+} from "../../typechain";
+import { getConfig } from "../utils/config";
 
-// Testnet
-const CONFIG = "0xD941773cfaC0EaE3e2d790EaB7cCfADe0Ab87e23";
+const config = getConfig();
+
+// Mainnet
 const TOKENS = [
-  "0x9c3c9283d3e44854697cd22d3faa240cfb032889", // WMATIC
-  "0x2859751c033E64b1050f5E9642C4848293D3caE1", // WETH
-  "0xC4F51bc480154e5B270967C70B64b53d0C189079", // WBTC
-  "0x7FeC31e5966C84E8A81C574a0504ff637E3CC569", // DAI
-  "0xFc99D238c7A20895ba3756Ee04FD8BfD442c18fD", // USDC
-  "0xF21405bA59E79762C306c83298dbD10a8A285f2F", // USDT
+  config.Tokens.WMATIC, // WMATIC
+  config.Tokens.WETH, // WETH
+  config.Tokens.WBTC, // WBTC
+  config.Tokens.DAI, // DAI
+  config.Tokens.USDC, // USDC
+  config.Tokens.USDT, // USDT
 ];
 const TOKEN_CONFIGS = [
   {
@@ -84,8 +89,11 @@ const TOKEN_CONFIGS = [
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
-  const config = PoolConfig__factory.connect(CONFIG, deployer);
-  const tx = await config.setTokenConfigs(TOKENS, TOKEN_CONFIGS);
+  const pool = AdminFacetInterface__factory.connect(
+    config.Pools.PLP.poolDiamond,
+    deployer
+  );
+  const tx = await pool.setTokenConfigs(TOKENS, TOKEN_CONFIGS);
   const txReceipt = await tx.wait();
   console.log(`Execute  setTokenConfigs`);
 };
