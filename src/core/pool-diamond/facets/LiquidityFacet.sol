@@ -4,16 +4,23 @@ pragma solidity 0.8.14;
 import { LibReentrancyGuard } from "../libraries/LibReentrancyGuard.sol";
 import { LibPoolV1 } from "../libraries/LibPoolV1.sol";
 import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { GetterFacetInterface } from "../interfaces/GetterFacetInterface.sol";
 import { FundingRateFacetInterface } from "../interfaces/FundingRateFacetInterface.sol";
 import { LiquidityFacetInterface } from "../interfaces/LiquidityFacetInterface.sol";
+import { FlashLoanBorrowerInterface } from "../../../interfaces/FlashLoanBorrowerInterface.sol";
 
 import { console } from "../../../tests/utils/console.sol";
 
 contract LiquidityFacet is LiquidityFacetInterface {
+  using SafeERC20 for IERC20;
+
   error LiquidityFacet_BadAmount();
   error LiquidityFacet_BadAmountOut();
+  error LiquidityFacet_BadFlashLoan();
+  error LiquidityFacet_BadLength();
   error LiquidityFacet_BadToken();
   error LiquidityFacet_BadTokenIn();
   error LiquidityFacet_BadTokenOut();
@@ -44,6 +51,13 @@ contract LiquidityFacet is LiquidityFacetInterface {
     uint256 usdAmount,
     uint256 amountOut,
     uint256 burnFeeBps
+  );
+  event FlashLoan(
+    address borrower,
+    address token,
+    uint256 amount,
+    uint256 fee,
+    address receiver
   );
   event JoinPool(
     address account,
@@ -364,5 +378,54 @@ contract LiquidityFacet is LiquidityFacetInterface {
     );
 
     return amountOutAfterFee;
+  }
+
+  function flashLoan(
+    FlashLoanBorrowerInterface borrower,
+    address[] calldata receivers,
+    address[] calldata tokens,
+    uint256[] calldata amounts,
+    bytes calldata data
+  ) external nonReentrant {
+    if (receivers.length != tokens.length || receivers.length != amounts.length)
+      revert LiquidityFacet_BadLength();
+
+    LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
+      .poolV1DiamondStorage();
+
+    uint256[] memory fees = new uint256[](tokens.length);
+    for (uint256 i = 0; i < tokens.length; ) {
+      fees[i] = (amounts[i] * LibPoolConfigV1.flashLoanFeeBps()) / BPS;
+
+      IERC20(tokens[i]).safeTransfer(receivers[i], amounts[i]);
+
+      unchecked {
+        ++i;
+      }
+    }
+
+    borrower.onFlashLoan(msg.sender, tokens, amounts, fees, data);
+
+    for (uint256 i = 0; i < tokens.length; ) {
+      if (
+        IERC20(tokens[i]).balanceOf(address(this)) <
+        poolV1ds.totalOf[tokens[i]] + fees[i]
+      ) revert LiquidityFacet_BadFlashLoan();
+
+      // Collect fee
+      poolV1ds.feeReserveOf[tokens[i]] += fees[i];
+
+      emit FlashLoan(
+        address(borrower),
+        tokens[i],
+        amounts[i],
+        fees[i],
+        receivers[i]
+      );
+
+      unchecked {
+        ++i;
+      }
+    }
   }
 }

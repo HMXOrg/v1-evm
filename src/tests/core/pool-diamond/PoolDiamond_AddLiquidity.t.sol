@@ -50,7 +50,7 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     // Perform add liquidity
     dai.approve(address(poolRouter), 100 ether);
     poolRouter.addLiquidity(
-      poolDiamond,
+      Pool(address(poolDiamond)),
       address(dai),
       100 ether,
       ALICE,

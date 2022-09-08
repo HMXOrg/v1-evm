@@ -14,6 +14,7 @@ contract AdminFacet is AdminFacetInterface {
 
   error AdminFacet_AllowTokensLengthMismatch();
   error AdminFacet_AllowTokensMismatch();
+  error AdminFacet_BadFlashLoanFeeBps();
   error AdminFacet_BadNewFundingInterval();
   error AdminFacet_BadNewFundingRateFactor();
   error AdminFacet_BadNewLiquidationFeeUsd();
@@ -50,6 +51,10 @@ contract AdminFacet is AdminFacetInterface {
 
   event DeleteTokenConfig(address token);
   event SetAllowLiquidator(address liquidator, bool allow);
+  event SetFlashLoanFeeBps(
+    uint256 prevFlashLoanFeeBps,
+    uint256 flashLoanFeeBps
+  );
   event SetIsAllowAllLiquidators(
     bool prevIsAllowAllLiquidators,
     bool isAllowAllLiquidators
@@ -135,6 +140,18 @@ contract AdminFacet is AdminFacetInterface {
       poolConfigDs.allowLiquidators[liquidators[i]] = allow;
       emit SetAllowLiquidator(liquidators[i], allow);
     }
+  }
+
+  function setFlashLoanFeeBps(uint64 newFlashLoanFeeBps) external onlyOwner {
+    // Load PoolConfig Diamond storage
+    LibPoolConfigV1.PoolConfigV1DiamondStorage
+      storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
+
+    if (newFlashLoanFeeBps > MAX_FEE_BPS)
+      revert AdminFacet_BadFlashLoanFeeBps();
+
+    emit SetFlashLoanFeeBps(poolConfigDs.flashLoanFeeBps, newFlashLoanFeeBps);
+    poolConfigDs.flashLoanFeeBps = newFlashLoanFeeBps;
   }
 
   function setFundingRate(
