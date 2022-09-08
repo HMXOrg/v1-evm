@@ -8,9 +8,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "DiamondCutFacet",
     deployer
   );
+
+  console.log(`Deploying DiamondCutFacet Contract`);
   const diamondCutFacet = await DiamondCutFacet.deploy();
   diamondCutFacet.deployed();
-  console.log(`Deploying DiamondCutFacet Contract`);
   console.log(`Deployed at: ${diamondCutFacet.address}`);
 };
 

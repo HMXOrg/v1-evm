@@ -10,7 +10,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const poolDiamond = await PoolDiamond.deploy(
     config.Pools.PLP.facets.diamondCut,
     config.Tokens.PLP,
-    config.Pools.PLP.config,
     config.Pools.PLP.oracle
   );
   poolDiamond.deployed();
