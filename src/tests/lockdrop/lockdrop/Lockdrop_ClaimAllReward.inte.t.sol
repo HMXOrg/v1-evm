@@ -72,7 +72,7 @@ contract Lockdrop_ClaimAllReward is Lockdrop_BaseTest {
 
     vm.startPrank(address(lockdrop));
     usdc.approve(
-      address(pool),
+      address(poolDiamond),
       lockAmount_ALICE + lockAmount_BOB + lockAmount_CAT
     );
     plp.approve(address(plpStaking), type(uint256).max);

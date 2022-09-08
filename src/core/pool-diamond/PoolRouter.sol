@@ -37,7 +37,7 @@ contract PoolRouter {
     uint256 amount,
     address receiver,
     uint256 minLiquidity
-  ) external {
+  ) external returns (uint256) {
     IERC20(token).safeTransferFrom(msg.sender, address(pool), amount);
 
     uint256 receivedAmount = LiquidityFacetInterface(pool).addLiquidity(
@@ -48,6 +48,7 @@ contract PoolRouter {
 
     if (receivedAmount < minLiquidity)
       revert PoolRouter_InsufficientOutputAmount(minLiquidity, receivedAmount);
+    return receivedAmount;
   }
 
   function addLiquidityNative(
@@ -55,7 +56,7 @@ contract PoolRouter {
     address token,
     address receiver,
     uint256 minLiquidity
-  ) external payable {
+  ) external payable returns (uint256) {
     WNATIVE.deposit{ value: msg.value }();
     IERC20(address(WNATIVE)).safeTransfer(address(pool), msg.value);
 
@@ -67,6 +68,7 @@ contract PoolRouter {
 
     if (receivedAmount < minLiquidity)
       revert PoolRouter_InsufficientOutputAmount(minLiquidity, receivedAmount);
+    return receivedAmount;
   }
 
   function removeLiquidity(
@@ -75,7 +77,7 @@ contract PoolRouter {
     uint256 liquidity,
     address receiver,
     uint256 minAmountOut
-  ) external {
+  ) external returns (uint256) {
     IERC20(GetterFacetInterface(pool).plp()).safeTransferFrom(
       msg.sender,
       address(pool),
@@ -90,6 +92,7 @@ contract PoolRouter {
 
     if (receivedAmount < minAmountOut)
       revert PoolRouter_InsufficientOutputAmount(minAmountOut, receivedAmount);
+    return receivedAmount;
   }
 
   function removeLiquidityNative(
@@ -98,7 +101,7 @@ contract PoolRouter {
     uint256 liquidity,
     address receiver,
     uint256 minAmountOut
-  ) external payable {
+  ) external payable returns (uint256) {
     IERC20(GetterFacetInterface(pool).plp()).safeTransferFrom(
       msg.sender,
       address(pool),
@@ -116,6 +119,7 @@ contract PoolRouter {
 
     WNATIVE.withdraw(receivedAmount);
     payable(receiver).transfer(receivedAmount);
+    return receivedAmount;
   }
 
   function increasePosition(

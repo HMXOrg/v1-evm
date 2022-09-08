@@ -920,6 +920,7 @@ contract BaseTest is DSTest, CoreConstants {
   function deployLockdrop(
     address lockdropToken_,
     address pool_,
+    address poolRouter_,
     address lockdropConfig_,
     address[] memory rewardTokens_,
     address nativeTokenAddress_
@@ -929,10 +930,13 @@ contract BaseTest is DSTest, CoreConstants {
     );
     bytes memory _initializer = abi.encodeWithSelector(
       bytes4(
-        keccak256("initialize(address,address,address,address[],address)")
+        keccak256(
+          "initialize(address,address,address,address,address[],address)"
+        )
       ),
       lockdropToken_,
       pool_,
+      poolRouter_,
       lockdropConfig_,
       rewardTokens_,
       nativeTokenAddress_
