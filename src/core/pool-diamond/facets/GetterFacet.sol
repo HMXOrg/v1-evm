@@ -7,6 +7,7 @@ import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
 
 import { GetterFacetInterface } from "../interfaces/GetterFacetInterface.sol";
 import { MintableTokenInterface } from "../../../interfaces/MintableTokenInterface.sol";
+import { StrategyInterface } from "../../../interfaces/StrategyInterface.sol";
 
 contract GetterFacet is GetterFacetInterface {
   error GetterFacet_BadSubAccountId();
@@ -553,6 +554,12 @@ contract GetterFacet is GetterFacetInterface {
 
         // Add guaranteed USD to the aum.
         aum += poolV1ds.guaranteedUsdOf[token];
+
+        // Handle strategy delta
+        (bool isStrategyProfit, uint256 strategyDelta) = LibPoolConfigV1
+          .getStrategyDelta(token);
+        if (isStrategyProfit) liquidity += strategyDelta;
+        else liquidity -= strategyDelta;
 
         // Add actual liquidity of the token to the aum.
         aum +=

@@ -2,6 +2,7 @@
 pragma solidity 0.8.14;
 
 import { LinkedList } from "../../../libraries/LinkedList.sol";
+import { StrategyInterface } from "../../../interfaces/StrategyInterface.sol";
 
 library LibPoolConfigV1 {
   using LinkedList for LinkedList.List;
@@ -26,6 +27,12 @@ library LibPoolConfigV1 {
     uint256 usdDebtCeiling;
     uint256 shortCeiling;
     uint256 bufferLiquidity;
+  }
+
+  struct StrategyData {
+    uint64 startTimestamp;
+    uint64 targetBps;
+    uint128 principle;
   }
 
   struct PoolConfigV1DiamondStorage {
@@ -75,6 +82,12 @@ library LibPoolConfigV1 {
     bool isSwapEnable;
     bool isLeverageEnable;
     address router;
+    // --------
+    // Strategy
+    // --------
+    mapping(address => StrategyInterface) strategyOf;
+    mapping(address => StrategyInterface) pendingStrategyOf;
+    mapping(address => StrategyData) strategyDataOf;
   }
 
   function poolConfigV1DiamondStorage()
@@ -101,6 +114,24 @@ library LibPoolConfigV1 {
 
   function getNextAllowTokenOf(address token) internal view returns (address) {
     return poolConfigV1DiamondStorage().allowTokens.getNextOf(token);
+  }
+
+  function getStrategyDelta(address token)
+    internal
+    view
+    returns (bool, uint256)
+  {
+    // Load pool config diamond storage
+    PoolConfigV1DiamondStorage
+      storage poolConfigV1Ds = poolConfigV1DiamondStorage();
+
+    if (address(poolConfigV1Ds.strategyOf[token]) == address(0))
+      return (false, 0);
+
+    return
+      poolConfigV1DiamondStorage().strategyOf[token].getStrategyDelta(
+        poolConfigV1Ds.strategyDataOf[token].principle
+      );
   }
 
   function getTokenBufferLiquidityOf(address token)
