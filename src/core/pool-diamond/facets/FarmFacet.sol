@@ -152,7 +152,7 @@ contract FarmFacet {
         uint256 amountOut = targetDeployedFunds - strategyData.principle;
 
         // Transfer funds from pool to strategy and run it
-        ERC20(token).safeTransfer(address(strategy), amountOut);
+        LibPoolV1.pushTokens(token, address(strategy), amountOut);
         strategy.run(amountOut);
 
         // Update how much pool put in the strategy
