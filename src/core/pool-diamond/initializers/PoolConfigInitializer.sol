@@ -42,5 +42,6 @@ contract PoolConfigInitializer {
     poolConfigDs.stableSwapFeeBps = 4;
     poolConfigDs.swapFeeBps = 30;
     poolConfigDs.positionFeeBps = 10;
+    poolConfigDs.flashLoanFeeBps = 5;
   }
 }

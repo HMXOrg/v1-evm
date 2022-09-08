@@ -11,6 +11,8 @@ interface AdminFacetInterface {
   function setAllowLiquidators(address[] memory liquidators, bool allow)
     external;
 
+  function setFlashLoanFeeBps(uint64 newFlashLoanFeeBps) external;
+
   function setFundingRate(
     uint64 newFundingInterval,
     uint64 newFundingRateFactor,

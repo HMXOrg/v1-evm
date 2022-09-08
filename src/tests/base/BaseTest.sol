@@ -13,6 +13,7 @@ import { Constants as CoreConstants } from "../../core/Constants.sol";
 import { MockErc20 } from "../mocks/MockERC20.sol";
 import { MockWNative } from "../mocks/MockWNative.sol";
 import { MockChainlinkPriceFeed } from "../mocks/MockChainlinkPriceFeed.sol";
+import { MockFlashLoanBorrower } from "../mocks/MockFlashLoanBorrower.sol";
 
 import { PoolOracle } from "../../core/PoolOracle.sol";
 import { PoolConfig } from "../../core/PoolConfig.sol";
@@ -436,10 +437,11 @@ contract BaseTest is DSTest, CoreConstants {
   {
     LiquidityFacet liquidityFacet = new LiquidityFacet();
 
-    bytes4[] memory selectors = new bytes4[](3);
+    bytes4[] memory selectors = new bytes4[](4);
     selectors[0] = LiquidityFacet.addLiquidity.selector;
     selectors[1] = LiquidityFacet.removeLiquidity.selector;
     selectors[2] = LiquidityFacet.swap.selector;
+    selectors[3] = LiquidityFacet.flashLoan.selector;
 
     DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
       address(liquidityFacet),
@@ -566,6 +568,13 @@ contract BaseTest is DSTest, CoreConstants {
     returns (MockChainlinkPriceFeed)
   {
     return new MockChainlinkPriceFeed();
+  }
+
+  function deployMockFlashLoanBorrower()
+    internal
+    returns (MockFlashLoanBorrower)
+  {
+    return new MockFlashLoanBorrower();
   }
 
   function deployPLP() internal returns (PLP) {

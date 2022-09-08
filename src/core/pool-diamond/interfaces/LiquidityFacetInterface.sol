@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.16;
 
+import { FlashLoanBorrowerInterface } from "../../../interfaces/FlashLoanBorrowerInterface.sol";
+
 interface LiquidityFacetInterface {
   function addLiquidity(
     address account,
@@ -20,4 +22,12 @@ interface LiquidityFacetInterface {
     uint256 minAmountOut,
     address receiver
   ) external returns (uint256);
+
+  function flashLoan(
+    FlashLoanBorrowerInterface borrower,
+    address[] calldata receivers,
+    address[] calldata tokens,
+    uint256[] calldata amounts,
+    bytes calldata data
+  ) external;
 }
