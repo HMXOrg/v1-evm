@@ -10,6 +10,7 @@ import { FundingRateFacetInterface } from "../interfaces/FundingRateFacetInterfa
 import { LiquidityFacetInterface } from "../interfaces/LiquidityFacetInterface.sol";
 import { GetterFacetInterface } from "../interfaces/GetterFacetInterface.sol";
 import { PerpTradeFacetInterface } from "../interfaces/PerpTradeFacetInterface.sol";
+import { FarmFacetInterface } from "../interfaces/FarmFacetInterface.sol";
 
 /// @title DimaondInitializer - Modified from Nick Mudge's DiamondInit
 contract DiamondInitializer {
@@ -27,5 +28,6 @@ contract DiamondInitializer {
     ds.supportedInterfaces[type(LiquidityFacetInterface).interfaceId] = true;
     ds.supportedInterfaces[type(GetterFacetInterface).interfaceId] = true;
     ds.supportedInterfaces[type(PerpTradeFacetInterface).interfaceId] = true;
+    ds.supportedInterfaces[type(FarmFacetInterface).interfaceId] = true;
   }
 }

@@ -11,7 +11,9 @@ import { Constants as CoreConstants } from "../../core/Constants.sol";
 
 import { MockErc20 } from "../mocks/MockErc20.sol";
 import { MockChainlinkPriceFeed } from "../mocks/MockChainlinkPriceFeed.sol";
+import { MockDonateVault } from "../mocks/MockDonateVault.sol";
 import { MockFlashLoanBorrower } from "../mocks/MockFlashLoanBorrower.sol";
+import { MockStrategy } from "../mocks/MockStrategy.sol";
 
 import { PoolOracle } from "../../core/PoolOracle.sol";
 import { PoolConfig } from "../../core/PoolConfig.sol";
@@ -31,6 +33,7 @@ import { FundingRateFacet, FundingRateFacetInterface } from "../../core/pool-dia
 import { LiquidityFacet, LiquidityFacetInterface } from "../../core/pool-diamond/facets/LiquidityFacet.sol";
 import { PerpTradeFacet, PerpTradeFacetInterface } from "../../core/pool-diamond/facets/PerpTradeFacet.sol";
 import { AdminFacet, AdminFacetInterface } from "../../core/pool-diamond/facets/AdminFacet.sol";
+import { FarmFacet, FarmFacetInterface } from "../../core/pool-diamond/facets/FarmFacet.sol";
 import { DiamondInitializer } from "../../core/pool-diamond/initializers/DiamondInitializer.sol";
 import { PoolConfigInitializer } from "../../core/pool-diamond/initializers/PoolConfigInitializer.sol";
 import { PoolDiamond } from "../../core/pool-diamond/PoolDiamond.sol";
@@ -308,7 +311,7 @@ contract BaseTest is DSTest, CoreConstants {
   {
     GetterFacet getterFacet = new GetterFacet();
 
-    bytes4[] memory selectors = new bytes4[](52);
+    bytes4[] memory selectors = new bytes4[](56);
     selectors[0] = GetterFacet.getAddLiquidityFeeBps.selector;
     selectors[1] = GetterFacet.getRemoveLiquidityFeeBps.selector;
     selectors[2] = GetterFacet.getSwapFeeBps.selector;
@@ -361,6 +364,10 @@ contract BaseTest is DSTest, CoreConstants {
     selectors[49] = GetterFacet.taxBps.selector;
     selectors[50] = GetterFacet.tokenMetas.selector;
     selectors[51] = GetterFacet.totalTokenWeight.selector;
+    selectors[52] = GetterFacet.pendingStrategyOf.selector;
+    selectors[53] = GetterFacet.strategyOf.selector;
+    selectors[54] = GetterFacet.strategyDataOf.selector;
+    selectors[55] = GetterFacet.getStrategyDeltaOf.selector;
 
     DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
       address(getterFacet),
@@ -480,6 +487,27 @@ contract BaseTest is DSTest, CoreConstants {
     return (adminFacet, selectors);
   }
 
+  function deployFarmFacet(DiamondCutFacet diamondCutFacet)
+    internal
+    returns (FarmFacet, bytes4[] memory)
+  {
+    FarmFacet farmFacet = new FarmFacet();
+
+    bytes4[] memory selectors = new bytes4[](3);
+    selectors[0] = FarmFacet.setStrategyOf.selector;
+    selectors[1] = FarmFacet.setStrategyTargetBps.selector;
+    selectors[2] = FarmFacet.farm.selector;
+
+    DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
+      address(farmFacet),
+      DiamondCutInterface.FacetCutAction.Add,
+      selectors
+    );
+
+    diamondCutFacet.diamondCut(facetCuts, address(0), "");
+    return (farmFacet, selectors);
+  }
+
   function deployMockErc20(
     string memory name,
     string memory symbol,
@@ -495,11 +523,26 @@ contract BaseTest is DSTest, CoreConstants {
     return new MockChainlinkPriceFeed();
   }
 
+  function deployMockDonateVault(address token)
+    internal
+    returns (MockDonateVault)
+  {
+    return new MockDonateVault(token);
+  }
+
   function deployMockFlashLoanBorrower()
     internal
     returns (MockFlashLoanBorrower)
   {
     return new MockFlashLoanBorrower();
+  }
+
+  function deployMockStrategy(
+    address token,
+    MockDonateVault vault,
+    address pool
+  ) internal returns (MockStrategy) {
+    return new MockStrategy(token, vault, pool);
   }
 
   function deployPLP() internal returns (PLP) {
@@ -583,6 +626,7 @@ contract BaseTest is DSTest, CoreConstants {
     deployOwnershipFacet(DiamondCutFacet(address(poolDiamond)));
     deployPerpTradeFacet(DiamondCutFacet(address(poolDiamond)));
     deployAdminFacet(DiamondCutFacet(address(poolDiamond)));
+    deployFarmFacet(DiamondCutFacet(address(poolDiamond)));
 
     initializeDiamond(DiamondCutFacet(address(poolDiamond)));
     initializePoolConfig(

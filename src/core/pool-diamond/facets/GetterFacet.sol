@@ -9,6 +9,9 @@ import { GetterFacetInterface } from "../interfaces/GetterFacetInterface.sol";
 import { MintableTokenInterface } from "../../../interfaces/MintableTokenInterface.sol";
 import { StrategyInterface } from "../../../interfaces/StrategyInterface.sol";
 
+import { console } from "../../../tests/utils/console.sol";
+import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
 contract GetterFacet is GetterFacetInterface {
   error GetterFacet_BadSubAccountId();
   error GetterFacet_InvalidAveragePrice();
@@ -56,6 +59,14 @@ contract GetterFacet is GetterFacetInterface {
 
   function fundingRateFactor() external view returns (uint64) {
     return LibPoolConfigV1.poolConfigV1DiamondStorage().fundingRateFactor;
+  }
+
+  function getStrategyDeltaOf(address token)
+    external
+    view
+    returns (bool, uint256)
+  {
+    return LibPoolConfigV1.getStrategyDelta(token);
   }
 
   function guaranteedUsdOf(address token) external view returns (uint256) {
@@ -123,6 +134,15 @@ contract GetterFacet is GetterFacetInterface {
     return LibPoolV1.poolV1DiamondStorage().oracle;
   }
 
+  function pendingStrategyOf(address token)
+    external
+    view
+    returns (StrategyInterface)
+  {
+    return
+      LibPoolConfigV1.poolConfigV1DiamondStorage().pendingStrategyOf[token];
+  }
+
   function plp() external view returns (MintableTokenInterface) {
     return LibPoolV1.poolV1DiamondStorage().plp;
   }
@@ -157,6 +177,18 @@ contract GetterFacet is GetterFacetInterface {
 
   function stableSwapFeeBps() external view returns (uint64) {
     return LibPoolConfigV1.poolConfigV1DiamondStorage().stableSwapFeeBps;
+  }
+
+  function strategyOf(address token) external view returns (StrategyInterface) {
+    return LibPoolConfigV1.poolConfigV1DiamondStorage().strategyOf[token];
+  }
+
+  function strategyDataOf(address token)
+    external
+    view
+    returns (LibPoolConfigV1.StrategyData memory)
+  {
+    return LibPoolConfigV1.poolConfigV1DiamondStorage().strategyDataOf[token];
   }
 
   function sumFundingRateOf(address token) external view returns (uint256) {
@@ -528,6 +560,12 @@ contract GetterFacet is GetterFacetInterface {
       uint256 liquidity = poolV1ds.liquidityOf[token];
       uint256 decimals = LibPoolConfigV1.getTokenDecimalsOf(token);
 
+      // Handle strategy delta
+      (bool isStrategyProfit, uint256 strategyDelta) = LibPoolConfigV1
+        .getStrategyDelta(token);
+      if (isStrategyProfit) liquidity += strategyDelta;
+      else liquidity -= strategyDelta;
+
       if (LibPoolConfigV1.isStableToken(token)) {
         aum += (liquidity * price) / 10**decimals;
       } else {
@@ -554,12 +592,6 @@ contract GetterFacet is GetterFacetInterface {
 
         // Add guaranteed USD to the aum.
         aum += poolV1ds.guaranteedUsdOf[token];
-
-        // Handle strategy delta
-        (bool isStrategyProfit, uint256 strategyDelta) = LibPoolConfigV1
-          .getStrategyDelta(token);
-        if (isStrategyProfit) liquidity += strategyDelta;
-        else liquidity -= strategyDelta;
 
         // Add actual liquidity of the token to the aum.
         aum +=

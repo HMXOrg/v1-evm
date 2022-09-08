@@ -8,9 +8,10 @@ import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { FarmFacetInterface } from "../interfaces/FarmFacetInterface.sol";
 import { StrategyInterface } from "../../../interfaces/StrategyInterface.sol";
 
-contract FarmFacet {
+contract FarmFacet is FarmFacetInterface {
   using SafeERC20 for ERC20;
   using SafeCast for uint256;
 
@@ -131,7 +132,7 @@ contract FarmFacet {
       LibPoolV1.increasePoolLiquidity(token, profits);
 
       emit StrategyRealizedProfit(token, profits);
-    } else {
+    } else if (balanceChange < 0) {
       // If there is a loss, then decrease pool liquidity
       uint256 losses = uint256(-balanceChange);
       LibPoolV1.decreasePoolLiquidity(token, losses);

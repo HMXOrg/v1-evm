@@ -27,15 +27,18 @@ contract MockDonateVault is ERC20("Some Lending Token", "SLT") {
   }
 
   function shareToValue(uint256 shares) external view returns (uint256) {
+    uint256 _totalSupply = totalSupply();
     return
-      (shares * ERC20(underlying).balanceOf(address(this))) / totalSupply();
+      _totalSupply == 0
+        ? shares
+        : (shares * ERC20(underlying).balanceOf(address(this))) / _totalSupply;
   }
 
   function valueToShare(uint256 value) external view returns (uint256) {
-    return (value * totalSupply()) / ERC20(underlying).balanceOf(address(this));
-  }
-
-  function steal(uint256 amount) external {
-    ERC20(underlying).transfer(msg.sender, amount);
+    uint256 underlyingBalance = ERC20(underlying).balanceOf(address(this));
+    return
+      underlyingBalance == 0
+        ? value
+        : (value * totalSupply()) / underlyingBalance;
   }
 }

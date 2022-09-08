@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.14;
 
-import { BaseTest, console, stdError, MockFlashLoanBorrower, PoolConfig, LibPoolConfigV1, PoolOracle, Pool, PoolRouter, OwnershipFacetInterface, GetterFacetInterface, LiquidityFacetInterface, PerpTradeFacetInterface, AdminFacetInterface } from "../../base/BaseTest.sol";
+import { BaseTest, console, stdError, MockStrategy, MockDonateVault, MockFlashLoanBorrower, PoolConfig, LibPoolConfigV1, PoolOracle, Pool, PoolRouter, OwnershipFacetInterface, GetterFacetInterface, LiquidityFacetInterface, PerpTradeFacetInterface, AdminFacetInterface, FarmFacetInterface } from "../../base/BaseTest.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 abstract contract PoolDiamond_BaseTest is BaseTest {
@@ -13,6 +13,7 @@ abstract contract PoolDiamond_BaseTest is BaseTest {
   GetterFacetInterface internal poolGetterFacet;
   LiquidityFacetInterface internal poolLiquidityFacet;
   PerpTradeFacetInterface internal poolPerpTradeFacet;
+  FarmFacetInterface internal poolFarmFacet;
 
   function setUp() public virtual {
     BaseTest.PoolConfigConstructorParams memory poolConfigParams = BaseTest
@@ -39,6 +40,7 @@ abstract contract PoolDiamond_BaseTest is BaseTest {
     poolGetterFacet = GetterFacetInterface(poolDiamond);
     poolLiquidityFacet = LiquidityFacetInterface(poolDiamond);
     poolPerpTradeFacet = PerpTradeFacetInterface(poolDiamond);
+    poolFarmFacet = FarmFacetInterface(poolDiamond);
 
     poolRouter = deployPoolRouter(address(matic));
     poolAdminFacet.setRouter(address(poolRouter));
