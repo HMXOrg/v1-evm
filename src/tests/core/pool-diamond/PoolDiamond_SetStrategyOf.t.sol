@@ -4,7 +4,7 @@ pragma solidity 0.8.16;
 import { PoolDiamond_BaseTest, LibPoolConfigV1, MockDonateVault, MockStrategy, Pool, console, GetterFacetInterface, LiquidityFacetInterface } from "./PoolDiamond_BaseTest.t.sol";
 import { StrategyInterface } from "../../../interfaces/StrategyInterface.sol";
 
-contract PoolDiamond_SetStrategyOf is PoolDiamond_BaseTest {
+contract PoolDiamond_SetStrategyOfTest is PoolDiamond_BaseTest {
   MockDonateVault internal mockDaiVault;
   MockStrategy internal mockDaiVaultStrategy;
 
