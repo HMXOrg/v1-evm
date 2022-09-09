@@ -19,34 +19,46 @@ const QUICKSWAP_ROUTER = "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff";
 const LOCKDROP_GATEWAY = config.Lockdrop.gateway;
 const TOKEN_LIST = [
   {
-    token: "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270", // WMATIC
+    token: config.Tokens.WMATIC, // WMATIC
     type: TokenType.BaseToken,
-    lockdrop: "0x6199752F181dC74fCf887F9F0f7B7B6Eb26D5A7B",
+    lockdrop: config.Lockdrop.lockdrops.find(
+      (each: any) => each.lockdropTokenSymbol === "WMATIC"
+    ).address,
   },
   {
-    token: "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619", // WETH
+    token: config.Tokens.WETH, // WETH
     type: TokenType.BaseToken,
-    lockdrop: "0x69F493e47C2793AbA58AbC5c1aaaA1d6DB60b608",
+    lockdrop: config.Lockdrop.lockdrops.find(
+      (each: any) => each.lockdropTokenSymbol === "WETH"
+    ).address,
   },
   {
-    token: "0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6", // WBTC
+    token: config.Tokens.WBTC, // WBTC
     type: TokenType.BaseToken,
-    lockdrop: "0x66B7b19E1A8D2DdED0566ce386c9bCEB7F4177ec",
+    lockdrop: config.Lockdrop.lockdrops.find(
+      (each: any) => each.lockdropTokenSymbol === "WBTC"
+    ).address,
   },
   {
-    token: "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063", // DAI
+    token: config.Tokens.DAI, // DAI
     type: TokenType.BaseToken,
-    lockdrop: "0xC44b8fb84B61AcEa1D46665999f4b0543AA1aF3B",
+    lockdrop: config.Lockdrop.lockdrops.find(
+      (each: any) => each.lockdropTokenSymbol === "DAI"
+    ).address,
   },
   {
-    token: "0x2791bca1f2de4661ed88a30c99a7a9449aa84174", // USDC
+    token: config.Tokens.USDC, // USDC
     type: TokenType.BaseToken,
-    lockdrop: "0x176d0A1EBCBa7863a3AF7db989dedA867e587adf",
+    lockdrop: config.Lockdrop.lockdrops.find(
+      (each: any) => each.lockdropTokenSymbol === "USDC"
+    ).address,
   },
   {
-    token: "0xc2132d05d31c914a87c6611c10748aeb04b58e8f", // USDT
+    token: config.Tokens.USDT, // USDT
     type: TokenType.BaseToken,
-    lockdrop: "0x563960B166266b2bbaaC4561491603101C9Fa676",
+    lockdrop: config.Lockdrop.lockdrops.find(
+      (each: any) => each.lockdropTokenSymbol === "USDT"
+    ).address,
   },
   {
     token: "0x1a13F4Ca1d028320A707D99520AbFefca3998b7F", // aUSDC
