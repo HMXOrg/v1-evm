@@ -11,6 +11,8 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { FarmFacetInterface } from "../interfaces/FarmFacetInterface.sol";
 import { StrategyInterface } from "../../../interfaces/StrategyInterface.sol";
 
+import { console } from "../../../tests/utils/console.sol";
+
 contract FarmFacet is FarmFacetInterface {
   using SafeERC20 for ERC20;
   using SafeCast for uint256;
@@ -61,6 +63,8 @@ contract FarmFacet is FarmFacetInterface {
         int256 balanceChange = poolConfigDs.strategyOf[token].exit(
           strategyData.principle
         );
+        // Update totalOf[token] to sync physical balance with pool state
+        LibPoolV1.updateTotalOf(token);
         // Realized profits/losses
         if (balanceChange > 0) {
           uint256 profit = uint256(balanceChange);
@@ -115,20 +119,16 @@ contract FarmFacet is FarmFacetInterface {
     StrategyInterface strategy = poolConfigDs.strategyOf[token];
 
     // Realized profits or losses from strategy
-    uint256 balanceBefore = ERC20(token).balanceOf(address(this));
     int256 balanceChange = strategy.realized(
       strategyData.principle,
       msg.sender
     );
-    uint256 balanceAfter = ERC20(token).balanceOf(address(this));
     // If there is no change in balance, and does not need to rebalance, then stop it here.
     if (balanceChange == 0 && !isRebalanceNeeded) return;
 
     if (balanceChange > 0) {
       // If there is a profit, then increase pool liquidity
       uint256 profits = uint256(balanceChange);
-      if (profits != (balanceAfter - balanceBefore))
-        revert FarmFacet_InvalidRealizedProfits();
       LibPoolV1.increasePoolLiquidity(token, profits);
 
       emit StrategyRealizedProfit(token, profits);
@@ -166,13 +166,7 @@ contract FarmFacet is FarmFacetInterface {
         uint256 amountIn = strategyData.principle - targetDeployedFunds;
 
         // Withdraw funds from strategy and transfer it back to pool
-        balanceBefore = ERC20(token).balanceOf(address(this));
         uint256 actualAmountIn = strategy.withdraw(amountIn);
-        balanceAfter = ERC20(token).balanceOf(address(this));
-
-        // Check if strategy actually give the right amount
-        if (actualAmountIn != (balanceAfter - balanceBefore))
-          revert FarmFacet_InvalidWithdrawal();
 
         // Update how much pool put in the strategy
         strategyData.principle -= actualAmountIn.toUint128();

@@ -8,6 +8,7 @@ import { console } from "../utils/console.sol";
 import { stdError } from "../utils/stdError.sol";
 
 import { Constants as CoreConstants } from "../../core/Constants.sol";
+import { MintableTokenInterface } from "../../interfaces/MintableTokenInterface.sol";
 
 import { MockErc20 } from "../mocks/MockErc20.sol";
 import { MockChainlinkPriceFeed } from "../mocks/MockChainlinkPriceFeed.sol";
@@ -311,7 +312,7 @@ contract BaseTest is DSTest, CoreConstants {
   {
     GetterFacet getterFacet = new GetterFacet();
 
-    bytes4[] memory selectors = new bytes4[](56);
+    bytes4[] memory selectors = new bytes4[](57);
     selectors[0] = GetterFacet.getAddLiquidityFeeBps.selector;
     selectors[1] = GetterFacet.getRemoveLiquidityFeeBps.selector;
     selectors[2] = GetterFacet.getSwapFeeBps.selector;
@@ -368,6 +369,7 @@ contract BaseTest is DSTest, CoreConstants {
     selectors[53] = GetterFacet.strategyOf.selector;
     selectors[54] = GetterFacet.strategyDataOf.selector;
     selectors[55] = GetterFacet.getStrategyDeltaOf.selector;
+    selectors[56] = GetterFacet.totalOf.selector;
 
     DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
       address(getterFacet),

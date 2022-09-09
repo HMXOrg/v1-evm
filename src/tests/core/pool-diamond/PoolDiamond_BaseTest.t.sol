@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.14;
 
-import { BaseTest, console, stdError, MockStrategy, MockDonateVault, MockFlashLoanBorrower, PoolConfig, LibPoolConfigV1, PoolOracle, Pool, PoolRouter, OwnershipFacetInterface, GetterFacetInterface, LiquidityFacetInterface, PerpTradeFacetInterface, AdminFacetInterface, FarmFacetInterface } from "../../base/BaseTest.sol";
+import { BaseTest, console, stdError, MockStrategy, MockDonateVault, MintableTokenInterface, MockFlashLoanBorrower, PoolConfig, LibPoolConfigV1, PoolOracle, Pool, PoolRouter, OwnershipFacetInterface, GetterFacetInterface, LiquidityFacetInterface, PerpTradeFacetInterface, AdminFacetInterface, FarmFacetInterface } from "../../base/BaseTest.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 abstract contract PoolDiamond_BaseTest is BaseTest {
   PoolOracle internal poolOracle;
   address internal poolDiamond;
   PoolRouter internal poolRouter;
+  MintableTokenInterface internal plp;
 
   AdminFacetInterface internal poolAdminFacet;
   GetterFacetInterface internal poolGetterFacet;
@@ -41,6 +42,8 @@ abstract contract PoolDiamond_BaseTest is BaseTest {
     poolLiquidityFacet = LiquidityFacetInterface(poolDiamond);
     poolPerpTradeFacet = PerpTradeFacetInterface(poolDiamond);
     poolFarmFacet = FarmFacetInterface(poolDiamond);
+
+    plp = poolGetterFacet.plp();
 
     poolRouter = deployPoolRouter(address(matic));
     poolAdminFacet.setRouter(address(poolRouter));

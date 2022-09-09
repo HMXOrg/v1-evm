@@ -225,6 +225,10 @@ library LibPoolConfigV1 {
     return poolConfigV1DiamondStorage().maxLeverage;
   }
 
+  function strategyOf(address token) internal view returns (StrategyInterface) {
+    return poolConfigV1DiamondStorage().strategyOf[token];
+  }
+
   function treasury() internal view returns (address) {
     return poolConfigV1DiamondStorage().treasury;
   }

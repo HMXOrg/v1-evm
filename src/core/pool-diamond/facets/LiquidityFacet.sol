@@ -4,6 +4,7 @@ pragma solidity 0.8.14;
 import { LibReentrancyGuard } from "../libraries/LibReentrancyGuard.sol";
 import { LibPoolV1 } from "../libraries/LibPoolV1.sol";
 import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -11,11 +12,13 @@ import { GetterFacetInterface } from "../interfaces/GetterFacetInterface.sol";
 import { FundingRateFacetInterface } from "../interfaces/FundingRateFacetInterface.sol";
 import { LiquidityFacetInterface } from "../interfaces/LiquidityFacetInterface.sol";
 import { FlashLoanBorrowerInterface } from "../../../interfaces/FlashLoanBorrowerInterface.sol";
+import { StrategyInterface } from "../../../interfaces/StrategyInterface.sol";
 
 import { console } from "../../../tests/utils/console.sol";
 
 contract LiquidityFacet is LiquidityFacetInterface {
   using SafeERC20 for IERC20;
+  using SafeCast for uint256;
 
   error LiquidityFacet_BadAmount();
   error LiquidityFacet_BadAmountOut();
@@ -75,6 +78,7 @@ contract LiquidityFacet is LiquidityFacetInterface {
     uint256 usdDebt,
     uint256 amountOut
   );
+  event StrategyDivest(address token, uint256 amount);
   event Swap(
     address account,
     address tokenIn,
@@ -203,6 +207,43 @@ contract LiquidityFacet is LiquidityFacetInterface {
     return usdDebt;
   }
 
+  function _tokenOut(
+    address token,
+    address to,
+    uint256 amountOut
+  ) internal {
+    // Load PoolV1 diamond storage
+    LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
+      .poolV1DiamondStorage();
+
+    // Load PoolConfigV1 diamond storage
+    LibPoolConfigV1.PoolConfigV1DiamondStorage
+      storage poolConfigV1ds = LibPoolConfigV1.poolConfigV1DiamondStorage();
+
+    StrategyInterface strategy = poolConfigV1ds.strategyOf[token];
+    uint256 balance = IERC20(token).balanceOf(address(this));
+    if (address(strategy) != address(0) && balance < amountOut) {
+      // Handle when physical tokens in Pool < amountOut, then we need to withdraw from strategy.
+      LibPoolConfigV1.StrategyData storage strategyData = poolConfigV1ds
+        .strategyDataOf[token];
+
+      uint256 amountIn = strategyData.principle - (amountOut - balance);
+
+      // Witthdraw funds from strategy
+      strategy.withdraw(amountIn);
+      uint256 actualAmountIn = LibPoolV1.pullTokens(token);
+
+      // Update how much pool put in the strategy
+      strategyData.principle -= actualAmountIn.toUint128();
+
+      // Update totalOf[token]
+      poolV1ds.totalOf[token] = IERC20(token).balanceOf(address(this));
+
+      emit StrategyDivest(token, actualAmountIn);
+    }
+    LibPoolV1.pushTokens(token, to, amountOut);
+  }
+
   function removeLiquidity(
     address account,
     address tokenOut,
@@ -235,7 +276,7 @@ contract LiquidityFacet is LiquidityFacetInterface {
     uint256 amountOut = _exit(tokenOut, lpUsdValue, receiver);
 
     poolV1ds.plp.burn(address(this), liquidity);
-    LibPoolV1.pushTokens(tokenOut, receiver, amountOut);
+    _tokenOut(tokenOut, receiver, amountOut);
 
     emit RemoveLiquidity(
       account,

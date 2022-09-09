@@ -259,6 +259,11 @@ library LibPoolV1 {
     emit DecreaseShortSize(token, amountUsd);
   }
 
+  function updateTotalOf(address token) internal {
+    PoolV1DiamondStorage storage poolV1ds = poolV1DiamondStorage();
+    poolV1ds.totalOf[token] = IERC20(token).balanceOf(address(this));
+  }
+
   /// ---------------------------
   /// ERC20 interaction functions
   /// ---------------------------
