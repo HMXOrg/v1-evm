@@ -86,7 +86,7 @@ const methods = [
 const facetCuts = [
   {
     facetAddress: config.Pools.PLP.facets.getter,
-    action: FacetCutAction.Replace,
+    action: FacetCutAction.Add,
     functionSelectors: methods.map((each) => {
       return GetterFacet__factory.createInterface().getSighash(each);
     }),
@@ -102,12 +102,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   );
 
   await (
-    await poolDiamond.diamondCut(
-      facetCuts,
-      ethers.constants.AddressZero,
-      "0x",
-      { gasLimit: 100000000 }
-    )
+    await poolDiamond.diamondCut(facetCuts, ethers.constants.AddressZero, "0x")
   ).wait();
 
   console.log(`Execute diamondCut for GetterFacet`);

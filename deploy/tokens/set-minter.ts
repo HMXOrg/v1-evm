@@ -9,7 +9,7 @@ const config = getConfig();
 const TOKEN_ADDRESS = config.Tokens.DragonPoint;
 const MINTER_ADDRESSES = [
   config.Staking.DragonStaking.address,
-  "0xb366c92fF7CCE8d87De62DE52F19993Da7CB2024",
+  config.Staking.DragonStaking.rewarders[2].address,
 ];
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {

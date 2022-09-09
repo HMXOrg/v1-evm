@@ -5,7 +5,7 @@ import { getConfig } from "../utils/config";
 
 const config = getConfig();
 
-const startLockTimestamp = 1662694200;
+const startLockTimestamp = 1662705000;
 const plpStaking = config.Staking.PLPStaking.address;
 const plpToken = config.Tokens.PLP;
 const p88Token = config.Tokens.P88;

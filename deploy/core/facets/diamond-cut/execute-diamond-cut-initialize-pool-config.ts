@@ -42,10 +42,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           liquidityCoolDownDuration,
           liquidationFeeUsd,
         ]
-      ),
-      {
-        gasLimit: 100000000,
-      }
+      )
     )
   ).wait();
 

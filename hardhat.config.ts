@@ -17,6 +17,13 @@ const config: HardhatUserConfig = {
           ? [process.env.POLYGON_MAINNET_PRIVATE_KEY]
           : [],
     },
+    mumbai: {
+      url: process.env.POLYGON_MUMBAI_RPC,
+      accounts:
+        process.env.POLYGON_MUMBAI_PRIVATE_KEY !== undefined
+          ? [process.env.POLYGON_MUMBAI_PRIVATE_KEY]
+          : [],
+    },
   },
   solidity: {
     version: "0.8.17",

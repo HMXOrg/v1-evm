@@ -34,10 +34,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
             "initialize()"
           ),
         ]
-      ),
-      {
-        gasLimit: 100000000,
-      }
+      )
     )
   ).wait();
 

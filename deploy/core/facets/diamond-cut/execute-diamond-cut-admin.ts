@@ -63,12 +63,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   );
 
   await (
-    await poolDiamond.diamondCut(
-      facetCuts,
-      ethers.constants.AddressZero,
-      "0x",
-      { gasLimit: 100000000 }
-    )
+    await poolDiamond.diamondCut(facetCuts, ethers.constants.AddressZero, "0x")
   ).wait();
 
   console.log(`Execute diamondCut for AdminFacet`);
