@@ -3,11 +3,11 @@ pragma solidity 0.8.16;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { IWNative } from "src/interfaces/IWNative.sol";
+import { IWNative } from "../../interfaces/IWNative.sol";
 import { LiquidityFacetInterface } from "./interfaces/LiquidityFacetInterface.sol";
 import { GetterFacetInterface } from "./interfaces/GetterFacetInterface.sol";
-import { PerpTradeFacetInterface } from "src/core/pool-diamond/interfaces/PerpTradeFacetInterface.sol";
-import { PoolOracle } from "src/core/PoolOracle.sol";
+import { PerpTradeFacetInterface } from "./interfaces/PerpTradeFacetInterface.sol";
+import { PoolOracle } from "../PoolOracle.sol";
 
 contract PoolRouter {
   using SafeERC20 for IERC20;
