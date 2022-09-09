@@ -1,9 +1,12 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
+import { getConfig } from "../utils/config";
 
-const esp88Token = "0xEB27B05178515c7E6E51dEE159c8487A011ac030";
-const dragonStaking = "0xCB1EaA1E9Fd640c3900a4325440c80FEF4b1b16d";
+const config = getConfig();
+
+const esp88Token = config.Tokens.esP88;
+const dragonStaking = config.Staking.DragonStaking.address;
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];

@@ -2,6 +2,9 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { LockdropGateway__factory, PoolConfig__factory } from "../../typechain";
+import { getConfig } from "../utils/config";
+
+const config = getConfig();
 
 enum TokenType {
   UninitializedToken,
@@ -13,7 +16,7 @@ enum TokenType {
 }
 
 const QUICKSWAP_ROUTER = "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff";
-const LOCKDROP_GATEWAY = "0x01F488b7446A4d96424a0DAC097C3aFEf9BaF626";
+const LOCKDROP_GATEWAY = config.Lockdrop.gateway;
 const TOKEN_LIST = [
   {
     token: "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270", // WMATIC
