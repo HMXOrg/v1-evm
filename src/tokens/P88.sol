@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
-import "./MintableToken.sol";
+import { BaseMintableToken } from "./base/BaseMintableToken.sol";
 
-contract P88 is MintableToken {
-  constructor() ERC20("P88", "P88") {
-  }
+contract P88 is BaseMintableToken {
+  constructor() BaseMintableToken("Perp88", "P88", 18) {}
 }

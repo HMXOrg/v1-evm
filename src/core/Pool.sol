@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
 import { PoolConfig } from "./PoolConfig.sol";
 import { PoolMath } from "./PoolMath.sol";
@@ -7,11 +7,11 @@ import { PoolOracle } from "./PoolOracle.sol";
 import { MintableTokenInterface } from "../interfaces/MintableTokenInterface.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { ReentrancyGuard } from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import { Constants } from "./Constants.sol";
+import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract Pool is Ownable, Constants, ReentrancyGuard {
+contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
   using SafeERC20 for IERC20;
 
   error Pool_AllowTokensLengthMismatch();
@@ -208,12 +208,15 @@ contract Pool is Ownable, Constants, ReentrancyGuard {
   );
   event WithdrawFeeReserve(address token, address to, uint256 amount);
 
-  constructor(
+  function initialize(
     MintableTokenInterface _plp,
     PoolConfig _config,
     PoolMath _poolMath,
     PoolOracle _oracle
-  ) {
+  ) external initializer {
+    OwnableUpgradeable.__Ownable_init();
+    ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
+
     config = _config;
     poolMath = _poolMath;
     oracle = _oracle;
@@ -1454,5 +1457,10 @@ contract Pool is Ownable, Constants, ReentrancyGuard {
     _pushTokens(token, to, amount);
 
     emit WithdrawFeeReserve(token, to, amount);
+  }
+
+  /// @custom:oz-upgrades-unsafe-allow constructor
+  constructor() {
+    _disableInitializers();
   }
 }

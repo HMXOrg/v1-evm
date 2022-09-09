@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
-import "../../interfaces/ChainlinkPriceFeedInterface.sol";
+import "../../interfaces/ChainLinkPriceFeedInterface.sol";
 
 /// @title MockChainlinkPriceFeed - for testing purposes ONLY.
 contract MockChainlinkPriceFeed is ChainlinkPriceFeedInterface {
