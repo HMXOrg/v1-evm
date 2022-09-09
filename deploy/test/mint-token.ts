@@ -5,7 +5,7 @@ import { MintableTokenInterface__factory } from "../../typechain";
 import { getConfig } from "../utils/config";
 
 const config = getConfig();
-const TOKEN_ADDRESS = config.Tokens.WBTC;
+const TOKEN_ADDRESS = config.Tokens.esP88;
 const MINT_TO = "0x6629ec35c8aa279ba45dbfb575c728d3812ae31a";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -14,7 +14,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     TOKEN_ADDRESS,
     deployer
   );
-  const tx = await token.mint(MINT_TO, ethers.utils.parseUnits("1000", 8));
+  const tx = await token.mint(
+    MINT_TO,
+    ethers.utils.parseUnits("150000000", 18)
+  );
   const txReceipt = await tx.wait();
   console.log(`Execute  mint`);
   console.log(`Token: ${TOKEN_ADDRESS}`);

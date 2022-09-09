@@ -2,9 +2,12 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { DragonPoint__factory } from "../../typechain";
+import { getConfig } from "../utils/config";
 
-const TOKEN_ADDRESS = "0x20E58fC5E1ee3C596fb3ebD6de6040e7800e82E6";
-const TRANSFERRER_ADDRESS = "0xCB1EaA1E9Fd640c3900a4325440c80FEF4b1b16d";
+const config = getConfig();
+
+const TOKEN_ADDRESS = config.Tokens.DragonPoint;
+const TRANSFERRER_ADDRESS = "0xb366c92fF7CCE8d87De62DE52F19993Da7CB2024";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
