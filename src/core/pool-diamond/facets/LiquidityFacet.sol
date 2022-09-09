@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 import { LibReentrancyGuard } from "../libraries/LibReentrancyGuard.sol";
 import { LibPoolV1 } from "../libraries/LibPoolV1.sol";

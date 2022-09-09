@@ -1,4 +1,4 @@
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 interface IFeedableRewarder {
   function name() external view returns (string memory);

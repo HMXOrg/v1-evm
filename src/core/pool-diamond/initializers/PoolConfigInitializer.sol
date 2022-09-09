@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
 import { LinkedList } from "../../../libraries/LinkedList.sol";
