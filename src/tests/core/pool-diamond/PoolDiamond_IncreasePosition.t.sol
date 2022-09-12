@@ -232,8 +232,14 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
     vm.startPrank(ALICE);
 
     // Alice add liquidity with 117499 satoshi
-    wbtc.transfer(address(poolDiamond), 117499);
-    poolLiquidityFacet.addLiquidity(ALICE, address(wbtc), ALICE);
+    wbtc.approve(address(poolRouter), 117499);
+    poolRouter.addLiquidity(
+      address(poolDiamond),
+      address(wbtc),
+      117499,
+      ALICE,
+      0
+    );
 
     // After Alice added 117499 satoshi as a liquidity,
     // the following conditions should be met:
@@ -258,8 +264,14 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
     );
 
     // Alice add liquidity again with 117499 satoshi
-    wbtc.transfer(address(poolDiamond), 117499);
-    poolLiquidityFacet.addLiquidity(ALICE, address(wbtc), ALICE);
+    wbtc.approve(address(poolRouter), 117499);
+    poolRouter.addLiquidity(
+      address(poolDiamond),
+      address(wbtc),
+      117499,
+      ALICE,
+      0
+    );
 
     // After Alice added 117499 satoshi as a liquidity,
     // the following conditions should be met:
@@ -284,14 +296,18 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
     );
 
     // Alice increase long position with sub account id = 0
-    wbtc.transfer(address(poolDiamond), 22500);
-    poolPerpTradeFacet.increasePosition(
-      ALICE,
+    wbtc.approve(address(poolRouter), 22500);
+    poolRouter.increasePosition(
+      address(poolDiamond),
       0,
       address(wbtc),
       address(wbtc),
+      22500,
+      0,
+      address(wbtc),
       47 * 10**30,
-      true
+      true,
+      type(uint256).max
     );
 
     // The following condition expected to be happened:
@@ -363,10 +379,12 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
 
     // Add 1 WBTC as a liquidity for the pool
     wbtc.mint(address(poolDiamond), 1 * 10**8);
-    poolLiquidityFacet.addLiquidity(
-      address(this),
+    poolRouter.addLiquidity(
+      address(poolDiamond),
       address(wbtc),
-      address(this)
+      0,
+      address(this),
+      0
     );
 
     // The following criteria should be met:
@@ -390,13 +408,17 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
     // Long 80,000 USD on WBTC with 0.5 WBTC (50,000 USD) as a collateral
     // This is 80,000 / 50,000 = 1.6x
     wbtc.mint(address(poolDiamond), 0.5 * 10**8);
-    poolPerpTradeFacet.increasePosition(
-      address(this),
+    poolRouter.increasePosition(
+      address(poolDiamond),
       0,
       address(wbtc),
       address(wbtc),
+      0,
+      0,
+      address(wbtc),
       80_000 * 10**30,
-      true
+      true,
+      type(uint256).max
     );
 
     // The following conditions need to be met after long position created:
@@ -507,10 +529,12 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
 
     // Add 117499 sathoshi as liquidity
     wbtc.mint(address(poolDiamond), 117499);
-    poolLiquidityFacet.addLiquidity(
-      address(this),
+    poolRouter.addLiquidity(
+      address(poolDiamond),
       address(wbtc),
-      address(this)
+      0,
+      address(this),
+      0
     );
 
     // Assert pool's state.
@@ -534,10 +558,12 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
 
     // Add 117499 sathoshi as liquidity
     wbtc.mint(address(poolDiamond), 117499);
-    poolLiquidityFacet.addLiquidity(
-      address(this),
+    poolRouter.addLiquidity(
+      address(poolDiamond),
       address(wbtc),
-      address(this)
+      0,
+      address(this),
+      0
     );
 
     // Assert pool's state.
@@ -571,13 +597,17 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
 
     // Open a 47 USD WBTC long position with 22500 sathoshi as collateral
     wbtc.mint(address(poolDiamond), 22500);
-    poolPerpTradeFacet.increasePosition(
-      address(this),
+    poolRouter.increasePosition(
+      address(poolDiamond),
       0,
       address(wbtc),
       address(wbtc),
+      0,
+      0,
+      address(wbtc),
       47 * 10**30,
-      true
+      true,
+      type(uint256).max
     );
 
     // Assert pool's state:
@@ -653,13 +683,17 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
 
     // Add 22500 sats as a collateral
     wbtc.mint(address(poolDiamond), 22500);
-    poolPerpTradeFacet.increasePosition(
-      address(this),
+    poolRouter.increasePosition(
+      address(poolDiamond),
       0,
       address(wbtc),
       address(wbtc),
       0,
-      true
+      0,
+      address(wbtc),
+      0,
+      true,
+      type(uint256).max
     );
 
     // Assert pool's state:
@@ -746,13 +780,17 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
 
     // Add another 100 sats as collateral
     wbtc.mint(address(poolDiamond), 100);
-    poolPerpTradeFacet.increasePosition(
-      address(this),
+    poolRouter.increasePosition(
+      address(poolDiamond),
       0,
       address(wbtc),
       address(wbtc),
       0,
-      true
+      0,
+      address(wbtc),
+      0,
+      true,
+      type(uint256).max
     );
 
     // Assert position
@@ -1019,8 +1057,14 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
     vm.startPrank(ALICE);
 
     // Alice performs add liquidity by a 500 DAI
-    dai.transfer(address(poolDiamond), 500 * 10**18);
-    poolLiquidityFacet.addLiquidity(ALICE, address(dai), ALICE);
+    dai.approve(address(poolRouter), 500 * 10**18);
+    poolRouter.addLiquidity(
+      address(poolDiamond),
+      address(dai),
+      500 * 10**18,
+      ALICE,
+      0
+    );
 
     // The following conditions need to be met:
     // 1. Pool's DAI liquidity should be 500 * (1-0.0004) = 499.8 DAI
@@ -1048,14 +1092,18 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
     vm.startPrank(ALICE);
 
     // Alice opens a 90 USD WBTC short position with 20 DAI as a collateral
-    dai.transfer(address(poolDiamond), 20 * 10**18);
-    poolPerpTradeFacet.increasePosition(
-      ALICE,
+    dai.approve(address(poolRouter), 20 * 10**18);
+    poolRouter.increasePosition(
+      address(poolDiamond),
       0,
       address(dai),
+      address(dai),
+      20 * 10**18,
+      0,
       address(wbtc),
       90 * 10**30,
-      false
+      false,
+      0
     );
 
     // The following conditions need to be met:
@@ -1166,7 +1214,13 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
 
     // Add 100 as a liquidity
     dai.mint(address(poolDiamond), 100 * 10**18);
-    poolLiquidityFacet.addLiquidity(address(this), address(dai), address(this));
+    poolRouter.addLiquidity(
+      address(poolDiamond),
+      address(dai),
+      0,
+      address(this),
+      0
+    );
 
     wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
     wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
@@ -1174,13 +1228,17 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
 
     // Open a 90 USD WBTC short position with 10 DAI as a collateral
     dai.mint(address(poolDiamond), 10 * 10**18);
-    poolPerpTradeFacet.increasePosition(
-      address(this),
+    poolRouter.increasePosition(
+      address(poolDiamond),
       0,
       address(dai),
+      address(dai),
+      0,
+      0,
       address(wbtc),
       90 * 10**30,
-      false
+      false,
+      0
     );
 
     // The following conditions need to be met:

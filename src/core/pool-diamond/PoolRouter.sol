@@ -125,8 +125,10 @@ contract PoolRouter {
   function increasePosition(
     address pool,
     uint256 subAccountId,
+    address tokenIn,
     address collateralToken,
-    uint256 collateralTokenAmount,
+    uint256 amountIn,
+    uint256 minAmountOut,
     address indexToken,
     uint256 sizeDelta,
     bool isLong,
@@ -143,11 +145,20 @@ contract PoolRouter {
         revert PoolRouter_MarkPriceTooLow(acceptablePrice, actualPrice);
     }
 
-    IERC20(collateralToken).safeTransferFrom(
-      msg.sender,
-      pool,
-      collateralTokenAmount
-    );
+    if (tokenIn != collateralToken) {
+      _swap(
+        pool,
+        msg.sender,
+        tokenIn,
+        collateralToken,
+        amountIn,
+        minAmountOut,
+        address(this)
+      );
+      IERC20(collateralToken).safeTransfer(pool, amountIn);
+    } else {
+      IERC20(collateralToken).safeTransferFrom(msg.sender, pool, amountIn);
+    }
 
     PerpTradeFacetInterface(pool).increasePosition(
       msg.sender,
@@ -162,7 +173,9 @@ contract PoolRouter {
   function increasePositionNative(
     address pool,
     uint256 subAccountId,
+    address tokenIn,
     address collateralToken,
+    uint256 minAmountOut,
     address indexToken,
     uint256 sizeDelta,
     bool isLong,
@@ -179,8 +192,22 @@ contract PoolRouter {
         revert PoolRouter_MarkPriceTooLow(acceptablePrice, actualPrice);
     }
 
-    WNATIVE.deposit{ value: msg.value }();
-    IERC20(address(WNATIVE)).safeTransfer(pool, msg.value);
+    if (tokenIn != collateralToken && tokenIn == address(WNATIVE)) {
+      WNATIVE.deposit{ value: msg.value }();
+      uint256 amountOut = _swap(
+        pool,
+        address(this),
+        tokenIn,
+        collateralToken,
+        msg.value,
+        minAmountOut,
+        address(this)
+      );
+      IERC20(collateralToken).safeTransfer(pool, amountOut);
+    } else {
+      WNATIVE.deposit{ value: msg.value }();
+      IERC20(address(WNATIVE)).safeTransfer(pool, msg.value);
+    }
 
     PerpTradeFacetInterface(pool).increasePosition(
       msg.sender,
@@ -202,6 +229,7 @@ contract PoolRouter {
     bool isLong,
     address receiver,
     uint256 acceptablePrice,
+    address tokenOut,
     uint256 minAmountOut
   ) external {
     PoolOracle oracle = PoolOracle(GetterFacetInterface(pool).oracle());
@@ -215,19 +243,36 @@ contract PoolRouter {
         revert PoolRouter_MarkPriceTooHigh(acceptablePrice, actualPrice);
     }
 
-    uint256 amountOut = PerpTradeFacetInterface(pool).decreasePosition(
-      msg.sender,
-      subAccountId,
-      collateralToken,
-      indexToken,
-      collateralDelta,
-      sizeDelta,
-      isLong,
-      receiver
-    );
+    uint256 amountOutFromPosition = PerpTradeFacetInterface(pool)
+      .decreasePosition(
+        msg.sender,
+        subAccountId,
+        collateralToken,
+        indexToken,
+        collateralDelta,
+        sizeDelta,
+        isLong,
+        address(this)
+      );
 
-    if (amountOut < minAmountOut)
-      revert PoolRouter_InsufficientOutputAmount(minAmountOut, amountOut);
+    if (collateralToken == tokenOut) {
+      if (amountOutFromPosition < minAmountOut)
+        revert PoolRouter_InsufficientOutputAmount(
+          minAmountOut,
+          amountOutFromPosition
+        );
+      IERC20(tokenOut).safeTransfer(receiver, amountOutFromPosition);
+    } else {
+      _swap(
+        pool,
+        address(this),
+        collateralToken,
+        tokenOut,
+        amountOutFromPosition,
+        minAmountOut,
+        receiver
+      );
+    }
   }
 
   function decreasePositionNative(
@@ -240,8 +285,9 @@ contract PoolRouter {
     bool isLong,
     address receiver,
     uint256 acceptablePrice,
+    address tokenOut,
     uint256 minAmountOut
-  ) external {
+  ) external payable {
     PoolOracle oracle = PoolOracle(GetterFacetInterface(pool).oracle());
     if (isLong) {
       uint256 actualPrice = oracle.getMinPrice(indexToken);
@@ -253,22 +299,117 @@ contract PoolRouter {
         revert PoolRouter_MarkPriceTooHigh(acceptablePrice, actualPrice);
     }
 
-    uint256 amountOut = PerpTradeFacetInterface(pool).decreasePosition(
-      msg.sender,
-      subAccountId,
-      collateralToken,
-      indexToken,
-      collateralDelta,
-      sizeDelta,
-      isLong,
-      receiver
-    );
+    uint256 amountOutFromPosition = PerpTradeFacetInterface(pool)
+      .decreasePosition(
+        msg.sender,
+        subAccountId,
+        collateralToken,
+        indexToken,
+        collateralDelta,
+        sizeDelta,
+        isLong,
+        address(this)
+      );
 
-    if (amountOut < minAmountOut)
-      revert PoolRouter_InsufficientOutputAmount(minAmountOut, amountOut);
+    if (collateralToken == tokenOut) {
+      if (amountOutFromPosition < minAmountOut)
+        revert PoolRouter_InsufficientOutputAmount(
+          minAmountOut,
+          amountOutFromPosition
+        );
+      WNATIVE.withdraw(amountOutFromPosition);
+      payable(receiver).transfer(amountOutFromPosition);
+    } else {
+      uint256 amountOutFromSwap = _swap(
+        pool,
+        address(this),
+        collateralToken,
+        tokenOut,
+        amountOutFromPosition,
+        minAmountOut,
+        address(this)
+      );
+      WNATIVE.withdraw(amountOutFromSwap);
+      payable(receiver).transfer(amountOutFromSwap);
+    }
+  }
 
-    WNATIVE.withdraw(amountOut);
-    payable(receiver).transfer(amountOut);
+  function swap(
+    address pool,
+    address tokenIn,
+    address tokenOut,
+    uint256 amountIn,
+    uint256 minAmountOut,
+    address receiver
+  ) external returns (uint256) {
+    return
+      _swap(
+        pool,
+        msg.sender,
+        tokenIn,
+        tokenOut,
+        amountIn,
+        minAmountOut,
+        receiver
+      );
+  }
+
+  function _swap(
+    address pool,
+    address sender,
+    address tokenIn,
+    address tokenOut,
+    uint256 amountIn,
+    uint256 minAmountOut,
+    address receiver
+  ) internal returns (uint256) {
+    IERC20(tokenIn).safeTransferFrom(sender, address(pool), amountIn);
+
+    return
+      LiquidityFacetInterface(pool).swap(
+        tokenIn,
+        tokenOut,
+        minAmountOut,
+        receiver
+      );
+  }
+
+  function swapNative(
+    address pool,
+    address tokenIn,
+    address tokenOut,
+    uint256 amountIn,
+    uint256 minAmountOut,
+    address receiver
+  ) external payable returns (uint256) {
+    if (tokenIn == address(WNATIVE)) {
+      WNATIVE.deposit{ value: msg.value }();
+      IERC20(address(WNATIVE)).safeTransfer(pool, msg.value);
+      amountIn = msg.value;
+    } else {
+      IERC20(tokenIn).safeTransferFrom(msg.sender, address(pool), amountIn);
+    }
+
+    if (tokenOut == address(WNATIVE)) {
+      uint256 amountOut = LiquidityFacetInterface(pool).swap(
+        tokenIn,
+        tokenOut,
+        minAmountOut,
+        address(this)
+      );
+
+      WNATIVE.withdraw(amountOut);
+      payable(receiver).transfer(amountOut);
+      return amountOut;
+    } else {
+      return
+        LiquidityFacetInterface(pool).swap(
+          tokenIn,
+          tokenOut,
+          minAmountOut,
+          receiver
+        );
+    }
   }
 
   receive() external payable {

@@ -91,8 +91,14 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     vm.startPrank(BOB);
 
     // Perform add liquidity
-    matic.transfer(address(poolDiamond), 1 ether);
-    poolLiquidityFacet.addLiquidity(BOB, address(matic), BOB);
+    matic.approve(address(poolRouter), 1 ether);
+    poolRouter.addLiquidity(
+      address(poolDiamond),
+      address(matic),
+      1 ether,
+      BOB,
+      0
+    );
 
     // After Bob added MATIC liquidity, the following criteria needs to satisfy:
     // 1. MATIC balance of Bob should be 0
@@ -134,8 +140,8 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     vm.startPrank(CAT);
 
     // Perform add liquidity
-    wbtc.transfer(address(poolDiamond), 1000000);
-    poolLiquidityFacet.addLiquidity(CAT, address(wbtc), CAT);
+    wbtc.approve(address(poolRouter), 1000000);
+    poolRouter.addLiquidity(poolDiamond, address(wbtc), 1000000, CAT, 0);
 
     // After Cat added WBTC liquidity, the following criteria needs to satisfy:
     // 1. WBTC balance of Cat should be 0
@@ -169,8 +175,14 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     vm.startPrank(ALICE);
 
     // Perform add liquidity
-    dai.transfer(address(poolDiamond), 100 ether);
-    poolLiquidityFacet.addLiquidity(ALICE, address(dai), ALICE);
+    dai.approve(address(poolRouter), 100 ether);
+    poolRouter.addLiquidity(
+      address(poolDiamond),
+      address(dai),
+      100 ether,
+      ALICE,
+      0
+    );
 
     // After Alice added DAI liquidity, the following criteria needs to satisfy:
     // 1. DAI balance of Alice should be 0
@@ -206,8 +218,14 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     vm.startPrank(BOB);
 
     // Perform add liquidity
-    matic.transfer(address(poolDiamond), 1 ether);
-    poolLiquidityFacet.addLiquidity(BOB, address(matic), BOB);
+    matic.approve(address(poolRouter), 1 ether);
+    poolRouter.addLiquidity(
+      address(poolDiamond),
+      address(matic),
+      1 ether,
+      BOB,
+      0
+    );
 
     // After Bob added MATIC liquidity, the following criteria needs to satisfy:
     // 1. MATIC balance of Bob should be 0
@@ -250,8 +268,14 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     vm.startPrank(CAT);
 
     // Perform add liquidity
-    wbtc.transfer(address(poolDiamond), 1000000);
-    poolLiquidityFacet.addLiquidity(CAT, address(wbtc), CAT);
+    wbtc.approve(address(poolRouter), 1000000);
+    poolRouter.addLiquidity(
+      address(poolDiamond),
+      address(wbtc),
+      1000000,
+      CAT,
+      0
+    );
 
     // After Cat added WBTC liquidity, the following criteria needs to satisfy:
     // 1. WBTC balance of Cat should be 0
