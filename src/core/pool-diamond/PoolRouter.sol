@@ -146,7 +146,7 @@ contract PoolRouter {
     }
 
     if (tokenIn != collateralToken) {
-      _swap(
+      uint256 amountOutFromSwap = _swap(
         pool,
         msg.sender,
         tokenIn,
@@ -155,7 +155,7 @@ contract PoolRouter {
         minAmountOut,
         address(this)
       );
-      IERC20(collateralToken).safeTransfer(pool, amountIn);
+      IERC20(collateralToken).safeTransfer(pool, amountOutFromSwap);
     } else {
       IERC20(collateralToken).safeTransferFrom(msg.sender, pool, amountIn);
     }
