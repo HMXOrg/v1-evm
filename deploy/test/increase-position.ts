@@ -12,6 +12,7 @@ const config = getConfig();
 
 const POOL_ROUTER = config.PoolRouter;
 const COLLATERAL_TOKEN = config.Tokens.DAI;
+const INDEX_TOKEN = config.Tokens.WETH;
 
 enum Exposure {
   LONG,
@@ -22,6 +23,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
   const poolRouter = PoolRouter__factory.connect(POOL_ROUTER, deployer);
   const collateralToken = ERC20__factory.connect(COLLATERAL_TOKEN, deployer);
+  const decimals = await collateralToken.decimals();
 
   await (
     await collateralToken.approve(
@@ -35,9 +37,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       config.Pools.PLP.poolDiamond,
       0,
       COLLATERAL_TOKEN,
-      ethers.utils.parseUnits("1000", 18),
-      config.Tokens.WBTC,
-      ethers.utils.parseUnits("10000", 30),
+      config.Tokens.USDC,
+      ethers.utils.parseUnits("10000", decimals),
+      0,
+      INDEX_TOKEN,
+      ethers.utils.parseUnits("30000", 30),
       false,
       ethers.constants.Zero,
       { gasLimit: 10000000 }

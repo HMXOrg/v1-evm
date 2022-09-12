@@ -11,7 +11,7 @@ const TOKEN_ADDRESS = config.Tokens.WMATIC;
 const REWARDER_ADDRESS = config.Staking.DragonStaking.rewarders.find(
   (each: any) => each.name === "Dragon Staking Protocol Revenue"
 ).address;
-const AMOUNT = "500";
+const AMOUNT = "0.1";
 const DURATION = "604800";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
