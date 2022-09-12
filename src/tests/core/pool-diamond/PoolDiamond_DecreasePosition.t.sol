@@ -1658,7 +1658,13 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
 
     // Add 100 DAI as a liquidity to the pool
     dai.mint(address(poolDiamond), 100 * 10**18);
-    poolLiquidityFacet.addLiquidity(address(this), address(dai), address(this));
+    poolRouter.addLiquidity(
+      address(poolDiamond),
+      address(dai),
+      0,
+      address(this),
+      0
+    );
 
     // The following conditions need to be met:
     // 1. Pool's AUM by min price should be:
@@ -1674,13 +1680,17 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
 
     // Open a new short position
     dai.mint(address(poolDiamond), 10 * 10**18);
-    poolPerpTradeFacet.increasePosition(
-      address(this),
+    poolRouter.increasePosition(
+      address(poolDiamond),
       0,
       address(dai),
+      address(dai),
+      0,
+      0,
       address(wbtc),
       90 * 10**30,
-      false
+      false,
+      0
     );
 
     // The following conditions need to be met:
@@ -1764,15 +1774,18 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
     );
 
     // Close position
-    poolPerpTradeFacet.decreasePosition(
-      address(this),
+    poolRouter.decreasePosition(
+      address(poolDiamond),
       0,
       address(dai),
       address(wbtc),
       0,
       90 * 10**30,
       false,
-      address(this)
+      address(this),
+      type(uint256).max,
+      address(dai),
+      0
     );
 
     // The following conditions need to be met:
@@ -1836,7 +1849,13 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
 
     // Add 100 DAI as a liquidity to the pool
     dai.mint(address(poolDiamond), 100 * 10**18);
-    poolLiquidityFacet.addLiquidity(address(this), address(dai), address(this));
+    poolRouter.addLiquidity(
+      address(poolDiamond),
+      address(dai),
+      0,
+      address(this),
+      0
+    );
 
     // The following conditions need to be met:
     // 1. Pool's AUM by min price should be:
@@ -1852,13 +1871,17 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
 
     // Open a new short position
     dai.mint(address(poolDiamond), 10 * 10**18);
-    poolPerpTradeFacet.increasePosition(
-      address(this),
+    poolRouter.increasePosition(
+      address(poolDiamond),
       0,
       address(dai),
+      address(dai),
+      0,
+      0,
       address(wbtc),
       90 * 10**30,
-      false
+      false,
+      0
     );
 
     // The following conditions need to be met:
@@ -1942,15 +1965,18 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
     );
 
     // Close position
-    poolPerpTradeFacet.decreasePosition(
-      address(this),
+    poolRouter.decreasePosition(
+      address(poolDiamond),
       0,
       address(dai),
       address(wbtc),
       0,
       90 * 10**30,
       false,
-      address(this)
+      address(this),
+      type(uint256).max,
+      address(dai),
+      0
     );
 
     // The following conditions need to be met:
