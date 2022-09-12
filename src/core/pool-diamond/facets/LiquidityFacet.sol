@@ -6,7 +6,7 @@ import { LibPoolV1 } from "../libraries/LibPoolV1.sol";
 import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { GetterFacetInterface } from "../interfaces/GetterFacetInterface.sol";
 import { FundingRateFacetInterface } from "../interfaces/FundingRateFacetInterface.sol";
 import { LiquidityFacetInterface } from "../interfaces/LiquidityFacetInterface.sol";
@@ -15,7 +15,7 @@ import { FlashLoanBorrowerInterface } from "../../../interfaces/FlashLoanBorrowe
 import { console } from "../../../tests/utils/console.sol";
 
 contract LiquidityFacet is LiquidityFacetInterface {
-  using SafeERC20 for IERC20;
+  using SafeERC20 for ERC20;
 
   error LiquidityFacet_BadAmount();
   error LiquidityFacet_BadAmountOut();
@@ -99,8 +99,11 @@ contract LiquidityFacet is LiquidityFacetInterface {
     uint256 fee = amount - amountAfterFee;
 
     poolV1ds.feeReserveOf[token] += fee;
-
-    emit CollectSwapFee(token, fee * tokenPriceUsd, fee);
+    emit CollectSwapFee(
+      token,
+      (fee * tokenPriceUsd) / 10**ERC20(token).decimals(),
+      fee
+    );
 
     return amountAfterFee;
   }
@@ -397,7 +400,7 @@ contract LiquidityFacet is LiquidityFacetInterface {
     for (uint256 i = 0; i < tokens.length; ) {
       fees[i] = (amounts[i] * LibPoolConfigV1.flashLoanFeeBps()) / BPS;
 
-      IERC20(tokens[i]).safeTransfer(receivers[i], amounts[i]);
+      ERC20(tokens[i]).safeTransfer(receivers[i], amounts[i]);
 
       unchecked {
         ++i;
@@ -408,7 +411,7 @@ contract LiquidityFacet is LiquidityFacetInterface {
 
     for (uint256 i = 0; i < tokens.length; ) {
       if (
-        IERC20(tokens[i]).balanceOf(address(this)) <
+        ERC20(tokens[i]).balanceOf(address(this)) <
         poolV1ds.totalOf[tokens[i]] + fees[i]
       ) revert LiquidityFacet_BadFlashLoan();
 
