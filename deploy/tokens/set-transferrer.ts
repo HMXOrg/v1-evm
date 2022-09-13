@@ -2,18 +2,26 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { DragonPoint__factory } from "../../typechain";
+import { getConfig } from "../utils/config";
 
-const TOKEN_ADDRESS = "0x20E58fC5E1ee3C596fb3ebD6de6040e7800e82E6";
-const TRANSFERRER_ADDRESS = "0xCB1EaA1E9Fd640c3900a4325440c80FEF4b1b16d";
+const config = getConfig();
+
+const TOKEN_ADDRESS = config.Tokens.DragonPoint;
+const TRANSFERRER_ADDRESSES = [
+  config.Staking.DragonStaking.address,
+  config.Staking.DragonStaking.rewarders[2].address,
+];
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
   const token = DragonPoint__factory.connect(TOKEN_ADDRESS, deployer);
-  const tx = await token.setTransferrer(TRANSFERRER_ADDRESS, true);
-  const txReceipt = await tx.wait();
-  console.log(`Execute  setTransferrer`);
-  console.log(`Token: ${TOKEN_ADDRESS}`);
-  console.log(`Minter: ${TRANSFERRER_ADDRESS}`);
+  for (let i = 0; i < TRANSFERRER_ADDRESSES.length; i++) {
+    const tx = await token.setTransferrer(TRANSFERRER_ADDRESSES[i], true);
+    const txReceipt = await tx.wait();
+    console.log(`Execute  setTransferrer`);
+    console.log(`Token: ${TOKEN_ADDRESS}`);
+    console.log(`Transferrer: ${TRANSFERRER_ADDRESSES[i]}`);
+  }
 };
 
 export default func;

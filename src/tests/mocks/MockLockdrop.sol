@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 import { ILockdrop } from "../../lockdrop/interfaces/ILockdrop.sol";
 import { MockErc20 } from "./MockERC20.sol";
@@ -99,7 +99,6 @@ contract MockLockdrop is ILockdrop {
     );
   }
 
-  
   function lockdropStates(address)
     external
     pure

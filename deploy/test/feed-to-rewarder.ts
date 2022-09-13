@@ -3,10 +3,15 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { ERC20__factory, FeedableRewarder__factory } from "../../typechain";
 import { BigNumber } from "ethers";
+import { getConfig } from "../utils/config";
 
-const TOKEN_ADDRESS = "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270";
-const REWARDER_ADDRESS = "0x28826219ffb76aa41a56a40e875709391795e512";
-const AMOUNT = "500";
+const config = getConfig();
+
+const TOKEN_ADDRESS = config.Tokens.WMATIC;
+const REWARDER_ADDRESS = config.Staking.DragonStaking.rewarders.find(
+  (each: any) => each.name === "Dragon Staking Protocol Revenue"
+).address;
+const AMOUNT = "0.1";
 const DURATION = "604800";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
