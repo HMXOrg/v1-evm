@@ -363,7 +363,11 @@ contract PoolRouter {
     uint256 minAmountOut,
     address receiver
   ) internal returns (uint256) {
-    IERC20(tokenIn).safeTransferFrom(sender, address(pool), amountIn);
+    if (sender == address(this)) {
+      IERC20(tokenIn).safeTransfer(address(pool), amountIn);
+    } else {
+      IERC20(tokenIn).safeTransferFrom(sender, address(pool), amountIn);
+    }
 
     return
       LiquidityFacetInterface(pool).swap(
