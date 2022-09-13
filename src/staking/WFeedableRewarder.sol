@@ -73,7 +73,7 @@ contract WFeedableRewarder is IRewarder, OwnableUpgradeable {
     lastRewardTime = block.timestamp.toUint64();
 
     // At initialization, assume the feeder to be the contract owner
-    feeder = this.owner();
+    feeder = super.owner();
 
     // Sanity check. Ensure that the rewardToken is wrappable.
     IWNative(rewardToken).deposit{ value: 0 }();

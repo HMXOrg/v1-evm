@@ -70,7 +70,7 @@ contract FeedableRewarder is IRewarder, OwnableUpgradeable {
     lastRewardTime = block.timestamp.toUint64();
 
     // At initialization, assume the feeder to be the contract owner
-    feeder = this.owner();
+    feeder = super.owner();
   }
 
   function onDeposit(address user, uint256 shareAmount)
