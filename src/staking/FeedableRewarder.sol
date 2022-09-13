@@ -16,6 +16,7 @@ contract FeedableRewarder is IRewarder, OwnableUpgradeable {
   string public name;
   address public rewardToken;
   address public staking;
+  address public feeder;
 
   // user address => reward debt
   mapping(address => int256) public userRewardDebts;
@@ -39,10 +40,16 @@ contract FeedableRewarder is IRewarder, OwnableUpgradeable {
   // Error
   error FeedableRewarderError_FeedAmountDecayed();
   error FeedableRewarderError_NotStakingContract();
+  error FeedableRewarderError_NotFeeder();
 
   modifier onlyStakingContract() {
     if (msg.sender != staking)
       revert FeedableRewarderError_NotStakingContract();
+    _;
+  }
+
+  modifier onlyFeeder() {
+    if (msg.sender != feeder) revert FeedableRewarderError_NotFeeder();
     _;
   }
 
@@ -61,6 +68,9 @@ contract FeedableRewarder is IRewarder, OwnableUpgradeable {
     rewardToken = rewardToken_;
     staking = staking_;
     lastRewardTime = block.timestamp.toUint64();
+
+    // At initialization, assume the feeder to be the contract owner
+    feeder = this.owner();
   }
 
   function onDeposit(address user, uint256 shareAmount)
@@ -119,15 +129,19 @@ contract FeedableRewarder is IRewarder, OwnableUpgradeable {
     return (accumulatedRewards - userRewardDebts[user]).toUint256();
   }
 
-  function feed(uint256 feedAmount, uint256 duration) external onlyOwner {
+  function feed(uint256 feedAmount, uint256 duration) external onlyFeeder {
     _feed(feedAmount, duration);
   }
 
   function feedWithExpiredAt(uint256 feedAmount, uint256 expiredAt)
     external
-    onlyOwner
+    onlyFeeder
   {
     _feed(feedAmount, expiredAt - block.timestamp);
+  }
+
+  function setFeeder(address feeder_) external onlyOwner {
+    feeder = feeder_;
   }
 
   function _feed(uint256 feedAmount, uint256 duration) internal {
