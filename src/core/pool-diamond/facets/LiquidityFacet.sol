@@ -15,7 +15,6 @@ import { LiquidityFacetInterface } from "../interfaces/LiquidityFacetInterface.s
 import { FlashLoanBorrowerInterface } from "../../../interfaces/FlashLoanBorrowerInterface.sol";
 import { StrategyInterface } from "../../../interfaces/StrategyInterface.sol";
 
-import { console } from "../../../tests/utils/console.sol";
 
 contract LiquidityFacet is LiquidityFacetInterface {
   using SafeERC20 for IERC20;
@@ -235,26 +234,40 @@ contract LiquidityFacet is LiquidityFacetInterface {
       storage poolConfigV1ds = LibPoolConfigV1.poolConfigV1DiamondStorage();
 
     StrategyInterface strategy = poolConfigV1ds.strategyOf[token];
-    uint256 poolBalance = IERC20(token).balanceOf(address(this)) -
-      poolV1ds.feeReserveOf[token];
-    if (address(strategy) != address(0) && poolBalance < amountOut) {
-      // Handle when physical tokens in Pool < amountOut, then we need to withdraw from strategy.
-      LibPoolConfigV1.StrategyData storage strategyData = poolConfigV1ds
-        .strategyDataOf[token];
+    uint256 balance = IERC20(token).balanceOf(address(this));
+    uint256 feeReserve = poolV1ds.feeReserveOf[token];
+    if (address(strategy) != address(0)) {
+      // Find amountIn for strategy's withdrawal
+      uint256 amountIn;
+      // If balance is not enough, need to withdraw from strategy
+        // - If balance is not even enough for feeReserve, withdraw based on amountOut + extraAmount for the feeReserve
+        // - If balance is enough for feeReserve, withdraw based on amountOut - balance excluded the feeReserve
+      if (feeReserve > balance) {
+        uint256 feeOut =  feeReserve - balance;
+        amountIn = amountOut + feeOut;
+      } else if (balance - feeReserve  < amountOut) {
+        uint256 poolBalance = balance - feeReserve;
+        amountIn = amountOut - poolBalance;
+      }
 
-      console.log("here");
-      uint256 amountIn = amountOut - poolBalance;
+      // If amount to be withdrawn > 0, withdraw from strategy
+      if (amountIn > 0) {
+        // Handle when physical tokens in Pool < amountOut, then we need to withdraw from strategy.
+        LibPoolConfigV1.StrategyData storage strategyData = poolConfigV1ds
+          .strategyDataOf[token];
 
-      // Witthdraw funds from strategy
-      uint256 actualAmountIn = strategy.withdraw(amountIn);
-      // Update totalOf[token] to sync physical balance with pool state
-      LibPoolV1.updateTotalOf(token);
+        // Witthdraw funds from strategy
+        uint256 actualAmountIn = strategy.withdraw(amountIn);
+        // Update totalOf[token] to sync physical balance with pool state
+        LibPoolV1.updateTotalOf(token);
 
-      // Update how much pool put in the strategy
-      strategyData.principle -= actualAmountIn.toUint128();
+        // Update how much pool put in the strategy
+        strategyData.principle -= actualAmountIn.toUint128();
 
-      emit StrategyDivest(token, actualAmountIn);
+        emit StrategyDivest(token, actualAmountIn);
+      }
     }
+    
     LibPoolV1.pushTokens(token, to, amountOut);
   }
 
