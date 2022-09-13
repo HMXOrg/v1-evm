@@ -32,6 +32,7 @@ contract RewardDistributor is OwnableUpgradeable {
   function initialize(
     address rewardToken_,
     address pool_,
+    address poolRouter_,
     address plpStakingProtocolRevenueRewarder_,
     address dragonStakingProtocolRevenueRewarder_,
     uint256 devFundBps_,
@@ -42,6 +43,7 @@ contract RewardDistributor is OwnableUpgradeable {
 
     rewardToken = rewardToken_;
     pool = pool_;
+    poolRouter = poolRouter_;
     plpStakingProtocolRevenueRewarder = plpStakingProtocolRevenueRewarder_;
     dragonStakingProtocolRevenueRewarder = dragonStakingProtocolRevenueRewarder_;
     devFundBps = devFundBps_;

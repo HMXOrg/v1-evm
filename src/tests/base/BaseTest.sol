@@ -877,17 +877,32 @@ contract BaseTest is DSTest, CoreConstants {
   function deployRewardDistributor(
     address rewardToken,
     address pool,
-    address feedableRewarder
+    address poolRouter,
+    address plpStakingProtocolRevenueRewarder,
+    address dragonStakingProtocolRevenueRewarder,
+    uint256 devFundBps,
+    uint256 plpStakingBps,
+    address devFundAddress
   ) internal returns (RewardDistributor) {
     bytes memory _logicBytecode = abi.encodePacked(
       vm.getCode("./out/RewardDistributor.sol/RewardDistributor.json")
     );
     bytes memory _initializer = abi.encodeWithSelector(
-      bytes4(keccak256("initialize(address,address,address)")),
+      bytes4(
+        keccak256(
+          "initialize(address,address,address,address,address,uint256,uint256,address)"
+        )
+      ),
       rewardToken,
       pool,
-      feedableRewarder
+      poolRouter,
+      plpStakingProtocolRevenueRewarder,
+      dragonStakingProtocolRevenueRewarder,
+      devFundBps,
+      plpStakingBps,
+      devFundAddress
     );
+
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
     return RewardDistributor(payable(_proxy));
   }
