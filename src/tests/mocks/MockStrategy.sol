@@ -43,8 +43,9 @@ contract MockStrategy is StrategyInterface {
     (bool isProfit, uint256 amount) = getStrategyDelta(principle);
     if (isProfit) {
       vault.withdraw(vault.valueToShare(amount));
-      IERC20(token).transfer(sender, amount);
-      return int256(amount);
+      uint256 balance = IERC20(token).balanceOf(address(this));
+      IERC20(token).transfer(sender, balance);
+      return int256(balance);
     } else {
       return -int256(amount);
     }

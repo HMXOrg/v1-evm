@@ -8,6 +8,7 @@ import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { FarmFacetInterface } from "../interfaces/FarmFacetInterface.sol";
 import { GetterFacetInterface } from "../interfaces/GetterFacetInterface.sol";
 import { FundingRateFacetInterface } from "../interfaces/FundingRateFacetInterface.sol";
 import { LiquidityFacetInterface } from "../interfaces/LiquidityFacetInterface.sol";
@@ -120,6 +121,17 @@ contract LiquidityFacet is LiquidityFacetInterface {
     LibReentrancyGuard.unlock();
   }
 
+  function _realizedFarmPnL(address token) internal {
+    // Load PoolConfigV1 diamond storage
+    LibPoolConfigV1.PoolConfigV1DiamondStorage
+      storage poolConfigV1ds = LibPoolConfigV1.poolConfigV1DiamondStorage();
+
+    StrategyInterface strategy = poolConfigV1ds.strategyOf[token];
+
+    if (address(strategy) != address(0))
+      FarmFacetInterface(address(this)).farm(token, false);
+  }
+
   function addLiquidity(
     address account,
     address token,
@@ -135,6 +147,8 @@ contract LiquidityFacet is LiquidityFacetInterface {
     // Check
     if (!LibPoolConfigV1.isAcceptToken(token)) revert LiquidityFacet_BadToken();
     if (amount == 0) revert LiquidityFacet_BadAmount();
+
+    _realizedFarmPnL(token);
 
     uint256 aum = GetterFacetInterface(address(this)).getAumE18(true);
     uint256 lpSupply = poolV1ds.plp.totalSupply();
@@ -221,23 +235,23 @@ contract LiquidityFacet is LiquidityFacetInterface {
       storage poolConfigV1ds = LibPoolConfigV1.poolConfigV1DiamondStorage();
 
     StrategyInterface strategy = poolConfigV1ds.strategyOf[token];
-    uint256 balance = IERC20(token).balanceOf(address(this));
-    if (address(strategy) != address(0) && balance < amountOut) {
+    uint256 poolBalance = IERC20(token).balanceOf(address(this)) -
+      poolV1ds.feeReserveOf[token];
+    if (address(strategy) != address(0) && poolBalance < amountOut) {
       // Handle when physical tokens in Pool < amountOut, then we need to withdraw from strategy.
       LibPoolConfigV1.StrategyData storage strategyData = poolConfigV1ds
         .strategyDataOf[token];
 
-      uint256 amountIn = strategyData.principle - (amountOut - balance);
+      console.log("here");
+      uint256 amountIn = amountOut - poolBalance;
 
       // Witthdraw funds from strategy
-      strategy.withdraw(amountIn);
-      uint256 actualAmountIn = LibPoolV1.pullTokens(token);
+      uint256 actualAmountIn = strategy.withdraw(amountIn);
+      // Update totalOf[token] to sync physical balance with pool state
+      LibPoolV1.updateTotalOf(token);
 
       // Update how much pool put in the strategy
       strategyData.principle -= actualAmountIn.toUint128();
-
-      // Update totalOf[token]
-      poolV1ds.totalOf[token] = IERC20(token).balanceOf(address(this));
 
       emit StrategyDivest(token, actualAmountIn);
     }
@@ -265,6 +279,8 @@ contract LiquidityFacet is LiquidityFacetInterface {
     ) {
       revert LiquidityFacet_CoolDown();
     }
+
+    _realizedFarmPnL(tokenOut);
 
     uint256 aum = GetterFacetInterface(address(this)).getAumE18(false);
     uint256 lpSupply = poolV1ds.plp.totalSupply();

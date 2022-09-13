@@ -153,10 +153,17 @@ library LibPoolV1 {
 
   function increasePoolLiquidity(address token, uint256 amount) internal {
     PoolV1DiamondStorage storage poolV1ds = poolV1DiamondStorage();
+    LibPoolConfigV1.PoolConfigV1DiamondStorage
+      storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
+
+    LibPoolConfigV1.StrategyData memory strategyData = poolConfigDs
+      .strategyDataOf[token];
 
     poolV1ds.liquidityOf[token] += amount;
-    if (IERC20(token).balanceOf(address(this)) < poolV1ds.liquidityOf[token])
-      revert LibPoolV1_LiquidityMismatch();
+    if (
+      IERC20(token).balanceOf(address(this)) + strategyData.principle <
+      poolV1ds.liquidityOf[token]
+    ) revert LibPoolV1_LiquidityMismatch();
     emit IncreasePoolLiquidity(token, amount);
   }
 
