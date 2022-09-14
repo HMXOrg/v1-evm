@@ -8,15 +8,14 @@ import { IFeedableRewarder } from "../staking/interfaces/IFeedableRewarder.sol";
 import { IPoolRouter } from "../interfaces/IPoolRouter.sol";
 import { AdminFacetInterface } from "../core/pool-diamond/interfaces/AdminFacetInterface.sol";
 import { GetterFacetInterface } from "../core/pool-diamond/interfaces/GetterFacetInterface.sol";
-import { console } from "../tests/utils/console.sol";
 
 contract RewardDistributor is OwnableUpgradeable {
   using SafeERC20Upgradeable for IERC20Upgradeable;
 
-  /// @dev token addreses
-  address public rewardToken;
+  /// @dev Token addreses
+  address public rewardToken; // the token to be fed to rewarder
 
-  /// @dev pool and its companion addresses
+  /// @dev Pool and its companion addresses
   address public pool;
   address public poolRouter;
   address public plpStakingProtocolRevenueRewarder;
@@ -29,6 +28,21 @@ contract RewardDistributor is OwnableUpgradeable {
 
   /// @dev Fund addresses
   address public devFundAddress;
+
+  /// @dev Error
+  error RewardDistributor_BadParams();
+
+  /// @dev Events
+  event LogSetParams(
+    address rewardToken,
+    address pool,
+    address poolRouter,
+    address plpStakingProtocolRevenueRewarder,
+    address dragonStakingProtocolRevenueRewarder,
+    uint256 devFundBps,
+    uint256 plpStakingBps,
+    address devFundAddress
+  );
 
   function initialize(
     address rewardToken_,
@@ -52,6 +66,39 @@ contract RewardDistributor is OwnableUpgradeable {
     devFundAddress = devFundAddress_;
   }
 
+  function setParams(
+    address rewardToken_,
+    address pool_,
+    address poolRouter_,
+    address plpStakingProtocolRevenueRewarder_,
+    address dragonStakingProtocolRevenueRewarder_,
+    uint256 devFundBps_,
+    uint256 plpStakingBps_,
+    address devFundAddress_
+  ) external onlyOwner {
+    if (plpStakingBps_ > 10000) revert RewardDistributor_BadParams();
+
+    rewardToken = rewardToken_;
+    pool = pool_;
+    poolRouter = poolRouter_;
+    plpStakingProtocolRevenueRewarder = plpStakingProtocolRevenueRewarder_;
+    dragonStakingProtocolRevenueRewarder = dragonStakingProtocolRevenueRewarder_;
+    devFundBps = devFundBps_;
+    plpStakingBps = plpStakingBps_;
+    devFundAddress = devFundAddress_;
+
+    emit LogSetParams(
+      rewardToken_,
+      pool_,
+      poolRouter_,
+      plpStakingProtocolRevenueRewarder_,
+      dragonStakingProtocolRevenueRewarder_,
+      devFundBps_,
+      plpStakingBps_,
+      devFundAddress_
+    );
+  }
+
   function claimAndFeedProtocolRevenue(
     address[] memory tokens,
     uint256 feedingExpiredAt
@@ -69,9 +116,9 @@ contract RewardDistributor is OwnableUpgradeable {
       }
     }
 
-    // Note: We need to split this into another loop, since if we have the input token
-    // the same token as reward token, in our case WMatic, we could end up in collecting
-    // dev fund twice.
+    // Note: We need to seprate this loop from another loop, since if we have the input token
+    // the same token as reward token, in our case WMatic, we could end up in overcollecting
+    // dev fund.
     // The reason is that we `_collectDevFund()` as input token and then `_swapTokenToRewardToken`,
     // on the next loop with reward token as input token, the claimed revenue would get mixed up.
     for (uint256 i = 0; i < length; ) {
