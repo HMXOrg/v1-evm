@@ -36,6 +36,11 @@ contract FeedableRewarder is IRewarder, OwnableUpgradeable {
     uint64 lastRewardTime,
     uint256 accRewardPerShare
   );
+  event LogFeed(
+    uint256 feedAmount,
+    uint256 rewardRate,
+    uint256 rewardRateExpiredAt
+  );
 
   // Error
   error FeedableRewarderError_FeedAmountDecayed();
@@ -173,6 +178,8 @@ contract FeedableRewarder is IRewarder, OwnableUpgradeable {
 
     rewardRate = totalRewardAmount / duration;
     rewardRateExpiredAt = block.timestamp + duration;
+
+    emit LogFeed(feedAmount, rewardRate, rewardRateExpiredAt);
   }
 
   function _updateRewardCalculationParams() internal {
