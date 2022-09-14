@@ -367,6 +367,58 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
     // ----- Stop Alice session ------
   }
 
+  function testCorrectness_WhenLong_Native() external {
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    daiPriceFeed.setLatestAnswer(1 * 10**8);
+
+    maticPriceFeed.setLatestAnswer(400 * 10**8);
+    maticPriceFeed.setLatestAnswer(400 * 10**8);
+    maticPriceFeed.setLatestAnswer(400 * 10**8);
+
+    vm.deal(ALICE, 100 * 10**18);
+
+    // ----- Start Alice session -----
+    vm.startPrank(ALICE);
+
+    // Alice add liquidity with 1 MATIC
+    poolRouter.addLiquidityNative{ value: 100 ether }(
+      address(poolDiamond),
+      address(matic),
+      ALICE,
+      0
+    );
+
+    vm.deal(ALICE, 1 * 10**18);
+    poolRouter.increasePositionNative{ value: 1 ether }(
+      address(poolDiamond),
+      0,
+      address(matic),
+      address(matic),
+      0,
+      address(matic),
+      30_000 * 1e30,
+      true,
+      type(uint256).max
+    );
+
+    GetterFacetInterface.GetPositionReturnVars memory position = poolGetterFacet
+      .getPositionWithSubAccountId(
+        ALICE,
+        0,
+        address(matic),
+        address(matic),
+        true
+      );
+    assertEq(position.size, 30_000 * 10**30);
+    assertEq(position.collateral, 370 * 10**30);
+    assertEq(position.averagePrice, 400 * 10**30);
+    assertEq(position.entryFundingRate, 0);
+    assertEq(position.reserveAmount, 75 ether);
+    assertEq(position.realizedPnl, 0);
+    assertTrue(position.hasProfit == true);
+    assertEq(position.lastIncreasedTime, block.timestamp);
+  }
+
   function testCorrectness_WhenLong_WithSwap() external {
     maticPriceFeed.setLatestAnswer(400 * 10**8);
     daiPriceFeed.setLatestAnswer(1 * 10**8);
@@ -1424,6 +1476,100 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
       address(wbtc),
       address(dai),
       0.0005 * 10**8,
+      0,
+      address(wbtc),
+      90 * 10**30,
+      false,
+      0
+    );
+    // The following conditions need to be met:
+    // 1. Pool's DAI liquidity should be reduced by 20 DAI from the swap
+    // = 499.8 - 20 = 479.8 DAI
+    // 2. Pool's DAI USD debt should be reduced by 20 DAI from the swap
+    // = 499.8 - 20 = 479.8 DAI
+    // 2. Pool's DAI reserved should be 90 DAI
+    // 3. Pool's guaranteed USD should be 0
+    // 4. Redemptable DAI collateral should be reduced by 20 DAI from the swap
+    // = 499.8 - 20 = 479.8 DAI
+    // 5. Pool should makes 0.2 + ((90 * 0.001)) + (20 * 0.003) = 0.35 DAI
+    assertEq(poolGetterFacet.liquidityOf(address(dai)), 479.8 * 10**18);
+    assertEq(poolGetterFacet.usdDebtOf(address(dai)), 479.8 * 10**18);
+    assertEq(poolGetterFacet.reservedOf(address(dai)), 90 * 10**18);
+    assertEq(poolGetterFacet.guaranteedUsdOf(address(dai)), 0 * 10**18);
+    assertEq(
+      poolGetterFacet.getRedemptionCollateralUsd(address(dai)),
+      479.8 * 10**30
+    );
+    assertEq(poolGetterFacet.feeReserveOf(address(dai)), 0.35 * 10**18);
+    assertEq(poolGetterFacet.shortSizeOf(address(wbtc)), 90 * 10**30);
+    assertEq(
+      poolGetterFacet.shortAveragePriceOf(address(wbtc)),
+      40_000 * 10**30
+    );
+  }
+
+  function testCorrectness_WhenShort_WithSwap_NativeIn() external {
+    // Initialized price feeds
+    daiPriceFeed.setLatestAnswer(1 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(60_000 * 10**8);
+    maticPriceFeed.setLatestAnswer(1 * 10**8);
+
+    // Set mintBurnFeeBps to 4 BPS
+    poolAdminFacet.setMintBurnFeeBps(4);
+
+    // Feed WBTC price to be 40,000 USD
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+
+    // Mint 1,000 DAI to Alice
+    dai.mint(ALICE, 1000 * 10**18);
+
+    // --- Start Alice session --- //
+    vm.startPrank(ALICE);
+
+    // Alice performs add liquidity by a 500 DAI
+    dai.approve(address(poolRouter), 500 * 10**18);
+    poolRouter.addLiquidity(
+      address(poolDiamond),
+      address(dai),
+      500 * 10**18,
+      ALICE,
+      0
+    );
+
+    // The following conditions need to be met:
+    // 1. Pool's DAI liquidity should be 500 * (1-0.0004) = 499.8 DAI
+    // 2. Pool should make 0.2 DAI in fee
+    // 3. Pool's DAI usd debt should be 499.8 USD
+    // 4. Redemptable DAI collateral should be 499.8 USD
+    // 5. Pool's AUM by min price should be 499.8 USD
+    // 6. Pool's AUM by max price should be 499.8 USD
+    assertEq(poolGetterFacet.liquidityOf(address(dai)), 499.8 * 10**18);
+    assertEq(poolGetterFacet.feeReserveOf(address(dai)), 0.2 * 10**18);
+    assertEq(poolGetterFacet.usdDebtOf(address(dai)), 499.8 * 10**18);
+    assertEq(
+      poolGetterFacet.getRedemptionCollateralUsd(address(dai)),
+      499.8 * 10**30
+    );
+    assertEq(poolGetterFacet.getAumE18(false), 499.8 * 10**18);
+    assertEq(poolGetterFacet.getAumE18(true), 499.8 * 10**18);
+
+    vm.stopPrank();
+    // ---- Stop Alice session ---- //
+
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+
+    // ---- Start Alice session ---- //
+    vm.deal(ALICE, 20 * 10**18);
+    vm.startPrank(ALICE);
+
+    // Alice opens a 90 USD WBTC short position with 20 MATIC swapped to ~20 DAI as a collateral
+    poolRouter.increasePositionNative{ value: 20 * 10**18 }(
+      address(poolDiamond),
+      0,
+      address(matic),
+      address(dai),
       0,
       address(wbtc),
       90 * 10**30,
