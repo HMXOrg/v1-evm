@@ -1,0 +1,155 @@
+{
+  "manifestVersion": "3.2",
+  "admin": {
+    "address": "0x3986257CAe1CEd103AB9FF679a47B9264e5f8bA1",
+    "txHash": "0xffd61e1d543f3cdd755dc975e3bffa60725b91fb02b59b948caf951dd1a6a7db"
+  },
+  "proxies": [
+    {
+      "address": "0x3A5D0c9E200c8C2291aB8c5FBbe10338bD2e9A83",
+      "txHash": "0xea4c794d165d37ea32b2eae5094617c1eba47fc07d67cf6549bf7f57e8b5c40b",
+      "kind": "transparent"
+    }
+  ],
+  "impls": {
+    "66ee4a05fbb99605ad22be372782edf8f0ccc9b3ad73b9aa9842fd6114437ee7": {
+      "address": "0x8422f64a9DA33e60499d134Dc96C2684717D20Ef",
+      "txHash": "0xb435b856059909106897c335ab194931e1dad7560488ea7719a918d1f86cbeba",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "rewardToken",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_address",
+            "contract": "RewardDistributor",
+            "src": "src/staking/RewardDistributor.sol:16"
+          },
+          {
+            "label": "pool",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_address",
+            "contract": "RewardDistributor",
+            "src": "src/staking/RewardDistributor.sol:19"
+          },
+          {
+            "label": "poolRouter",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_address",
+            "contract": "RewardDistributor",
+            "src": "src/staking/RewardDistributor.sol:20"
+          },
+          {
+            "label": "plpStakingProtocolRevenueRewarder",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_address",
+            "contract": "RewardDistributor",
+            "src": "src/staking/RewardDistributor.sol:21"
+          },
+          {
+            "label": "dragonStakingProtocolRevenueRewarder",
+            "offset": 0,
+            "slot": "105",
+            "type": "t_address",
+            "contract": "RewardDistributor",
+            "src": "src/staking/RewardDistributor.sol:22"
+          },
+          {
+            "label": "devFundBps",
+            "offset": 0,
+            "slot": "106",
+            "type": "t_uint256",
+            "contract": "RewardDistributor",
+            "src": "src/staking/RewardDistributor.sol:26"
+          },
+          {
+            "label": "plpStakingBps",
+            "offset": 0,
+            "slot": "107",
+            "type": "t_uint256",
+            "contract": "RewardDistributor",
+            "src": "src/staking/RewardDistributor.sol:27"
+          },
+          {
+            "label": "devFundAddress",
+            "offset": 0,
+            "slot": "108",
+            "type": "t_address",
+            "contract": "RewardDistributor",
+            "src": "src/staking/RewardDistributor.sol:30"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    }
+  }
+}
