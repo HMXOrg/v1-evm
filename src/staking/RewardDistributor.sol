@@ -8,6 +8,7 @@ import { IFeedableRewarder } from "../staking/interfaces/IFeedableRewarder.sol";
 import { IPoolRouter } from "../interfaces/IPoolRouter.sol";
 import { AdminFacetInterface } from "../core/pool-diamond/interfaces/AdminFacetInterface.sol";
 import { GetterFacetInterface } from "../core/pool-diamond/interfaces/GetterFacetInterface.sol";
+import { console } from "../tests/utils/console.sol";
 
 contract RewardDistributor is OwnableUpgradeable {
   using SafeERC20Upgradeable for IERC20Upgradeable;
@@ -57,18 +58,27 @@ contract RewardDistributor is OwnableUpgradeable {
   ) external {
     uint256 length = tokens.length;
     for (uint256 i = 0; i < length; ) {
-      address token = tokens[0];
-
       // 1. Withdraw protocol revenue
-      _withdrawProtocolRevenue(token);
+      _withdrawProtocolRevenue(tokens[i]);
 
       // 2. Collect dev fund
-      _collectDevFund(token);
+      _collectDevFund(tokens[i]);
 
+      unchecked {
+        i++;
+      }
+    }
+
+    // Note: We need to split this into another loop, since if we have the input token
+    // the same token as reward token, in our case WMatic, we could end up in collecting
+    // dev fund twice.
+    // The reason is that we `_collectDevFund()` as input token and then `_swapTokenToRewardToken`,
+    // on the next loop with reward token as input token, the claimed revenue would get mixed up.
+    for (uint256 i = 0; i < length; ) {
       // 3. Swap those revenue (along with surplus) to RewardToken Token
       _swapTokenToRewardToken(
-        token,
-        IERC20Upgradeable(token).balanceOf(address(this))
+        tokens[i],
+        IERC20Upgradeable(tokens[i]).balanceOf(address(this))
       );
 
       unchecked {
@@ -109,7 +119,7 @@ contract RewardDistributor is OwnableUpgradeable {
     if (token == rewardToken) return;
 
     // Approve the token
-    IERC20Upgradeable(token).approve(pool, amount);
+    IERC20Upgradeable(token).approve(poolRouter, amount);
 
     // Swap
     IPoolRouter(poolRouter).swap(
