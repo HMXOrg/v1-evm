@@ -318,6 +318,9 @@ contract LiquidityFacet is LiquidityFacetInterface {
     if (tokenIn == tokenOut) revert LiquidityFacet_SameTokenInTokenOut();
     if (amountIn == 0) revert LiquidityFacet_BadAmount();
 
+    LibPoolV1.realizedFarmPnL(tokenIn);
+    LibPoolV1.realizedFarmPnL(tokenOut);
+
     FundingRateFacetInterface(address(this)).updateFundingRate(
       tokenIn,
       tokenIn
@@ -373,8 +376,7 @@ contract LiquidityFacet is LiquidityFacetInterface {
     if (amountOutAfterFee < minAmountOut) revert LiquidityFacet_Slippage();
 
     // Transfer amount out.
-    LibPoolV1.pushTokens(tokenOut, receiver, amountOutAfterFee);
-
+    LibPoolV1.tokenOut(tokenOut, receiver, amountOutAfterFee);
     emit Swap(
       receiver,
       tokenIn,
