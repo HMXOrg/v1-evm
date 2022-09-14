@@ -178,7 +178,7 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
     );
   }
 
-  function testRevert_WhenLong_WhenSizeMoreThanCollateral() external {
+  function testRevert_WhenLong_WhenSizeSmallerThanCollateral() external {
     wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
     wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
     wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
@@ -954,7 +954,7 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
     );
   }
 
-  function testRevert_WhenShort_WhenSizeMoreThanCollateral() external {
+  function testRevert_WhenShort_WhenSizeSmallerThanCollateral() external {
     daiPriceFeed.setLatestAnswer(1 * 10**8);
 
     wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
