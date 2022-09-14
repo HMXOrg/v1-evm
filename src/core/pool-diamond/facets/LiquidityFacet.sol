@@ -12,8 +12,6 @@ import { FundingRateFacetInterface } from "../interfaces/FundingRateFacetInterfa
 import { LiquidityFacetInterface } from "../interfaces/LiquidityFacetInterface.sol";
 import { FlashLoanBorrowerInterface } from "../../../interfaces/FlashLoanBorrowerInterface.sol";
 
-import { console } from "../../../tests/utils/console.sol";
-
 contract LiquidityFacet is LiquidityFacetInterface {
   using SafeERC20 for ERC20;
 

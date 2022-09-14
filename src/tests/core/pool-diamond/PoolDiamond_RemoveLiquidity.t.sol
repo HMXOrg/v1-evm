@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { PoolDiamond_BaseTest, PoolConfig, LibPoolConfigV1, Pool, console, GetterFacetInterface, LiquidityFacetInterface } from "./PoolDiamond_BaseTest.t.sol";
+import { PoolDiamond_BaseTest, PoolConfig, LibPoolConfigV1, Pool, console, GetterFacetInterface, LiquidityFacetInterface, PoolRouter } from "./PoolDiamond_BaseTest.t.sol";
 
 contract PoolDiamond_RemoveLiquidityTest is PoolDiamond_BaseTest {
   function setUp() public override {
@@ -271,5 +271,112 @@ contract PoolDiamond_RemoveLiquidityTest is PoolDiamond_BaseTest {
     assertEq(poolGetterFacet.liquidityOf(address(dai)), 0.7 ether);
     assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 874);
     assertEq(poolGetterFacet.liquidityOf(address(matic)), 91770714285714286);
+  }
+
+  function testRevert_Slippage() external {
+    // Mint 100 DAI to Alice
+    dai.mint(ALICE, 100 ether);
+
+    // ------- Alice session -------
+    // Alice as a liquidity provider for DAI
+    vm.startPrank(ALICE);
+
+    // Perform add liquidity
+    dai.approve(address(poolRouter), 100 ether);
+    poolRouter.addLiquidity(
+      address(poolDiamond),
+      address(dai),
+      100 ether,
+      ALICE,
+      0
+    );
+
+    vm.stopPrank();
+    // ------- Finish Alice session -------
+
+    matic.mint(BOB, 1 ether);
+    vm.warp(block.timestamp + 1 days);
+
+    // Feed MATIC price
+    maticPriceFeed.setLatestAnswer(300 * 10**8);
+    maticPriceFeed.setLatestAnswer(300 * 10**8);
+    maticPriceFeed.setLatestAnswer(400 * 10**8);
+
+    // ------- Bob session -------
+    vm.startPrank(BOB);
+
+    // Perform add liquidity
+    matic.approve(address(poolRouter), 1 ether);
+    poolRouter.addLiquidity(
+      address(poolDiamond),
+      address(matic),
+      1 ether,
+      BOB,
+      0
+    );
+
+    vm.stopPrank();
+    // ------- Finish Bob session -------
+
+    maticPriceFeed.setLatestAnswer(400 * 10**8);
+    maticPriceFeed.setLatestAnswer(500 * 10**8);
+    maticPriceFeed.setLatestAnswer(400 * 10**8);
+
+    assertEq(poolGetterFacet.getAumE18(true), 598.2 ether);
+    assertEq(poolGetterFacet.getAumE18(false), 498.5 ether);
+
+    wbtcPriceFeed.setLatestAnswer(60000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(60000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(60000 * 10**8);
+
+    // Mint 0.01 WBTC (600 USD) to CAT.
+    wbtc.mint(CAT, 1000000);
+    vm.warp(block.timestamp + 1 days);
+
+    // ------- Cat session -------
+    vm.startPrank(CAT);
+    wbtc.approve(address(poolRouter), type(uint256).max);
+
+    // Perform add liquidity
+    wbtc.approve(address(poolRouter), 1000000);
+    poolRouter.addLiquidity(
+      address(poolDiamond),
+      address(wbtc),
+      1000000,
+      CAT,
+      0
+    );
+
+    vm.stopPrank();
+    // ------- Finish Cat session -------
+
+    assertEq(poolGetterFacet.totalUsdDebt(), 997 ether);
+
+    // Warp so that the cool down is passed.
+    vm.warp(block.timestamp + 1 days + 1);
+
+    // ------- Alice session -------
+    vm.startPrank(ALICE);
+
+    // Perform remove liquidity
+    // Alice remove 72 PLP, the following criteria needs to statisfy:
+    // 1. Alice should get ((72 * 1096.7) / 797.6) * (1-0.003) / 1 ~= 98.703 DAI
+    // 2. Alice should have 99.7 - 72 = 27.7 PLP
+    poolGetterFacet.plp().approve(address(poolRouter), 72 ether);
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        PoolRouter.PoolRouter_InsufficientOutputAmount.selector,
+        100 ether,
+        98.703 ether
+      )
+    );
+    poolRouter.removeLiquidity(
+      address(poolDiamond),
+      address(dai),
+      72 ether,
+      ALICE,
+      100 ether
+    );
+    vm.stopPrank();
   }
 }

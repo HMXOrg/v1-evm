@@ -15,7 +15,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     config.Pools.PLP.poolDiamond,
     deployer
   );
-  const tx = await config.setIsDynamicFeeEnable(true);
+  const tx = await pool.setIsDynamicFeeEnable(true);
   const txReceipt = await tx.wait();
   console.log(`Execute  setIsDynamicFeeEnable`);
 };

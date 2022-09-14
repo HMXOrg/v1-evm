@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { PoolDiamond_BaseTest, LibPoolConfigV1, PoolConfig, Pool, console, GetterFacetInterface, LiquidityFacetInterface } from "./PoolDiamond_BaseTest.t.sol";
+import { PoolDiamond_BaseTest, LibPoolConfigV1, PoolConfig, Pool, console, GetterFacetInterface, LiquidityFacetInterface, PoolRouter } from "./PoolDiamond_BaseTest.t.sol";
 
 contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
   function setUp() public override {
@@ -295,5 +295,37 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     assertEq(poolGetterFacet.getAumE18(true), 1190.9 ether);
     assertEq(poolGetterFacet.getAumE18(false), 1091.7 ether);
     assertEq(poolGetterFacet.totalUsdDebt(), 992.5 ether);
+  }
+
+  function testRevert_Slippage() external {
+    // Mint 100 DAI to Alice
+    dai.mint(ALICE, 100 ether);
+
+    // ------- Alice session -------
+    // Alice as a liquidity provider for DAI
+    vm.startPrank(ALICE);
+
+    // Perform add liquidity
+    // After Alice added DAI liquidity, the following criteria needs to satisfy:
+    // 1. DAI balance of Alice should be 0
+    // 2. DAI balance of Pool should be 100
+    // 3. Due to no liquidity being added before, then PLP should be the same as the USD of DAI
+    // Hence, Alice should get 100 * (1-0.003) = 99.7 PLP.
+    dai.approve(address(poolRouter), 100 ether);
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        PoolRouter.PoolRouter_InsufficientOutputAmount.selector,
+        100 ether,
+        99.7 ether
+      )
+    );
+    poolRouter.addLiquidity(
+      address(poolDiamond),
+      address(dai),
+      100 ether,
+      ALICE,
+      100 ether
+    );
+    vm.stopPrank();
   }
 }
