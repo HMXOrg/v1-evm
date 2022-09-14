@@ -133,7 +133,7 @@ contract RewardDistributor is OwnableUpgradeable {
       }
     }
 
-    // At this point, we got a portion of RewardToken token.
+    // At this point, we got a portion of reward tokens.
     // 4. Feed reward to both rewarders
     _feedRewardToRewarders(feedingExpiredAt);
   }
