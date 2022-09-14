@@ -120,17 +120,6 @@ contract LiquidityFacet is LiquidityFacetInterface {
     LibReentrancyGuard.unlock();
   }
 
-  function _realizedFarmPnL(address token) internal {
-    // Load PoolConfigV1 diamond storage
-    LibPoolConfigV1.PoolConfigV1DiamondStorage
-      storage poolConfigV1ds = LibPoolConfigV1.poolConfigV1DiamondStorage();
-
-    StrategyInterface strategy = poolConfigV1ds.strategyOf[token];
-
-    if (address(strategy) != address(0))
-      FarmFacetInterface(address(this)).farm(token, false);
-  }
-
   function addLiquidity(
     address account,
     address token,
@@ -147,7 +136,7 @@ contract LiquidityFacet is LiquidityFacetInterface {
     if (!LibPoolConfigV1.isAcceptToken(token)) revert LiquidityFacet_BadToken();
     if (amount == 0) revert LiquidityFacet_BadAmount();
 
-    _realizedFarmPnL(token);
+    LibPoolV1.realizedFarmPnL(token);
 
     uint256 aum = GetterFacetInterface(address(this)).getAumE18(true);
     uint256 lpSupply = poolV1ds.plp.totalSupply();
@@ -219,58 +208,7 @@ contract LiquidityFacet is LiquidityFacetInterface {
 
     return usdDebt;
   }
-
-  function _tokenOut(
-    address token,
-    address to,
-    uint256 amountOut
-  ) internal {
-    // Load PoolV1 diamond storage
-    LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
-      .poolV1DiamondStorage();
-
-    // Load PoolConfigV1 diamond storage
-    LibPoolConfigV1.PoolConfigV1DiamondStorage
-      storage poolConfigV1ds = LibPoolConfigV1.poolConfigV1DiamondStorage();
-
-    StrategyInterface strategy = poolConfigV1ds.strategyOf[token];
-    uint256 balance = IERC20(token).balanceOf(address(this));
-    uint256 feeReserve = poolV1ds.feeReserveOf[token];
-    if (address(strategy) != address(0)) {
-      // Find amountIn for strategy's withdrawal
-      uint256 amountIn;
-      // If balance is not enough, need to withdraw from strategy
-        // - If balance is not even enough for feeReserve, withdraw based on amountOut + extraAmount for the feeReserve
-        // - If balance is enough for feeReserve, withdraw based on amountOut - balance excluded the feeReserve
-      if (feeReserve > balance) {
-        uint256 feeOut =  feeReserve - balance;
-        amountIn = amountOut + feeOut;
-      } else if (balance - feeReserve  < amountOut) {
-        uint256 poolBalance = balance - feeReserve;
-        amountIn = amountOut - poolBalance;
-      }
-
-      // If amount to be withdrawn > 0, withdraw from strategy
-      if (amountIn > 0) {
-        // Handle when physical tokens in Pool < amountOut, then we need to withdraw from strategy.
-        LibPoolConfigV1.StrategyData storage strategyData = poolConfigV1ds
-          .strategyDataOf[token];
-
-        // Witthdraw funds from strategy
-        uint256 actualAmountIn = strategy.withdraw(amountIn);
-        // Update totalOf[token] to sync physical balance with pool state
-        LibPoolV1.updateTotalOf(token);
-
-        // Update how much pool put in the strategy
-        strategyData.principle -= actualAmountIn.toUint128();
-
-        emit StrategyDivest(token, actualAmountIn);
-      }
-    }
-    
-    LibPoolV1.pushTokens(token, to, amountOut);
-  }
-
+  
   function removeLiquidity(
     address account,
     address tokenOut,
@@ -293,7 +231,7 @@ contract LiquidityFacet is LiquidityFacetInterface {
       revert LiquidityFacet_CoolDown();
     }
 
-    _realizedFarmPnL(tokenOut);
+    LibPoolV1.realizedFarmPnL(tokenOut);
 
     uint256 aum = GetterFacetInterface(address(this)).getAumE18(false);
     uint256 lpSupply = poolV1ds.plp.totalSupply();
@@ -305,7 +243,7 @@ contract LiquidityFacet is LiquidityFacetInterface {
     uint256 amountOut = _exit(tokenOut, lpUsdValue, receiver);
 
     poolV1ds.plp.burn(address(this), liquidity);
-    _tokenOut(tokenOut, receiver, amountOut);
+    LibPoolV1.tokenOut(tokenOut, receiver, amountOut);
 
     emit RemoveLiquidity(
       account,
