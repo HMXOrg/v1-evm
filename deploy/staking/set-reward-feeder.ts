@@ -25,7 +25,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   for (const REWARDER of REWARDERS) {
     const rewarder = FeedableRewarder__factory.connect(REWARDER, deployer);
-    const tx = await rewarder.setFeeder(FEEDER, { gasLimit: 1e7 });
+    const tx = await rewarder.setFeeder(FEEDER);
     const txReceipt = await tx.wait();
     console.log(`Executed setFeeder`);
     console.log(`Rewarder Contract: ${REWARDER}`);
