@@ -20,9 +20,9 @@ contract PLPStaking_Harvest is PLPStaking_BaseTest {
     // Mint 60480 partnerToken to Feeder
     partnerAToken.mint(DAVE, 60480 ether);
     // Mint 1000 PLP to Alice
-    plp.mint(ALICE, 1000 ether);
+    plp.mint(ALICE, 1000 ether, 1);
     // Mint 1000 PLP to Bob
-    plp.mint(BOB, 1000 ether);
+    plp.mint(BOB, 1000 ether, 1);
     vm.stopPrank();
 
     // after 1 hours

@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
 import { PoolOracle } from "../../PoolOracle.sol";
-import { MintableTokenInterface } from "../../../interfaces/MintableTokenInterface.sol";
+import { PLP } from "../../../tokens/PLP.sol";
 
 interface GetterFacetInterface {
   function additionalAum() external view returns (uint256);
@@ -54,7 +54,7 @@ interface GetterFacetInterface {
 
   function oracle() external view returns (PoolOracle);
 
-  function plp() external view returns (MintableTokenInterface);
+  function plp() external view returns (PLP);
 
   function positionFeeBps() external view returns (uint64);
 

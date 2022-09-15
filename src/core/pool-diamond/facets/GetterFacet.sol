@@ -6,7 +6,7 @@ import { LibPoolV1 } from "../libraries/LibPoolV1.sol";
 import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
 
 import { GetterFacetInterface } from "../interfaces/GetterFacetInterface.sol";
-import { MintableTokenInterface } from "../../../interfaces/MintableTokenInterface.sol";
+import { PLP } from "../../../tokens/PLP.sol";
 
 contract GetterFacet is GetterFacetInterface {
   error GetterFacet_BadSubAccountId();
@@ -122,7 +122,7 @@ contract GetterFacet is GetterFacetInterface {
     return LibPoolV1.poolV1DiamondStorage().oracle;
   }
 
-  function plp() external view returns (MintableTokenInterface) {
+  function plp() external view returns (PLP) {
     return LibPoolV1.poolV1DiamondStorage().plp;
   }
 

@@ -579,7 +579,14 @@ contract BaseTest is DSTest, CoreConstants {
   }
 
   function deployPLP() internal returns (PLP) {
-    return new PLP();
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/PLP.sol/PLP.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize()"))
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return PLP(payable(_proxy));
   }
 
   function deployP88() internal returns (P88) {

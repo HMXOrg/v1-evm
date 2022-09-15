@@ -156,8 +156,8 @@ abstract contract Lockdrop_BaseTest is BaseTest {
       address(revenueToken)
     );
 
-    plp.setTransferrer(address(plpStaking), true);
-    plp.setTransferrer(address(dragonStaking), true);
+    plp.setWhitelist(address(plpStaking), true);
+    plp.setWhitelist(address(dragonStaking), true);
 
     vm.stopPrank();
   }

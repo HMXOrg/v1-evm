@@ -44,7 +44,7 @@ contract Lockdrop_StakePLP is BaseTest {
   function setUp() public {
     // Token
     mockERC20 = new MockErc20("Mock Token", "MT", 18);
-    mockPLPToken = new PLP();
+    mockPLPToken = deployPLP();
     mockP88Token = new P88();
     mockEsP88Token = new EsP88();
     mockWMaticToken = deployMockWNative();
@@ -55,6 +55,8 @@ contract Lockdrop_StakePLP is BaseTest {
     mockEsP88Token.setMinter(address(this), true);
 
     plpStaking = deployPLPStaking();
+
+    mockPLPToken.setWhitelist(address(plpStaking), true);
 
     // For PLPStaking
     esP88rewarder1 = deployFeedableRewarder(
@@ -151,7 +153,7 @@ contract Lockdrop_StakePLP is BaseTest {
 
     vm.startPrank(address(this));
     // Owner mint PLPToken
-    mockPLPToken.mint(address(lockdrop), 100 ether);
+    mockPLPToken.mint(address(lockdrop), 100 ether, block.timestamp);
     mockPLPToken.approve(address(lockdropConfig.plpStaking()), 100 ether);
     lockdrop.stakePLP();
     vm.stopPrank();

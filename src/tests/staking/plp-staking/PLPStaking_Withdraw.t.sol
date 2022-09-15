@@ -13,7 +13,7 @@ contract PLPStaking_Withdraw is PLPStaking_BaseTest {
   function testCorrectness_WhenWithdrawNotDistributeReward() external {
     vm.prank(DAVE);
     // Mint 1000 PLP to Alice
-    plp.mint(ALICE, 1000 ether);
+    plp.mint(ALICE, 1000 ether, 1);
 
     vm.startPrank(ALICE);
     plp.approve(address(plpStaking), type(uint256).max);
@@ -63,9 +63,9 @@ contract PLPStaking_Withdraw is PLPStaking_BaseTest {
     // Mint 604800 esP88 to Feeder
     esP88.mint(DAVE, 604800 ether);
     // Mint 1000 PLP to Alice
-    plp.mint(ALICE, 1000 ether);
+    plp.mint(ALICE, 1000 ether, 1);
     // Mint 1000 PLP to Bob
-    plp.mint(BOB, 1000 ether);
+    plp.mint(BOB, 1000 ether, 1);
     vm.stopPrank();
 
     vm.startPrank(DAVE);
@@ -108,9 +108,9 @@ contract PLPStaking_Withdraw is PLPStaking_BaseTest {
     // Mint 604800 esP88 to Feeder
     esP88.mint(DAVE, 604800 ether);
     // Mint 1000 PLP to Alice
-    plp.mint(ALICE, 1000 ether);
+    plp.mint(ALICE, 1000 ether, 1);
     // Mint 1000 PLP to Bob
-    plp.mint(BOB, 1000 ether);
+    plp.mint(BOB, 1000 ether, 1);
     vm.stopPrank();
 
     vm.startPrank(DAVE);
@@ -177,9 +177,9 @@ contract PLPStaking_Withdraw is PLPStaking_BaseTest {
     // Mint 60480 partnerToken to Feeder
     partnerAToken.mint(DAVE, 60480 ether);
     // Mint 1000 PLP to Alice
-    plp.mint(ALICE, 1000 ether);
+    plp.mint(ALICE, 1000 ether, 1);
     // Mint 1000 PLP to Bob
-    plp.mint(BOB, 1000 ether);
+    plp.mint(BOB, 1000 ether, 1);
     vm.stopPrank();
 
     // after 1 hours

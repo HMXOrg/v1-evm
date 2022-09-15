@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 import { PoolConfig } from "./PoolConfig.sol";
 import { PoolMath } from "./PoolMath.sol";
 import { PoolOracle } from "./PoolOracle.sol";
-import { MintableTokenInterface } from "../interfaces/MintableTokenInterface.sol";
+import { PLP } from "../tokens/PLP.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
@@ -46,7 +46,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
   error Pool_TokenWeightMismatch();
   error Pool_TotalTokenWeightMismatch();
 
-  MintableTokenInterface public plp;
+  PLP public plp;
 
   PoolConfig public config;
   PoolMath public poolMath;
@@ -209,7 +209,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
   event WithdrawFeeReserve(address token, address to, uint256 amount);
 
   function initialize(
-    MintableTokenInterface _plp,
+    PLP _plp,
     PoolConfig _config,
     PoolMath _poolMath,
     PoolOracle _oracle
@@ -286,7 +286,11 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
     uint256 usdDebt = _join(token, amount, receiver);
     uint256 mintAmount = aum == 0 ? usdDebt : (usdDebt * lpSupply) / aum;
 
-    plp.mint(receiver, mintAmount);
+    plp.mint(
+      receiver,
+      mintAmount,
+      block.timestamp + config.liquidityCoolDownDuration()
+    );
 
     lastAddLiquidityAtOf[account] = block.timestamp;
 

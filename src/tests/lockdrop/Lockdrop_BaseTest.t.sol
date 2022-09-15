@@ -40,7 +40,7 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     pool = new MockPool();
     mockERC20 = new MockErc20("Mock Token", "MT", 18);
     poolRouter = new MockPoolRouter();
-    mockPLPToken = new PLP();
+    mockPLPToken = deployPLP();
     mockP88Token = new P88();
     mockEsP88 = new EsP88();
     mockMatic = deployMockWNative();
@@ -75,7 +75,7 @@ abstract contract Lockdrop_BaseTest is BaseTest {
       address(mockMatic)
     );
 
-    mockPLPToken.setTransferrer(address(plpStaking), true);
+    mockPLPToken.setWhitelist(address(plpStaking), true);
   }
 
   function testCorrectness_WhenLockdropIsInit() external {
