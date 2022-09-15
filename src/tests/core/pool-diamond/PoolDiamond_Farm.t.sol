@@ -67,7 +67,7 @@ contract PoolDiamond_FarmTest is PoolDiamond_BaseTest {
     vm.warp(block.timestamp + 1 weeks + 1);
     poolFarmFacet.setStrategyOf(address(wbtc), mockWbtcVaultStrategy);
 
-     // Set and commit MATIC strategy
+    // Set and commit MATIC strategy
     poolFarmFacet.setStrategyOf(address(matic), mockMaticVaultStrategy);
     vm.warp(block.timestamp + 1 weeks + 1);
     poolFarmFacet.setStrategyOf(address(matic), mockMaticVaultStrategy);
@@ -793,7 +793,9 @@ contract PoolDiamond_FarmTest is PoolDiamond_BaseTest {
     assertEq(poolGetterFacet.totalOf(address(dai)), 5.931 * 10**18 + 1);
   }
 
-  function testCorrectness_WhenAddLiquidity_WhenIncreasePosition_WhenLong_WhenProfit() external {
+  function testCorrectness_WhenAddLiquidity_WhenIncreasePosition_WhenLong_WhenProfit()
+    external
+  {
     wbtc.mint(ALICE, 1 * 10**8);
 
     // Set strategy target bps to be 50%
@@ -848,7 +850,10 @@ contract PoolDiamond_FarmTest is PoolDiamond_BaseTest {
     // 7. Redeemable WBTC in USD should be 93.7168 USD
     // 8. Current WBTC in the pool contract is 234292 - 58573 = 175719 satoshi
 
-    assertEq(poolGetterFacet.plp().balanceOf(ALICE), 92.573912195121951219 ether);
+    assertEq(
+      poolGetterFacet.plp().balanceOf(ALICE),
+      92.573912195121951219 ether
+    );
     assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 706);
     assertEq(poolGetterFacet.getAumE18(false), 93.7168 * 10**18);
     assertEq(poolGetterFacet.getAumE18(true), 96.05972 * 10**18);
@@ -858,7 +863,11 @@ contract PoolDiamond_FarmTest is PoolDiamond_BaseTest {
       poolGetterFacet.getRedemptionCollateralUsd(address(wbtc)),
       93.7168 * 10**30
     );
-    assertEq(wbtc.balanceOf(address(poolDiamond)) - poolGetterFacet.feeReserveOf(address(wbtc)), 175719);
+    assertEq(
+      wbtc.balanceOf(address(poolDiamond)) -
+        poolGetterFacet.feeReserveOf(address(wbtc)),
+      175719
+    );
 
     // Assuming vault profit 100000 satoshi
     wbtc.mint(address(mockWbtcVault), 100000);
@@ -924,8 +933,7 @@ contract PoolDiamond_FarmTest is PoolDiamond_BaseTest {
     assertEq(poolGetterFacet.usdDebtOf(address(wbtc)), 93.7168 * 10**18);
     assertEq(wbtc.balanceOf(address(poolDiamond)), 298926);
 
-
-     // Assert a postion
+    // Assert a postion
     // 1. Position's size should be 49 USD
     // 2. Position's collateral should be:
     // = ((22500 / 1e8) * 40000) - 0.049 = 8.951 USD
@@ -947,11 +955,12 @@ contract PoolDiamond_FarmTest is PoolDiamond_BaseTest {
     assertTrue(position.hasProfit == true);
     assertEq(position.lastIncreasedTime, block.timestamp);
 
-
     vm.stopPrank();
   }
 
-  function testCorrectness_WhenAddLiquidity_WhenIncreasePosition_WhenLong_WhenLoss() external {
+  function testCorrectness_WhenAddLiquidity_WhenIncreasePosition_WhenLong_WhenLoss()
+    external
+  {
     wbtc.mint(ALICE, 1 * 10**8);
 
     // Set strategy target bps to be 50%
@@ -1006,7 +1015,10 @@ contract PoolDiamond_FarmTest is PoolDiamond_BaseTest {
     // 7. Redeemable WBTC in USD should be 93.7168 USD
     // 8. Current WBTC in the pool contract is 234292 - 58573 = 175719 satoshi
 
-    assertEq(poolGetterFacet.plp().balanceOf(ALICE), 92.573912195121951219 ether);
+    assertEq(
+      poolGetterFacet.plp().balanceOf(ALICE),
+      92.573912195121951219 ether
+    );
     assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 706);
     assertEq(poolGetterFacet.getAumE18(false), 93.7168 * 10**18);
     assertEq(poolGetterFacet.getAumE18(true), 96.05972 * 10**18);
@@ -1016,7 +1028,11 @@ contract PoolDiamond_FarmTest is PoolDiamond_BaseTest {
       poolGetterFacet.getRedemptionCollateralUsd(address(wbtc)),
       93.7168 * 10**30
     );
-    assertEq(wbtc.balanceOf(address(poolDiamond)) - poolGetterFacet.feeReserveOf(address(wbtc)), 175719);
+    assertEq(
+      wbtc.balanceOf(address(poolDiamond)) -
+        poolGetterFacet.feeReserveOf(address(wbtc)),
+      175719
+    );
 
     // Assuming vault lost 50000 satoshi
     wbtc.burn(address(mockWbtcVault), 50000);
@@ -1083,8 +1099,7 @@ contract PoolDiamond_FarmTest is PoolDiamond_BaseTest {
     assertEq(poolGetterFacet.usdDebtOf(address(wbtc)), 93.7168 * 10**18);
     assertEq(wbtc.balanceOf(address(poolDiamond)), 198925);
 
-
-     // Assert a postion
+    // Assert a postion
     // 1. Position's size should be 49 USD
     // 2. Position's collateral should be:
     // = ((22500 / 1e8) * 40000) - 0.049 = 8.951 USD
@@ -1106,11 +1121,12 @@ contract PoolDiamond_FarmTest is PoolDiamond_BaseTest {
     assertTrue(position.hasProfit == true);
     assertEq(position.lastIncreasedTime, block.timestamp);
 
-
     vm.stopPrank();
   }
 
-  function testCorrectness_WhenAddLiquidity_WhenIncreasePosition_WhenShort_WhenProfit() external {
+  function testCorrectness_WhenAddLiquidity_WhenIncreasePosition_WhenShort_WhenProfit()
+    external
+  {
     // Initialized price feeds
     daiPriceFeed.setLatestAnswer(1 * 10**8);
     wbtcPriceFeed.setLatestAnswer(60_000 * 10**8);
@@ -1137,7 +1153,11 @@ contract PoolDiamond_FarmTest is PoolDiamond_BaseTest {
 
     // Performs add liquidity with 117499 satoshi
     wbtc.transfer(address(poolDiamond), 117499);
-    poolLiquidityFacet.addLiquidity(address(this), address(wbtc), address(this));
+    poolLiquidityFacet.addLiquidity(
+      address(this),
+      address(wbtc),
+      address(this)
+    );
 
     // --- Start Alice session --- //
     vm.startPrank(ALICE);
@@ -1175,8 +1195,16 @@ contract PoolDiamond_FarmTest is PoolDiamond_BaseTest {
 
     assertEq(poolGetterFacet.liquidityOf(address(dai)), 499.8 ether);
     assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 117452);
-    assertEq(dai.balanceOf(address(poolDiamond)) - poolGetterFacet.feeReserveOf(address(dai)), 249.9 ether);
-    assertEq(wbtc.balanceOf(address(poolDiamond)) - poolGetterFacet.feeReserveOf(address(wbtc)), 58726);
+    assertEq(
+      dai.balanceOf(address(poolDiamond)) -
+        poolGetterFacet.feeReserveOf(address(dai)),
+      249.9 ether
+    );
+    assertEq(
+      wbtc.balanceOf(address(poolDiamond)) -
+        poolGetterFacet.feeReserveOf(address(wbtc)),
+      58726
+    );
 
     // ---- Start Alice session ---- //
     vm.startPrank(ALICE);
@@ -1295,7 +1323,9 @@ contract PoolDiamond_FarmTest is PoolDiamond_BaseTest {
     assertEq(delta, 4.5 * 10**30);
   }
 
-  function testCorrectness_WhenAddLiquidity_WhenIncreasePosition_WhenShort_WhenLoss() external {
+  function testCorrectness_WhenAddLiquidity_WhenIncreasePosition_WhenShort_WhenLoss()
+    external
+  {
     // Initialized price feeds
     daiPriceFeed.setLatestAnswer(1 * 10**8);
     wbtcPriceFeed.setLatestAnswer(60_000 * 10**8);
@@ -1322,7 +1352,11 @@ contract PoolDiamond_FarmTest is PoolDiamond_BaseTest {
 
     // Performs add liquidity with 117499 satoshi
     wbtc.transfer(address(poolDiamond), 117499);
-    poolLiquidityFacet.addLiquidity(address(this), address(wbtc), address(this));
+    poolLiquidityFacet.addLiquidity(
+      address(this),
+      address(wbtc),
+      address(this)
+    );
 
     // --- Start Alice session --- //
     vm.startPrank(ALICE);
@@ -1360,8 +1394,16 @@ contract PoolDiamond_FarmTest is PoolDiamond_BaseTest {
 
     assertEq(poolGetterFacet.liquidityOf(address(dai)), 499.8 ether);
     assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 117452);
-    assertEq(dai.balanceOf(address(poolDiamond)) - poolGetterFacet.feeReserveOf(address(dai)), 249.9 ether);
-    assertEq(wbtc.balanceOf(address(poolDiamond)) - poolGetterFacet.feeReserveOf(address(wbtc)), 58726);
+    assertEq(
+      dai.balanceOf(address(poolDiamond)) -
+        poolGetterFacet.feeReserveOf(address(dai)),
+      249.9 ether
+    );
+    assertEq(
+      wbtc.balanceOf(address(poolDiamond)) -
+        poolGetterFacet.feeReserveOf(address(wbtc)),
+      58726
+    );
 
     // ---- Start Alice session ---- //
     vm.startPrank(ALICE);
@@ -1481,7 +1523,7 @@ contract PoolDiamond_FarmTest is PoolDiamond_BaseTest {
   }
 
   function testCorrectness_WhenAddLiquidity_WhenSwap_WhenProfit() external {
-    // Reset latest 3 
+    // Reset latest 3
     wbtcPriceFeed.setLatestAnswer(60000 * 10**8);
     wbtcPriceFeed.setLatestAnswer(60000 * 10**8);
     wbtcPriceFeed.setLatestAnswer(60000 * 10**8);
@@ -1555,8 +1597,16 @@ contract PoolDiamond_FarmTest is PoolDiamond_BaseTest {
 
     assertEq(poolGetterFacet.liquidityOf(address(matic)), 199.4 ether);
     assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 0.997 * 10**8);
-    assertEq(matic.balanceOf(address(poolDiamond)) - poolGetterFacet.feeReserveOf(address(matic)), 9.97 ether);
-    assertEq(wbtc.balanceOf(address(poolDiamond)) - poolGetterFacet.feeReserveOf(address(wbtc)), 0.04985 * 10**8);
+    assertEq(
+      matic.balanceOf(address(poolDiamond)) -
+        poolGetterFacet.feeReserveOf(address(matic)),
+      9.97 ether
+    );
+    assertEq(
+      wbtc.balanceOf(address(poolDiamond)) -
+        poolGetterFacet.feeReserveOf(address(wbtc)),
+      0.04985 * 10**8
+    );
 
     // Assuming WBTC vault profits 100000 satoshi
     wbtc.mint(address(mockWbtcVault), 100000);
@@ -1635,7 +1685,7 @@ contract PoolDiamond_FarmTest is PoolDiamond_BaseTest {
   }
 
   function testCorrectness_WhenAddLiquidity_WhenSwap_WhenLoss() external {
-    // Reset latest 3 
+    // Reset latest 3
     wbtcPriceFeed.setLatestAnswer(60000 * 10**8);
     wbtcPriceFeed.setLatestAnswer(60000 * 10**8);
     wbtcPriceFeed.setLatestAnswer(60000 * 10**8);
@@ -1709,8 +1759,16 @@ contract PoolDiamond_FarmTest is PoolDiamond_BaseTest {
 
     assertEq(poolGetterFacet.liquidityOf(address(matic)), 199.4 ether);
     assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 0.997 * 10**8);
-    assertEq(matic.balanceOf(address(poolDiamond)) - poolGetterFacet.feeReserveOf(address(matic)), 9.97 ether);
-    assertEq(wbtc.balanceOf(address(poolDiamond)) - poolGetterFacet.feeReserveOf(address(wbtc)), 0.04985 * 10**8);
+    assertEq(
+      matic.balanceOf(address(poolDiamond)) -
+        poolGetterFacet.feeReserveOf(address(matic)),
+      9.97 ether
+    );
+    assertEq(
+      wbtc.balanceOf(address(poolDiamond)) -
+        poolGetterFacet.feeReserveOf(address(wbtc)),
+      0.04985 * 10**8
+    );
 
     // Assuming WBTC vault loss 50000 satoshi
     wbtc.burn(address(mockWbtcVault), 50000);

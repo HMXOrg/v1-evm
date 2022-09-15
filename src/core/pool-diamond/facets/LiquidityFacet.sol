@@ -15,7 +15,6 @@ import { LiquidityFacetInterface } from "../interfaces/LiquidityFacetInterface.s
 import { FlashLoanBorrowerInterface } from "../../../interfaces/FlashLoanBorrowerInterface.sol";
 import { StrategyInterface } from "../../../interfaces/StrategyInterface.sol";
 
-
 contract LiquidityFacet is LiquidityFacetInterface {
   using SafeERC20 for IERC20;
   using SafeCast for uint256;
@@ -208,7 +207,7 @@ contract LiquidityFacet is LiquidityFacetInterface {
 
     return usdDebt;
   }
-  
+
   function removeLiquidity(
     address account,
     address tokenOut,

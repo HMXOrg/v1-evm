@@ -172,7 +172,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     return (LiquidationState.HEALTHY, marginFee);
   }
 
-  function _checkPosition(uint256 size, uint256 collateral) internal pure  {
+  function _checkPosition(uint256 size, uint256 collateral) internal pure {
     if (size == 0) {
       if (collateral != 0) revert PerpTradeFacet_SizeSmallerThanCollateral();
       return;

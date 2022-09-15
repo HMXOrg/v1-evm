@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.16;
 
-
 import { StrategyInterface } from "../../../interfaces/StrategyInterface.sol";
 import { MintableTokenInterface } from "../../../interfaces/MintableTokenInterface.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -11,7 +10,6 @@ import { PoolOracle } from "../../PoolOracle.sol";
 import { Constants } from "../../Constants.sol";
 import { FarmFacetInterface } from "../interfaces/FarmFacetInterface.sol";
 import { LibPoolConfigV1 } from "./LibPoolConfigV1.sol";
-
 
 library LibPoolV1 {
   using SafeERC20 for IERC20;
@@ -312,12 +310,12 @@ library LibPoolV1 {
       // Find amountIn for strategy's withdrawal
       uint256 amountIn;
       // If balance is not enough, need to withdraw from strategy
-        // - If balance is not even enough for feeReserve, withdraw based on amountOut + extraAmount for the feeReserve
-        // - If balance is enough for feeReserve, withdraw based on amountOut - balance excluded the feeReserve
+      // - If balance is not even enough for feeReserve, withdraw based on amountOut + extraAmount for the feeReserve
+      // - If balance is enough for feeReserve, withdraw based on amountOut - balance excluded the feeReserve
       if (feeReserve > balance) {
-        uint256 feeOut =  feeReserve - balance;
+        uint256 feeOut = feeReserve - balance;
         amountIn = amountOut + feeOut;
-      } else if (balance - feeReserve  < amountOut) {
+      } else if (balance - feeReserve < amountOut) {
         uint256 poolBalance = balance - feeReserve;
         amountIn = amountOut - poolBalance;
       }
@@ -337,7 +335,7 @@ library LibPoolV1 {
         strategyData.principle -= actualAmountIn.toUint128();
       }
     }
-    
+
     pushTokens(token, to, amountOut);
   }
 

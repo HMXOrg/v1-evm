@@ -142,8 +142,8 @@ contract FarmFacet is FarmFacetInterface {
     // If rebalance to make sure the strategy has the right amount of funds to deploy, then do it.
     if (isRebalanceNeeded) {
       // Calculate the target amount of funds to be deployed
-      uint256 targetDeployedFunds = (poolV1ds.liquidityOf[token] - poolV1ds.reservedOf[token]) *
-        strategyData.targetBps / 10000;
+      uint256 targetDeployedFunds = ((poolV1ds.liquidityOf[token] -
+        poolV1ds.reservedOf[token]) * strategyData.targetBps) / 10000;
 
       if (strategyData.principle < targetDeployedFunds) {
         // If strategy short of funds, then deposit more funds
