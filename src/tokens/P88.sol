@@ -9,8 +9,8 @@ contract P88 is BaseBridgeableToken {
       "Perp88",
       "P88",
       18,
-      100_000_000 ether,
-      1_000_000_000 ether,
+      1_000_000 ether,
+      10_000_000 ether,
       isBurnAndMint_
     )
   {}
