@@ -12,6 +12,8 @@ import { GetterFacetInterface } from "../interfaces/GetterFacetInterface.sol";
 import { PerpTradeFacetInterface } from "../interfaces/PerpTradeFacetInterface.sol";
 import { FarmFacetInterface } from "../interfaces/FarmFacetInterface.sol";
 
+import { AccessControlFacetInterface } from "../interfaces/AccessControlFacetInterface.sol";
+
 /// @title DimaondInitializer - Modified from Nick Mudge's DiamondInit
 contract DiamondInitializer {
   // You can add parameters to this function in order to pass in
@@ -29,5 +31,8 @@ contract DiamondInitializer {
     ds.supportedInterfaces[type(GetterFacetInterface).interfaceId] = true;
     ds.supportedInterfaces[type(PerpTradeFacetInterface).interfaceId] = true;
     ds.supportedInterfaces[type(FarmFacetInterface).interfaceId] = true;
+    ds.supportedInterfaces[
+      type(AccessControlFacetInterface).interfaceId
+    ] = true;
   }
 }
