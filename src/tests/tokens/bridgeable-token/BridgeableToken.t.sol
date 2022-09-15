@@ -6,7 +6,6 @@ import { P88 } from "../../../tokens/P88.sol";
 import { LZBridgeStrategy } from "../../../tokens/bridge-strategies/LZBridgeStrategy.sol";
 import { LZBridgeReceiver } from "../../../tokens/bridge-receiver/LZBridgeReceiver.sol";
 import { MockLZEndpoint } from "src/tests/mocks/MockLZEndpoint.sol";
-import { console } from "src/tests/utils/console.sol";
 
 contract BridgeableToken is BaseTest {
   P88 internal p88OnETH;

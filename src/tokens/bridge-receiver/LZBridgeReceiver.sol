@@ -97,7 +97,7 @@ contract LZBridgeReceiver is Ownable {
       (address, uint256)
     );
 
-    token.mintFromBridge(tokenRecipient, amount);
+    token.bridgeMint(tokenRecipient, amount);
   }
 
   function retryMessage(

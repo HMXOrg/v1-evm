@@ -3,15 +3,16 @@ pragma solidity 0.8.17;
 
 import { IBridgeStrategy } from "../../interfaces/IBridgeStrategy.sol";
 import { BaseMintableToken } from "./BaseMintableToken.sol";
-import { console } from "src/tests/utils/console.sol";
 
 contract BaseBridgeableToken is BaseMintableToken {
   mapping(address => bool) public bridgeStrategies;
   bool public isBurnAndMint;
   mapping(address => bool) isBridge;
+  bool public pauseFlag;
 
   error BaseBridgeableToken_BadStrategy();
   error BaseBridgeableToken_BadBridge();
+  error BaseBridgeableToken_Pause();
 
   constructor(
     string memory name_,
@@ -22,10 +23,17 @@ contract BaseBridgeableToken is BaseMintableToken {
     bool isBurnAndMint_
   ) BaseMintableToken(name_, symbol_, __decimals, maxSupply_, maxSupplyCap_) {
     isBurnAndMint = isBurnAndMint_;
+
+    pauseFlag = false;
   }
 
   modifier onlyBridge() {
     if (!isBridge[msg.sender]) revert BaseBridgeableToken_BadBridge();
+    _;
+  }
+
+  modifier whenNotPaused() {
+    if (pauseFlag) revert BaseBridgeableToken_Pause();
     _;
   }
 
@@ -35,7 +43,7 @@ contract BaseBridgeableToken is BaseMintableToken {
     uint256 amount,
     address bridgeStrategy,
     bytes memory payload
-  ) external payable {
+  ) external payable whenNotPaused {
     // Validate bridgeStrategy
     if (!bridgeStrategies[bridgeStrategy])
       revert BaseBridgeableToken_BadStrategy();
@@ -54,22 +62,27 @@ contract BaseBridgeableToken is BaseMintableToken {
     );
   }
 
-  function setBridgeStrategy(address strategy_, bool active_)
-    external
-    onlyOwner
-  {
-    bridgeStrategies[strategy_] = active_;
+  function setBridgeStrategy(address strategy, bool active) external onlyOwner {
+    bridgeStrategies[strategy] = active;
   }
 
   function setBridge(address bridge_, bool active_) external onlyOwner {
     isBridge[bridge_] = active_;
   }
 
-  function mintFromBridge(address to_, uint256 amount_) public onlyBridge {
+  function bridgeMint(address to_, uint256 amount_)
+    public
+    onlyBridge
+    whenNotPaused
+  {
     if (!isBurnAndMint) {
       _transfer(address(this), to_, amount_);
     } else {
       _mint(to_, amount_);
     }
+  }
+
+  function setPauseFlag(bool flag) external onlyOwner {
+    pauseFlag = flag;
   }
 }
