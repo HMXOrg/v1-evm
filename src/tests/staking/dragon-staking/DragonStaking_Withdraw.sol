@@ -48,7 +48,7 @@ contract DragonStaking_Withdraw is DragonStaking_BaseTest {
 
     vm.startPrank(ALICE);
     dragonPoint.approve(address(dragonStaking), type(uint256).max);
-    // Alice deposits 100 esP88
+    // Alice deposits 100 dragonPoint
     dragonStaking.deposit(ALICE, address(dragonPoint), 100 ether);
     vm.stopPrank();
 
@@ -71,14 +71,50 @@ contract DragonStaking_Withdraw is DragonStaking_BaseTest {
     );
 
     vm.startPrank(ALICE);
-    // Alice withdraw 50 dragonPoint
+    // Alice withdraw 50 dragonPoint, should be forbid
+    vm.expectRevert(
+      abi.encodeWithSignature("DragonStaking_DragonPointWithdrawForbid()")
+    );
     dragonStaking.withdraw(ALICE, address(dragonPoint), 50 ether);
     vm.stopPrank();
 
-    assertEq(revenueRewarder.pendingReward(ALICE), 57600 ether);
-    assertEq(revenueRewarder.pendingReward(BOB), 28800 ether);
+    {
+      console.log(dragonStaking.userTokenAmount(address(dragonPoint), ALICE));
+      console.log(dragonPointRewarder.pendingReward(ALICE));
+      vm.startPrank(ALICE);
+      // Alice withdraw 20 p88
+      dragonStaking.withdraw(ALICE, address(p88), 20 ether);
+      vm.stopPrank();
 
-    assertEq(dragonPointRewarder.pendingReward(ALICE), 0);
+      assertEq(revenueRewarder.pendingReward(ALICE), 57600 ether);
+      assertEq(revenueRewarder.pendingReward(BOB), 28800 ether);
+      assertEq(dragonPointRewarder.pendingReward(ALICE), 0);
+
+      assertEq(dragonPoint.balanceOf(ALICE), 0 ether);
+      assertEq(dragonStaking.userTokenAmount(address(p88), ALICE), 80 ether);
+      assertEq(dragonStaking.userTokenAmount(address(esP88), ALICE), 0 ether);
+      assertEq(
+        dragonStaking.userTokenAmount(address(dragonPoint), ALICE),
+        800.438356164383561643 ether
+      ); // 80% of 100 dp + 0.547945205479452054 dp pending + 900 dp holding
+    }
+
+    // withdraw the rest
+    {
+      console.log(dragonStaking.userTokenAmount(address(dragonPoint), ALICE));
+      console.log(dragonPointRewarder.pendingReward(ALICE));
+      vm.startPrank(ALICE);
+      // Alice withdraw 20 p88
+      dragonStaking.withdraw(ALICE, address(p88), 80 ether);
+      vm.stopPrank();
+
+      assertEq(dragonStaking.userTokenAmount(address(p88), ALICE), 0 ether);
+      assertEq(dragonStaking.userTokenAmount(address(esP88), ALICE), 0 ether);
+      assertEq(
+        dragonStaking.userTokenAmount(address(dragonPoint), ALICE),
+        0 ether
+      );
+    }
 
     vm.startPrank(BOB);
     // Bob withdraw 100 P88

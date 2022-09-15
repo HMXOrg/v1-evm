@@ -4,6 +4,7 @@ pragma solidity 0.8.17;
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import { SafeERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import { console } from "../tests/utils/console.sol";
 
 import "./interfaces/IRewarder.sol";
 import "./interfaces/IStaking.sol";
@@ -16,6 +17,7 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
   error DragonStaking_InsufficientTokenAmount();
   error DragonStaking_NotRewarder();
   error DragonStaking_NotCompounder();
+  error DragonStaking_DragonPointWithdrawForbid();
 
   mapping(address => mapping(address => uint256)) public userTokenAmount;
   mapping(address => bool) public isRewarder;
@@ -174,6 +176,8 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
     address token,
     uint256 amount
   ) external {
+    if (token == address(dp)) revert DragonStaking_DragonPointWithdrawForbid();
+
     // Clear all of user dragon point
     dragonPointRewarder.onHarvest(to, to);
     _withdraw(to, address(dp), userTokenAmount[address(dp)][to]);
