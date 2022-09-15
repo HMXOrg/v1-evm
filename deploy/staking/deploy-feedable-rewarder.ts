@@ -1,13 +1,16 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
+import { getConfig } from "../utils/config";
+
+const config = getConfig();
 
 const NAME = "Dragon Staking esP88 Emission";
-const REWARD_TOKEN_ADDRESS = "0xEB27B05178515c7E6E51dEE159c8487A011ac030";
-const STAKING_CONTRACT_ADDRESS = "0xCB1EaA1E9Fd640c3900a4325440c80FEF4b1b16d";
+const REWARD_TOKEN_ADDRESS = config.Tokens.esP88;
+const STAKING_CONTRACT_ADDRESS = config.Staking.DragonStaking.address;
 
 // CONSTANT DO NOT EDIT
-const WMATIC = "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270";
+const WMATIC = config.Tokens.WMATIC;
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];

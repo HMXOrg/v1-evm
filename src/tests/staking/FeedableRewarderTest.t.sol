@@ -57,10 +57,14 @@ contract FeedableRewarderTest is BaseTest {
   function testRevert_WhenFeedIsCalled_BySomeRandomGuy() external {
     vm.startPrank(ALICE);
 
-    vm.expectRevert("Ownable: caller is not the owner");
+    vm.expectRevert(
+      abi.encodeWithSignature("FeedableRewarderError_NotFeeder()")
+    );
     rewarder.feed(1 ether, 1 days);
 
-    vm.expectRevert("Ownable: caller is not the owner");
+    vm.expectRevert(
+      abi.encodeWithSignature("FeedableRewarderError_NotFeeder()")
+    );
     rewarder.feedWithExpiredAt(1 ether, block.timestamp + 1 days);
 
     vm.stopPrank();

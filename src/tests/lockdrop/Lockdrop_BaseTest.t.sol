@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 import "../base/DSTest.sol";
 import { console } from "../utils/console.sol";
@@ -9,6 +9,7 @@ import { Lockdrop } from "../../lockdrop/Lockdrop.sol";
 import { MockErc20 } from "../mocks/MockERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { MockPool } from "../mocks/MockPool.sol";
+import { MockPoolRouter } from "../mocks/MockPoolRouter.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { LockdropConfig } from "../../lockdrop/LockdropConfig.sol";
 import { PLPStaking } from "../../staking/PLPStaking.sol";
@@ -23,6 +24,7 @@ abstract contract Lockdrop_BaseTest is BaseTest {
   Lockdrop internal lockdrop;
   MockErc20 internal mockERC20;
   MockPool internal pool;
+  MockPoolRouter internal poolRouter;
   LockdropConfig internal lockdropConfig;
   PLPStaking internal plpStaking;
   P88 internal mockP88Token;
@@ -37,6 +39,7 @@ abstract contract Lockdrop_BaseTest is BaseTest {
   function setUp() public virtual {
     pool = new MockPool();
     mockERC20 = new MockErc20("Mock Token", "MT", 18);
+    poolRouter = new MockPoolRouter();
     mockPLPToken = new PLP();
     mockP88Token = new P88(true);
     mockEsP88 = new EsP88();
@@ -66,6 +69,7 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     lockdrop = deployLockdrop(
       address(mockERC20),
       address(pool),
+      address(poolRouter),
       address(lockdropConfig),
       rewardsTokenList,
       address(mockMatic)

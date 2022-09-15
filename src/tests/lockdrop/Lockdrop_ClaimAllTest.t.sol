@@ -1,4 +1,4 @@
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 import { console } from "../utils/console.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -8,6 +8,7 @@ import { BaseTest, MockWNative } from "../base/BaseTest.sol";
 import { LockdropConfig } from "../../lockdrop/LockdropConfig.sol";
 import { Lockdrop } from "../../lockdrop/Lockdrop.sol";
 import { MockPool } from "../mocks/MockPool.sol";
+import { MockPoolRouter } from "../mocks/MockPoolRouter.sol";
 import { MockPLPStaking } from "../mocks/MockPLPStaking.sol";
 
 contract Lockdrop_ClaimReward is BaseTest {
@@ -23,6 +24,7 @@ contract Lockdrop_ClaimReward is BaseTest {
   Lockdrop internal lockdrop;
   MockPLPStaking internal mockPLPStaking;
   MockPool internal pool;
+  MockPoolRouter internal poolRouter;
   address internal mockGateway;
   address internal mockLockdropCompounder;
 
@@ -31,6 +33,7 @@ contract Lockdrop_ClaimReward is BaseTest {
     mockLockdropCompounder = address(0x77);
 
     pool = new MockPool();
+    poolRouter = new MockPoolRouter();
 
     lockdropToken = new MockErc20("LockdropToken", "LCKT", 18);
     mockPLP = new MockErc20("PLP", "PLP", 18);
@@ -63,6 +66,7 @@ contract Lockdrop_ClaimReward is BaseTest {
     lockdrop = deployLockdrop(
       address(lockdropToken),
       address(pool),
+      address(poolRouter),
       address(lockdropConfig),
       rewardsTokenList,
       address(mockWMatic)

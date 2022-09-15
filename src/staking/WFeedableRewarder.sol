@@ -1,4 +1,4 @@
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
@@ -18,6 +18,7 @@ contract WFeedableRewarder is IRewarder, OwnableUpgradeable {
   string public name;
   address public rewardToken;
   address public staking;
+  address public feeder;
 
   // user address => reward debt
   mapping(address => int256) public userRewardDebts;
@@ -37,15 +38,26 @@ contract WFeedableRewarder is IRewarder, OwnableUpgradeable {
     uint64 lastRewardTime,
     uint256 accRewardPerShare
   );
+  event LogFeed(
+    uint256 feedAmount,
+    uint256 rewardRate,
+    uint256 rewardRateExpiredAt
+  );
 
   // Error
   error WFeedableRewarderError_FeedAmountDecayed();
   error WFeedableRewarderError_NotStakingContract();
   error WFeedableRewarderError_TransferFail();
+  error WFeedableRewarderError_NotFeeder();
 
   modifier onlyStakingContract() {
     if (msg.sender != staking)
       revert WFeedableRewarderError_NotStakingContract();
+    _;
+  }
+
+  modifier onlyFeeder() {
+    if (msg.sender != feeder) revert WFeedableRewarderError_NotFeeder();
     _;
   }
 
@@ -64,6 +76,9 @@ contract WFeedableRewarder is IRewarder, OwnableUpgradeable {
     rewardToken = rewardToken_;
     staking = staking_;
     lastRewardTime = block.timestamp.toUint64();
+
+    // At initialization, assume the feeder to be the contract owner
+    feeder = super.owner();
 
     // Sanity check. Ensure that the rewardToken is wrappable.
     IWNative(rewardToken).deposit{ value: 0 }();
@@ -125,15 +140,19 @@ contract WFeedableRewarder is IRewarder, OwnableUpgradeable {
     return (accumulatedRewards - userRewardDebts[user]).toUint256();
   }
 
-  function feed(uint256 feedAmount, uint256 duration) external onlyOwner {
+  function feed(uint256 feedAmount, uint256 duration) external onlyFeeder {
     _feed(feedAmount, duration);
   }
 
   function feedWithExpiredAt(uint256 feedAmount, uint256 expiredAt)
     external
-    onlyOwner
+    onlyFeeder
   {
     _feed(feedAmount, expiredAt - block.timestamp);
+  }
+
+  function setFeeder(address feeder_) external onlyOwner {
+    feeder = feeder_;
   }
 
   function _feed(uint256 feedAmount, uint256 duration) internal {
@@ -165,6 +184,8 @@ contract WFeedableRewarder is IRewarder, OwnableUpgradeable {
 
     rewardRate = totalRewardAmount / duration;
     rewardRateExpiredAt = block.timestamp + duration;
+
+    emit LogFeed(feedAmount, rewardRate, rewardRateExpiredAt);
   }
 
   function _updateRewardCalculationParams() internal {

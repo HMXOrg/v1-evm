@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 import { Lockdrop_BaseTest, console } from "./Lockdrop_BaseTest.inte.t.sol";
 
@@ -72,7 +72,7 @@ contract Lockdrop_ClaimAllReward is Lockdrop_BaseTest {
 
     vm.startPrank(address(lockdrop));
     usdc.approve(
-      address(pool),
+      address(poolDiamond),
       lockAmount_ALICE + lockAmount_BOB + lockAmount_CAT
     );
     plp.approve(address(plpStaking), type(uint256).max);

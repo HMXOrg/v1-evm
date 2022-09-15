@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
@@ -11,6 +11,7 @@ import { IStaking } from "../staking/interfaces/IStaking.sol";
 import { LockdropConfig } from "./LockdropConfig.sol";
 import { ILockdrop } from "./interfaces/ILockdrop.sol";
 import { P88 } from "../tokens/P88.sol";
+import { PoolRouter } from "../core/pool-diamond/PoolRouter.sol";
 
 contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable, ILockdrop {
   // --- Libraries ---
@@ -67,7 +68,8 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable, ILockdrop {
   // --- States ---
   IERC20Upgradeable public lockdropToken; // lockdrop token address
   LockdropConfig public lockdropConfig;
-  IPool public pool;
+  address public pool;
+  PoolRouter public poolRouter;
   uint256 public totalAmount; // total amount of token
   uint256 public totalP88Weight; // Sum of amount * lockPeriod
   uint256 public totalP88;
@@ -111,7 +113,8 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable, ILockdrop {
 
   function initialize(
     address lockdropToken_,
-    IPool pool_,
+    address pool_,
+    address payable poolRouter_,
     LockdropConfig lockdropConfig_,
     address[] memory rewardTokens_,
     address nativeTokenAddress_
@@ -128,6 +131,7 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable, ILockdrop {
     lockdropConfig = lockdropConfig_;
     rewardTokens = rewardTokens_;
     pool = pool_;
+    poolRouter = PoolRouter(poolRouter_);
     nativeTokenAddress = nativeTokenAddress_;
   }
 
@@ -520,13 +524,19 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable, ILockdrop {
   function stakePLP() external onlyAfterLockdropPeriod onlyOwner {
     if (totalPLPAmount > 0) revert Lockdrop_PLPAlreadyStaked();
     // add lockdrop token to liquidity pool.
-    totalPLPAmount = pool.addLiquidity(
+    lockdropToken.approve(address(poolRouter), totalAmount);
+    totalPLPAmount = poolRouter.addLiquidity(
+      pool,
       address(lockdropToken),
       totalAmount,
       address(this),
       0
     );
 
+    lockdropConfig.plpToken().approve(
+      address(lockdropConfig.plpStaking()),
+      totalPLPAmount
+    );
     lockdropConfig.plpStaking().deposit(
       address(this),
       address(lockdropConfig.plpToken()),

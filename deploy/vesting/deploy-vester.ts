@@ -1,9 +1,12 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, upgrades } from "hardhat";
+import { getConfig } from "../utils/config";
 
-const ESP88 = "0xEB27B05178515c7E6E51dEE159c8487A011ac030";
-const P88 = "0xB853c09b6d03098b841300daD57701ABcFA80228";
+const config = getConfig();
+
+const ESP88 = config.Tokens.esP88;
+const P88 = config.Tokens.P88;
 const VESTED_ADDRESS = "0x000000000000000000000000000000000000dead";
 const UNUSED_ADDRESS = "0x6629ec35c8aa279ba45dbfb575c728d3812ae31a";
 
