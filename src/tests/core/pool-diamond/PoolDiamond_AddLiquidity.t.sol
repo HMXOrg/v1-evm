@@ -2,6 +2,7 @@
 pragma solidity 0.8.17;
 
 import { PoolDiamond_BaseTest, LibPoolConfigV1, PoolConfig, Pool, console, GetterFacetInterface, LiquidityFacetInterface, PoolRouter } from "./PoolDiamond_BaseTest.t.sol";
+import { PLP } from "src/tokens/PLP.sol";
 
 contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
   function setUp() public override {
@@ -327,5 +328,28 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
       100 ether
     );
     vm.stopPrank();
+  }
+
+  function testRevert_WhenCooldownNotPassed() external {
+    // Mint 100 DAI to Alice
+    dai.mint(ALICE, 100 ether);
+
+    // ------- Alice session -------
+    // Alice as a liquidity provider for DAI
+    vm.startPrank(ALICE);
+
+    // Perform add liquidity
+    dai.approve(address(poolRouter), 100 ether);
+    poolRouter.addLiquidity(
+      address(poolDiamond),
+      address(dai),
+      100 ether,
+      ALICE,
+      99 ether
+    );
+
+    address plp = address(GetterFacetInterface(poolDiamond).plp());
+    vm.expectRevert(abi.encodeWithSelector(PLP.PLP_Cooldown.selector, 86401));
+    PLP(plp).transfer(BOB, 1 ether);
   }
 }

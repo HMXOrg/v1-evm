@@ -74,6 +74,8 @@ abstract contract Lockdrop_BaseTest is BaseTest {
       rewardsTokenList,
       address(mockMatic)
     );
+
+    mockPLPToken.setTransferrer(address(plpStaking), true);
   }
 
   function testCorrectness_WhenLockdropIsInit() external {

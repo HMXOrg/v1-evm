@@ -139,7 +139,11 @@ contract LiquidityFacet is LiquidityFacetInterface {
     uint256 usdDebt = _join(token, amount, receiver);
     uint256 mintAmount = aum == 0 ? usdDebt : (usdDebt * lpSupply) / aum;
 
-    poolV1ds.plp.mint(receiver, mintAmount);
+    poolV1ds.plp.mint(
+      receiver,
+      mintAmount,
+      block.timestamp + LibPoolConfigV1.liquidityCoolDownDuration()
+    );
 
     poolV1ds.lastAddLiquidityAtOf[account] = block.timestamp;
 
