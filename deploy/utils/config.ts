@@ -2,7 +2,7 @@ import { network } from "hardhat";
 import MainnetConfig from "../../contracts.json";
 import MumbaiConfig from "../../contracts.mumbai.json";
 
-export function getConfig(): any {
+export function getConfig() {
   if (network.name === "polygon") {
     return MainnetConfig;
   }

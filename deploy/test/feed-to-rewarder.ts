@@ -8,8 +8,10 @@ import { getConfig } from "../utils/config";
 const config = getConfig();
 
 const TOKEN_ADDRESS = config.Tokens.WMATIC;
-const REWARDER_ADDRESS = config.Staking.DragonStaking.rewarders.find(
-  (each: any) => each.name === "Dragon Staking Protocol Revenue"
+const REWARDER_ADDRESS = (
+  config.Staking.DragonStaking.rewarders.find(
+    (each: any) => each.name === "Dragon Staking Protocol Revenue"
+  ) as any
 ).address;
 const AMOUNT = "0.1";
 const DURATION = "604800";
