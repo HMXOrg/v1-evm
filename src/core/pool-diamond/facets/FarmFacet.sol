@@ -4,6 +4,8 @@ pragma solidity 0.8.16;
 import { LibDiamond } from "../libraries/LibDiamond.sol";
 import { LibPoolV1 } from "../libraries/LibPoolV1.sol";
 import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
+import { LibAccessControl } from "../libraries/LibAccessControl.sol";
+import { AccessControlFacetInterface } from "../interfaces/AccessControlFacetInterface.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
@@ -19,6 +21,7 @@ contract FarmFacet is FarmFacetInterface {
   error FarmFacet_InvalidRealizedProfits();
   error FarmFacet_InvalidWithdrawal();
   error FarmFacet_TooEarlyToCommitStrategy();
+  error FarmFacet_InvalidFarmCaller();
 
   uint256 internal constant STRATEGY_DELAY = 1 weeks;
   uint256 internal constant MAX_TARGET_BPS = 9500; // 95%
@@ -32,6 +35,19 @@ contract FarmFacet is FarmFacetInterface {
 
   modifier onlyOwner() {
     LibDiamond.enforceIsContractOwner();
+    _;
+  }
+
+  modifier onlyPoolDiamondOrFarmKeeper() {
+    if (
+      msg.sender != address(this) &&
+      !AccessControlFacetInterface(address(this)).hasRole(
+        LibAccessControl.FARM_KEEPER,
+        msg.sender
+      )
+    ) {
+      revert FarmFacet_InvalidFarmCaller();
+    }
     _;
   }
 
@@ -102,7 +118,10 @@ contract FarmFacet is FarmFacetInterface {
     emit SetStrategyTargetBps(token, targetBps);
   }
 
-  function farm(address token, bool isRebalanceNeeded) external {
+  function farm(address token, bool isRebalanceNeeded)
+    external
+    onlyPoolDiamondOrFarmKeeper
+  {
     // Load PoolV1 diamond storage
     LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
       .poolV1DiamondStorage();

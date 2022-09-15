@@ -73,6 +73,18 @@ contract PoolDiamond_FarmTest is PoolDiamond_BaseTest {
     poolFarmFacet.setStrategyOf(address(matic), mockMaticVaultStrategy);
   }
 
+  function testRevert_WhenFarm_WhenNeitherFarmKeeper_NorPoolDiamond_IsACaller()
+    external
+  {
+    vm.startPrank(ALICE);
+    vm.expectRevert(abi.encodeWithSignature("FarmFacet_InvalidFarmCaller()"));
+    poolFarmFacet.farm(address(wbtc), true);
+
+    vm.expectRevert(abi.encodeWithSignature("FarmFacet_InvalidFarmCaller()"));
+    poolFarmFacet.farm(address(wbtc), false);
+    vm.stopPrank();
+  }
+
   function testCorrectness_WhenAddLiquidity_WhenProfit() external {
     // Set strategy target bps to be 50%
     poolFarmFacet.setStrategyTargetBps(address(dai), 5000);
@@ -829,10 +841,12 @@ contract PoolDiamond_FarmTest is PoolDiamond_BaseTest {
       poolGetterFacet.getRedemptionCollateralUsd(address(wbtc)),
       46.8584 * 10**30
     );
+    vm.stopPrank();
 
     // Call farm to deploy funds 117146 * 50% = 58573 satoshi
     poolFarmFacet.farm(address(wbtc), true);
 
+    vm.startPrank(ALICE);
     // Alice add liquidity again with 117499 satoshi
     wbtc.transfer(address(poolDiamond), 117499);
     poolLiquidityFacet.addLiquidity(ALICE, address(wbtc), ALICE);
@@ -994,10 +1008,12 @@ contract PoolDiamond_FarmTest is PoolDiamond_BaseTest {
       poolGetterFacet.getRedemptionCollateralUsd(address(wbtc)),
       46.8584 * 10**30
     );
+    vm.stopPrank();
 
     // Call farm to deploy funds 117146 * 50% = 58573 satoshi
     poolFarmFacet.farm(address(wbtc), true);
 
+    vm.startPrank(ALICE);
     // Alice add liquidity again with 117499 satoshi
     wbtc.transfer(address(poolDiamond), 117499);
     poolLiquidityFacet.addLiquidity(ALICE, address(wbtc), ALICE);

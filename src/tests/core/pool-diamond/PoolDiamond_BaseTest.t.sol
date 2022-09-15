@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.16;
 
-import { BaseTest, console, stdError, MockStrategy, MockDonateVault, MintableTokenInterface, MockFlashLoanBorrower, PoolConfig, LibPoolConfigV1, PoolOracle, Pool, PoolRouter, OwnershipFacetInterface, GetterFacetInterface, LiquidityFacetInterface, PerpTradeFacetInterface, AdminFacetInterface, FarmFacetInterface } from "../../base/BaseTest.sol";
+import { BaseTest, console, stdError, MockStrategy, MockDonateVault, MintableTokenInterface, MockFlashLoanBorrower, PoolConfig, LibPoolConfigV1, PoolOracle, Pool, PoolRouter, OwnershipFacetInterface, GetterFacetInterface, LiquidityFacetInterface, PerpTradeFacetInterface, AdminFacetInterface, FarmFacetInterface, AccessControlFacetInterface, LibAccessControl } from "../../base/BaseTest.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 abstract contract PoolDiamond_BaseTest is BaseTest {
@@ -15,6 +15,7 @@ abstract contract PoolDiamond_BaseTest is BaseTest {
   LiquidityFacetInterface internal poolLiquidityFacet;
   PerpTradeFacetInterface internal poolPerpTradeFacet;
   FarmFacetInterface internal poolFarmFacet;
+  AccessControlFacetInterface internal poolAccessControlFacet;
 
   function setUp() public virtual {
     BaseTest.PoolConfigConstructorParams memory poolConfigParams = BaseTest
@@ -42,11 +43,18 @@ abstract contract PoolDiamond_BaseTest is BaseTest {
     poolLiquidityFacet = LiquidityFacetInterface(poolDiamond);
     poolPerpTradeFacet = PerpTradeFacetInterface(poolDiamond);
     poolFarmFacet = FarmFacetInterface(poolDiamond);
+    poolAccessControlFacet = AccessControlFacetInterface(poolDiamond);
 
     plp = poolGetterFacet.plp();
 
     poolRouter = deployPoolRouter(address(matic));
     poolAdminFacet.setRouter(address(poolRouter));
+
+    // Grant Farm Keeper Role For This testing contract
+    poolAccessControlFacet.grantRole(
+      LibAccessControl.FARM_KEEPER,
+      address(this)
+    );
   }
 
   function checkPoolBalanceWithState(address token, uint256 offset) internal {
