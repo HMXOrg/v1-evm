@@ -66,8 +66,6 @@ library LibPoolV1 {
     // AUM
     uint256 additionalAum;
     uint256 discountedAum;
-    // LP
-    mapping(address => uint256) lastAddLiquidityAtOf;
     // Position
     mapping(bytes32 => Position) positions;
     mapping(address => mapping(address => bool)) approvedPlugins;
