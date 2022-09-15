@@ -126,35 +126,6 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
     emit LogDeposit(msg.sender, to, token, amount);
   }
 
-  // function _depositFor(
-  //   address
-  //   address to,
-  //   address token,
-  //   uint256 amount
-  // ) internal {
-  //   if (!isStakingToken[token]) revert DragonStaking_UnknownStakingToken();
-
-  //   uint256 length = stakingTokenRewarders[token].length;
-  //   for (uint256 i = 0; i < length; ) {
-  //     address rewarder = stakingTokenRewarders[token][i];
-
-  //     IRewarder(rewarder).onDeposit(to, amount);
-
-  //     unchecked {
-  //       ++i;
-  //     }
-  //   }
-
-  //   userTokenAmount[token][to] += amount;
-  //   IERC20Upgradeable(token).safeTransferFrom(
-  //     msg.sender,
-  //     address(this),
-  //     amount
-  //   );
-
-  //   emit LogDeposit(msg.sender, to, token, amount);
-  // }
-
   function getUserTokenAmount(address token, address sender)
     external
     view
