@@ -30,7 +30,7 @@ contract PLP is ERC20Upgradeable, OwnableUpgradeable {
     ERC20Upgradeable.__ERC20_init("P88 Liquidity Provider", "PLP");
   }
 
-  function setWhitelist(address whitelisted, bool isActive) external {
+  function setWhitelist(address whitelisted, bool isActive) external onlyOwner {
     whitelist[whitelisted] = isActive;
 
     emit PLP_SetWhitelist(whitelisted, isActive);
