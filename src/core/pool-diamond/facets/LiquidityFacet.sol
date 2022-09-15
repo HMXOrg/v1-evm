@@ -145,7 +145,7 @@ contract LiquidityFacet is LiquidityFacetInterface {
       block.timestamp + LibPoolConfigV1.liquidityCoolDownDuration()
     );
 
-    poolV1ds.lastAddLiquidityAtOf[account] = block.timestamp;
+    poolV1ds.lastAddLiquidityAtOf[receiver] = block.timestamp;
 
     emit AddLiquidity(
       account,
