@@ -70,17 +70,7 @@ contract DragonStaking_Withdraw is DragonStaking_BaseTest {
       0.547945205479452054 ether
     );
 
-    vm.startPrank(ALICE);
-    // Alice withdraw 50 dragonPoint, should be forbid
-    vm.expectRevert(
-      abi.encodeWithSignature("DragonStaking_DragonPointWithdrawForbid()")
-    );
-    dragonStaking.withdraw(ALICE, address(dragonPoint), 50 ether);
-    vm.stopPrank();
-
     {
-      console.log(dragonStaking.userTokenAmount(address(dragonPoint), ALICE));
-      console.log(dragonPointRewarder.pendingReward(ALICE));
       vm.startPrank(ALICE);
       // Alice withdraw 20 p88
       dragonStaking.withdraw(ALICE, address(p88), 20 ether);
@@ -101,8 +91,6 @@ contract DragonStaking_Withdraw is DragonStaking_BaseTest {
 
     // withdraw the rest
     {
-      console.log(dragonStaking.userTokenAmount(address(dragonPoint), ALICE));
-      console.log(dragonPointRewarder.pendingReward(ALICE));
       vm.startPrank(ALICE);
       // Alice withdraw 20 p88
       dragonStaking.withdraw(ALICE, address(p88), 80 ether);

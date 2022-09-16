@@ -200,4 +200,22 @@ contract DragonStakingTest is BaseTest {
       assertEq(staking.calculateTotalShare(address(pRewarder)), 200 ether);
     }
   }
+
+  function testRevert_WhenAliceWithdrawDragonPoint() external {
+    vm.startPrank(ALICE);
+    vm.expectRevert(
+      abi.encodeWithSignature("DragonStaking_DragonPointWithdrawForbid()")
+    );
+    staking.withdraw(ALICE, address(dp), 50 ether);
+    vm.stopPrank();
+  }
+
+  function testRevert_WhenAliceWithdraw0Token() external {
+    vm.startPrank(ALICE);
+    vm.expectRevert(
+      abi.encodeWithSignature("DragonStaking_InvalidTokenAmount()")
+    );
+    staking.withdraw(ALICE, address(p88), 0 ether);
+    vm.stopPrank();
+  }
 }

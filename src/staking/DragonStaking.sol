@@ -14,6 +14,7 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
 
   error DragonStaking_UnknownStakingToken();
   error DragonStaking_InsufficientTokenAmount();
+  error DragonStaking_InvalidTokenAmount();
   error DragonStaking_NotRewarder();
   error DragonStaking_NotCompounder();
   error DragonStaking_DragonPointWithdrawForbid();
@@ -147,6 +148,7 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
     uint256 amount
   ) external {
     if (token == address(dp)) revert DragonStaking_DragonPointWithdrawForbid();
+    if (amount == 0) revert DragonStaking_InvalidTokenAmount();
 
     // Clear all of user dragon point
     dragonPointRewarder.onHarvest(to, to);
@@ -160,11 +162,9 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
     // Find the burn amount
     uint256 dpBalance = dp.balanceOf(to);
     uint256 targetDpBalance = (dpBalance * shareAfter) / shareBefore;
-    // burnAmount = dpBalance - targetDpBalance
 
     // Burn from user, transfer the rest to here, and got depositted
     dp.burn(to, dpBalance - targetDpBalance);
-    // dp.transferFrom(to, address(this), targetDpBalance);
     _deposit(to, address(dp), targetDpBalance);
 
     emit LogWithdraw(msg.sender, to, token, amount);
