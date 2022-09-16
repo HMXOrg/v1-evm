@@ -15,6 +15,7 @@ contract PLP is ERC20Upgradeable, OwnableUpgradeable {
   event PLP_SetMinter(address minter, bool prevAllow, bool newAllow);
   event PLP_SetLiquidityCooldown(uint256 oldCooldown, uint256 newCooldown);
 
+  error PLP_BadLiquidityCooldown(uint256 cooldown);
   error PLP_BadCooldownExpireAt(
     uint256 cooldownExpireAt,
     uint256 blockTimestamp
@@ -40,6 +41,8 @@ contract PLP is ERC20Upgradeable, OwnableUpgradeable {
     external
     onlyOwner
   {
+    if (newLiquidityCooldown > MAX_COOLDOWN_DURATION)
+      revert PLP_BadLiquidityCooldown(newLiquidityCooldown);
     uint256 oldCooldown = liquidityCooldown;
     liquidityCooldown = newLiquidityCooldown;
     emit PLP_SetLiquidityCooldown(oldCooldown, newLiquidityCooldown);
