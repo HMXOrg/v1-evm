@@ -21,7 +21,7 @@ contract Compounder_Compound is Compounder_BaseTest {
     partnerAToken.mint(DAVE, 60480 ether);
 
     // Mint 1000 PLP to Alice
-    plp.mint(ALICE, 1000 ether, 1);
+    plp.mint(ALICE, 1000 ether);
     vm.stopPrank();
 
     vm.startPrank(ALICE);

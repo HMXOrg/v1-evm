@@ -153,7 +153,7 @@ contract Lockdrop_StakePLP is BaseTest {
 
     vm.startPrank(address(this));
     // Owner mint PLPToken
-    mockPLPToken.mint(address(lockdrop), 100 ether, block.timestamp);
+    mockPLPToken.mint(address(lockdrop), 100 ether);
     mockPLPToken.approve(address(lockdropConfig.plpStaking()), 100 ether);
     lockdrop.stakePLP();
     vm.stopPrank();

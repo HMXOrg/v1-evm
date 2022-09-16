@@ -286,11 +286,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
     uint256 usdDebt = _join(token, amount, receiver);
     uint256 mintAmount = aum == 0 ? usdDebt : (usdDebt * lpSupply) / aum;
 
-    plp.mint(
-      receiver,
-      mintAmount,
-      block.timestamp + config.liquidityCoolDownDuration()
-    );
+    plp.mint(receiver, mintAmount);
 
     lastAddLiquidityAtOf[account] = block.timestamp;
 

@@ -62,7 +62,7 @@ contract Lockdrop_StakePLP is Lockdrop_BaseTest {
 
     vm.startPrank(address(this));
     // Owner mint PLPToken
-    mockPLPToken.mint(address(lockdrop), 90 ether, block.timestamp);
+    mockPLPToken.mint(address(lockdrop), 90 ether);
     mockPLPToken.approve(address(lockdropConfig.plpStaking()), 100 ether);
     assertEq(mockPLPToken.balanceOf(address(lockdropConfig.plpStaking())), 0);
 
@@ -109,7 +109,7 @@ contract Lockdrop_StakePLP is Lockdrop_BaseTest {
 
     vm.startPrank(address(this));
     // Owner mint PLPToken
-    mockPLPToken.mint(address(lockdrop), 32 ether, block.timestamp);
+    mockPLPToken.mint(address(lockdrop), 32 ether);
     mockPLPToken.approve(address(lockdropConfig.plpStaking()), 32 ether);
 
     lockdrop.stakePLP();

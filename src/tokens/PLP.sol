@@ -7,10 +7,13 @@ contract PLP is ERC20Upgradeable, OwnableUpgradeable {
   mapping(address => bool) public whitelist;
   mapping(address => uint256) public cooldown;
   mapping(address => bool) public isMinter;
+  uint256 public MAX_COOLDOWN_DURATION;
+  uint256 public liquidityCooldown;
 
   event PLP_SetMinter(address oldMinter, address newMinter);
   event PLP_SetWhitelist(address whitelisted, bool isActive);
   event PLP_SetMinter(address minter, bool prevAllow, bool newAllow);
+  event PLP_SetLiquidityCooldown(uint256 oldCooldown, uint256 newCooldown);
 
   error PLP_BadCooldownExpireAt(
     uint256 cooldownExpireAt,
@@ -25,9 +28,21 @@ contract PLP is ERC20Upgradeable, OwnableUpgradeable {
     _;
   }
 
-  function initialize() external initializer {
+  function initialize(uint256 liquidityCooldown_) external initializer {
     OwnableUpgradeable.__Ownable_init();
     ERC20Upgradeable.__ERC20_init("P88 Liquidity Provider", "PLP");
+
+    MAX_COOLDOWN_DURATION = 48 hours;
+    liquidityCooldown = liquidityCooldown_;
+  }
+
+  function setLiquidityCooldown(uint256 newLiquidityCooldown)
+    external
+    onlyOwner
+  {
+    uint256 oldCooldown = liquidityCooldown;
+    liquidityCooldown = newLiquidityCooldown;
+    emit PLP_SetLiquidityCooldown(oldCooldown, newLiquidityCooldown);
   }
 
   function setWhitelist(address whitelisted, bool isActive) external onlyOwner {
@@ -41,14 +56,8 @@ contract PLP is ERC20Upgradeable, OwnableUpgradeable {
     emit PLP_SetMinter(minter, isMinter[minter], allow);
   }
 
-  function mint(
-    address to,
-    uint256 amount,
-    uint256 cooldownExpireAt
-  ) public onlyMinter {
-    if (cooldownExpireAt < block.timestamp)
-      revert PLP_BadCooldownExpireAt(cooldownExpireAt, block.timestamp);
-    cooldown[to] = cooldownExpireAt;
+  function mint(address to, uint256 amount) public onlyMinter {
+    cooldown[to] = block.timestamp + liquidityCooldown;
     _mint(to, amount);
   }
 

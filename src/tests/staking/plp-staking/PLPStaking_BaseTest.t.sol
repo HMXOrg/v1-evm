@@ -58,6 +58,8 @@ contract PLPStaking_BaseTest is BaseTest {
     rewarders[2] = address(partnerARewarder);
 
     plpStaking.addStakingToken(address(plp), rewarders);
+
+    plp.setWhitelist(address(plpStaking), true);
     vm.stopPrank();
   }
 }

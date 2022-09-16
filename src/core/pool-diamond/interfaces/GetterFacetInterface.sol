@@ -36,13 +36,9 @@ interface GetterFacetInterface {
 
   function isSwapEnable() external view returns (bool);
 
-  function lastAddLiquidityAtOf(address user) external view returns (uint256);
-
   function lastFundingTimeOf(address token) external view returns (uint256);
 
   function liquidationFeeUsd() external view returns (uint256);
-
-  function liquidityCoolDownDuration() external view returns (uint64);
 
   function liquidityOf(address token) external view returns (uint256);
 

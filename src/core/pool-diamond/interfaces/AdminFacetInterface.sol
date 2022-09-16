@@ -29,9 +29,6 @@ interface AdminFacetInterface {
 
   function setLiquidationFeeUsd(uint256 newLiquidationFeeUsd) external;
 
-  function setLiquidityCoolDownDuration(uint64 newLiquidityCoolDownPeriod)
-    external;
-
   function setMaxLeverage(uint64 newMaxLeverage) external;
 
   function setMinProfitDuration(uint64 newMinProfitDuration) external;

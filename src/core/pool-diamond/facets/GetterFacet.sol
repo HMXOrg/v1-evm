@@ -85,21 +85,12 @@ contract GetterFacet is GetterFacetInterface {
     return LibPoolConfigV1.poolConfigV1DiamondStorage().isSwapEnable;
   }
 
-  function lastAddLiquidityAtOf(address user) external view returns (uint256) {
-    return LibPoolV1.poolV1DiamondStorage().lastAddLiquidityAtOf[user];
-  }
-
   function lastFundingTimeOf(address user) external view returns (uint256) {
     return LibPoolV1.poolV1DiamondStorage().lastFundingTimeOf[user];
   }
 
   function liquidationFeeUsd() external view returns (uint256) {
     return LibPoolConfigV1.poolConfigV1DiamondStorage().liquidationFeeUsd;
-  }
-
-  function liquidityCoolDownDuration() external view returns (uint64) {
-    return
-      LibPoolConfigV1.poolConfigV1DiamondStorage().liquidityCoolDownDuration;
   }
 
   function liquidityOf(address token) external view returns (uint256) {
