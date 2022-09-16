@@ -30,7 +30,6 @@ const methods = [
   "setIsLeverageEnable(bool)",
   "setIsSwapEnable(bool)",
   "setLiquidationFeeUsd(uint256)",
-  "setLiquidityCoolDownDuration(uint64)",
   "setMaxLeverage(uint64)",
   "setMinProfitDuration(uint64)",
   "setMintBurnFeeBps(uint64)",

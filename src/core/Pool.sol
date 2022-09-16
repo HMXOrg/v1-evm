@@ -357,12 +357,6 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
     if (!config.isAcceptToken(tokenOut)) revert Pool_BadArgument();
     if (liquidity == 0) revert Pool_BadArgument();
-    if (
-      lastAddLiquidityAtOf[account] + config.liquidityCoolDownDuration() >
-      block.timestamp
-    ) {
-      revert Pool_CoolDown();
-    }
 
     uint256 aum = poolMath.getAum18(Pool(address(this)), MinMax.MIN);
     uint256 lpSupply = plp.totalSupply();

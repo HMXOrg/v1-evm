@@ -10,7 +10,6 @@ contract PoolConfig is OwnableUpgradeable {
   error PoolConfig_BadNewFundingInterval();
   error PoolConfig_BadNewFundingRateFactor();
   error PoolConfig_BadNewLiquidationFeeUsd();
-  error PoolConfig_BadNewLiquidityCoolDownDuration();
   error PoolConfig_BadNewMaxLeverage();
   error PoolConfig_BadNewMintBurnFeeBps();
   error PoolConfig_BadNewPositionFeeBps();
@@ -25,7 +24,6 @@ contract PoolConfig is OwnableUpgradeable {
   // ---------
   // Constants
   // ---------
-  uint256 internal constant MAX_COOLDOWN_DURATION = 48 hours;
   uint256 internal constant MAX_FEE_BPS = 500;
   uint256 internal constant MIN_FUNDING_INTERVAL = 1 hours;
   // Max funding rate factor at 1% (10000 / 1000000 * 100 = 1%)
@@ -90,7 +88,6 @@ contract PoolConfig is OwnableUpgradeable {
   // Misc.
   // -----
   uint64 public minProfitDuration;
-  uint64 public liquidityCoolDownDuration;
   bool public isDynamicFeeEnable;
   bool public isSwapEnable;
   bool public isLeverageEnable;
@@ -130,10 +127,6 @@ contract PoolConfig is OwnableUpgradeable {
     uint256 prevLiquidationFeeUsd,
     uint256 newLiquidationFeeUsd
   );
-  event SetLiquidityCoolDownDuration(
-    uint256 prevCoolDownPeriod,
-    uint256 newCoolDownPeriod
-  );
   event SetPositionFeeBps(
     uint256 prevPositionFeeBps,
     uint256 newPositionFeeBps
@@ -160,7 +153,6 @@ contract PoolConfig is OwnableUpgradeable {
     uint64 _taxBps,
     uint64 _stableFundingRateFactor,
     uint64 _fundingRateFactor,
-    uint64 _liquidityCoolDownDuration,
     uint256 _liquidationFeeUsd
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
@@ -174,7 +166,6 @@ contract PoolConfig is OwnableUpgradeable {
     taxBps = _taxBps;
     stableFundingRateFactor = _stableFundingRateFactor;
     fundingRateFactor = _fundingRateFactor;
-    liquidityCoolDownDuration = _liquidityCoolDownDuration;
     maxLeverage = 88 * 10000; // Max leverage at 88x
 
     // toggle
@@ -266,20 +257,6 @@ contract PoolConfig is OwnableUpgradeable {
 
     emit SetLiquidationFeeUsd(liquidationFeeUsd, newLiquidationFeeUsd);
     liquidationFeeUsd = newLiquidationFeeUsd;
-  }
-
-  function setLiquidityCoolDownDuration(uint64 newLiquidityCoolDownPeriod)
-    external
-    onlyOwner
-  {
-    if (newLiquidityCoolDownPeriod > MAX_COOLDOWN_DURATION)
-      revert PoolConfig_BadNewLiquidityCoolDownDuration();
-
-    emit SetLiquidityCoolDownDuration(
-      liquidityCoolDownDuration,
-      newLiquidityCoolDownPeriod
-    );
-    liquidityCoolDownDuration = newLiquidityCoolDownPeriod;
   }
 
   function setMaxLeverage(uint64 newMaxLeverage) external onlyOwner {
