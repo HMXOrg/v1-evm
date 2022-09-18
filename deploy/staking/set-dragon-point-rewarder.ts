@@ -7,8 +7,10 @@ import { getConfig } from "../utils/config";
 const config = getConfig();
 
 const STAKING_CONTRACT_ADDRESS = config.Staking.DragonStaking.address;
-const DRAGON_POINT_REWARDER = config.Staking.DragonStaking.rewarders.find(
-  (each: any) => each.name === "Dragon Staking Dragon Point Emission"
+const DRAGON_POINT_REWARDER = (
+  config.Staking.DragonStaking.rewarders.find(
+    (each: any) => each.name === "Dragon Staking Dragon Point Emission"
+  ) as any
 ).address;
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {

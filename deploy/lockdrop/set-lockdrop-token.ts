@@ -21,43 +21,55 @@ const TOKEN_LIST = [
   {
     token: config.Tokens.WMATIC, // WMATIC
     type: TokenType.BaseToken,
-    lockdrop: config.Lockdrop.lockdrops.find(
-      (each: any) => each.lockdropTokenSymbol === "WMATIC"
+    lockdrop: (
+      config.Lockdrop.lockdrops.find(
+        (each: any) => each.lockdropTokenSymbol === "WMATIC"
+      ) as any
     ).address,
   },
   {
     token: config.Tokens.WETH, // WETH
     type: TokenType.BaseToken,
-    lockdrop: config.Lockdrop.lockdrops.find(
-      (each: any) => each.lockdropTokenSymbol === "WETH"
+    lockdrop: (
+      config.Lockdrop.lockdrops.find(
+        (each: any) => each.lockdropTokenSymbol === "WETH"
+      ) as any
     ).address,
   },
   {
     token: config.Tokens.WBTC, // WBTC
     type: TokenType.BaseToken,
-    lockdrop: config.Lockdrop.lockdrops.find(
-      (each: any) => each.lockdropTokenSymbol === "WBTC"
+    lockdrop: (
+      config.Lockdrop.lockdrops.find(
+        (each: any) => each.lockdropTokenSymbol === "WBTC"
+      ) as any
     ).address,
   },
   {
     token: config.Tokens.DAI, // DAI
     type: TokenType.BaseToken,
-    lockdrop: config.Lockdrop.lockdrops.find(
-      (each: any) => each.lockdropTokenSymbol === "DAI"
+    lockdrop: (
+      config.Lockdrop.lockdrops.find(
+        (each: any) => each.lockdropTokenSymbol === "DAI"
+      ) as any
     ).address,
   },
   {
     token: config.Tokens.USDC, // USDC
     type: TokenType.BaseToken,
-    lockdrop: config.Lockdrop.lockdrops.find(
-      (each: any) => each.lockdropTokenSymbol === "USDC"
+    lockdrop: (
+      config.Lockdrop.lockdrops.find(
+        (each: any) => each.lockdropTokenSymbol === "USDC"
+      ) as any
     ).address,
   },
   {
     token: config.Tokens.USDT, // USDT
     type: TokenType.BaseToken,
-    lockdrop: config.Lockdrop.lockdrops.find(
-      (each: any) => each.lockdropTokenSymbol === "USDT"
+    lockdrop: (
+      config.Lockdrop.lockdrops.find(
+        (each: any) => each.lockdropTokenSymbol === "USDT"
+      ) as any
     ).address,
   },
   {

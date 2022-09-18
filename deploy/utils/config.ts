@@ -4,7 +4,7 @@ import MainnetConfig from "../../contracts.json";
 import TenderlyConfig from "../../contracts.tenderly.json";
 import MumbaiConfig from "../../contracts.mumbai.json";
 
-export function getConfig(): any {
+export function getConfig() {
   if (network.name === "polygon") {
     return MainnetConfig;
   }

@@ -69,6 +69,9 @@
           "rewardToken": ""
         }
       ]
+    },
+    "RewardDistributor": {
+      "address": "0x..."
     }
   },
   "Lockdrop": {
