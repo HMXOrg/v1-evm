@@ -10,7 +10,6 @@ contract PLP is ERC20Upgradeable, OwnableUpgradeable {
   uint256 public MAX_COOLDOWN_DURATION;
   uint256 public liquidityCooldown;
 
-  event PLP_SetMinter(address oldMinter, address newMinter);
   event PLP_SetWhitelist(address whitelisted, bool isActive);
   event PLP_SetMinter(address minter, bool prevAllow, bool newAllow);
   event PLP_SetLiquidityCooldown(uint256 oldCooldown, uint256 newCooldown);
