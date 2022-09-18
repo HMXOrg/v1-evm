@@ -1,7 +1,8 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers, upgrades } from "hardhat";
-import { getConfig } from "../utils/config";
+import { ethers, tenderly, upgrades } from "hardhat";
+import { getConfig, writeConfigFile } from "../utils/config";
+import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 
 const config = getConfig();
 
@@ -19,6 +20,19 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   await dragonStaking.deployed();
   console.log(`Deploying DragonStaking Contract`);
   console.log(`Deployed at: ${dragonStaking.address}`);
+
+  const implAddress = await getImplementationAddress(
+    ethers.provider,
+    dragonStaking.address
+  );
+
+  await tenderly.verify({
+    address: implAddress,
+    name: "DragonStaking",
+  });
+
+  config.Staking.DragonStaking.address = dragonStaking.address;
+  writeConfigFile(config);
 };
 
 export default func;

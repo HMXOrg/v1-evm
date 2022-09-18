@@ -2,6 +2,9 @@ import { config as dotEnvConfig } from "dotenv";
 import { HardhatUserConfig } from "hardhat/config";
 dotEnvConfig();
 
+import * as tdly from "@tenderly/hardhat-tenderly";
+tdly.setup({ automaticVerifications: false });
+
 import "@openzeppelin/hardhat-upgrades";
 import "@nomiclabs/hardhat-ethers";
 import "@typechain/hardhat";
@@ -24,6 +27,10 @@ const config: HardhatUserConfig = {
           ? [process.env.POLYGON_MUMBAI_PRIVATE_KEY]
           : [],
     },
+    tenderly: {
+      chainId: 137,
+      url: "https://rpc.tenderly.co/fork/174d3639-ceef-4578-838d-5d6aecfb7ddd",
+    },
   },
   solidity: {
     version: "0.8.17",
@@ -45,6 +52,11 @@ const config: HardhatUserConfig = {
   },
   mocha: {
     timeout: 100000,
+  },
+  tenderly: {
+    project: process.env.TENDERLY_PROJECT_NAME!,
+    username: process.env.TENDERLY_USERNAME!,
+    privateVerification: true,
   },
 };
 

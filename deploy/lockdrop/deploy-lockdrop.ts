@@ -1,11 +1,12 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers, upgrades } from "hardhat";
-import { getConfig } from "../utils/config";
+import { ethers, tenderly, upgrades } from "hardhat";
+import { getConfig, writeConfigFile } from "../utils/config";
+import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 
 const config = getConfig();
 
-const lockdropToken = config.Tokens.USDT;
+const lockdropToken = config.Tokens.WETH;
 const pool = config.Pools.PLP.poolDiamond;
 const poolRouter = config.PoolRouter;
 const lockdropConfig = config.Lockdrop.config;
@@ -26,6 +27,23 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   await lockdrop.deployed();
   console.log(`Deploying Lockdrop Contract`);
   console.log(`Deployed at: ${lockdrop.address}`);
+
+  const implAddress = await getImplementationAddress(
+    ethers.provider,
+    lockdrop.address
+  );
+
+  await tenderly.verify({
+    address: implAddress,
+    name: "Lockdrop",
+  });
+
+  config.Lockdrop.lockdrops = config.Lockdrop.lockdrops.map((each: any) => {
+    if (each.lockdropToken === lockdropToken) {
+      return { ...each, address: lockdrop.address };
+    } else return each;
+  });
+  writeConfigFile(config);
 };
 
 export default func;
