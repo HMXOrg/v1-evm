@@ -142,21 +142,21 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
     uint256 amount
   ) internal {
     if (!isStakingToken[token]) revert PLPStaking_UnknownStakingToken();
-    if (userTokenAmount[token][to] < amount)
+    if (userTokenAmount[token][msg.sender] < amount)
       revert PLPStaking_InsufficientTokenAmount();
 
     uint256 length = stakingTokenRewarders[token].length;
     for (uint256 i = 0; i < length; ) {
       address rewarder = stakingTokenRewarders[token][i];
 
-      IRewarder(rewarder).onWithdraw(to, amount);
+      IRewarder(rewarder).onWithdraw(msg.sender, amount);
 
       unchecked {
         ++i;
       }
     }
-    userTokenAmount[token][to] -= amount;
-    IERC20Upgradeable(token).safeTransfer(msg.sender, amount);
+    userTokenAmount[token][msg.sender] -= amount;
+    IERC20Upgradeable(token).safeTransfer(to, amount);
     emit LogWithdraw(msg.sender, to, token, amount);
   }
 

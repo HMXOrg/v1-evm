@@ -318,4 +318,32 @@ contract PLPStaking_Withdraw is PLPStaking_BaseTest {
     assertEq(revenueRewarder.pendingReward(BOB), 129600 ether);
     assertEq(partnerARewarder.pendingReward(BOB), 25920 ether);
   }
+
+  function testCorrectness_AliceShouldNotForceBobToWithdraw() external {
+    vm.startPrank(DAVE);
+    plp.mint(ALICE, 80 ether);
+    plp.mint(BOB, 100 ether);
+    vm.stopPrank();
+
+    vm.startPrank(ALICE);
+    plp.approve(address(plpStaking), type(uint256).max);
+    plpStaking.deposit(ALICE, address(plp), 80 ether);
+    vm.stopPrank();
+
+    vm.startPrank(BOB);
+    plp.approve(address(plpStaking), type(uint256).max);
+    plpStaking.deposit(BOB, address(plp), 100 ether);
+    vm.stopPrank();
+
+    vm.startPrank(ALICE);
+    vm.expectRevert(
+      abi.encodeWithSignature("PLPStaking_InsufficientTokenAmount()")
+    );
+    plpStaking.withdraw(BOB, address(plp), 100 ether);
+    plpStaking.withdraw(BOB, address(plp), 80 ether);
+    vm.stopPrank();
+
+    assertEq(plpStaking.userTokenAmount(address(plp), BOB), 100 ether);
+    assertEq(plpStaking.userTokenAmount(address(plp), ALICE), 0 ether);
+  }
 }
