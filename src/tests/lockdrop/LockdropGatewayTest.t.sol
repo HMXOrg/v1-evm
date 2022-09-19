@@ -42,7 +42,11 @@ contract LockdropGatewayTest is BaseTest {
       mockWMatic
     );
 
-    lockdropGateway = deployLockdropGateway(address(plp), address(plpStaking));
+    lockdropGateway = deployLockdropGateway(
+      address(plp),
+      address(plpStaking),
+      address(mockWMatic)
+    );
     lockdrop = new MockLockdrop(address(lockdropToken), lockdropConfig);
 
     vm.startPrank(ALICE);
