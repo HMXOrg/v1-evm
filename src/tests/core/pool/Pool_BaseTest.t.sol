@@ -20,7 +20,6 @@ abstract contract Pool_BaseTest is BaseTest {
         taxBps: 50,
         stableFundingRateFactor: 600,
         fundingRateFactor: 600,
-        liquidityCoolDownPeriod: 1 days,
         liquidationFeeUsd: 5 * 10**30
       });
     (poolOracle, poolConfig, poolMath, pool) = deployFullPool(poolConfigParams);

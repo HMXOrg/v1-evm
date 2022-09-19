@@ -44,13 +44,9 @@ contract MockPLPStaking is IStaking {
     userTokenAmount[token][to] += amount;
   }
 
-  function withdraw(
-    address to,
-    address token,
-    uint256 amount
-  ) external {
-    IERC20(token).approve(to, amount);
-    IERC20(token).safeTransfer(to, amount);
+  function withdraw(address token, uint256 amount) external {
+    // IERC20(token).approve(msg.sender, amount);
+    IERC20(token).safeTransfer(msg.sender, amount);
   }
 
   function getUserTokenAmount(address token, address sender)

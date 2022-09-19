@@ -2,9 +2,9 @@
 pragma solidity 0.8.17;
 
 import { IRewarder } from "../../staking/interfaces/IRewarder.sol";
-import { IStaking } from "../../staking/interfaces/IStaking.sol";
 
-contract MockStaking {
+contract MockSimpleStaking {
+  // does not related to PLP/DragonStaking
   uint256 totalShare;
   mapping(address => uint256) shares;
 

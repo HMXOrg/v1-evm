@@ -70,7 +70,6 @@ library LibPoolConfigV1 {
     // Misc.
     // -----
     uint64 minProfitDuration;
-    uint64 liquidityCoolDownDuration;
     bool isDynamicFeeEnable;
     bool isSwapEnable;
     bool isLeverageEnable;
@@ -184,10 +183,6 @@ library LibPoolConfigV1 {
 
   function liquidationFeeUsd() internal view returns (uint256) {
     return poolConfigV1DiamondStorage().liquidationFeeUsd;
-  }
-
-  function liquidityCoolDownDuration() internal view returns (uint64) {
-    return poolConfigV1DiamondStorage().liquidityCoolDownDuration;
   }
 
   function maxLeverage() internal view returns (uint64) {

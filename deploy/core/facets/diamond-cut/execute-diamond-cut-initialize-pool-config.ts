@@ -39,7 +39,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           taxBps,
           stableFundingRateFactor,
           fundingRateFactor,
-          liquidityCoolDownDuration,
           liquidationFeeUsd,
         ]
       )
