@@ -18,7 +18,9 @@ interface ILockdrop {
 
   function addLockAmountFor(uint256 amount, address user) external;
 
-  function earlyWithdrawLockedToken(uint256 amount, address user) external;
+  function earlyWithdrawLockedToken(uint256 amount, address user)
+    external
+    payable;
 
   function claimAllRewardsFor(address user, address receiver) external;
 

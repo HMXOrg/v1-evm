@@ -36,7 +36,10 @@ contract MockLockdrop is ILockdrop {
 
   function addLockAmount(uint256 _amount) external {}
 
-  function earlyWithdrawLockedToken(uint256 _amount, address _user) external {}
+  function earlyWithdrawLockedToken(uint256 _amount, address _user)
+    external
+    payable
+  {}
 
   function _claimAllRewards(address _user) internal {
     IWNative(lockdropConfig.nativeToken()).withdraw(
