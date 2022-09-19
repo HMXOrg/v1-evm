@@ -1,6 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers, upgrades, tenderly } from "hardhat";
+import { ethers, upgrades, tenderly, network } from "hardhat";
 import { getConfig, writeConfigFile } from "../utils/config";
 import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 
@@ -15,8 +15,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`Deploying PLP Token Contract`);
   console.log(`Deployed at: ${plp.address}`);
 
+  config.Tokens.PLP = plp.address;
+  writeConfigFile(config);
+
   const implAddress = await getImplementationAddress(
-    ethers.provider,
+    network.provider,
     plp.address
   );
 
@@ -24,9 +27,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     address: implAddress,
     name: "PLP",
   });
-
-  config.Tokens.PLP = plp.address;
-  writeConfigFile(config);
 };
 
 export default func;

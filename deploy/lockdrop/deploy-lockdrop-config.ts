@@ -6,7 +6,7 @@ import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 
 const config = getConfig();
 
-const startLockTimestamp = 1663578575;
+const startLockTimestamp = 1663565400;
 const plpStaking = config.Staking.PLPStaking.address;
 const plpToken = config.Tokens.PLP;
 const p88Token = config.Tokens.P88;

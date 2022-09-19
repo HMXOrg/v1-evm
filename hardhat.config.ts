@@ -28,8 +28,11 @@ const config: HardhatUserConfig = {
           : [],
     },
     tenderly: {
-      chainId: 137,
-      url: "https://rpc.tenderly.co/fork/174d3639-ceef-4578-838d-5d6aecfb7ddd",
+      url: process.env.POLYGON_TENDERLY_RPC,
+      accounts:
+        process.env.POLYGON_MAINNET_PRIVATE_KEY !== undefined
+          ? [process.env.POLYGON_MAINNET_PRIVATE_KEY]
+          : [],
     },
   },
   solidity: {
