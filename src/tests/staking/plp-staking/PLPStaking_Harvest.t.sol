@@ -100,7 +100,7 @@ contract PLPStaking_Harvest is PLPStaking_BaseTest {
 
     vm.startPrank(ALICE);
     // Alice withdraw 100 PLP
-    plpStaking.withdraw(ALICE, address(plp), 100 ether);
+    plpStaking.withdraw(address(plp), 100 ether);
     vm.stopPrank();
 
     assertEq(plp.balanceOf(ALICE), 900 ether);

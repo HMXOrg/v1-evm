@@ -114,7 +114,7 @@ contract PLPStakingTest is BaseTest {
     vm.expectRevert(
       abi.encodeWithSignature("PLPStaking_UnknownStakingToken()")
     );
-    staking.withdraw(ALICE, address(p168), 100 ether);
+    staking.withdraw(address(p168), 100 ether);
     vm.stopPrank();
   }
 
@@ -123,7 +123,7 @@ contract PLPStakingTest is BaseTest {
     vm.expectRevert(
       abi.encodeWithSignature("PLPStaking_InsufficientTokenAmount()")
     );
-    staking.withdraw(ALICE, address(plp), 100 ether);
+    staking.withdraw(address(plp), 100 ether);
     vm.stopPrank();
   }
 
@@ -139,7 +139,7 @@ contract PLPStakingTest is BaseTest {
     vm.stopPrank();
 
     vm.prank(BOB);
-    staking.withdraw(BOB, address(plp), 50 ether);
+    staking.withdraw(address(plp), 50 ether);
 
     assertEq(plp.balanceOf(BOB), 50 ether);
     assertEq(staking.userTokenAmount(address(plp), BOB), 50 ether);
@@ -159,7 +159,7 @@ contract PLPStakingTest is BaseTest {
     assertEq(staking.calculateTotalShare(address(partnerRewarder)), 150 ether);
 
     vm.prank(ALICE);
-    staking.withdraw(ALICE, address(plp), 100 ether);
+    staking.withdraw(address(plp), 100 ether);
 
     assertEq(plp.balanceOf(ALICE), 100 ether);
     assertEq(staking.userTokenAmount(address(plp), ALICE), 0 ether);

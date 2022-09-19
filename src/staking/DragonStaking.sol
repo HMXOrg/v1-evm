@@ -14,8 +14,10 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
 
   error DragonStaking_UnknownStakingToken();
   error DragonStaking_InsufficientTokenAmount();
+  error DragonStaking_InvalidTokenAmount();
   error DragonStaking_NotRewarder();
   error DragonStaking_NotCompounder();
+  error DragonStaking_DragonPointWithdrawForbid();
 
   mapping(address => mapping(address => uint256)) public userTokenAmount;
   mapping(address => bool) public isRewarder;
@@ -34,12 +36,7 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
     address token,
     uint256 amount
   );
-  event LogWithdraw(
-    address indexed caller,
-    address indexed user,
-    address token,
-    uint256 amount
-  );
+  event LogWithdraw(address indexed caller, address token, uint256 amount);
 
   function initialize(address dp_) external initializer {
     OwnableUpgradeable.__Ownable_init();
@@ -93,6 +90,14 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
     address token,
     uint256 amount
   ) external {
+    _deposit(to, token, amount);
+  }
+
+  function _deposit(
+    address to,
+    address token,
+    uint256 amount
+  ) internal {
     if (!isStakingToken[token]) revert DragonStaking_UnknownStakingToken();
 
     uint256 length = stakingTokenRewarders[token].length;
@@ -132,49 +137,54 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
     return stakingTokenRewarders[token];
   }
 
-  function withdraw(
-    address to,
-    address token,
-    uint256 amount
-  ) external {
-    _withdraw(to, token, amount);
-    _afterWithdraw(to, token, amount);
-    emit LogWithdraw(msg.sender, to, token, amount);
+  function withdraw(address token, uint256 amount) external {
+    if (token == address(dp)) revert DragonStaking_DragonPointWithdrawForbid();
+    if (amount == 0) revert DragonStaking_InvalidTokenAmount();
+
+    // Clear all of user dragon point
+    dragonPointRewarder.onHarvest(msg.sender, msg.sender);
+    _withdraw(address(dp), userTokenAmount[address(dp)][msg.sender]);
+
+    // Withdraw the actual token, while we note down the share before/after (which already exclude Dragon Point)
+    uint256 shareBefore = _calculateShare(
+      address(dragonPointRewarder),
+      msg.sender
+    );
+    _withdraw(token, amount);
+    uint256 shareAfter = _calculateShare(
+      address(dragonPointRewarder),
+      msg.sender
+    );
+
+    // Find the burn amount
+    uint256 dpBalance = dp.balanceOf(msg.sender);
+    uint256 targetDpBalance = (dpBalance * shareAfter) / shareBefore;
+
+    // Burn from user, transfer the rest to here, and got depositted
+    dp.burn(msg.sender, dpBalance - targetDpBalance);
+    _deposit(msg.sender, address(dp), dp.balanceOf(msg.sender));
+
+    emit LogWithdraw(msg.sender, token, amount);
   }
 
-  function _withdraw(
-    address to,
-    address token,
-    uint256 amount
-  ) internal {
+  function _withdraw(address token, uint256 amount) internal {
     if (!isStakingToken[token]) revert DragonStaking_UnknownStakingToken();
-    if (userTokenAmount[token][to] < amount)
+    if (userTokenAmount[token][msg.sender] < amount)
       revert DragonStaking_InsufficientTokenAmount();
 
     uint256 length = stakingTokenRewarders[token].length;
     for (uint256 i = 0; i < length; ) {
       address rewarder = stakingTokenRewarders[token][i];
 
-      IRewarder(rewarder).onWithdraw(to, amount);
+      IRewarder(rewarder).onWithdraw(msg.sender, amount);
 
       unchecked {
         ++i;
       }
     }
-    userTokenAmount[token][to] -= amount;
+    userTokenAmount[token][msg.sender] -= amount;
     IERC20Upgradeable(token).safeTransfer(msg.sender, amount);
-    emit LogWithdraw(msg.sender, to, token, amount);
-  }
-
-  function _afterWithdraw(
-    address to,
-    address,
-    uint256
-  ) internal {
-    _withdraw(to, address(dp), userTokenAmount[address(dp)][to]);
-
-    dp.burn(to, dp.balanceOf(to));
-    dragonPointRewarder.onWithdraw(to, 0);
+    emit LogWithdraw(msg.sender, token, amount);
   }
 
   function harvest(address[] memory rewarders) external {
@@ -209,6 +219,14 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
 
   function calculateShare(address rewarder, address user)
     external
+    view
+    returns (uint256)
+  {
+    return _calculateShare(rewarder, user);
+  }
+
+  function _calculateShare(address rewarder, address user)
+    internal
     view
     returns (uint256)
   {
