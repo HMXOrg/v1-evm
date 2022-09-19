@@ -346,7 +346,6 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable, ILockdrop {
 
     // Lockdrop withdraw PLP Token from PLP staking
     lockdropConfig.plpStaking().withdraw(
-      address(this),
       address(lockdropConfig.plpToken()),
       userPLPTokenAmount
     );

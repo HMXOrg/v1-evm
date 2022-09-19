@@ -71,6 +71,7 @@ contract DragonStaking_BaseTest is BaseTest {
     );
 
     dragonStaking.setDragonPointRewarder(address(dragonPointRewarder));
+    dragonPoint.setMinter(address(dragonPointRewarder), true);
 
     address[] memory rewarders1 = new address[](4);
     rewarders1[0] = address(revenueRewarder);

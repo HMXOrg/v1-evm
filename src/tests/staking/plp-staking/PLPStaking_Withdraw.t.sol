@@ -27,7 +27,7 @@ contract PLPStaking_Withdraw is PLPStaking_BaseTest {
     vm.startPrank(ALICE);
     plp.approve(address(plpStaking), type(uint256).max);
     // Alice withdraw 30 PLP
-    plpStaking.withdraw(ALICE, address(plp), 30 ether);
+    plpStaking.withdraw(address(plp), 30 ether);
     vm.stopPrank();
 
     assertEq(plp.balanceOf(ALICE), 930 ether);
@@ -45,7 +45,7 @@ contract PLPStaking_Withdraw is PLPStaking_BaseTest {
     vm.startPrank(ALICE);
     plp.approve(address(plpStaking), type(uint256).max);
     // Alice withdraw 70 PLP
-    plpStaking.withdraw(ALICE, address(plp), 70 ether);
+    plpStaking.withdraw(address(plp), 70 ether);
     vm.stopPrank();
 
     assertEq(plp.balanceOf(ALICE), 1000 ether);
@@ -91,7 +91,7 @@ contract PLPStaking_Withdraw is PLPStaking_BaseTest {
 
     vm.startPrank(ALICE);
     // Alice withdraw 100 PLP
-    plpStaking.withdraw(ALICE, address(plp), 100 ether);
+    plpStaking.withdraw(address(plp), 100 ether);
     vm.stopPrank();
 
     // 604800 * 1 / 100 * 1e-6 = 0.006048
@@ -138,7 +138,7 @@ contract PLPStaking_Withdraw is PLPStaking_BaseTest {
 
     vm.startPrank(ALICE);
     // Alice withdraw 30 PLP
-    plpStaking.withdraw(ALICE, address(plp), 30 ether);
+    plpStaking.withdraw(address(plp), 30 ether);
     vm.stopPrank();
 
     // 4 days * 1 / 100 * 1e-6 = 0.003456
@@ -156,7 +156,7 @@ contract PLPStaking_Withdraw is PLPStaking_BaseTest {
 
     vm.startPrank(ALICE);
     // Bob withdraw 70 PLP
-    plpStaking.withdraw(ALICE, address(plp), 70 ether);
+    plpStaking.withdraw(address(plp), 70 ether);
     vm.stopPrank();
 
     // 0.003456 + 3 days * 1 / 70 * 1e-6 = 0.007158857142857142
@@ -238,7 +238,7 @@ contract PLPStaking_Withdraw is PLPStaking_BaseTest {
 
     vm.startPrank(ALICE);
     // Alice withdraw 100 PLP
-    plpStaking.withdraw(ALICE, address(plp), 100 ether);
+    plpStaking.withdraw(address(plp), 100 ether);
     vm.stopPrank();
 
     assertEq(plp.balanceOf(ALICE), 900 ether);
@@ -294,7 +294,7 @@ contract PLPStaking_Withdraw is PLPStaking_BaseTest {
 
     vm.startPrank(ALICE);
     // Alice withdraw 100 PLP
-    plpStaking.withdraw(ALICE, address(plp), 100 ether);
+    plpStaking.withdraw(address(plp), 100 ether);
     vm.stopPrank();
 
     assertEq(plp.balanceOf(ALICE), 1000 ether);
@@ -305,7 +305,7 @@ contract PLPStaking_Withdraw is PLPStaking_BaseTest {
 
     vm.startPrank(BOB);
     // Bob withdraw 100 PLP
-    plpStaking.withdraw(BOB, address(plp), 100 ether);
+    plpStaking.withdraw(address(plp), 100 ether);
     vm.stopPrank();
 
     assertEq(plp.balanceOf(BOB), 1000 ether);
@@ -317,5 +317,33 @@ contract PLPStaking_Withdraw is PLPStaking_BaseTest {
     assertEq(esP88Rewarder.pendingReward(BOB), 259200 ether);
     assertEq(revenueRewarder.pendingReward(BOB), 129600 ether);
     assertEq(partnerARewarder.pendingReward(BOB), 25920 ether);
+  }
+
+  function testCorrectness_AliceShouldNotForceBobToWithdraw() external {
+    vm.startPrank(DAVE);
+    plp.mint(ALICE, 80 ether);
+    plp.mint(BOB, 100 ether);
+    vm.stopPrank();
+
+    vm.startPrank(ALICE);
+    plp.approve(address(plpStaking), type(uint256).max);
+    plpStaking.deposit(ALICE, address(plp), 80 ether);
+    vm.stopPrank();
+
+    vm.startPrank(BOB);
+    plp.approve(address(plpStaking), type(uint256).max);
+    plpStaking.deposit(BOB, address(plp), 100 ether);
+    vm.stopPrank();
+
+    vm.startPrank(ALICE);
+    vm.expectRevert(
+      abi.encodeWithSignature("PLPStaking_InsufficientTokenAmount()")
+    );
+    plpStaking.withdraw(address(plp), 100 ether);
+    plpStaking.withdraw(address(plp), 80 ether);
+    vm.stopPrank();
+
+    assertEq(plpStaking.userTokenAmount(address(plp), BOB), 100 ether);
+    assertEq(plpStaking.userTokenAmount(address(plp), ALICE), 0 ether);
   }
 }
