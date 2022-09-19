@@ -15,12 +15,7 @@ contract PLP is ERC20Upgradeable, OwnableUpgradeable {
   event PLP_SetLiquidityCooldown(uint256 oldCooldown, uint256 newCooldown);
 
   error PLP_BadLiquidityCooldown(uint256 cooldown);
-  error PLP_BadCooldownExpireAt(
-    uint256 cooldownExpireAt,
-    uint256 blockTimestamp
-  );
   error PLP_Cooldown(uint256 cooldownExpireAt);
-  error PLP_isNotTransferrer();
   error PLP_NotMinter();
 
   modifier onlyMinter() {
@@ -72,10 +67,10 @@ contract PLP is ERC20Upgradeable, OwnableUpgradeable {
     address to,
     uint256 amount
   ) internal override {
+    if (whitelist[from] || whitelist[to]) return;
+
     uint256 cooldownExpireAt = cooldown[from];
-    if (
-      (amount > 0 && !whitelist[from] && !whitelist[to]) &&
-      block.timestamp < cooldownExpireAt
-    ) revert PLP_Cooldown(cooldownExpireAt);
+    if (amount > 0 && block.timestamp < cooldownExpireAt)
+      revert PLP_Cooldown(cooldownExpireAt);
   }
 }
