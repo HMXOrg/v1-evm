@@ -141,8 +141,6 @@ contract LiquidityFacet is LiquidityFacetInterface {
 
     poolV1ds.plp.mint(receiver, mintAmount);
 
-    poolV1ds.lastAddLiquidityAtOf[account] = block.timestamp;
-
     emit AddLiquidity(
       account,
       token,
@@ -218,13 +216,6 @@ contract LiquidityFacet is LiquidityFacetInterface {
     if (!LibPoolConfigV1.isAcceptToken(tokenOut))
       revert LiquidityFacet_BadToken();
     if (liquidity == 0) revert LiquidityFacet_BadAmount();
-    if (
-      poolV1ds.lastAddLiquidityAtOf[account] +
-        LibPoolConfigV1.liquidityCoolDownDuration() >
-      block.timestamp
-    ) {
-      revert LiquidityFacet_CoolDown();
-    }
 
     uint256 aum = GetterFacetInterface(address(this)).getAumE18(false);
     uint256 lpSupply = poolV1ds.plp.totalSupply();

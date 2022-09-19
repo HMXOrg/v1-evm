@@ -78,7 +78,7 @@ contract PoolRouter {
     address receiver,
     uint256 minAmountOut
   ) external returns (uint256) {
-    IERC20(GetterFacetInterface(pool).plp()).safeTransferFrom(
+    IERC20(address(GetterFacetInterface(pool).plp())).safeTransferFrom(
       msg.sender,
       address(pool),
       liquidity
@@ -102,7 +102,7 @@ contract PoolRouter {
     address receiver,
     uint256 minAmountOut
   ) external payable returns (uint256) {
-    IERC20(GetterFacetInterface(pool).plp()).safeTransferFrom(
+    IERC20(address(GetterFacetInterface(pool).plp())).safeTransferFrom(
       msg.sender,
       address(pool),
       liquidity

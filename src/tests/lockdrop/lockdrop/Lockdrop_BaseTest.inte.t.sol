@@ -64,7 +64,6 @@ abstract contract Lockdrop_BaseTest is BaseTest {
         taxBps: 50,
         stableFundingRateFactor: 600,
         fundingRateFactor: 600,
-        liquidityCoolDownPeriod: 1 days,
         liquidationFeeUsd: 5 * 10**30
       });
 
@@ -155,6 +154,9 @@ abstract contract Lockdrop_BaseTest is BaseTest {
       rewardsTokens,
       address(revenueToken)
     );
+
+    plp.setWhitelist(address(plpStaking), true);
+    plp.setWhitelist(address(dragonStaking), true);
 
     vm.stopPrank();
   }

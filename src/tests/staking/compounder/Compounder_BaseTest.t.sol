@@ -124,6 +124,8 @@ contract Compounder_BaseTest is BaseTest {
     dragonStaking.setCompounder(address(compounder));
     dragonPoint.setTransferrer(address(compounder), true);
 
+    plp.setWhitelist(address(plpStaking), true);
+
     vm.stopPrank();
   }
 }

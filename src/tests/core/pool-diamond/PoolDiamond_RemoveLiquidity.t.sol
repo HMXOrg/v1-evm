@@ -2,6 +2,7 @@
 pragma solidity 0.8.17;
 
 import { PoolDiamond_BaseTest, PoolConfig, LibPoolConfigV1, Pool, console, GetterFacetInterface, LiquidityFacetInterface, PoolRouter } from "./PoolDiamond_BaseTest.t.sol";
+import { PLP } from "src/tokens/PLP.sol";
 
 contract PoolDiamond_RemoveLiquidityTest is PoolDiamond_BaseTest {
   function setUp() public override {
@@ -61,7 +62,7 @@ contract PoolDiamond_RemoveLiquidityTest is PoolDiamond_BaseTest {
 
     poolGetterFacet.plp().approve(address(poolRouter), 1);
 
-    vm.expectRevert(abi.encodeWithSignature("LiquidityFacet_CoolDown()"));
+    vm.expectRevert(abi.encodeWithSelector(PLP.PLP_Cooldown.selector, 86401));
     poolRouter.removeLiquidity(
       address(poolDiamond),
       address(dai),
