@@ -1,6 +1,9 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers } from "hardhat";
+import { ethers, tenderly } from "hardhat";
+import { getConfig, writeConfigFile } from "../../utils/config";
+
+const config = getConfig();
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
@@ -12,6 +15,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   diamondLoupeFacet.deployed();
   console.log(`Deploying DiamondLoupeFacet Contract`);
   console.log(`Deployed at: ${diamondLoupeFacet.address}`);
+
+  await tenderly.verify({
+    address: diamondLoupeFacet.address,
+    name: "DiamondLoupeFacet",
+  });
+
+  config.Pools.PLP.facets.diamondLoupe = diamondLoupeFacet.address;
+  writeConfigFile(config);
 };
 
 export default func;

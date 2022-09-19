@@ -1,6 +1,9 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers } from "hardhat";
+import { ethers, tenderly } from "hardhat";
+import { getConfig, writeConfigFile } from "../../utils/config";
+
+const config = getConfig();
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
@@ -9,9 +12,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     deployer
   );
   const ownershipFacet = await OwnershipFacet.deploy();
-  ownershipFacet.deployed();
+  await ownershipFacet.deployed();
   console.log(`Deploying OwnershipFacet Contract`);
   console.log(`Deployed at: ${ownershipFacet.address}`);
+
+  await tenderly.verify({
+    address: ownershipFacet.address,
+    name: "OwnershipFacet",
+  });
+
+  config.Pools.PLP.facets.ownership = ownershipFacet.address;
+  writeConfigFile(config);
 };
 
 export default func;

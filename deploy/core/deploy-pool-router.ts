@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers } from "hardhat";
-import { getConfig } from "../utils/config";
+import { ethers, tenderly } from "hardhat";
+import { getConfig, writeConfigFile } from "../utils/config";
 
 const config = getConfig();
 
@@ -14,6 +14,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   await poolRouter.deployed();
   console.log(`Deploying PoolRouter Contract`);
   console.log(`Deployed at: ${poolRouter.address}`);
+
+  await tenderly.verify({
+    address: poolRouter.address,
+    name: "PoolRouter",
+  });
+
+  config.PoolRouter = poolRouter.address;
+  writeConfigFile(config);
 };
 
 export default func;
