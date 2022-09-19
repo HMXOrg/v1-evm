@@ -16,6 +16,7 @@ import { IUniswapPair } from "../interfaces/IUniswapPair.sol";
 import { ILockdrop } from "./interfaces/ILockdrop.sol";
 import { ILockdropGateway } from "./interfaces/ILockdropGateway.sol";
 import { IStaking } from "../staking/interfaces/IStaking.sol";
+import { IWNative } from "../interfaces/IWNative.sol";
 
 contract LockdropGateway is ILockdropGateway, OwnableUpgradeable {
   using SafeERC20Upgradeable for IERC20Upgradeable;
@@ -38,6 +39,7 @@ contract LockdropGateway is ILockdropGateway, OwnableUpgradeable {
   IERC20Upgradeable public plpToken;
   IStaking public plpStaking;
   mapping(address => LockdropInfo) public mapTokenLockdropInfo;
+  IWNative public WNATIVE;
 
   error LockdropGateway_UnknownTokenType();
   error LockdropGateway_NotBaseToken();
@@ -49,13 +51,15 @@ contract LockdropGateway is ILockdropGateway, OwnableUpgradeable {
   error LockdropGateway_NothingToDoWithPosition();
   error LockdropGateway_NonBaseTokenZeroLockedAmount();
 
-  function initialize(IERC20Upgradeable plpToken_, IStaking plpStaking_)
-    external
-    initializer
-  {
+  function initialize(
+    IERC20Upgradeable plpToken_,
+    IStaking plpStaking_,
+    IWNative wnative_
+  ) external initializer {
     OwnableUpgradeable.__Ownable_init();
     plpToken = plpToken_;
     plpStaking = plpStaking_;
+    WNATIVE = wnative_;
   }
 
   function setBaseTokenLockdropInfo(address token, address lockdrop)
@@ -164,18 +168,20 @@ contract LockdropGateway is ILockdropGateway, OwnableUpgradeable {
     address token,
     uint256 lockAmount,
     uint256 lockPeriod
-  ) external {
+  ) external payable {
     // Validate token, whether it is supported (whitelisted) by our contract or not
     TokenType tokenInType = mapTokenLockdropInfo[token].tokenInType;
     if (tokenInType == TokenType.UninitializedToken)
       revert LockdropGateway_UninitializedToken();
 
     // Transfer user's token
-    IERC20Upgradeable(token).safeTransferFrom(
-      msg.sender,
-      address(this),
-      lockAmount
-    );
+    if (token != address(WNATIVE)) {
+      IERC20Upgradeable(token).safeTransferFrom(
+        msg.sender,
+        address(this),
+        lockAmount
+      );
+    }
 
     // Call lock function correctly according to its type
     if (tokenInType == TokenType.BaseToken) {
@@ -213,6 +219,10 @@ contract LockdropGateway is ILockdropGateway, OwnableUpgradeable {
   ) internal {
     if (mapTokenLockdropInfo[token].tokenInType != TokenType.BaseToken)
       revert LockdropGateway_NotBaseToken();
+
+    if (token == address(WNATIVE)) {
+      WNATIVE.deposit{ value: msg.value }();
+    }
 
     if (lockAmount > 0)
       IERC20Upgradeable(token).approve(

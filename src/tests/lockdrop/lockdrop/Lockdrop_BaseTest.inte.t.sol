@@ -128,7 +128,8 @@ abstract contract Lockdrop_BaseTest is BaseTest {
 
     lockdropGateway = BaseTest.deployLockdropGateway(
       address(plp),
-      address(plpStaking)
+      address(plpStaking),
+      address(matic)
     );
     lockdropCompounder = BaseTest.deployLockdropCompounder(
       address(esP88),
