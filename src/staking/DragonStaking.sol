@@ -151,21 +151,31 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
     if (amount == 0) revert DragonStaking_InvalidTokenAmount();
 
     // Clear all of user dragon point
-    dragonPointRewarder.onHarvest(to, to);
-    _withdraw(to, address(dp), userTokenAmount[address(dp)][to]);
+    dragonPointRewarder.onHarvest(msg.sender, msg.sender);
+    _withdraw(
+      msg.sender,
+      address(dp),
+      userTokenAmount[address(dp)][msg.sender]
+    );
 
     // Withdraw the actual token, while we note down the share before/after (which already exclude Dragon Point)
-    uint256 shareBefore = _calculateShare(address(dragonPointRewarder), to);
+    uint256 shareBefore = _calculateShare(
+      address(dragonPointRewarder),
+      msg.sender
+    );
     _withdraw(to, token, amount);
-    uint256 shareAfter = _calculateShare(address(dragonPointRewarder), to);
+    uint256 shareAfter = _calculateShare(
+      address(dragonPointRewarder),
+      msg.sender
+    );
 
     // Find the burn amount
-    uint256 dpBalance = dp.balanceOf(to);
+    uint256 dpBalance = dp.balanceOf(msg.sender);
     uint256 targetDpBalance = (dpBalance * shareAfter) / shareBefore;
 
     // Burn from user, transfer the rest to here, and got depositted
-    dp.burn(to, dpBalance - targetDpBalance);
-    _deposit(to, address(dp), targetDpBalance);
+    dp.burn(msg.sender, dpBalance - targetDpBalance);
+    _deposit(msg.sender, address(dp), dp.balanceOf(msg.sender));
 
     emit LogWithdraw(msg.sender, to, token, amount);
   }
@@ -176,21 +186,21 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
     uint256 amount
   ) internal {
     if (!isStakingToken[token]) revert DragonStaking_UnknownStakingToken();
-    if (userTokenAmount[token][to] < amount)
+    if (userTokenAmount[token][msg.sender] < amount)
       revert DragonStaking_InsufficientTokenAmount();
 
     uint256 length = stakingTokenRewarders[token].length;
     for (uint256 i = 0; i < length; ) {
       address rewarder = stakingTokenRewarders[token][i];
 
-      IRewarder(rewarder).onWithdraw(to, amount);
+      IRewarder(rewarder).onWithdraw(msg.sender, amount);
 
       unchecked {
         ++i;
       }
     }
-    userTokenAmount[token][to] -= amount;
-    IERC20Upgradeable(token).safeTransfer(msg.sender, amount);
+    userTokenAmount[token][msg.sender] -= amount;
+    IERC20Upgradeable(token).safeTransfer(to, amount);
     emit LogWithdraw(msg.sender, to, token, amount);
   }
 
