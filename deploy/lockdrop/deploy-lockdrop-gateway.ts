@@ -18,6 +18,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const lockdropGateway = await upgrades.deployProxy(LockdropGateway, [
     plpToken,
     plpStaking,
+    config.Tokens.WMATIC,
   ]);
   await lockdropGateway.deployed();
   console.log(`Deploying LockdropGateway Contract`);
