@@ -73,7 +73,7 @@ contract DragonStaking_Withdraw is DragonStaking_BaseTest {
     {
       vm.startPrank(ALICE);
       // Alice withdraw 20 p88
-      dragonStaking.withdraw(ALICE, address(p88), 20 ether);
+      dragonStaking.withdraw(address(p88), 20 ether);
       vm.stopPrank();
 
       assertEq(revenueRewarder.pendingReward(ALICE), 57600 ether);
@@ -93,7 +93,7 @@ contract DragonStaking_Withdraw is DragonStaking_BaseTest {
     {
       vm.startPrank(ALICE);
       // Alice withdraw 20 p88
-      dragonStaking.withdraw(ALICE, address(p88), 80 ether);
+      dragonStaking.withdraw(address(p88), 80 ether);
       vm.stopPrank();
 
       assertEq(dragonStaking.userTokenAmount(address(p88), ALICE), 0 ether);
@@ -106,7 +106,7 @@ contract DragonStaking_Withdraw is DragonStaking_BaseTest {
 
     vm.startPrank(BOB);
     // Bob withdraw 100 P88
-    dragonStaking.withdraw(BOB, address(p88), 100 ether);
+    dragonStaking.withdraw(address(p88), 100 ether);
     vm.stopPrank();
 
     assertEq(dragonPointRewarder.pendingReward(BOB), 0);
@@ -177,7 +177,7 @@ contract DragonStaking_Withdraw is DragonStaking_BaseTest {
     {
       vm.startPrank(ALICE);
       // Alice withdraw 20 p88
-      dragonStaking.withdraw(BOB, address(p88), 20 ether);
+      dragonStaking.withdraw(address(p88), 20 ether);
       vm.stopPrank();
 
       assertEq(revenueRewarder.pendingReward(ALICE), 57600 ether);
@@ -197,7 +197,7 @@ contract DragonStaking_Withdraw is DragonStaking_BaseTest {
     {
       vm.startPrank(ALICE);
       // Alice withdraw 20 p88
-      dragonStaking.withdraw(ALICE, address(p88), 80 ether);
+      dragonStaking.withdraw(address(p88), 80 ether);
       vm.stopPrank();
 
       assertEq(dragonStaking.userTokenAmount(address(p88), ALICE), 0 ether);
@@ -210,7 +210,7 @@ contract DragonStaking_Withdraw is DragonStaking_BaseTest {
 
     vm.startPrank(BOB);
     // Bob withdraw 100 P88
-    dragonStaking.withdraw(BOB, address(p88), 100 ether);
+    dragonStaking.withdraw(address(p88), 100 ether);
     vm.stopPrank();
 
     assertEq(dragonPointRewarder.pendingReward(BOB), 0);
@@ -236,8 +236,8 @@ contract DragonStaking_Withdraw is DragonStaking_BaseTest {
     vm.expectRevert(
       abi.encodeWithSignature("DragonStaking_InsufficientTokenAmount()")
     );
-    dragonStaking.withdraw(BOB, address(esP88), 100 ether);
-    dragonStaking.withdraw(BOB, address(esP88), 80 ether);
+    dragonStaking.withdraw(address(esP88), 100 ether);
+    dragonStaking.withdraw(address(esP88), 80 ether);
     vm.stopPrank();
 
     assertEq(dragonStaking.userTokenAmount(address(esP88), BOB), 100 ether);

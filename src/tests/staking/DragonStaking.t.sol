@@ -130,7 +130,7 @@ contract DragonStakingTest is BaseTest {
 
       vm.startPrank(BOB);
       esP88.approve(address(staking), 50 ether);
-      staking.withdraw(BOB, address(esP88), 50 ether);
+      staking.withdraw(address(esP88), 50 ether);
       vm.stopPrank();
 
       assertEq(dp.balanceOf(BOB), 0 ether);
@@ -158,7 +158,7 @@ contract DragonStakingTest is BaseTest {
 
       vm.startPrank(ALICE);
       p88.approve(address(staking), 50 ether);
-      staking.withdraw(ALICE, address(p88), 50 ether);
+      staking.withdraw(address(p88), 50 ether);
       vm.stopPrank();
 
       assertEq(dp.balanceOf(ALICE), 0 ether);
@@ -181,7 +181,7 @@ contract DragonStakingTest is BaseTest {
     {
       vm.startPrank(ALICE);
       p88.approve(address(staking), 50 ether);
-      staking.withdraw(ALICE, address(p88), 50 ether);
+      staking.withdraw(address(p88), 50 ether);
       vm.stopPrank();
 
       assertEq(dp.balanceOf(ALICE), 0 ether);
@@ -206,7 +206,7 @@ contract DragonStakingTest is BaseTest {
     vm.expectRevert(
       abi.encodeWithSignature("DragonStaking_DragonPointWithdrawForbid()")
     );
-    staking.withdraw(ALICE, address(dp), 50 ether);
+    staking.withdraw(address(dp), 50 ether);
     vm.stopPrank();
   }
 
@@ -215,7 +215,7 @@ contract DragonStakingTest is BaseTest {
     vm.expectRevert(
       abi.encodeWithSignature("DragonStaking_InvalidTokenAmount()")
     );
-    staking.withdraw(ALICE, address(p88), 0 ether);
+    staking.withdraw(address(p88), 0 ether);
     vm.stopPrank();
   }
 }

@@ -75,7 +75,6 @@ contract MockLockdrop is ILockdrop {
     _claimAllRewards(_user);
 
     lockdropConfig.plpStaking().withdraw(
-      address(this),
       address(lockdropConfig.plpToken()),
       totalPLPAmount
     );

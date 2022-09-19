@@ -7,11 +7,7 @@ interface IStaking {
     uint256 amount
   ) external;
 
-  function withdraw(
-    address to,
-    address token,
-    uint256 amount
-  ) external;
+  function withdraw(address token, uint256 amount) external;
 
   function getUserTokenAmount(address token, address sender)
     external
