@@ -4,7 +4,7 @@ pragma solidity 0.8.16;
 import { PoolDiamond_BaseTest, LibPoolConfigV1, MockDonateVault, MockStrategy, Pool, console, GetterFacetInterface, LiquidityFacetInterface, stdError } from "./PoolDiamond_BaseTest.t.sol";
 import { StrategyInterface } from "../../../interfaces/StrategyInterface.sol";
 
-contract PoolDiamond_FarmTest is PoolDiamond_BaseTest {
+contract PoolDiamond_Farm_LiquidateTest is PoolDiamond_BaseTest {
   MockDonateVault internal mockDaiVault;
   MockStrategy internal mockDaiVaultStrategy;
 
@@ -71,17 +71,5 @@ contract PoolDiamond_FarmTest is PoolDiamond_BaseTest {
     poolFarmFacet.setStrategyOf(address(matic), mockMaticVaultStrategy);
     vm.warp(block.timestamp + 1 weeks + 1);
     poolFarmFacet.setStrategyOf(address(matic), mockMaticVaultStrategy);
-  }
-
-  function testRevert_WhenFarm_WhenNeitherFarmKeeper_NorPoolDiamond_IsACaller()
-    external
-  {
-    vm.startPrank(ALICE);
-    vm.expectRevert(abi.encodeWithSignature("FarmFacet_InvalidFarmCaller()"));
-    poolFarmFacet.farm(address(wbtc), true);
-
-    vm.expectRevert(abi.encodeWithSignature("FarmFacet_InvalidFarmCaller()"));
-    poolFarmFacet.farm(address(wbtc), false);
-    vm.stopPrank();
   }
 }
