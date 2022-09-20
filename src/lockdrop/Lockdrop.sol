@@ -8,6 +8,7 @@ import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC
 import { SafeERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import { IPool } from "../interfaces/IPool.sol";
 import { IStaking } from "../staking/interfaces/IStaking.sol";
+import { IRewarder } from "../staking/interfaces/IRewarder.sol";
 import { LockdropConfig } from "./LockdropConfig.sol";
 import { ILockdrop } from "./interfaces/ILockdrop.sol";
 import { P88 } from "../tokens/P88.sol";
@@ -447,8 +448,46 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     return harvestedReward;
   }
 
+  function _allPendingReward() internal view returns (uint256[] memory) {
+    uint256 length = rewardTokens.length;
+    uint256[] memory rewardBeforeHarvest = new uint256[](length);
+    uint256[] memory harvestedReward = new uint256[](length);
+    for (uint256 i = 0; i < length; ) {
+      // check if is native token or ERC20
+      if (rewardTokens[i] == nativeTokenAddress) {
+        rewardBeforeHarvest[i] = address(this).balance;
+      } else {
+        rewardBeforeHarvest[i] = IERC20Upgradeable(rewardTokens[i]).balanceOf(
+          address(this)
+        );
+      }
+
+      unchecked {
+        ++i;
+      }
+    }
+
+    address[] memory rewarders = lockdropConfig
+      .plpStaking()
+      .getStakingTokenRewarders(address(lockdropConfig.plpToken()));
+
+    for (uint256 i = 0; i < length; ) {
+      uint256 _pendingReward = IRewarder(rewarders[i]).pendingReward(
+        address(this)
+      );
+      harvestedReward[i] = _pendingReward;
+
+      unchecked {
+        ++i;
+      }
+    }
+
+    return harvestedReward;
+  }
+
   function _calculateAccPerShare(uint256 claimedReward)
     internal
+    view
     returns (uint256)
   {
     uint256 totalStakedPLPAmount = lockdropConfig
@@ -492,12 +531,40 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
       // calculate for update user reward dept
       lockdropStates[user].userRewardDebts[i] = userAccumReward;
-
       emit LogClaimReward(user, rewardTokens[i], pendingReward);
       unchecked {
         ++i;
       }
     }
+  }
+
+  function pendingReward(address user)
+    external
+    view
+    returns (uint256[] memory)
+  {
+    uint256[] memory harvestedRewards = _allPendingReward();
+    uint256 userShare = (lockdropStates[user].lockdropTokenAmount *
+      totalPLPAmount) / totalAmount;
+
+    uint256 length = rewardTokens.length;
+    uint256[] memory pendingRewards = new uint256[](length);
+    for (uint256 i = 0; i < length; ) {
+      // Update PLP accumurate per share
+      uint256 _accRewardPerShares = accRewardPerShares[i] +
+        _calculateAccPerShare(harvestedRewards[i]);
+
+      uint256 userAccumReward = ((userShare * _accRewardPerShares) / 1e12);
+
+      // calculate pending reward to be received for user
+      uint256 pendingRewardOfThisToken = userAccumReward -
+        lockdropStates[user].userRewardDebts[i];
+      pendingRewards[i] = pendingRewardOfThisToken;
+      unchecked {
+        ++i;
+      }
+    }
+    return pendingRewards;
   }
 
   /// @dev Users can claim all their reward
