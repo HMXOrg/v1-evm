@@ -14,7 +14,7 @@ import { P88 } from "../tokens/P88.sol";
 import { PoolRouter } from "../core/pool-diamond/PoolRouter.sol";
 import { IWNative } from "../interfaces/IWNative.sol";
 
-contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable, ILockdrop {
+contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   // --- Libraries ---
   using SafeERC20Upgradeable for IERC20Upgradeable;
 
@@ -389,6 +389,7 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable, ILockdrop {
     external
     onlyAfterLockdropPeriod
     nonReentrant
+    returns (uint256)
   {
     if (lockdropStates[msg.sender].lockdropTokenAmount == 0)
       revert Lockdrop_NoPosition();
@@ -401,6 +402,7 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable, ILockdrop {
     lockdropConfig.p88Token().safeTransfer(user, p88Amount);
     lockdropStates[user].p88Claimed = true;
     emit LogClaimAllP88(user, p88Amount);
+    return p88Amount;
   }
 
   function _harvestAll() internal returns (uint256[] memory) {

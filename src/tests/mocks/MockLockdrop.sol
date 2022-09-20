@@ -13,13 +13,13 @@ contract MockLockdrop is ILockdrop {
   using SafeERC20 for IERC20;
 
   address internal lockeDropTokenAddress;
-  MockLockdropConfig internal lockdropConfig;
+  MockLockdropConfig internal _lockdropConfig;
   uint256 internal lockTokenAmount;
   uint256 internal totalPLPAmount;
 
-  constructor(address _lockdropToken, MockLockdropConfig _lockdropConfig) {
+  constructor(address _lockdropToken, MockLockdropConfig lockdropConfig_) {
     lockeDropTokenAddress = _lockdropToken;
-    lockdropConfig = _lockdropConfig;
+    _lockdropConfig = lockdropConfig_;
   }
 
   function lockToken(uint256 _amount, uint256 _lockPeriod) external {
@@ -42,19 +42,19 @@ contract MockLockdrop is ILockdrop {
   {}
 
   function _claimAllRewards(address _user) internal {
-    IWNative(lockdropConfig.nativeToken()).withdraw(
-      lockdropConfig.nativeToken().balanceOf(address(this))
+    IWNative(_lockdropConfig.nativeToken()).withdraw(
+      _lockdropConfig.nativeToken().balanceOf(address(this))
     );
     payable(_user).transfer(address(this).balance);
 
-    IERC20(lockdropConfig.esp88Token()).approve(
+    IERC20(_lockdropConfig.esp88Token()).approve(
       address(this),
-      IERC20(lockdropConfig.esp88Token()).balanceOf(address(this))
+      IERC20(_lockdropConfig.esp88Token()).balanceOf(address(this))
     );
-    IERC20(lockdropConfig.esp88Token()).safeTransferFrom(
+    IERC20(_lockdropConfig.esp88Token()).safeTransferFrom(
       address(this),
       _user,
-      IERC20(lockdropConfig.esp88Token()).balanceOf(address(this))
+      IERC20(_lockdropConfig.esp88Token()).balanceOf(address(this))
     );
   }
 
@@ -66,9 +66,9 @@ contract MockLockdrop is ILockdrop {
 
   function stakePLP() external {
     totalPLPAmount += lockTokenAmount;
-    lockdropConfig.plpStaking().deposit(
+    _lockdropConfig.plpStaking().deposit(
       address(this),
-      address(lockdropConfig.plpToken()),
+      address(_lockdropConfig.plpToken()),
       totalPLPAmount
     );
     lockTokenAmount = 0;
@@ -77,13 +77,13 @@ contract MockLockdrop is ILockdrop {
   function withdrawAll(address _user) external {
     _claimAllRewards(_user);
 
-    lockdropConfig.plpStaking().withdraw(
-      address(lockdropConfig.plpToken()),
+    _lockdropConfig.plpStaking().withdraw(
+      address(_lockdropConfig.plpToken()),
       totalPLPAmount
     );
 
-    IERC20(lockdropConfig.plpToken()).approve(address(this), totalPLPAmount);
-    IERC20(lockdropConfig.plpToken()).safeTransferFrom(
+    IERC20(_lockdropConfig.plpToken()).approve(address(this), totalPLPAmount);
+    IERC20(_lockdropConfig.plpToken()).safeTransferFrom(
       address(this),
       msg.sender,
       totalPLPAmount
@@ -91,14 +91,18 @@ contract MockLockdrop is ILockdrop {
     totalPLPAmount = 0;
   }
 
-  function claimAllP88(address _user) external {
-    lockdropConfig.p88Token().approve(address(this), 10 ether);
+  function claimAllP88(address _user) external returns (uint256) {
+    _lockdropConfig.p88Token().approve(address(this), 10 ether);
 
-    IERC20(lockdropConfig.p88Token()).safeTransferFrom(
+    uint256 amount = IERC20(_lockdropConfig.p88Token()).balanceOf(
+      address(this)
+    );
+    IERC20(_lockdropConfig.p88Token()).safeTransferFrom(
       address(this),
       _user,
-      IERC20(lockdropConfig.p88Token()).balanceOf(address(this))
+      amount
     );
+    return amount;
   }
 
   function lockdropStates(address)
@@ -123,6 +127,10 @@ contract MockLockdrop is ILockdrop {
   function extendLockPeriodFor(uint256 lockPeriod, address user) external {}
 
   function addLockAmountFor(uint256 amount, address user) external {}
+
+  function lockdropConfig() external returns (address) {
+    return address(_lockdropConfig);
+  }
 
   receive() external payable {}
 }

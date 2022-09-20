@@ -15,6 +15,7 @@ import { IUniswapRouter } from "../interfaces/IUniswapRouter.sol";
 import { IUniswapPair } from "../interfaces/IUniswapPair.sol";
 import { ILockdrop } from "./interfaces/ILockdrop.sol";
 import { ILockdropGateway } from "./interfaces/ILockdropGateway.sol";
+import { LockdropConfig } from "./LockdropConfig.sol";
 import { IStaking } from "../staking/interfaces/IStaking.sol";
 import { IWNative } from "../interfaces/IWNative.sol";
 
@@ -38,6 +39,7 @@ contract LockdropGateway is ILockdropGateway, OwnableUpgradeable {
 
   IERC20Upgradeable public plpToken;
   IStaking public plpStaking;
+  IStaking public dragonStaking;
   mapping(address => LockdropInfo) public mapTokenLockdropInfo;
   IWNative public WNATIVE;
 
@@ -54,11 +56,13 @@ contract LockdropGateway is ILockdropGateway, OwnableUpgradeable {
   function initialize(
     IERC20Upgradeable plpToken_,
     IStaking plpStaking_,
+    IStaking dragonStaking_,
     IWNative wnative_
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
     plpToken = plpToken_;
     plpStaking = plpStaking_;
+    dragonStaking = dragonStaking_;
     WNATIVE = wnative_;
   }
 
@@ -140,6 +144,30 @@ contract LockdropGateway is ILockdropGateway, OwnableUpgradeable {
         ++index;
       }
     }
+  }
+
+  function claimAndStakeAllP88(address[] memory lockdropList, address user)
+    external
+  {
+    uint256 length = lockdropList.length;
+    uint256 totalP88Amount = 0;
+    for (uint256 index = 0; index < length; ) {
+      uint256 claimedP88Amount = ILockdrop(lockdropList[index]).claimAllP88(
+        user
+      );
+
+      unchecked {
+        totalP88Amount += claimedP88Amount;
+        ++index;
+      }
+    }
+    IERC20Upgradeable p88 = LockdropConfig(
+      ILockdrop(lockdropList[0]).lockdropConfig()
+    ).p88Token();
+
+    p88.safeTransferFrom(user, address(this), totalP88Amount);
+    p88.safeApprove(address(dragonStaking), totalP88Amount);
+    dragonStaking.deposit(user, address(p88), totalP88Amount);
   }
 
   // Withdraw All Deposit Token
