@@ -178,8 +178,8 @@ contract PoolDiamond_Farm_SwapTest is PoolDiamond_BaseTest {
     // 4. Pool should make (1 * 0.003) + ((100 * 400 / 100000) * 0.003) = 0.0042 WBTC in fee
     // 5. USD debt for MATIC should be 59820 + (100 * 400) = 99820 USD
     // 6. USD debt for WBTC should be 59820 - (100 * 400) = 19820 USD
-    // 7. Pool's MATIC liquidity should be 199.4 + 100 + 20 (from farm strategy profits) = 319.4 MATIC
-    // 8. Pool's WBTC liquidity should be 0.997 - ((100 * 400 / 100000)) + 0.001 (from farm strategy profits) = 0.598 WBTC
+    // 7. Pool's MATIC liquidity should be 199.4 + 100 + 20 [from strategy profit] = 319.4 MATIC
+    // 8. Pool's WBTC liquidity should be 0.997 - ((100 * 400 / 100000)) + 0.001 [from strategy profit] = 0.598 WBTC
     assertEq(poolGetterFacet.getAumE18(false), 175600 ether);
     assertEq(wbtc.balanceOf(BOB), 0.3988 * 10**8);
     assertEq(poolGetterFacet.feeReserveOf(address(matic)), 0.6 ether);
@@ -342,8 +342,8 @@ contract PoolDiamond_Farm_SwapTest is PoolDiamond_BaseTest {
     // 4. Pool should make (1 * 0.003) + ((100 * 400 / 100000) * 0.003) = 0.0042 WBTC in fee
     // 5. USD debt for MATIC should be 59820 + (100 * 400) = 99820 USD
     // 6. USD debt for WBTC should be 59820 - (100 * 400) = 19820 USD
-    // 7. Pool's MATIC liquidity should be 199.4 + 100 - 20 (from farm strategy profits) = 279.4 MATIC
-    // 8. Pool's WBTC liquidity should be 0.997 - ((100 * 400 / 100000)) - 0.0005 (from farm strategy profits) = 0.5965 WBTC
+    // 7. Pool's MATIC liquidity should be 199.4 + 100 - 20 [from strategy profit] = 279.4 MATIC
+    // 8. Pool's WBTC liquidity should be 0.997 - ((100 * 400 / 100000)) - 0.0005 [from strategy profit] = 0.5965 WBTC
     assertEq(poolGetterFacet.getAumE18(false), 159480 ether);
     assertEq(wbtc.balanceOf(BOB), 0.3988 * 10**8);
     assertEq(poolGetterFacet.feeReserveOf(address(matic)), 0.6 ether);

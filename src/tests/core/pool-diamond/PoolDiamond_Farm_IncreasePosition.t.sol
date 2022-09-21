@@ -193,7 +193,7 @@ contract PoolDiamond_Farm_IncreasePositionTest is PoolDiamond_BaseTest {
     // 3. Pool's WBTC guarantee USD should be:
     // = 49 + 0.049 - ((22500 / 1e8) * 40000) = 40.049 USD
     // 4. Redeemable WBTC in USD should be:
-    // = ((356674 + 97680 (from 40.049 converting to collateral token) - 122500) / 1e8) * 40000 = 132.7416 USD
+    // = ((356674 + 97680 [from 40.049 converting to collateral token] - 122500) / 1e8) * 40000 = 132.7416 USD
     // 5. Pool's AUM by min price should be:
     // 40.049 + ((356673 - 122500) / 1e8) * 40000 = 133.7182 USD
     // 6. Pool's AUM by max price should be:
@@ -360,7 +360,7 @@ contract PoolDiamond_Farm_IncreasePositionTest is PoolDiamond_BaseTest {
     // 3. Pool's WBTC guarantee USD should be:
     // = 49 + 0.049 - ((22500 / 1e8) * 40000) = 40.049 USD
     // 4. Redeemable WBTC in USD should be:
-    // = ((206673 + 97680 (from 40.049 converting to collateral token) - 122500) / 1e8) * 40000
+    // = ((206673 + 97680 [from 40.049 converting to collateral token] - 122500) / 1e8) * 40000
     // = ((206673 + 97680 - 122500) / 1e8) * 40000 = 72.7412 USD
     // 5. Pool's AUM by min price should be:
     // 40.049 + ((206673 - 122500) / 1e8) * 40000 = 73.7182 USD
@@ -472,7 +472,7 @@ contract PoolDiamond_Farm_IncreasePositionTest is PoolDiamond_BaseTest {
 
     wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
 
-    // Call farm to deploy funds 117499 - 47 (from 4 BPS fee) * 50% = 58726 satoshi
+    // Call farm to deploy funds 117499 - 47 [from 4 BPS fee] * 50% = 58726 satoshi
     poolFarmFacet.farm(address(wbtc), true);
     // Call farm to deploy funds 499.8 * 50% = 249.9 DAI
     poolFarmFacet.farm(address(dai), true);
@@ -514,7 +514,7 @@ contract PoolDiamond_Farm_IncreasePositionTest is PoolDiamond_BaseTest {
     // 2. Pool's DAI USD debt should be the same.
     // 2. Pool's DAI reserved should be 90 DAI
     // 3. Pool's guaranteed USD should be 0
-    // 4. Redemptable DAI collateral should be 499.8 USD + 20 USD (from farm strategy profit) = 519.8 USD
+    // 4. Redemptable DAI collateral should be 499.8 USD + 20 USD [from strategy profit] = 519.8 USD
     // 5. Pool should makes 0.2 + ((90 * 0.001)) = 0.29 DAI
     assertEq(poolGetterFacet.liquidityOf(address(dai)), 519.8 * 10**18);
     assertEq(poolGetterFacet.usdDebtOf(address(dai)), 499.8 * 10**18);
@@ -671,7 +671,7 @@ contract PoolDiamond_Farm_IncreasePositionTest is PoolDiamond_BaseTest {
 
     wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
 
-    // Call farm to deploy funds 117499 - 47 (from 4 BPS fee) * 50% = 58726 satoshi
+    // Call farm to deploy funds 117499 - 47 [from 4 BPS fee] * 50% = 58726 satoshi
     poolFarmFacet.farm(address(wbtc), true);
     // Call farm to deploy funds 499.8 * 50% = 249.9 DAI
     poolFarmFacet.farm(address(dai), true);
@@ -713,7 +713,7 @@ contract PoolDiamond_Farm_IncreasePositionTest is PoolDiamond_BaseTest {
     // 2. Pool's DAI USD debt should be the same.
     // 2. Pool's DAI reserved should be 90 DAI
     // 3. Pool's guaranteed USD should be 0
-    // 4. Redemptable DAI collateral should be 499.8 USD - 20 USD (from farm strategy profit) = 479.8 USD
+    // 4. Redemptable DAI collateral should be 499.8 USD - 20 USD [from strategy profit] = 479.8 USD
     // 5. Pool should makes 0.2 + ((90 * 0.001)) = 0.29 DAI
     assertEq(poolGetterFacet.liquidityOf(address(dai)), 479.8 * 10**18);
     assertEq(poolGetterFacet.usdDebtOf(address(dai)), 499.8 * 10**18);
