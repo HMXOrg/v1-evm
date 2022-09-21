@@ -351,7 +351,7 @@ contract BaseTest is DSTest, CoreConstants {
   {
     GetterFacet getterFacet = new GetterFacet();
 
-    bytes4[] memory selectors = new bytes4[](57);
+    bytes4[] memory selectors = new bytes4[](56);
     selectors[0] = GetterFacet.getAddLiquidityFeeBps.selector;
     selectors[1] = GetterFacet.getRemoveLiquidityFeeBps.selector;
     selectors[2] = GetterFacet.getSwapFeeBps.selector;
@@ -403,12 +403,11 @@ contract BaseTest is DSTest, CoreConstants {
     selectors[48] = GetterFacet.swapFeeBps.selector;
     selectors[49] = GetterFacet.taxBps.selector;
     selectors[50] = GetterFacet.tokenMetas.selector;
-    selectors[51] = GetterFacet.totalTokenWeight.selector;
-    selectors[52] = GetterFacet.pendingStrategyOf.selector;
-    selectors[53] = GetterFacet.strategyOf.selector;
-    selectors[54] = GetterFacet.strategyDataOf.selector;
-    selectors[55] = GetterFacet.getStrategyDeltaOf.selector;
-    selectors[56] = GetterFacet.totalOf.selector;
+    selectors[51] = GetterFacet.pendingStrategyOf.selector;
+    selectors[52] = GetterFacet.strategyOf.selector;
+    selectors[53] = GetterFacet.strategyDataOf.selector;
+    selectors[54] = GetterFacet.getStrategyDeltaOf.selector;
+    selectors[55] = GetterFacet.totalOf.selector;
 
     DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
       address(getterFacet),
