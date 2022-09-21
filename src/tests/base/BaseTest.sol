@@ -69,6 +69,7 @@ contract BaseTest is DSTest, CoreConstants {
     uint64 taxBps;
     uint64 stableBorrowingRateFactor;
     uint64 borrowingRateFactor;
+    uint64 fundingRateFactor;
     uint256 liquidationFeeUsd;
   }
 
@@ -740,7 +741,7 @@ contract BaseTest is DSTest, CoreConstants {
       abi.encodeWithSelector(
         bytes4(
           keccak256(
-            "initialize(address,uint64,uint64,uint64,uint64,uint64,uint256)"
+            "initialize(address,uint64,uint64,uint64,uint64,uint64,uint64,uint256)"
           )
         ),
         params.treasury,
@@ -749,6 +750,7 @@ contract BaseTest is DSTest, CoreConstants {
         params.taxBps,
         params.stableBorrowingRateFactor,
         params.borrowingRateFactor,
+        params.fundingRateFactor,
         params.liquidationFeeUsd
       )
     );

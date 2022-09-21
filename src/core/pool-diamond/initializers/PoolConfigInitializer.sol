@@ -14,6 +14,7 @@ contract PoolConfigInitializer {
     uint64 taxBps,
     uint64 stableBorrowingRateFactor,
     uint64 borrowingRateFactor,
+    uint64 fundingRateFactor,
     uint256 liquidationFeeUsd
   ) external {
     LibPoolConfigV1.PoolConfigV1DiamondStorage
@@ -28,6 +29,7 @@ contract PoolConfigInitializer {
     poolConfigDs.taxBps = taxBps;
     poolConfigDs.stableBorrowingRateFactor = stableBorrowingRateFactor;
     poolConfigDs.borrowingRateFactor = borrowingRateFactor;
+    poolConfigDs.fundingRateFactor = fundingRateFactor;
     poolConfigDs.liquidationFeeUsd = liquidationFeeUsd;
 
     poolConfigDs.maxLeverage = 88 * 10000;
