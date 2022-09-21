@@ -101,7 +101,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 9.91 * 10**30);
     assertEq(position.averagePrice, 41000 * 10**30);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 0.00225 * 10**8);
 
     // Feeds WBTC prices with ranges
@@ -206,7 +206,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 100 * 10**30);
     assertEq(position.collateral, 9.9 * 10**30);
     assertEq(position.averagePrice, 43211009174311926605504587155963302);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 247172);
 
     // Assert position's leverage
@@ -341,7 +341,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 9.91 * 10**30);
     assertEq(position.averagePrice, 41000 * 10**30);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 0.00225 * 10**8);
 
     // Feed WBTC@45100 USD 3 times
@@ -446,7 +446,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 100 * 10**30);
     assertEq(position.collateral, 9.9 * 10**30);
     assertEq(position.averagePrice, 41376146788990825688073394495412844);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 247172);
 
     // Assert position's leverage
@@ -598,7 +598,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 9.91 * 10**30);
     assertEq(position.averagePrice, 41000 * 10**30);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 0.00225 * 10**8);
 
     // Feeds WBTC@36900 USD 3 times
@@ -705,7 +705,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 100 * 10**30);
     assertEq(position.collateral, 19.125 * 10**30);
     assertEq(position.averagePrice, 40549450549450549450549450549450549);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 252100);
 
     // Assert position's leverage
@@ -841,7 +841,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 9.91 * 10**30);
     assertEq(position.averagePrice, 40000 * 10**30);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 0.00225 * 10**8);
 
     // Feed WBTC@40000 3 times
@@ -898,7 +898,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 100 * 10**30);
     assertEq(position.collateral, 19.9 * 10**30);
     assertEq(position.averagePrice, 40000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 250000);
 
     // Assert position's delta
@@ -1004,7 +1004,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 9.91 * 10**30);
     assertEq(position.averagePrice, 40000 * 10**30);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 0.00225 * 10**8);
 
     // Feed WBTC@50000 3 times
@@ -1061,7 +1061,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 100 * 10**30);
     assertEq(position.collateral, 22.4 * 10**30);
     assertEq(position.averagePrice, 40816326530612244897959183673469387);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 245000);
 
     // Assert position's delta
@@ -1166,7 +1166,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 49.91 * 10**30);
     assertEq(position.averagePrice, 40000 * 10**30);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 0.00225 * 10**8);
 
     // Feed WBTC@30000 3 times
@@ -1223,7 +1223,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 100 * 10**30);
     assertEq(position.collateral, 57.4 * 10**30);
     assertEq(position.averagePrice, 38709677419354838709677419354838709);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 258333);
 
     // Assert position's delta
@@ -1298,7 +1298,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 5050322181222357947081599665915068);
     assertEq(position.collateral, 2508775285688777642052918400334084);
     assertEq(position.averagePrice, 2521.45037536 * 10**30);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 2.009018511630791833 * 10**18);
 
     // Feeds MATIC price at 2373.23502539 3 times
@@ -1356,7 +1356,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 9796792232002357947081599665915068);
     assertEq(position.collateral, 4877263841027997642052918400334084);
     assertEq(position.averagePrice, 2447397190894361457116367555285124);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 4009018511630791833);
   }
 
@@ -1444,7 +1444,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 49.91 * 10**30);
     assertEq(position.averagePrice, 40000 * 10**30);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 0.00225 * 10**8);
 
     // Feed WBTC@40300 3 times
@@ -1504,7 +1504,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 100 * 10**30);
     assertEq(position.collateral, 59.975 * 10**30);
     assertEq(position.averagePrice, 40_300 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 249813);
 
     // Assert position's delta
@@ -1597,7 +1597,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 49.91 * 10**30);
     assertEq(position.averagePrice, 40_000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 90 * 10**18);
 
     // Feed WBTC@40000 3 times
@@ -1652,7 +1652,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 100 * 10**30);
     assertEq(position.collateral, 49.9 * 10**30);
     assertEq(position.averagePrice, 40_000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 100 * 10**18);
 
     // Assert position's delta
@@ -1745,7 +1745,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 49.91 * 10**30);
     assertEq(position.averagePrice, 40_000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 90 * 10**18);
 
     // Feed WBTC@50000 3 times
@@ -1822,7 +1822,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 100 * 10**30);
     assertEq(position.collateral, 49.9 * 10**30);
     assertEq(position.averagePrice, 40816326530612244897959183673469387);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 100 * 10**18);
 
     // Assert position's delta
@@ -1915,7 +1915,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 49.91 * 10**30);
     assertEq(position.averagePrice, 40_000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 90 * 10**18);
 
     // Feed WBTC@30000 3 times
@@ -1992,7 +1992,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 100 * 10**30);
     assertEq(position.collateral, 49.9 * 10**30);
     assertEq(position.averagePrice, 38709677419354838709677419354838709);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 100 * 10**18);
 
     // Assert position's delta
@@ -2085,7 +2085,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 49.91 * 10**30);
     assertEq(position.averagePrice, 40_000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 90 * 10**18);
 
     // Feed WBTC@39700 3 times
@@ -2173,7 +2173,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 100 * 10**30);
     assertEq(position.collateral, 49.9 * 10**30);
     assertEq(position.averagePrice, 39700 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 100 * 10**18);
 
     // Assert position's delta

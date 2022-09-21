@@ -114,7 +114,7 @@ interface BasePoolInterface {
       uint256 size,
       uint256 collateral,
       uint256 averagePrice,
-      uint256 entryFundingRate,
+      uint256 entryBorrowingRate,
       uint256 reserveAmount,
       int256 realizedPnl,
       uint256 lastIncreasedTime

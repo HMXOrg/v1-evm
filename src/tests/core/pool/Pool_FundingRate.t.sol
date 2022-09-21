@@ -94,7 +94,7 @@ contract Pool_FundingRateTest is Pool_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 9.91 * 10**30);
     assertEq(position.averagePrice, 41000 * 10**30);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 0.00225 * 10**8);
 
     // WBTC price chanaged
@@ -179,7 +179,7 @@ contract Pool_FundingRateTest is Pool_BaseTest {
     assertEq(position.size, 40 * 10**30);
     assertEq(position.collateral, 6.91 * 10**30);
     assertEq(position.averagePrice, 41000 * 10**30);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 0.001 * 10**8);
     assertEq(position.realizedPnl, 5 * 10**30);
     assertTrue(position.hasProfit);

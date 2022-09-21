@@ -38,7 +38,8 @@ library LibPoolV1 {
     uint256 size;
     uint256 collateral; // collateral value in USD
     uint256 averagePrice;
-    uint256 entryFundingRate;
+    uint256 entryBorrowingRate;
+    int256 entryFundingRate;
     uint256 reserveAmount;
     int256 realizedPnl;
     uint256 lastIncreasedTime;
@@ -317,6 +318,21 @@ library LibPoolV1 {
       poolV1ds.oracle.getPrice(token, isUseMaxPrice);
   }
 
+  function convertUsde30ToTokens(
+    address token,
+    int256 amountUsd,
+    bool isUseMaxPrice
+  ) internal view returns (int256) {
+    if (amountUsd == 0) return 0;
+
+    // Load PoolV1 diamond storage
+    PoolV1DiamondStorage storage poolV1ds = poolV1DiamondStorage();
+
+    return
+      (amountUsd * int256(10**LibPoolConfigV1.getTokenDecimalsOf(token))) /
+      int256(poolV1ds.oracle.getPrice(token, isUseMaxPrice));
+  }
+
   function convertTokensToUsde30(
     address token,
     uint256 amountTokens,
@@ -360,5 +376,25 @@ library LibPoolV1 {
       poolV1ds.openInterestShort[indexToken] -= value;
     }
     emit DecreaseOpenInterest(isLong, indexToken, value);
+  }
+
+  function addInt256(uint256 a, int256 b) internal pure returns (uint256) {
+    if (b > 0) {
+      return a + uint256(b);
+    } else if (b < 0 && a >= uint256(-b)) {
+      return a - uint256(-b);
+    } else {
+      return 0;
+    }
+  }
+
+  function subInt256(uint256 a, int256 b) internal pure returns (uint256) {
+    if (b > 0 && a >= uint256(b)) {
+      return a - uint256(b);
+    } else if (b < 0) {
+      return a + uint256(-b);
+    } else {
+      return 0;
+    }
   }
 }

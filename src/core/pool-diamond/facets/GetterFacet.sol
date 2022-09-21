@@ -230,7 +230,7 @@ contract GetterFacet is GetterFacetInterface {
     return (isProfit, delta);
   }
 
-  function getEntryFundingRate(
+  function getEntryBorrowingRate(
     address collateralToken,
     address, /* indexToken */
     bool /* isLong */
@@ -238,13 +238,24 @@ contract GetterFacet is GetterFacetInterface {
     return LibPoolV1.poolV1DiamondStorage().sumBorrowingRateOf[collateralToken];
   }
 
-  function getFundingFee(
+  function getEntryFundingRate(
+    address, /*collateralToken*/
+    address indexToken,
+    bool isLong
+  ) external view returns (int256) {
+    return
+      isLong
+        ? LibPoolV1.poolV1DiamondStorage().accumFundingRateLong[indexToken]
+        : LibPoolV1.poolV1DiamondStorage().accumFundingRateShort[indexToken];
+  }
+
+  function getBorrowingFee(
     address, /* account */
     address collateralToken,
     address, /* indexToken */
     bool, /* isLong */
     uint256 size,
-    uint256 entryFundingRate
+    uint256 entryBorrowingRate
   ) public view returns (uint256) {
     // Load diamond storage
     LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
@@ -252,11 +263,33 @@ contract GetterFacet is GetterFacetInterface {
 
     if (size == 0) return 0;
 
-    uint256 fundingRate = ds.sumBorrowingRateOf[collateralToken] -
-      entryFundingRate;
+    uint256 borrowingRate = ds.sumBorrowingRateOf[collateralToken] -
+      entryBorrowingRate;
+    if (borrowingRate == 0) return 0;
+
+    return (size * borrowingRate) / FUNDING_RATE_PRECISION;
+  }
+
+  function getFundingFee(
+    address, /* account */
+    address, /* collateralToken */
+    address indexToken,
+    bool isLong,
+    uint256 size,
+    int256 entryFundingRate
+  ) public view returns (int256) {
+    // Load diamond storage
+    LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
+      .poolV1DiamondStorage();
+
+    if (size == 0) return 0;
+
+    int256 fundingRate = isLong
+      ? ds.accumFundingRateLong[indexToken] - entryFundingRate
+      : ds.accumFundingRateShort[indexToken] - entryFundingRate;
     if (fundingRate == 0) return 0;
 
-    return (size * fundingRate) / FUNDING_RATE_PRECISION;
+    return (int256(size) * fundingRate) / int256(FUNDING_RATE_PRECISION);
   }
 
   function getNextShortAveragePrice(
@@ -344,7 +377,7 @@ contract GetterFacet is GetterFacetInterface {
       size: position.size,
       collateral: position.collateral,
       averagePrice: position.averagePrice,
-      entryFundingRate: position.entryFundingRate,
+      entryBorrowingRate: position.entryBorrowingRate,
       reserveAmount: position.reserveAmount,
       realizedPnl: realizedPnl,
       hasProfit: position.realizedPnl >= 0,
@@ -718,5 +751,47 @@ contract GetterFacet is GetterFacetInterface {
     return
       (_borrowingRateFactor * poolV1ds.reservedOf[token] * intervals) /
       liquidity;
+  }
+
+  // ------------
+  // Funding rate
+  // ------------
+
+  function getNextFundingRate(address token)
+    public
+    view
+    returns (int256 fundingRateLong, int256 fundingRateShort)
+  {
+    // Load diamond storage
+    LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
+      .poolV1DiamondStorage();
+    // Load PoolConfigV1 Diamond Storage
+    LibPoolConfigV1.PoolConfigV1DiamondStorage
+      storage poolConfigV1ds = LibPoolConfigV1.poolConfigV1DiamondStorage();
+
+    uint256 _fundingInterval = poolConfigV1ds.fundingInterval;
+
+    // If block.timestamp not pass the next funding time, return 0.
+    if (poolV1ds.lastFundingTimeOf[token] + _fundingInterval > block.timestamp)
+      return (0, 0);
+
+    uint256 intervals = (block.timestamp - poolV1ds.lastFundingTimeOf[token]) /
+      _fundingInterval;
+
+    int256 openInterestLong = int256(poolV1ds.openInterestLong[token]);
+    int256 openInterestShort = int256(poolV1ds.openInterestShort[token]);
+    int256 fundingFeesPaidByLongs = ((openInterestLong - openInterestShort) *
+      int256(intervals) *
+      int64(poolConfigV1ds.fundingRateFactor)) / int256(FUNDING_RATE_PRECISION);
+
+    if (openInterestLong > 0) {
+      fundingRateLong = (fundingFeesPaidByLongs * 1e30) / openInterestLong;
+    }
+
+    if (openInterestShort > 0) {
+      fundingRateShort =
+        (fundingFeesPaidByLongs * 1e30 * (-1)) /
+        openInterestShort;
+    }
   }
 }

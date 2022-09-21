@@ -330,7 +330,7 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     // assertEq(position.size, 47 * 10**30);
     // assertEq(position.collateral, 8.953 * 10**30);
     // assertEq(position.averagePrice, 41000 * 10**30);
-    // assertEq(position.entryFundingRate, 0);
+    // assertEq(position.entryBorrowingRate, 0);
     // assertEq(position.reserveAmount, 117500);
     // assertEq(position.realizedPnl, 0);
     // assertTrue(position.hasProfit == true);
@@ -430,7 +430,7 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     assertEq(position.size, 80_000 * 10**30);
     assertEq(position.collateral, 49920 * 10**30);
     assertEq(position.averagePrice, 100000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 0.8 * 10**8);
     assertEq(position.realizedPnl, 0);
     assertTrue(position.hasProfit == true);
@@ -610,7 +610,7 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     assertEq(position.size, 47 * 10**30);
     assertEq(position.collateral, 8.953 * 10**30);
     assertEq(position.averagePrice, 41_000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 117500);
 
     // Assert position's leverage
@@ -689,7 +689,7 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     assertEq(position.size, 47 * 10**30);
     assertEq(position.collateral, 17.953 * 10**30);
     assertEq(position.averagePrice, 41_000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 117500);
 
     // Assert position's leverage
@@ -751,7 +751,7 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     assertEq(position.size, 47 * 10**30);
     assertEq(position.collateral, 18.003 * 10**30);
     assertEq(position.averagePrice, 41_000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 117500);
 
     // Assert position's leverage
@@ -1064,7 +1064,7 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 19.91 * 10**30);
     assertEq(position.averagePrice, 40_000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 90 * 10**18);
     assertTrue(position.hasProfit);
     assertEq(position.lastIncreasedTime, block.timestamp);
@@ -1179,7 +1179,7 @@ contract Pool_IncreasePositionTest is Pool_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 9.91 * 10**30);
     assertEq(position.averagePrice, 40_000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 90 * 10**18);
     assertEq(position.realizedPnl, 0 * 10**30);
     assertTrue(position.hasProfit);

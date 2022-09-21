@@ -56,6 +56,7 @@ library LibPoolConfigV1 {
     uint64 fundingInterval;
     uint64 stableBorrowingRateFactor;
     uint64 borrowingRateFactor;
+    uint64 fundingRateFactor;
     // ----------------------
     // Fee bps configurations
     // ----------------------

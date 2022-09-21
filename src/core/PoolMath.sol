@@ -209,7 +209,7 @@ contract PoolMath is Constants {
   // Margin Fee Math
   // ---------------
 
-  function getEntryFundingRate(
+  function getEntryBorrowingRate(
     Pool pool,
     address collateralToken,
     address, /* indexToken */
@@ -218,19 +218,19 @@ contract PoolMath is Constants {
     return pool.sumBorrowingRateOf(collateralToken);
   }
 
-  function getFundingFee(
+  function getBorrowingFee(
     Pool pool,
     address, /* account */
     address collateralToken,
     address, /* indexToken */
     Exposure, /* exposure */
     uint256 size,
-    uint256 entryFundingRate
+    uint256 entryBorrowingRate
   ) public view returns (uint256) {
     if (size == 0) return 0;
 
     uint256 fundingRate = pool.sumBorrowingRateOf(collateralToken) -
-      entryFundingRate;
+      entryBorrowingRate;
     if (fundingRate == 0) return 0;
 
     return (size * fundingRate) / FUNDING_RATE_PRECISION;
@@ -276,14 +276,14 @@ contract PoolMath is Constants {
       exposure,
       position.lastIncreasedTime
     );
-    uint256 marginFee = getFundingFee(
+    uint256 marginFee = getBorrowingFee(
       pool,
       account,
       collateralToken,
       indexToken,
       exposure,
       position.size,
-      position.entryFundingRate
+      position.entryBorrowingRate
     );
     marginFee += getPositionFee(
       pool,

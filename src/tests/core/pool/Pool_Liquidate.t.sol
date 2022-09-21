@@ -172,7 +172,7 @@ contract Pool_LiquidateTest is Pool_BaseTest {
     assertEq(position.size, 1000 * 10**30);
     assertEq(position.collateral, 99 * 10**30);
     assertEq(position.averagePrice, 41_000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 0.025 * 10**8);
 
     (LiquidationState liquidationState, ) = pool.poolMath().checkLiquidation(
@@ -310,7 +310,7 @@ contract Pool_LiquidateTest is Pool_BaseTest {
     assertEq(position.size, 0);
     assertEq(position.collateral, 0);
     assertEq(position.averagePrice, 0);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 0);
 
     // Assert WBTC balance.
@@ -406,7 +406,7 @@ contract Pool_LiquidateTest is Pool_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 9.91 * 10**30);
     assertEq(position.averagePrice, 41000 * 10**30);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 0.00225 * 10**8);
 
     // Assert liquidation state of the position
@@ -541,7 +541,7 @@ contract Pool_LiquidateTest is Pool_BaseTest {
     assertEq(position.size, 0);
     assertEq(position.collateral, 0);
     assertEq(position.averagePrice, 0);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 0);
     assertEq(position.realizedPnl, 0);
     assertTrue(position.hasProfit);
@@ -636,7 +636,7 @@ contract Pool_LiquidateTest is Pool_BaseTest {
     assertEq(position.size, 1000 * 10**30);
     assertEq(position.collateral, 99 * 10**30);
     assertEq(position.averagePrice, 40_000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 1000 * 10**18);
 
     // Assert position liquidation state
@@ -946,7 +946,7 @@ contract Pool_LiquidateTest is Pool_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 9.91 * 10**30);
     assertEq(position.averagePrice, 40000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 90 * 10**18);
     assertEq(position.realizedPnl, 0);
     assertTrue(position.hasProfit);

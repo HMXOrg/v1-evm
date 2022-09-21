@@ -193,7 +193,7 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 9.91 * 10**30);
     assertEq(position.averagePrice, 41000 * 10**30);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 0.00225 * 10**8);
 
     vm.stopPrank();
@@ -354,7 +354,7 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
     assertEq(position.size, 40 * 10**30);
     assertEq(position.collateral, 6.91 * 10**30);
     assertEq(position.averagePrice, 41000 * 10**30);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 0.001 * 10**8);
     assertEq(position.realizedPnl, 5 * 10**30);
     assertTrue(position.hasProfit);
@@ -462,7 +462,7 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 9.91 * 10**30);
     assertEq(position.averagePrice, 41000 * 10**30);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 0.00225 * 10**8);
 
     // Assuming WBTC price increase
@@ -533,7 +533,7 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
     assertEq(position.size, 0);
     assertEq(position.collateral, 0);
     assertEq(position.averagePrice, 0);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 0);
     assertEq(position.primaryAccount, address(0));
 
@@ -620,7 +620,7 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 9.91 * 10**30);
     assertEq(position.averagePrice, 41000 * 10**30);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 0.00225 * 10**8);
 
     // Assuming WBTC price decrease
@@ -691,7 +691,7 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
     assertEq(position.size, 0);
     assertEq(position.collateral, 0);
     assertEq(position.averagePrice, 0);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 0);
     assertEq(position.primaryAccount, address(0));
 
@@ -943,7 +943,7 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 9.91 * 10**30);
     assertEq(position.averagePrice, 41000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 0.00225 * 10**8);
 
     // WBTC price dropped
@@ -1015,7 +1015,7 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
     assertEq(position.size, 40 * 10**30);
     assertEq(position.collateral, 9.36 * 10**30);
     assertEq(position.averagePrice, 41000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 0.001 * 10**8);
     assertEq(position.realizedPnl, 0.5 * 10**30);
     assertTrue(!position.hasProfit);
@@ -1065,7 +1065,7 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
     assertEq(position.size, 0);
     assertEq(position.collateral, 0);
     assertEq(position.averagePrice, 0);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 0);
     assertEq(position.primaryAccount, address(0));
 
@@ -1148,7 +1148,7 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 9.91 * 10**30);
     assertEq(position.averagePrice, 40000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 90 * 10**18);
     assertEq(position.realizedPnl, 0);
     assertTrue(position.hasProfit);
@@ -1280,7 +1280,7 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
     assertEq(position.size, 40 * 10**30);
     assertEq(position.collateral, 6.91 * 10**30);
     assertEq(position.averagePrice, 40_000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 40 * 10**18);
     assertEq(position.realizedPnl, 49.99875 * 10**30);
     assertTrue(position.hasProfit);
@@ -1385,7 +1385,7 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 9.91 * 10**30);
     assertEq(position.averagePrice, 40_000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 90 * 10**18);
     assertEq(position.realizedPnl, 0);
     assertTrue(position.hasProfit);
@@ -1482,7 +1482,7 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
     assertEq(position.size, 40 * 10**30);
     assertEq(position.collateral, 9.36 * 10**30);
     assertEq(position.averagePrice, 40_000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 40 * 10**18);
     assertEq(position.realizedPnl, 0.5 * 10**30);
     assertFalse(position.hasProfit);
@@ -1527,7 +1527,7 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
     assertEq(position.size, 0);
     assertEq(position.collateral, 0);
     assertEq(position.averagePrice, 0);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 0);
     assertEq(position.realizedPnl, 0);
     assertEq(position.primaryAccount, address(0));
@@ -1617,7 +1617,7 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 9.91 * 10**30);
     assertEq(position.averagePrice, 40000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 90 * 10**18);
     assertEq(position.realizedPnl, 0);
     assertTrue(position.hasProfit);
@@ -1705,7 +1705,7 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
     assertEq(position.size, 0);
     assertEq(position.collateral, 0);
     assertEq(position.averagePrice, 0);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 0);
     assertEq(position.realizedPnl, 0);
     assertTrue(position.hasProfit);
@@ -1792,7 +1792,7 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 9.91 * 10**30);
     assertEq(position.averagePrice, 40000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 90 * 10**18);
     assertEq(position.realizedPnl, 0);
     assertTrue(position.hasProfit);
@@ -1880,7 +1880,7 @@ contract Pool_DecreasePositionTest is Pool_BaseTest {
     assertEq(position.size, 0);
     assertEq(position.collateral, 0);
     assertEq(position.averagePrice, 0);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 0);
     assertEq(position.realizedPnl, 0);
     assertTrue(position.hasProfit);

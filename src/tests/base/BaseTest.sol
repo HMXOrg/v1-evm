@@ -361,8 +361,8 @@ contract BaseTest is DSTest, CoreConstants {
     selectors[10] = GetterFacet.feeReserveOf.selector;
     selectors[11] = GetterFacet.usdDebtOf.selector;
     selectors[12] = GetterFacet.getDelta.selector;
-    selectors[13] = GetterFacet.getEntryFundingRate.selector;
-    selectors[14] = GetterFacet.getFundingFee.selector;
+    selectors[13] = GetterFacet.getEntryBorrowingRate.selector;
+    selectors[14] = GetterFacet.getBorrowingFee.selector;
     selectors[15] = GetterFacet.getNextShortAveragePrice.selector;
     selectors[16] = GetterFacet.getPositionFee.selector;
     selectors[17] = GetterFacet.getPositionNextAveragePrice.selector;

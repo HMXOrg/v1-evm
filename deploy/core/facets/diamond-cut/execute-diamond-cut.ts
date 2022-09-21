@@ -99,10 +99,10 @@
 //         "getDelta(address,uint256,uint256,bool,uint256)"
 //       ),
 //       GetterFacet__factory.createInterface().getSighash(
-//         "getEntryFundingRate(address,address,bool)"
+//         "getEntryBorrowingRate(address,address,bool)"
 //       ),
 //       GetterFacet__factory.createInterface().getSighash(
-//         "getFundingFee(address,address,address,bool,uint256,uint256)"
+//         "getBorrowingFee(address,address,address,bool,uint256,uint256)"
 //       ),
 //       GetterFacet__factory.createInterface().getSighash(
 //         "getNextShortAveragePrice(address,uint256,uint256)"
