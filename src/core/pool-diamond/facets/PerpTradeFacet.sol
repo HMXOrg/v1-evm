@@ -35,7 +35,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     uint256 size,
     uint256 collateral,
     uint256 averagePrice,
-    uint256 entryFundingRate,
+    uint256 entryBorrowingRate,
     uint256 reserveAmount,
     int256 realisedPnL
   );
@@ -83,7 +83,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     uint256 size,
     uint256 collateral,
     uint256 averagePrice,
-    uint256 entryFundingRate,
+    uint256 entryBorrowingRate,
     uint256 reserveAmount,
     int256 realizedPnl,
     uint256 price
@@ -123,13 +123,13 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
         isLong,
         position.lastIncreasedTime
       );
-    uint256 marginFee = GetterFacetInterface(address(this)).getFundingFee(
+    uint256 marginFee = GetterFacetInterface(address(this)).getBorrowingFee(
       account,
       collateralToken,
       indexToken,
       isLong,
       position.size,
-      position.entryFundingRate
+      position.entryBorrowingRate
     );
     marginFee += GetterFacetInterface(address(this)).getPositionFee(
       account,
@@ -215,7 +215,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     bool isLong,
     uint256 sizeDelta,
     uint256 size,
-    uint256 entryFundingRate
+    uint256 entryBorrowingRate
   ) internal returns (uint256) {
     // Load diamond storage
     LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
@@ -229,16 +229,17 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       sizeDelta
     );
 
-    uint256 fundingFeeUsd = GetterFacetInterface(address(this)).getFundingFee(
-      account,
-      collateralToken,
-      indexToken,
-      isLong,
-      size,
-      entryFundingRate
-    );
+    uint256 borrowingFeeUsd = GetterFacetInterface(address(this))
+      .getBorrowingFee(
+        account,
+        collateralToken,
+        indexToken,
+        isLong,
+        size,
+        entryBorrowingRate
+      );
 
-    feeUsd += fundingFeeUsd;
+    feeUsd += borrowingFeeUsd;
 
     uint256 feeTokens = LibPoolV1.convertUsde30ToTokens(
       collateralToken,
@@ -289,6 +290,10 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       collateralToken,
       indexToken
     );
+    FundingRateFacetInterface(address(this)).updateFundingRate(
+      collateralToken,
+      indexToken
+    );
 
     IncreasePositionLocalVars memory vars;
 
@@ -336,7 +341,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       isLong,
       sizeDelta,
       position.size,
-      position.entryFundingRate
+      position.entryBorrowingRate
     );
     vars.collateralDelta = LibPoolV1.pullTokens(collateralToken);
     vars.collateralDeltaUsd = LibPoolV1.convertTokensToUsde30(
@@ -350,8 +355,8 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       revert PerpTradeFacet_CollateralNotCoverFee();
 
     position.collateral -= vars.feeUsd;
-    position.entryFundingRate = GetterFacetInterface(address(this))
-      .getEntryFundingRate(collateralToken, indexToken, isLong);
+    position.entryBorrowingRate = GetterFacetInterface(address(this))
+      .getEntryBorrowingRate(collateralToken, indexToken, isLong);
     position.size += sizeDelta;
     position.lastIncreasedTime = block.timestamp;
 
@@ -419,7 +424,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       position.size,
       position.collateral,
       position.averagePrice,
-      position.entryFundingRate,
+      position.entryBorrowingRate,
       position.reserveAmount,
       position.realizedPnl,
       vars.price
@@ -479,6 +484,10 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       collateralToken,
       indexToken
     );
+    FundingRateFacetInterface(address(this)).updateFundingRate(
+      collateralToken,
+      indexToken
+    );
 
     DecreasePositionLocalVars memory vars;
 
@@ -521,6 +530,8 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
 
     if (position.size != sizeDelta) {
       // Partially close the position
+      position.entryBorrowingRate = GetterFacetInterface(address(this))
+        .getEntryBorrowingRate(collateralToken, indexToken, isLong);
       position.entryFundingRate = GetterFacetInterface(address(this))
         .getEntryFundingRate(collateralToken, indexToken, isLong);
       position.size -= sizeDelta;
@@ -565,7 +576,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
         position.size,
         position.collateral,
         position.averagePrice,
-        position.entryFundingRate,
+        position.entryBorrowingRate,
         position.reserveAmount,
         position.realizedPnl,
         vars.price
@@ -600,7 +611,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
         position.size,
         position.collateral,
         position.averagePrice,
-        position.entryFundingRate,
+        position.entryBorrowingRate,
         position.reserveAmount,
         position.realizedPnl
       );
@@ -643,6 +654,10 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       revert PerpTradeFacet_BadLiquidator();
 
     FundingRateFacetInterface(address(this)).updateBorrowingRate(
+      collateralToken,
+      indexToken
+    );
+    FundingRateFacetInterface(address(this)).updateFundingRate(
       collateralToken,
       indexToken
     );
@@ -799,7 +814,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       isLong,
       sizeDelta,
       position.size,
-      position.entryFundingRate
+      position.entryBorrowingRate
     );
 
     // Calculate position's delta.
