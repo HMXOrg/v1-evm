@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 import { IStaking } from "../../staking/interfaces/IStaking.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -44,13 +44,9 @@ contract MockPLPStaking is IStaking {
     userTokenAmount[token][to] += amount;
   }
 
-  function withdraw(
-    address to,
-    address token,
-    uint256 amount
-  ) external {
-    IERC20(token).approve(to, amount);
-    IERC20(token).safeTransfer(to, amount);
+  function withdraw(address token, uint256 amount) external {
+    // IERC20(token).approve(msg.sender, amount);
+    IERC20(token).safeTransfer(msg.sender, amount);
   }
 
   function getUserTokenAmount(address token, address sender)

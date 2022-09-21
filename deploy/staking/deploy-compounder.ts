@@ -1,13 +1,14 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers, upgrades } from "hardhat";
+import { ethers, tenderly, upgrades } from "hardhat";
+import { getConfig, writeConfigFile } from "../utils/config";
+import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 
-const DRAGON_POINT = "0x20E58fC5E1ee3C596fb3ebD6de6040e7800e82E6";
-const DESTINATION_COMPUND_POOL = "0xCB1EaA1E9Fd640c3900a4325440c80FEF4b1b16d";
-const TOKENS = [
-  "0xEB27B05178515c7E6E51dEE159c8487A011ac030",
-  "0x20E58fC5E1ee3C596fb3ebD6de6040e7800e82E6",
-];
+const config = getConfig();
+
+const DRAGON_POINT = config.Tokens.DragonPoint;
+const DESTINATION_COMPUND_POOL = config.Staking.DragonStaking.address;
+const TOKENS = [config.Tokens.esP88, config.Tokens.DragonPoint];
 const IS_COMPOUNDABLE_TOKENS = [true, true];
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -22,6 +23,19 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   await compounder.deployed();
   console.log(`Deploying Compounder Contract`);
   console.log(`Deployed at: ${compounder.address}`);
+
+  const implAddress = await getImplementationAddress(
+    ethers.provider,
+    compounder.address
+  );
+
+  await tenderly.verify({
+    address: implAddress,
+    name: "Compounder",
+  });
+
+  config.Staking.Compounder = compounder.address;
+  writeConfigFile(config);
 };
 
 export default func;

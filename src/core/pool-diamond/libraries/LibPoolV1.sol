@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
-import { MintableTokenInterface } from "../../../interfaces/MintableTokenInterface.sol";
+import { PLP } from "../../../tokens/PLP.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { PoolOracle } from "../../PoolOracle.sol";
@@ -46,7 +46,7 @@ library LibPoolV1 {
 
   struct PoolV1DiamondStorage {
     // Dependent contracts
-    MintableTokenInterface plp;
+    PLP plp;
     PoolOracle oracle;
     // Liquidity
     mapping(address => uint256) totalOf;
@@ -66,8 +66,6 @@ library LibPoolV1 {
     // AUM
     uint256 additionalAum;
     uint256 discountedAum;
-    // LP
-    mapping(address => uint256) lastAddLiquidityAtOf;
     // Position
     mapping(bytes32 => Position) positions;
     mapping(address => mapping(address => bool)) approvedPlugins;
@@ -99,7 +97,7 @@ library LibPoolV1 {
     }
   }
 
-  function setPLP(MintableTokenInterface newPLP) internal {
+  function setPLP(PLP newPLP) internal {
     PoolV1DiamondStorage storage poolV1ds = poolV1DiamondStorage();
     poolV1ds.plp = newPLP;
   }

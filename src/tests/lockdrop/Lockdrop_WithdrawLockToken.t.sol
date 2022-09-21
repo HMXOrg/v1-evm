@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 import { Lockdrop_BaseTest, console } from "./Lockdrop_BaseTest.t.sol";
 
@@ -517,5 +517,58 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
     lockdrop.earlyWithdrawLockedToken(5 ether, ALICE);
 
     vm.stopPrank();
+  }
+
+  function testCorrectness_LockdropEarlyWithdrawLockToken_WithdrawNative()
+    external
+  {
+    uint256 lockAmount = 16 ether;
+    uint256 lockPeriod = 8 days;
+
+    vm.startPrank(ALICE);
+    vm.deal(ALICE, 20 ether);
+    mockMatic.deposit{ value: lockAmount }();
+    mockMatic.approve(address(lockdropWMATIC), 20 ether);
+    vm.warp(lockdropConfig.startLockTimestamp() + 3 hours);
+    lockdropWMATIC.lockToken(lockAmount, lockPeriod);
+    (
+      uint256 alicelockdropTokenAmount,
+      uint256 alicelockPeriod,
+      ,
+      bool aliceWithdrawOnce
+    ) = lockdropWMATIC.lockdropStates(ALICE);
+
+    assertEq(address(ALICE).balance, 4 ether);
+    assertEq(alicelockdropTokenAmount, lockAmount);
+    assertEq(alicelockPeriod, lockPeriod);
+    assertEq(lockdropWMATIC.totalAmount(), lockAmount);
+    assertEq(lockdropWMATIC.totalP88Weight(), lockAmount * lockPeriod);
+
+    // Withdraw timestamp
+    vm.warp(lockdropConfig.startLockTimestamp() + 1 days);
+    assertTrue(!aliceWithdrawOnce);
+    lockdropWMATIC.earlyWithdrawLockedToken(5 ether, ALICE);
+    (
+      alicelockdropTokenAmount,
+      alicelockPeriod,
+      ,
+      aliceWithdrawOnce
+    ) = lockdropWMATIC.lockdropStates(ALICE);
+    vm.stopPrank();
+
+    // After Alice withdraw the MATIC token from the first 3 days, the following criteria needs to satisfy:
+    // 1. Balance of Alice's MATIC token should be 9
+    // 2. The amount of Alice's lockdrop token should be 11
+    // 3. The number of lock period should be 8 days
+    // 4. The total amount of lock token should be 11
+    // 5. The total weight of P88 should be 11 * 8 days
+    // 6. Alice restrictedWithdrawn state should remain false
+
+    assertEq(address(ALICE).balance, 9 ether);
+    assertEq(alicelockdropTokenAmount, 11 ether);
+    assertEq(alicelockPeriod, lockPeriod);
+    assertEq(lockdropWMATIC.totalAmount(), 11 ether);
+    assertEq(lockdropWMATIC.totalP88Weight(), 11 ether * lockPeriod);
+    assertTrue(!aliceWithdrawOnce);
   }
 }

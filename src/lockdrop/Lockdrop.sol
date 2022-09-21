@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
@@ -12,6 +12,7 @@ import { LockdropConfig } from "./LockdropConfig.sol";
 import { ILockdrop } from "./interfaces/ILockdrop.sol";
 import { P88 } from "../tokens/P88.sol";
 import { PoolRouter } from "../core/pool-diamond/PoolRouter.sol";
+import { IWNative } from "../interfaces/IWNative.sol";
 
 contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable, ILockdrop {
   // --- Libraries ---
@@ -292,6 +293,7 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable, ILockdrop {
   /// @param user Address of the user that wants to withdraw
   function earlyWithdrawLockedToken(uint256 amount, address user)
     external
+    payable
     onlyInLockdropPeriod
     nonReentrant
   {
@@ -315,7 +317,13 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable, ILockdrop {
       lockdropStates[user].restrictedWithdrawn = true;
     }
 
-    lockdropToken.safeTransfer(msg.sender, amount);
+    if (address(lockdropToken) != nativeTokenAddress) {
+      lockdropToken.safeTransfer(msg.sender, amount);
+    } else {
+      IWNative(nativeTokenAddress).withdraw(amount);
+      payable(msg.sender).transfer(amount);
+    }
+
     emit LogWithdrawLockToken(
       user,
       address(lockdropToken),
@@ -346,7 +354,6 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable, ILockdrop {
 
     // Lockdrop withdraw PLP Token from PLP staking
     lockdropConfig.plpStaking().withdraw(
-      address(this),
       address(lockdropConfig.plpToken()),
       userPLPTokenAmount
     );

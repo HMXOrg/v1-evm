@@ -4,17 +4,17 @@ pragma solidity >=0.8.4 <0.9.0;
 import { BaseTest } from "../base/BaseTest.sol";
 import { FeedableRewarder } from "../../staking/FeedableRewarder.sol";
 import { MockErc20 } from "../mocks/MockERC20.sol";
-import { MockStaking } from "../mocks/MockStaking.sol";
+import { MockSimpleStaking } from "../mocks/MockSimpleStaking.sol";
 import { console } from "../utils/console.sol";
 import { math } from "../utils/math.sol";
 
 contract FeedableRewarderTest is BaseTest {
   FeedableRewarder internal rewarder;
   MockErc20 internal rewardToken;
-  MockStaking internal mockStaking;
+  MockSimpleStaking internal mockStaking;
 
   function setUp() external {
-    mockStaking = new MockStaking();
+    mockStaking = new MockSimpleStaking();
 
     rewardToken = new MockErc20("Reward Token", "REW", 18);
     rewarder = deployFeedableRewarder(
@@ -57,10 +57,14 @@ contract FeedableRewarderTest is BaseTest {
   function testRevert_WhenFeedIsCalled_BySomeRandomGuy() external {
     vm.startPrank(ALICE);
 
-    vm.expectRevert("Ownable: caller is not the owner");
+    vm.expectRevert(
+      abi.encodeWithSignature("FeedableRewarderError_NotFeeder()")
+    );
     rewarder.feed(1 ether, 1 days);
 
-    vm.expectRevert("Ownable: caller is not the owner");
+    vm.expectRevert(
+      abi.encodeWithSignature("FeedableRewarderError_NotFeeder()")
+    );
     rewarder.feedWithExpiredAt(1 ether, block.timestamp + 1 days);
 
     vm.stopPrank();

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
@@ -30,12 +30,7 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
     address token,
     uint256 amount
   );
-  event LogWithdraw(
-    address indexed caller,
-    address indexed user,
-    address token,
-    uint256 amount
-  );
+  event LogWithdraw(address indexed caller, address token, uint256 amount);
 
   function initialize() external initializer {
     OwnableUpgradeable.__Ownable_init();
@@ -126,45 +121,30 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
     return stakingTokenRewarders[token];
   }
 
-  function withdraw(
-    address to,
-    address token,
-    uint256 amount
-  ) external {
-    _withdraw(to, token, amount);
-    _afterWithdraw(to, token, amount);
-    emit LogWithdraw(msg.sender, to, token, amount);
+  function withdraw(address token, uint256 amount) external {
+    _withdraw(token, amount);
+    emit LogWithdraw(msg.sender, token, amount);
   }
 
-  function _withdraw(
-    address to,
-    address token,
-    uint256 amount
-  ) internal {
+  function _withdraw(address token, uint256 amount) internal {
     if (!isStakingToken[token]) revert PLPStaking_UnknownStakingToken();
-    if (userTokenAmount[token][to] < amount)
+    if (userTokenAmount[token][msg.sender] < amount)
       revert PLPStaking_InsufficientTokenAmount();
 
     uint256 length = stakingTokenRewarders[token].length;
     for (uint256 i = 0; i < length; ) {
       address rewarder = stakingTokenRewarders[token][i];
 
-      IRewarder(rewarder).onWithdraw(to, amount);
+      IRewarder(rewarder).onWithdraw(msg.sender, amount);
 
       unchecked {
         ++i;
       }
     }
-    userTokenAmount[token][to] -= amount;
+    userTokenAmount[token][msg.sender] -= amount;
     IERC20Upgradeable(token).safeTransfer(msg.sender, amount);
-    emit LogWithdraw(msg.sender, to, token, amount);
+    emit LogWithdraw(msg.sender, token, amount);
   }
-
-  function _afterWithdraw(
-    address to,
-    address token,
-    uint256 amount
-  ) internal virtual {}
 
   function harvest(address[] memory rewarders) external {
     _harvestFor(msg.sender, msg.sender, rewarders);

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 import { ILockdrop } from "../../lockdrop/interfaces/ILockdrop.sol";
 import { MockErc20 } from "./MockERC20.sol";
@@ -36,7 +36,10 @@ contract MockLockdrop is ILockdrop {
 
   function addLockAmount(uint256 _amount) external {}
 
-  function earlyWithdrawLockedToken(uint256 _amount, address _user) external {}
+  function earlyWithdrawLockedToken(uint256 _amount, address _user)
+    external
+    payable
+  {}
 
   function _claimAllRewards(address _user) internal {
     IWNative(lockdropConfig.nativeToken()).withdraw(
@@ -75,7 +78,6 @@ contract MockLockdrop is ILockdrop {
     _claimAllRewards(_user);
 
     lockdropConfig.plpStaking().withdraw(
-      address(this),
       address(lockdropConfig.plpToken()),
       totalPLPAmount
     );
@@ -99,7 +101,6 @@ contract MockLockdrop is ILockdrop {
     );
   }
 
-  
   function lockdropStates(address)
     external
     pure

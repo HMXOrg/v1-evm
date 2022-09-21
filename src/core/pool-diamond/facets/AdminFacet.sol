@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 import { LibPoolV1 } from "../libraries/LibPoolV1.sol";
 import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
@@ -18,7 +18,6 @@ contract AdminFacet is AdminFacetInterface {
   error AdminFacet_BadNewFundingInterval();
   error AdminFacet_BadNewFundingRateFactor();
   error AdminFacet_BadNewLiquidationFeeUsd();
-  error AdminFacet_BadNewLiquidityCoolDownDuration();
   error AdminFacet_BadNewMaxLeverage();
   error AdminFacet_BadNewMintBurnFeeBps();
   error AdminFacet_BadNewPositionFeeBps();
@@ -37,7 +36,6 @@ contract AdminFacet is AdminFacetInterface {
   // ---------
   // Constants
   // ---------
-  uint256 internal constant MAX_COOLDOWN_DURATION = 48 hours;
   uint256 internal constant MAX_FEE_BPS = 500;
   uint256 internal constant MIN_FUNDING_INTERVAL = 1 hours;
   // Max funding rate factor at 1% (10000 / 1000000 * 100 = 1%)
@@ -86,10 +84,6 @@ contract AdminFacet is AdminFacetInterface {
   event SetLiquidationFeeUsd(
     uint256 prevLiquidationFeeUsd,
     uint256 newLiquidationFeeUsd
-  );
-  event SetLiquidityCoolDownDuration(
-    uint256 prevCoolDownPeriod,
-    uint256 newCoolDownPeriod
   );
   event SetPositionFeeBps(
     uint256 prevPositionFeeBps,
@@ -250,24 +244,6 @@ contract AdminFacet is AdminFacetInterface {
       newLiquidationFeeUsd
     );
     poolConfigDs.liquidationFeeUsd = newLiquidationFeeUsd;
-  }
-
-  function setLiquidityCoolDownDuration(uint64 newLiquidityCoolDownPeriod)
-    external
-    onlyOwner
-  {
-    if (newLiquidityCoolDownPeriod > MAX_COOLDOWN_DURATION)
-      revert AdminFacet_BadNewLiquidityCoolDownDuration();
-
-    // Load PoolConfig Diamond storage
-    LibPoolConfigV1.PoolConfigV1DiamondStorage
-      storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
-
-    emit SetLiquidityCoolDownDuration(
-      poolConfigDs.liquidityCoolDownDuration,
-      newLiquidityCoolDownPeriod
-    );
-    poolConfigDs.liquidityCoolDownDuration = newLiquidityCoolDownPeriod;
   }
 
   function setMaxLeverage(uint64 newMaxLeverage) external onlyOwner {

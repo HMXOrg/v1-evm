@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 interface ILockdrop {
   function lockToken(uint256 amount, uint256 lockPeriod) external;
@@ -18,7 +18,9 @@ interface ILockdrop {
 
   function addLockAmountFor(uint256 amount, address user) external;
 
-  function earlyWithdrawLockedToken(uint256 amount, address user) external;
+  function earlyWithdrawLockedToken(uint256 amount, address user)
+    external
+    payable;
 
   function claimAllRewardsFor(address user, address receiver) external;
 

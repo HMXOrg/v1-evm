@@ -1,4 +1,4 @@
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 interface IStaking {
   function deposit(
@@ -7,11 +7,7 @@ interface IStaking {
     uint256 amount
   ) external;
 
-  function withdraw(
-    address to,
-    address token,
-    uint256 amount
-  ) external;
+  function withdraw(address token, uint256 amount) external;
 
   function getUserTokenAmount(address token, address sender)
     external

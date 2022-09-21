@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
-import { PoolDiamond_BaseTest, LibPoolConfigV1, PoolConfig, Pool, console, GetterFacetInterface, LiquidityFacetInterface } from "./PoolDiamond_BaseTest.t.sol";
+import { PoolDiamond_BaseTest, LibPoolConfigV1, PoolConfig, Pool, console, GetterFacetInterface, LiquidityFacetInterface, PoolRouter } from "./PoolDiamond_BaseTest.t.sol";
+import { PLP } from "src/tokens/PLP.sol";
 
 contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
   function setUp() public override {
@@ -71,7 +72,6 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     assertEq(dai.balanceOf(address(poolDiamond)), 100 ether);
     assertEq(poolGetterFacet.plp().balanceOf(ALICE), 99.7 ether);
     assertEq(poolGetterFacet.plp().totalSupply(), 99.7 ether);
-    assertEq(poolGetterFacet.lastAddLiquidityAtOf(ALICE), block.timestamp);
     assertEq(poolGetterFacet.getAumE18(true), 99.7 ether);
     assertEq(poolGetterFacet.getAumE18(false), 99.7 ether);
     assertEq(poolGetterFacet.totalUsdDebt(), 99.7 ether);
@@ -91,8 +91,14 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     vm.startPrank(BOB);
 
     // Perform add liquidity
-    matic.transfer(address(poolDiamond), 1 ether);
-    poolLiquidityFacet.addLiquidity(BOB, address(matic), BOB);
+    matic.approve(address(poolRouter), 1 ether);
+    poolRouter.addLiquidity(
+      address(poolDiamond),
+      address(matic),
+      1 ether,
+      BOB,
+      0
+    );
 
     // After Bob added MATIC liquidity, the following criteria needs to satisfy:
     // 1. MATIC balance of Bob should be 0
@@ -107,7 +113,6 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     assertEq(matic.balanceOf(address(poolDiamond)), 1 ether);
     assertEq(poolGetterFacet.plp().balanceOf(BOB), 299.1 ether);
     assertEq(poolGetterFacet.plp().totalSupply(), 398.8 ether);
-    assertEq(poolGetterFacet.lastAddLiquidityAtOf(BOB), block.timestamp);
     assertEq(poolGetterFacet.getAumE18(true), 498.5 ether);
     assertEq(poolGetterFacet.getAumE18(false), 398.8 ether);
     assertEq(poolGetterFacet.totalUsdDebt(), 398.8 ether);
@@ -134,8 +139,8 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     vm.startPrank(CAT);
 
     // Perform add liquidity
-    wbtc.transfer(address(poolDiamond), 1000000);
-    poolLiquidityFacet.addLiquidity(CAT, address(wbtc), CAT);
+    wbtc.approve(address(poolRouter), 1000000);
+    poolRouter.addLiquidity(poolDiamond, address(wbtc), 1000000, CAT, 0);
 
     // After Cat added WBTC liquidity, the following criteria needs to satisfy:
     // 1. WBTC balance of Cat should be 0
@@ -151,7 +156,6 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     assertEq(wbtc.balanceOf(address(poolDiamond)), 1000000);
     assertEq(poolGetterFacet.plp().balanceOf(CAT), 398.8 ether);
     assertEq(poolGetterFacet.plp().totalSupply(), 797.6 ether);
-    assertEq(poolGetterFacet.lastAddLiquidityAtOf(CAT), block.timestamp);
     assertEq(poolGetterFacet.getAumE18(true), 1196.4 ether);
     assertEq(poolGetterFacet.getAumE18(false), 1096.7 ether);
     assertEq(poolGetterFacet.totalUsdDebt(), 997 ether);
@@ -169,8 +173,14 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     vm.startPrank(ALICE);
 
     // Perform add liquidity
-    dai.transfer(address(poolDiamond), 100 ether);
-    poolLiquidityFacet.addLiquidity(ALICE, address(dai), ALICE);
+    dai.approve(address(poolRouter), 100 ether);
+    poolRouter.addLiquidity(
+      address(poolDiamond),
+      address(dai),
+      100 ether,
+      ALICE,
+      0
+    );
 
     // After Alice added DAI liquidity, the following criteria needs to satisfy:
     // 1. DAI balance of Alice should be 0
@@ -186,7 +196,6 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     assertEq(dai.balanceOf(address(poolDiamond)), 100 ether);
     assertEq(poolGetterFacet.plp().balanceOf(ALICE), 99.7 ether);
     assertEq(poolGetterFacet.plp().totalSupply(), 99.7 ether);
-    assertEq(poolGetterFacet.lastAddLiquidityAtOf(ALICE), block.timestamp);
     assertEq(poolGetterFacet.getAumE18(true), 99.7 ether);
     assertEq(poolGetterFacet.getAumE18(false), 99.7 ether);
     assertEq(poolGetterFacet.totalUsdDebt(), 99.7 ether);
@@ -206,8 +215,14 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     vm.startPrank(BOB);
 
     // Perform add liquidity
-    matic.transfer(address(poolDiamond), 1 ether);
-    poolLiquidityFacet.addLiquidity(BOB, address(matic), BOB);
+    matic.approve(address(poolRouter), 1 ether);
+    poolRouter.addLiquidity(
+      address(poolDiamond),
+      address(matic),
+      1 ether,
+      BOB,
+      0
+    );
 
     // After Bob added MATIC liquidity, the following criteria needs to satisfy:
     // 1. MATIC balance of Bob should be 0
@@ -223,7 +238,6 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     assertEq(matic.balanceOf(address(poolDiamond)), 1 ether);
     assertEq(poolGetterFacet.plp().balanceOf(BOB), 297.6 ether);
     assertEq(poolGetterFacet.plp().totalSupply(), 397.3 ether);
-    assertEq(poolGetterFacet.lastAddLiquidityAtOf(BOB), block.timestamp);
     assertEq(poolGetterFacet.getAumE18(true), 496.5 ether);
     assertEq(poolGetterFacet.getAumE18(false), 397.3 ether);
     assertEq(poolGetterFacet.totalUsdDebt(), 397.3 ether);
@@ -250,8 +264,14 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     vm.startPrank(CAT);
 
     // Perform add liquidity
-    wbtc.transfer(address(poolDiamond), 1000000);
-    poolLiquidityFacet.addLiquidity(CAT, address(wbtc), CAT);
+    wbtc.approve(address(poolRouter), 1000000);
+    poolRouter.addLiquidity(
+      address(poolDiamond),
+      address(wbtc),
+      1000000,
+      CAT,
+      0
+    );
 
     // After Cat added WBTC liquidity, the following criteria needs to satisfy:
     // 1. WBTC balance of Cat should be 0
@@ -267,9 +287,63 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     assertEq(wbtc.balanceOf(address(poolDiamond)), 1000000);
     assertEq(poolGetterFacet.plp().balanceOf(CAT), 396966526775222427396);
     assertEq(poolGetterFacet.plp().totalSupply(), 794266526775222427396);
-    assertEq(poolGetterFacet.lastAddLiquidityAtOf(CAT), block.timestamp);
     assertEq(poolGetterFacet.getAumE18(true), 1190.9 ether);
     assertEq(poolGetterFacet.getAumE18(false), 1091.7 ether);
     assertEq(poolGetterFacet.totalUsdDebt(), 992.5 ether);
+  }
+
+  function testRevert_Slippage() external {
+    // Mint 100 DAI to Alice
+    dai.mint(ALICE, 100 ether);
+
+    // ------- Alice session -------
+    // Alice as a liquidity provider for DAI
+    vm.startPrank(ALICE);
+
+    // Perform add liquidity
+    // After Alice added DAI liquidity, the following criteria needs to satisfy:
+    // 1. DAI balance of Alice should be 0
+    // 2. DAI balance of Pool should be 100
+    // 3. Due to no liquidity being added before, then PLP should be the same as the USD of DAI
+    // Hence, Alice should get 100 * (1-0.003) = 99.7 PLP.
+    dai.approve(address(poolRouter), 100 ether);
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        PoolRouter.PoolRouter_InsufficientOutputAmount.selector,
+        100 ether,
+        99.7 ether
+      )
+    );
+    poolRouter.addLiquidity(
+      address(poolDiamond),
+      address(dai),
+      100 ether,
+      ALICE,
+      100 ether
+    );
+    vm.stopPrank();
+  }
+
+  function testRevert_WhenCooldownNotPassed() external {
+    // Mint 100 DAI to Alice
+    dai.mint(ALICE, 100 ether);
+
+    // ------- Alice session -------
+    // Alice as a liquidity provider for DAI
+    vm.startPrank(ALICE);
+
+    // Perform add liquidity
+    dai.approve(address(poolRouter), 100 ether);
+    poolRouter.addLiquidity(
+      address(poolDiamond),
+      address(dai),
+      100 ether,
+      ALICE,
+      99 ether
+    );
+
+    address plp = address(GetterFacetInterface(poolDiamond).plp());
+    vm.expectRevert(abi.encodeWithSelector(PLP.PLP_Cooldown.selector, 86401));
+    PLP(plp).transfer(BOB, 1 ether);
   }
 }

@@ -1,16 +1,13 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 import { PoolOracle } from "../../PoolOracle.sol";
 import { LibPoolV1 } from "../libraries/LibPoolV1.sol";
 import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
 
 import { GetterFacetInterface } from "../interfaces/GetterFacetInterface.sol";
-import { MintableTokenInterface } from "../../../interfaces/MintableTokenInterface.sol";
 import { StrategyInterface } from "../../../interfaces/StrategyInterface.sol";
-
-import { console } from "../../../tests/utils/console.sol";
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { PLP } from "../../../tokens/PLP.sol";
 
 contract GetterFacet is GetterFacetInterface {
   error GetterFacet_BadSubAccountId();
@@ -97,21 +94,12 @@ contract GetterFacet is GetterFacetInterface {
     return LibPoolConfigV1.poolConfigV1DiamondStorage().isSwapEnable;
   }
 
-  function lastAddLiquidityAtOf(address user) external view returns (uint256) {
-    return LibPoolV1.poolV1DiamondStorage().lastAddLiquidityAtOf[user];
-  }
-
   function lastFundingTimeOf(address user) external view returns (uint256) {
     return LibPoolV1.poolV1DiamondStorage().lastFundingTimeOf[user];
   }
 
   function liquidationFeeUsd() external view returns (uint256) {
     return LibPoolConfigV1.poolConfigV1DiamondStorage().liquidationFeeUsd;
-  }
-
-  function liquidityCoolDownDuration() external view returns (uint64) {
-    return
-      LibPoolConfigV1.poolConfigV1DiamondStorage().liquidityCoolDownDuration;
   }
 
   function liquidityOf(address token) external view returns (uint256) {
@@ -143,7 +131,7 @@ contract GetterFacet is GetterFacetInterface {
       LibPoolConfigV1.poolConfigV1DiamondStorage().pendingStrategyOf[token];
   }
 
-  function plp() external view returns (MintableTokenInterface) {
+  function plp() external view returns (PLP) {
     return LibPoolV1.poolV1DiamondStorage().plp;
   }
 
