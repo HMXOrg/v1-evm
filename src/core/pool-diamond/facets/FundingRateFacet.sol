@@ -8,9 +8,9 @@ import { FundingRateFacetInterface } from "../interfaces/FundingRateFacetInterfa
 import { GetterFacetInterface } from "../interfaces/GetterFacetInterface.sol";
 
 contract FundingRateFacet is FundingRateFacetInterface {
-  event UpdateFundingRate(address token, uint256 sumFundingRate);
+  event UpdateBorrowingRate(address token, uint256 sumFundingRate);
 
-  function updateFundingRate(
+  function updateBorrowingRate(
     address collateralToken,
     address /* indexToken */
   ) external {
@@ -34,18 +34,18 @@ contract FundingRateFacet is FundingRateFacetInterface {
       return;
     }
 
-    uint256 fundingRate = GetterFacetInterface(address(this))
-      .getNextFundingRate(collateralToken);
+    uint256 borrowingRate = GetterFacetInterface(address(this))
+      .getNextBorrowingRate(collateralToken);
     unchecked {
-      poolV1ds.sumFundingRateOf[collateralToken] += fundingRate;
+      poolV1ds.sumBorrowingRateOf[collateralToken] += borrowingRate;
       poolV1ds.lastFundingTimeOf[collateralToken] =
         (block.timestamp / fundingInterval) *
         fundingInterval;
     }
 
-    emit UpdateFundingRate(
+    emit UpdateBorrowingRate(
       collateralToken,
-      poolV1ds.sumFundingRateOf[collateralToken]
+      poolV1ds.sumBorrowingRateOf[collateralToken]
     );
   }
 }

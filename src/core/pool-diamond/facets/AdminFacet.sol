@@ -16,12 +16,12 @@ contract AdminFacet is AdminFacetInterface {
   error AdminFacet_AllowTokensMismatch();
   error AdminFacet_BadFlashLoanFeeBps();
   error AdminFacet_BadNewFundingInterval();
-  error AdminFacet_BadNewFundingRateFactor();
+  error AdminFacet_BadNewborrowingRateFactor();
   error AdminFacet_BadNewLiquidationFeeUsd();
   error AdminFacet_BadNewMaxLeverage();
   error AdminFacet_BadNewMintBurnFeeBps();
   error AdminFacet_BadNewPositionFeeBps();
-  error AdminFacet_BadNewStableFundingRateFactor();
+  error AdminFacet_BadNewstableBorrowingRateFactor();
   error AdminFacet_BadNewStableTaxBps();
   error AdminFacet_BadNewStableSwapFeeBps();
   error AdminFacet_BadNewSwapFeeBps();
@@ -76,10 +76,10 @@ contract AdminFacet is AdminFacetInterface {
   event SetFundingRate(
     uint64 prevFundingInterval,
     uint64 newFundingInterval,
-    uint64 prevFundingRateFactor,
-    uint64 newFundingRateFactor,
-    uint64 prevStableFundingRateFactor,
-    uint64 newStableFundingRateFactor
+    uint64 prevborrowingRateFactor,
+    uint64 newborrowingRateFactor,
+    uint64 prevstableBorrowingRateFactor,
+    uint64 newstableBorrowingRateFactor
   );
   event SetLiquidationFeeUsd(
     uint256 prevLiquidationFeeUsd,
@@ -150,15 +150,15 @@ contract AdminFacet is AdminFacetInterface {
 
   function setFundingRate(
     uint64 newFundingInterval,
-    uint64 newFundingRateFactor,
-    uint64 newStableFundingRateFactor
+    uint64 newborrowingRateFactor,
+    uint64 newstableBorrowingRateFactor
   ) external onlyOwner {
     if (newFundingInterval < MIN_FUNDING_INTERVAL)
       revert AdminFacet_BadNewFundingInterval();
-    if (newFundingRateFactor > MAX_FUNDING_RATE_FACTOR)
-      revert AdminFacet_BadNewFundingRateFactor();
-    if (newStableFundingRateFactor > MAX_FUNDING_RATE_FACTOR)
-      revert AdminFacet_BadNewStableFundingRateFactor();
+    if (newborrowingRateFactor > MAX_FUNDING_RATE_FACTOR)
+      revert AdminFacet_BadNewborrowingRateFactor();
+    if (newstableBorrowingRateFactor > MAX_FUNDING_RATE_FACTOR)
+      revert AdminFacet_BadNewstableBorrowingRateFactor();
 
     // Load PoolConfig Diamond storage
     LibPoolConfigV1.PoolConfigV1DiamondStorage
@@ -167,14 +167,14 @@ contract AdminFacet is AdminFacetInterface {
     emit SetFundingRate(
       poolConfigDs.fundingInterval,
       newFundingInterval,
-      poolConfigDs.fundingRateFactor,
-      newFundingRateFactor,
-      poolConfigDs.stableFundingRateFactor,
-      newStableFundingRateFactor
+      poolConfigDs.borrowingRateFactor,
+      newborrowingRateFactor,
+      poolConfigDs.stableBorrowingRateFactor,
+      newstableBorrowingRateFactor
     );
     poolConfigDs.fundingInterval = newFundingInterval;
-    poolConfigDs.fundingRateFactor = newFundingRateFactor;
-    poolConfigDs.stableFundingRateFactor = newStableFundingRateFactor;
+    poolConfigDs.borrowingRateFactor = newborrowingRateFactor;
+    poolConfigDs.stableBorrowingRateFactor = newstableBorrowingRateFactor;
   }
 
   function setIsAllowAllLiquidators(bool _isAllowAllLiquidators)

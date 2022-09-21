@@ -140,7 +140,7 @@ interface BasePoolInterface {
 
   function shortSizeOf(address) external view returns (uint256);
 
-  function sumFundingRateOf(address) external view returns (uint256);
+  function sumBorrowingRateOf(address) external view returns (uint256);
 
   function swap(
     address tokenIn,
@@ -155,7 +155,7 @@ interface BasePoolInterface {
 
   function transferOwnership(address newOwner) external;
 
-  function updateFundingRate(address collateralToken, address indexToken)
+  function updateBorrowingRate(address collateralToken, address indexToken)
     external;
 
   function usdDebtOf(address) external view returns (uint256);

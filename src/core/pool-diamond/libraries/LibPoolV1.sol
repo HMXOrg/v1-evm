@@ -52,7 +52,7 @@ library LibPoolV1 {
     mapping(address => uint256) totalOf;
     mapping(address => uint256) liquidityOf;
     mapping(address => uint256) reservedOf;
-    mapping(address => uint256) sumFundingRateOf;
+    mapping(address => uint256) sumBorrowingRateOf;
     mapping(address => uint256) lastFundingTimeOf;
     // Short
     mapping(address => uint256) shortSizeOf;
@@ -69,6 +69,12 @@ library LibPoolV1 {
     // Position
     mapping(bytes32 => Position) positions;
     mapping(address => mapping(address => bool)) approvedPlugins;
+    // Open Interests in 1e30
+    mapping(address => uint256) openInterestLong;
+    mapping(address => uint256) openInterestShort;
+    // Funding Rate
+    mapping(address => int256) accumFundingRateLong;
+    mapping(address => int256) accumFundingRateShort;
   }
 
   // -----------
@@ -86,6 +92,8 @@ library LibPoolV1 {
   event IncreaseShortSize(address token, uint256 amount);
   event SetPoolConfig(address prevPoolConfig, address newPoolConfig);
   event SetPoolOracle(address prevPoolOracle, address newPoolOracle);
+  event IncreaseOpenInterest(bool isLong, address indexToken, uint256 value);
+  event DecreaseOpenInterest(bool isLong, address indexToken, uint256 value);
 
   function poolV1DiamondStorage()
     internal
@@ -322,5 +330,35 @@ library LibPoolV1 {
     return
       (amountTokens * poolV1ds.oracle.getPrice(token, isUseMaxPrice)) /
       (10**LibPoolConfigV1.getTokenDecimalsOf(token));
+  }
+
+  function increaseOpenInterest(
+    bool isLong,
+    address indexToken,
+    uint256 value
+  ) internal {
+    PoolV1DiamondStorage storage poolV1ds = poolV1DiamondStorage();
+
+    if (isLong) {
+      poolV1ds.openInterestLong[indexToken] += value;
+    } else {
+      poolV1ds.openInterestShort[indexToken] += value;
+    }
+    emit IncreaseOpenInterest(isLong, indexToken, value);
+  }
+
+  function decreaseOpenInterest(
+    bool isLong,
+    address indexToken,
+    uint256 value
+  ) internal {
+    PoolV1DiamondStorage storage poolV1ds = poolV1DiamondStorage();
+
+    if (isLong) {
+      poolV1ds.openInterestLong[indexToken] -= value;
+    } else {
+      poolV1ds.openInterestShort[indexToken] -= value;
+    }
+    emit DecreaseOpenInterest(isLong, indexToken, value);
   }
 }

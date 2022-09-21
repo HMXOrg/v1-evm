@@ -215,7 +215,7 @@ contract PoolMath is Constants {
     address, /* indexToken */
     Exposure /* exposure */
   ) external view returns (uint256) {
-    return pool.sumFundingRateOf(collateralToken);
+    return pool.sumBorrowingRateOf(collateralToken);
   }
 
   function getFundingFee(
@@ -229,7 +229,7 @@ contract PoolMath is Constants {
   ) public view returns (uint256) {
     if (size == 0) return 0;
 
-    uint256 fundingRate = pool.sumFundingRateOf(collateralToken) -
+    uint256 fundingRate = pool.sumBorrowingRateOf(collateralToken) -
       entryFundingRate;
     if (fundingRate == 0) return 0;
 
@@ -491,7 +491,7 @@ contract PoolMath is Constants {
     return (nextPrice * nextSize) / divisor;
   }
 
-  function getNextFundingRate(Pool pool, address token)
+  function getNextBorrowingRate(Pool pool, address token)
     public
     view
     returns (uint256)
@@ -510,11 +510,12 @@ contract PoolMath is Constants {
     uint256 liquidity = pool.liquidityOf(token);
     if (liquidity == 0) return 0;
 
-    uint256 fundingRateFactor = config.isStableToken(token)
-      ? config.stableFundingRateFactor()
-      : config.fundingRateFactor();
+    uint256 borrowingRateFactor = config.isStableToken(token)
+      ? config.stableBorrowingRateFactor()
+      : config.borrowingRateFactor();
 
-    return (fundingRateFactor * pool.reservedOf(token) * intervals) / liquidity;
+    return
+      (borrowingRateFactor * pool.reservedOf(token) * intervals) / liquidity;
   }
 
   function getTargetValue(Pool pool, address token)

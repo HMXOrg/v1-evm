@@ -8,12 +8,12 @@ contract PoolConfig is OwnableUpgradeable {
   using LinkedList for LinkedList.List;
 
   error PoolConfig_BadNewFundingInterval();
-  error PoolConfig_BadNewFundingRateFactor();
+  error PoolConfig_BadNewborrowingRateFactor();
   error PoolConfig_BadNewLiquidationFeeUsd();
   error PoolConfig_BadNewMaxLeverage();
   error PoolConfig_BadNewMintBurnFeeBps();
   error PoolConfig_BadNewPositionFeeBps();
-  error PoolConfig_BadNewStableFundingRateFactor();
+  error PoolConfig_BadNewstableBorrowingRateFactor();
   error PoolConfig_BadNewStableTaxBps();
   error PoolConfig_BadNewStableSwapFeeBps();
   error PoolConfig_BadNewSwapFeeBps();
@@ -71,8 +71,8 @@ contract PoolConfig is OwnableUpgradeable {
   // Funding rate configurations
   // ---------------------------
   uint64 public fundingInterval;
-  uint64 public stableFundingRateFactor;
-  uint64 public fundingRateFactor;
+  uint64 public stableBorrowingRateFactor;
+  uint64 public borrowingRateFactor;
 
   // ----------------------
   // Fee bps configurations
@@ -118,10 +118,10 @@ contract PoolConfig is OwnableUpgradeable {
   event SetFundingRate(
     uint64 prevFundingInterval,
     uint64 newFundingInterval,
-    uint64 prevFundingRateFactor,
-    uint64 newFundingRateFactor,
-    uint64 prevStableFundingRateFactor,
-    uint64 newStableFundingRateFactor
+    uint64 prevborrowingRateFactor,
+    uint64 newborrowingRateFactor,
+    uint64 prevstableBorrowingRateFactor,
+    uint64 newstableBorrowingRateFactor
   );
   event SetLiquidationFeeUsd(
     uint256 prevLiquidationFeeUsd,
@@ -151,8 +151,8 @@ contract PoolConfig is OwnableUpgradeable {
     uint64 _fundingInterval,
     uint64 _mintBurnFeeBps,
     uint64 _taxBps,
-    uint64 _stableFundingRateFactor,
-    uint64 _fundingRateFactor,
+    uint64 _stableBorrowingRateFactor,
+    uint64 _borrowingRateFactor,
     uint256 _liquidationFeeUsd
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
@@ -164,8 +164,8 @@ contract PoolConfig is OwnableUpgradeable {
     fundingInterval = _fundingInterval;
     mintBurnFeeBps = _mintBurnFeeBps;
     taxBps = _taxBps;
-    stableFundingRateFactor = _stableFundingRateFactor;
-    fundingRateFactor = _fundingRateFactor;
+    stableBorrowingRateFactor = _stableBorrowingRateFactor;
+    borrowingRateFactor = _borrowingRateFactor;
     maxLeverage = 88 * 10000; // Max leverage at 88x
 
     // toggle
@@ -196,27 +196,27 @@ contract PoolConfig is OwnableUpgradeable {
 
   function setFundingRate(
     uint64 newFundingInterval,
-    uint64 newFundingRateFactor,
-    uint64 newStableFundingRateFactor
+    uint64 newborrowingRateFactor,
+    uint64 newstableBorrowingRateFactor
   ) external onlyOwner {
     if (newFundingInterval < MIN_FUNDING_INTERVAL)
       revert PoolConfig_BadNewFundingInterval();
-    if (newFundingRateFactor > MAX_FUNDING_RATE_FACTOR)
-      revert PoolConfig_BadNewFundingRateFactor();
-    if (newStableFundingRateFactor > MAX_FUNDING_RATE_FACTOR)
-      revert PoolConfig_BadNewStableFundingRateFactor();
+    if (newborrowingRateFactor > MAX_FUNDING_RATE_FACTOR)
+      revert PoolConfig_BadNewborrowingRateFactor();
+    if (newstableBorrowingRateFactor > MAX_FUNDING_RATE_FACTOR)
+      revert PoolConfig_BadNewstableBorrowingRateFactor();
 
     emit SetFundingRate(
       fundingInterval,
       newFundingInterval,
-      fundingRateFactor,
-      newFundingRateFactor,
-      stableFundingRateFactor,
-      newStableFundingRateFactor
+      borrowingRateFactor,
+      newborrowingRateFactor,
+      stableBorrowingRateFactor,
+      newstableBorrowingRateFactor
     );
     fundingInterval = newFundingInterval;
-    fundingRateFactor = newFundingRateFactor;
-    stableFundingRateFactor = newStableFundingRateFactor;
+    borrowingRateFactor = newborrowingRateFactor;
+    stableBorrowingRateFactor = newstableBorrowingRateFactor;
   }
 
   function setIsAllowAllLiquidators(bool _isAllowAllLiquidators)
@@ -442,7 +442,7 @@ contract PoolConfig is OwnableUpgradeable {
     return tokenMetas[token].shortCeiling;
   }
 
-  function shouldUpdateFundingRate(
+  function shouldUpdateBorrowingRate(
     address, /* collateralToken */
     address /* indexToken */
   ) external pure returns (bool) {

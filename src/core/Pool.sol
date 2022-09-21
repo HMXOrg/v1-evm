@@ -56,7 +56,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
   mapping(address => uint256) public liquidityOf;
   mapping(address => uint256) public reservedOf;
 
-  mapping(address => uint256) public sumFundingRateOf;
+  mapping(address => uint256) public sumBorrowingRateOf;
   mapping(address => uint256) public lastFundingTimeOf;
 
   // Short
@@ -92,7 +92,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
   mapping(bytes32 => Position) public positions;
   mapping(address => mapping(address => bool)) public approvedPlugins;
 
-  event UpdateFundingRate(address token, uint256 sumFundingRate);
+  event UpdateBorrowingRate(address token, uint256 sumFundingRate);
   event AddLiquidity(
     address account,
     address token,
@@ -233,10 +233,10 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
   // ---------------------------
   // Pool's core functionalities
   // ---------------------------
-  function updateFundingRate(address collateralToken, address indexToken)
+  function updateBorrowingRate(address collateralToken, address indexToken)
     public
   {
-    if (!config.shouldUpdateFundingRate(collateralToken, indexToken)) return;
+    if (!config.shouldUpdateBorrowingRate(collateralToken, indexToken)) return;
 
     uint256 fundingInterval = config.fundingInterval();
 
@@ -254,18 +254,21 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
       return;
     }
 
-    uint256 fundingRate = poolMath.getNextFundingRate(
+    uint256 fundingRate = poolMath.getNextBorrowingRate(
       Pool(address(this)),
       collateralToken
     );
     unchecked {
-      sumFundingRateOf[collateralToken] += fundingRate;
+      sumBorrowingRateOf[collateralToken] += fundingRate;
       lastFundingTimeOf[collateralToken] =
         (block.timestamp / fundingInterval) *
         fundingInterval;
     }
 
-    emit UpdateFundingRate(collateralToken, sumFundingRateOf[collateralToken]);
+    emit UpdateBorrowingRate(
+      collateralToken,
+      sumBorrowingRateOf[collateralToken]
+    );
   }
 
   function addLiquidity(
@@ -308,7 +311,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
     uint256 amount,
     address receiver
   ) internal returns (uint256) {
-    updateFundingRate(token, token);
+    updateBorrowingRate(token, token);
 
     uint256 price = oracle.getMinPrice(token);
 
@@ -387,7 +390,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
     uint256 usdValue,
     address receiver
   ) internal returns (uint256) {
-    updateFundingRate(token, token);
+    updateBorrowingRate(token, token);
 
     uint256 tokenPrice = oracle.getMaxPrice(token);
     uint256 amountOut = _convertTokenDecimals(
@@ -435,8 +438,8 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
     if (tokenIn == tokenOut) revert Pool_BadArgument();
     if (amountIn == 0) revert Pool_BadArgument();
 
-    updateFundingRate(tokenIn, tokenIn);
-    updateFundingRate(tokenOut, tokenOut);
+    updateBorrowingRate(tokenIn, tokenIn);
+    updateBorrowingRate(tokenOut, tokenOut);
 
     uint256 priceIn = oracle.getMinPrice(tokenIn);
     uint256 priceOut = oracle.getMaxPrice(tokenOut);
@@ -532,7 +535,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
     );
     // TODO: Add validate increase position
 
-    updateFundingRate(collateralToken, indexToken);
+    updateBorrowingRate(collateralToken, indexToken);
 
     IncreasePositionLocalVars memory vars;
 
@@ -720,7 +723,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
     Exposure exposure,
     address receiver
   ) internal returns (uint256) {
-    updateFundingRate(collateralToken, indexToken);
+    updateBorrowingRate(collateralToken, indexToken);
 
     DecreasePositionLocalVars memory vars;
 
@@ -879,7 +882,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
   ) external nonReentrant {
     if (!config.isAllowedLiquidators(msg.sender)) revert Pool_BadLiquidator();
 
-    updateFundingRate(collateralToken, indexToken);
+    updateBorrowingRate(collateralToken, indexToken);
 
     address subAccount = getSubAccount(primaryAccount, subAccountId);
 

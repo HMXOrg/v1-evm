@@ -26,20 +26,20 @@ contract PoolConfig_SetFundingRateTest is PoolConfig_BaseTest {
     poolConfig.setFundingRate(1, 1, 1);
   }
 
-  function testRevert_WhenNewStableFundingRateFactorMoreThanMaxFundingRateFactor()
+  function testRevert_WhenNewstableBorrowingRateFactorMoreThanMaxborrowingRateFactor()
     external
   {
     vm.expectRevert(
-      abi.encodeWithSignature("PoolConfig_BadNewStableFundingRateFactor()")
+      abi.encodeWithSignature("PoolConfig_BadNewstableBorrowingRateFactor()")
     );
     poolConfig.setFundingRate(1 hours, 1, 10001);
   }
 
-  function testRevert_WhenNewFundingRateFactorMoreThanMaxFundingRateFactor()
+  function testRevert_WhenNewborrowingRateFactorMoreThanMaxborrowingRateFactor()
     external
   {
     vm.expectRevert(
-      abi.encodeWithSignature("PoolConfig_BadNewFundingRateFactor()")
+      abi.encodeWithSignature("PoolConfig_BadNewborrowingRateFactor()")
     );
     poolConfig.setFundingRate(1 hours, 10001, 600);
   }
@@ -48,7 +48,7 @@ contract PoolConfig_SetFundingRateTest is PoolConfig_BaseTest {
     poolConfig.setFundingRate(1 hours, 600, 600);
 
     assertEq(poolConfig.fundingInterval(), 1 hours);
-    assertEq(poolConfig.stableFundingRateFactor(), 600);
-    assertEq(poolConfig.fundingRateFactor(), 600);
+    assertEq(poolConfig.stableBorrowingRateFactor(), 600);
+    assertEq(poolConfig.borrowingRateFactor(), 600);
   }
 }

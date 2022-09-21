@@ -163,7 +163,7 @@ contract LiquidityFacet is LiquidityFacetInterface {
     LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
       .poolV1DiamondStorage();
 
-    FundingRateFacetInterface(address(this)).updateFundingRate(token, token);
+    FundingRateFacetInterface(address(this)).updateBorrowingRate(token, token);
 
     uint256 price = poolV1ds.oracle.getMinPrice(token);
 
@@ -251,7 +251,7 @@ contract LiquidityFacet is LiquidityFacetInterface {
     LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
       .poolV1DiamondStorage();
 
-    FundingRateFacetInterface(address(this)).updateFundingRate(token, token);
+    FundingRateFacetInterface(address(this)).updateBorrowingRate(token, token);
 
     uint256 tokenPrice = poolV1ds.oracle.getMaxPrice(token);
     uint256 amountOut = LibPoolV1.convertTokenDecimals(
@@ -302,11 +302,11 @@ contract LiquidityFacet is LiquidityFacetInterface {
     if (tokenIn == tokenOut) revert LiquidityFacet_SameTokenInTokenOut();
     if (amountIn == 0) revert LiquidityFacet_BadAmount();
 
-    FundingRateFacetInterface(address(this)).updateFundingRate(
+    FundingRateFacetInterface(address(this)).updateBorrowingRate(
       tokenIn,
       tokenIn
     );
-    FundingRateFacetInterface(address(this)).updateFundingRate(
+    FundingRateFacetInterface(address(this)).updateBorrowingRate(
       tokenOut,
       tokenOut
     );

@@ -53,8 +53,8 @@ contract GetterFacet is GetterFacetInterface {
     return LibPoolConfigV1.poolConfigV1DiamondStorage().fundingInterval;
   }
 
-  function fundingRateFactor() external view returns (uint64) {
-    return LibPoolConfigV1.poolConfigV1DiamondStorage().fundingRateFactor;
+  function borrowingRateFactor() external view returns (uint64) {
+    return LibPoolConfigV1.poolConfigV1DiamondStorage().borrowingRateFactor;
   }
 
   function guaranteedUsdOf(address token) external view returns (uint256) {
@@ -137,8 +137,9 @@ contract GetterFacet is GetterFacetInterface {
     return LibPoolV1.poolV1DiamondStorage().shortAveragePriceOf[token];
   }
 
-  function stableFundingRateFactor() external view returns (uint64) {
-    return LibPoolConfigV1.poolConfigV1DiamondStorage().stableFundingRateFactor;
+  function stableBorrowingRateFactor() external view returns (uint64) {
+    return
+      LibPoolConfigV1.poolConfigV1DiamondStorage().stableBorrowingRateFactor;
   }
 
   function stableTaxBps() external view returns (uint64) {
@@ -149,8 +150,8 @@ contract GetterFacet is GetterFacetInterface {
     return LibPoolConfigV1.poolConfigV1DiamondStorage().stableSwapFeeBps;
   }
 
-  function sumFundingRateOf(address token) external view returns (uint256) {
-    return LibPoolV1.poolV1DiamondStorage().sumFundingRateOf[token];
+  function sumBorrowingRateOf(address token) external view returns (uint256) {
+    return LibPoolV1.poolV1DiamondStorage().sumBorrowingRateOf[token];
   }
 
   function swapFeeBps() external view returns (uint64) {
@@ -234,7 +235,7 @@ contract GetterFacet is GetterFacetInterface {
     address, /* indexToken */
     bool /* isLong */
   ) external view returns (uint256) {
-    return LibPoolV1.poolV1DiamondStorage().sumFundingRateOf[collateralToken];
+    return LibPoolV1.poolV1DiamondStorage().sumBorrowingRateOf[collateralToken];
   }
 
   function getFundingFee(
@@ -251,7 +252,7 @@ contract GetterFacet is GetterFacetInterface {
 
     if (size == 0) return 0;
 
-    uint256 fundingRate = ds.sumFundingRateOf[collateralToken] -
+    uint256 fundingRate = ds.sumBorrowingRateOf[collateralToken] -
       entryFundingRate;
     if (fundingRate == 0) return 0;
 
@@ -687,10 +688,10 @@ contract GetterFacet is GetterFacetInterface {
   }
 
   // ------------
-  // Funding rate
+  // Borrowing rate
   // ------------
 
-  function getNextFundingRate(address token) public view returns (uint256) {
+  function getNextBorrowingRate(address token) public view returns (uint256) {
     // Load diamond storage
     LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
       .poolV1DiamondStorage();
@@ -710,11 +711,12 @@ contract GetterFacet is GetterFacetInterface {
     uint256 liquidity = poolV1ds.liquidityOf[token];
     if (liquidity == 0) return 0;
 
-    uint256 _fundingRateFactor = poolConfigV1ds.tokenMetas[token].isStable
-      ? poolConfigV1ds.stableFundingRateFactor
-      : poolConfigV1ds.fundingRateFactor;
+    uint256 _borrowingRateFactor = poolConfigV1ds.tokenMetas[token].isStable
+      ? poolConfigV1ds.stableBorrowingRateFactor
+      : poolConfigV1ds.borrowingRateFactor;
 
     return
-      (_fundingRateFactor * poolV1ds.reservedOf[token] * intervals) / liquidity;
+      (_borrowingRateFactor * poolV1ds.reservedOf[token] * intervals) /
+      liquidity;
   }
 }

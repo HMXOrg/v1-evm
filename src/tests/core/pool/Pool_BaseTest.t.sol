@@ -18,8 +18,8 @@ abstract contract Pool_BaseTest is BaseTest {
         fundingInterval: 8 hours,
         mintBurnFeeBps: 30,
         taxBps: 50,
-        stableFundingRateFactor: 600,
-        fundingRateFactor: 600,
+        stableBorrowingRateFactor: 600,
+        borrowingRateFactor: 600,
         liquidationFeeUsd: 5 * 10**30
       });
     (poolOracle, poolConfig, poolMath, pool) = deployFullPool(poolConfigParams);

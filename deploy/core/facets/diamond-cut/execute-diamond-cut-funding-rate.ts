@@ -26,7 +26,7 @@ const facetCuts = [
     action: FacetCutAction.Add,
     functionSelectors: [
       FundingRateFacet__factory.createInterface().getSighash(
-        "updateFundingRate(address, address)"
+        "updateBorrowingRate(address, address)"
       ),
     ],
   },

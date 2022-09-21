@@ -285,7 +285,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       revert PerpTradeFacet_LeverageDisabled();
     _checkTokenInputs(collateralToken, indexToken, isLong);
 
-    FundingRateFacetInterface(address(this)).updateFundingRate(
+    FundingRateFacetInterface(address(this)).updateBorrowingRate(
       collateralToken,
       indexToken
     );
@@ -400,6 +400,8 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       LibPoolV1.increaseShortSize(indexToken, sizeDelta);
     }
 
+    LibPoolV1.increaseOpenInterest(isLong, indexToken, sizeDelta);
+
     emit IncreasePosition(
       vars.posId,
       primaryAccount,
@@ -473,7 +475,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
       .poolV1DiamondStorage();
 
-    FundingRateFacetInterface(address(this)).updateFundingRate(
+    FundingRateFacetInterface(address(this)).updateBorrowingRate(
       collateralToken,
       indexToken
     );
@@ -502,6 +504,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     vars.reserveDelta = (position.reserveAmount * sizeDelta) / position.size;
     position.reserveAmount -= vars.reserveDelta;
     LibPoolV1.decreaseReserved(collateralToken, vars.reserveDelta);
+    LibPoolV1.decreaseOpenInterest(isLong, indexToken, sizeDelta);
 
     // Preload position's collateral here as _reduceCollateral will alter it
     vars.collateral = position.collateral;
@@ -639,7 +642,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     if (!LibPoolConfigV1.isAllowedLiquidators(msg.sender))
       revert PerpTradeFacet_BadLiquidator();
 
-    FundingRateFacetInterface(address(this)).updateFundingRate(
+    FundingRateFacetInterface(address(this)).updateBorrowingRate(
       collateralToken,
       indexToken
     );

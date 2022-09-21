@@ -57,7 +57,7 @@
 //     action: FacetCutAction.Add,
 //     functionSelectors: [
 //       FundingRateFacet__factory.createInterface().getSighash(
-//         "updateFundingRate(address, address)"
+//         "updateBorrowingRate(address, address)"
 //       ),
 //     ],
 //   },
@@ -89,7 +89,7 @@
 //         "shortAveragePriceOf(address)"
 //       ),
 //       GetterFacet__factory.createInterface().getSighash(
-//         "sumFundingRateOf(address)"
+//         "sumBorrowingRateOf(address)"
 //       ),
 //       GetterFacet__factory.createInterface().getSighash("totalOf(address)"),
 //       GetterFacet__factory.createInterface().getSighash("totalUsdDebt()"),
@@ -154,7 +154,7 @@
 //         "getRemoveLiquidityFeeBps(address,uint256)"
 //       ),
 //       GetterFacet__factory.createInterface().getSighash(
-//         "getNextFundingRate(address)"
+//         "getNextBorrowingRate(address)"
 //       ),
 //     ],
 //   },

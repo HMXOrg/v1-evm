@@ -13,8 +13,8 @@ const treasury = "0x6629ec35c8aa279ba45dbfb575c728d3812ae31a";
 const fundingInterval = 60 * 60 * 8;
 const mintBurnFeeBps = 30;
 const taxBps = 50;
-const stableFundingRateFactor = 600;
-const fundingRateFactor = 600;
+const stableBorrowingRateFactor = 600;
+const borrowingRateFactor = 600;
 const liquidityCoolDownDuration = 0;
 const liquidationFeeUsd = 0;
 
@@ -37,8 +37,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           fundingInterval,
           mintBurnFeeBps,
           taxBps,
-          stableFundingRateFactor,
-          fundingRateFactor,
+          stableBorrowingRateFactor,
+          borrowingRateFactor,
           liquidationFeeUsd,
         ]
       )

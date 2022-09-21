@@ -67,8 +67,8 @@ contract BaseTest is DSTest, CoreConstants {
     uint64 fundingInterval;
     uint64 mintBurnFeeBps;
     uint64 taxBps;
-    uint64 stableFundingRateFactor;
-    uint64 fundingRateFactor;
+    uint64 stableBorrowingRateFactor;
+    uint64 borrowingRateFactor;
     uint256 liquidationFeeUsd;
   }
 
@@ -353,7 +353,7 @@ contract BaseTest is DSTest, CoreConstants {
     selectors[2] = GetterFacet.getSwapFeeBps.selector;
     selectors[3] = GetterFacet.getAum.selector;
     selectors[4] = GetterFacet.getAumE18.selector;
-    selectors[5] = GetterFacet.getNextFundingRate.selector;
+    selectors[5] = GetterFacet.getNextBorrowingRate.selector;
     selectors[6] = GetterFacet.plp.selector;
     selectors[7] = GetterFacet.totalTokenWeight.selector;
     selectors[8] = GetterFacet.totalUsdDebt.selector;
@@ -382,7 +382,7 @@ contract BaseTest is DSTest, CoreConstants {
     selectors[31] = GetterFacet.isAllowedLiquidators.selector;
     selectors[32] = GetterFacet.isAllowAllLiquidators.selector;
     selectors[33] = GetterFacet.fundingInterval.selector;
-    selectors[34] = GetterFacet.fundingRateFactor.selector;
+    selectors[34] = GetterFacet.borrowingRateFactor.selector;
     selectors[35] = GetterFacet.isDynamicFeeEnable.selector;
     selectors[36] = GetterFacet.isLeverageEnable.selector;
     selectors[37] = GetterFacet.isSwapEnable.selector;
@@ -393,7 +393,7 @@ contract BaseTest is DSTest, CoreConstants {
     selectors[42] = GetterFacet.mintBurnFeeBps.selector;
     selectors[43] = GetterFacet.positionFeeBps.selector;
     selectors[44] = GetterFacet.router.selector;
-    selectors[45] = GetterFacet.stableFundingRateFactor.selector;
+    selectors[45] = GetterFacet.stableBorrowingRateFactor.selector;
     selectors[46] = GetterFacet.stableTaxBps.selector;
     selectors[47] = GetterFacet.stableSwapFeeBps.selector;
     selectors[48] = GetterFacet.swapFeeBps.selector;
@@ -417,7 +417,7 @@ contract BaseTest is DSTest, CoreConstants {
     FundingRateFacet fundingRateFacet = new FundingRateFacet();
 
     bytes4[] memory selectors = new bytes4[](1);
-    selectors[0] = FundingRateFacet.updateFundingRate.selector;
+    selectors[0] = FundingRateFacet.updateBorrowingRate.selector;
 
     DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
       address(fundingRateFacet),
@@ -627,8 +627,8 @@ contract BaseTest is DSTest, CoreConstants {
       params.fundingInterval,
       params.mintBurnFeeBps,
       params.taxBps,
-      params.stableFundingRateFactor,
-      params.fundingRateFactor,
+      params.stableBorrowingRateFactor,
+      params.borrowingRateFactor,
       params.liquidationFeeUsd
     );
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
@@ -745,8 +745,8 @@ contract BaseTest is DSTest, CoreConstants {
         params.fundingInterval,
         params.mintBurnFeeBps,
         params.taxBps,
-        params.stableFundingRateFactor,
-        params.fundingRateFactor,
+        params.stableBorrowingRateFactor,
+        params.borrowingRateFactor,
         params.liquidationFeeUsd
       )
     );

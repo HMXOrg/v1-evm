@@ -19,7 +19,7 @@ interface GetterFacetInterface {
 
   function fundingInterval() external view returns (uint64);
 
-  function fundingRateFactor() external view returns (uint64);
+  function borrowingRateFactor() external view returns (uint64);
 
   function guaranteedUsdOf(address token) external view returns (uint256);
 
@@ -62,13 +62,13 @@ interface GetterFacetInterface {
 
   function shortAveragePriceOf(address token) external view returns (uint256);
 
-  function stableFundingRateFactor() external view returns (uint64);
+  function stableBorrowingRateFactor() external view returns (uint64);
 
   function stableTaxBps() external view returns (uint64);
 
   function stableSwapFeeBps() external view returns (uint64);
 
-  function sumFundingRateOf(address token) external view returns (uint256);
+  function sumBorrowingRateOf(address token) external view returns (uint256);
 
   function swapFeeBps() external view returns (uint64);
 
@@ -219,5 +219,5 @@ interface GetterFacetInterface {
     uint256 usdDebt
   ) external view returns (uint256);
 
-  function getNextFundingRate(address token) external view returns (uint256);
+  function getNextBorrowingRate(address token) external view returns (uint256);
 }

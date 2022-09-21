@@ -15,8 +15,8 @@ interface AdminFacetInterface {
 
   function setFundingRate(
     uint64 newFundingInterval,
-    uint64 newFundingRateFactor,
-    uint64 newStableFundingRateFactor
+    uint64 newborrowingRateFactor,
+    uint64 newstableBorrowingRateFactor
   ) external;
 
   function setIsAllowAllLiquidators(bool _isAllowAllLiquidators) external;
