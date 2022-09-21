@@ -22,7 +22,7 @@ contract DragonStakingTest is BaseTest {
   function setUp() external {
     p88 = new MockErc20("P88", "P88", 18);
     esP88 = new MockErc20("esP88", "esP88", 18);
-    dp = new DragonPoint();
+    dp = deployDragonPoint();
     dp.setMinter(address(this), true);
 
     prRewarder = new MockRewarder();

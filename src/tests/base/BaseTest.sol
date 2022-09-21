@@ -595,7 +595,14 @@ contract BaseTest is DSTest, CoreConstants {
   }
 
   function deployDragonPoint() internal returns (DragonPoint) {
-    return new DragonPoint();
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/DragonPoint.sol/DragonPoint.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize()"))
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return DragonPoint(payable(_proxy));
   }
 
   function deployPoolOracle(uint80 roundDepth) internal returns (PoolOracle) {
