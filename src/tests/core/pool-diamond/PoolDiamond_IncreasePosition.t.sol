@@ -340,6 +340,18 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
     assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 820);
     assertEq(poolGetterFacet.usdDebtOf(address(wbtc)), 93.7168 * 10**18);
     assertEq(wbtc.balanceOf(address(poolDiamond)), 257498);
+    assertEq(
+      GetterFacetInterface(address(poolDiamond)).openInterestLong(
+        address(wbtc)
+      ),
+      47 * 10**30
+    );
+    assertEq(
+      GetterFacetInterface(address(poolDiamond)).openInterestShort(
+        address(wbtc)
+      ),
+      0
+    );
 
     // Assert a postion
     // 1. Position's size should be 47 USD
@@ -417,6 +429,18 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
     assertEq(position.realizedPnl, 0);
     assertTrue(position.hasProfit == true);
     assertEq(position.lastIncreasedTime, block.timestamp);
+    assertEq(
+      GetterFacetInterface(address(poolDiamond)).openInterestLong(
+        address(matic)
+      ),
+      30_000 * 10**30
+    );
+    assertEq(
+      GetterFacetInterface(address(poolDiamond)).openInterestShort(
+        address(matic)
+      ),
+      0
+    );
   }
 
   function testCorrectness_WhenLong_WithSwap() external {
@@ -548,6 +572,18 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
     assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 888);
     assertEq(poolGetterFacet.usdDebtOf(address(wbtc)), 84.4918 * 10**18);
     assertEq(wbtc.balanceOf(address(poolDiamond)), 234998);
+    assertEq(
+      GetterFacetInterface(address(poolDiamond)).openInterestLong(
+        address(wbtc)
+      ),
+      47 * 10**30
+    );
+    assertEq(
+      GetterFacetInterface(address(poolDiamond)).openInterestShort(
+        address(wbtc)
+      ),
+      0
+    );
 
     // Assert a postion
     // 1. Position's size should be 47 USD
@@ -654,6 +690,18 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
     assertEq(poolGetterFacet.getAumE18(false), 99700 * 10**18);
     assertEq(poolGetterFacet.getAumE18(true), 99700 * 10**18);
     assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 0.0038 * 10**8);
+    assertEq(
+      GetterFacetInterface(address(poolDiamond)).openInterestLong(
+        address(wbtc)
+      ),
+      80_000 * 10**30
+    );
+    assertEq(
+      GetterFacetInterface(address(poolDiamond)).openInterestShort(
+        address(wbtc)
+      ),
+      0
+    );
 
     // Assert position
     // 1. Position's size should be 80 USD
@@ -851,6 +899,18 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
     );
     assertEq(poolGetterFacet.getAumE18(false), 93.7182 * 10**18);
     assertEq(poolGetterFacet.getAumE18(true), 95.10998 * 10**18);
+    assertEq(
+      GetterFacetInterface(address(poolDiamond)).openInterestLong(
+        address(wbtc)
+      ),
+      47 * 10**30
+    );
+    assertEq(
+      GetterFacetInterface(address(poolDiamond)).openInterestShort(
+        address(wbtc)
+      ),
+      0
+    );
 
     // Assert position
     // 1. Position's size should be 47 USD.
@@ -934,6 +994,18 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
     );
     assertEq(poolGetterFacet.getAumE18(false), 93.7182 * 10**18);
     assertEq(poolGetterFacet.getAumE18(true), 95.33498 * 10**18);
+    assertEq(
+      GetterFacetInterface(address(poolDiamond)).openInterestLong(
+        address(wbtc)
+      ),
+      47 * 10**30
+    );
+    assertEq(
+      GetterFacetInterface(address(poolDiamond)).openInterestShort(
+        address(wbtc)
+      ),
+      0
+    );
 
     // Assert position
     // 1. Position's size should be 47 USD.
@@ -1022,6 +1094,18 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
     assertEq(position.averagePrice, 41_000 * 10**30);
     assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 117500);
+    assertEq(
+      GetterFacetInterface(address(poolDiamond)).openInterestLong(
+        address(wbtc)
+      ),
+      47 * 10**30
+    );
+    assertEq(
+      GetterFacetInterface(address(poolDiamond)).openInterestShort(
+        address(wbtc)
+      ),
+      0
+    );
 
     // Assert position's leverage
     // 1. Position leverage should be ~2.6x
@@ -1335,6 +1419,18 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
       poolGetterFacet.shortAveragePriceOf(address(wbtc)),
       40_000 * 10**30
     );
+    assertEq(
+      GetterFacetInterface(address(poolDiamond)).openInterestLong(
+        address(wbtc)
+      ),
+      0
+    );
+    assertEq(
+      GetterFacetInterface(address(poolDiamond)).openInterestShort(
+        address(wbtc)
+      ),
+      90 * 10**30
+    );
 
     // Assert a position:
     // 1. Position's size should be 90
@@ -1506,6 +1602,18 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
       poolGetterFacet.shortAveragePriceOf(address(wbtc)),
       40_000 * 10**30
     );
+    assertEq(
+      GetterFacetInterface(address(poolDiamond)).openInterestLong(
+        address(wbtc)
+      ),
+      0
+    );
+    assertEq(
+      GetterFacetInterface(address(poolDiamond)).openInterestShort(
+        address(wbtc)
+      ),
+      90 * 10**30
+    );
   }
 
   function testCorrectness_WhenShort_WithSwap_NativeIn() external {
@@ -1599,6 +1707,18 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
     assertEq(
       poolGetterFacet.shortAveragePriceOf(address(wbtc)),
       40_000 * 10**30
+    );
+    assertEq(
+      GetterFacetInterface(address(poolDiamond)).openInterestLong(
+        address(wbtc)
+      ),
+      0
+    );
+    assertEq(
+      GetterFacetInterface(address(poolDiamond)).openInterestShort(
+        address(wbtc)
+      ),
+      90 * 10**30
     );
 
     // Assert a position:
@@ -1723,6 +1843,18 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
     // = 102.21 USD
     assertEq(poolGetterFacet.getAumE18(false), 99.96 * 10**18);
     assertEq(poolGetterFacet.getAumE18(true), 102.21 * 10**18);
+    assertEq(
+      GetterFacetInterface(address(poolDiamond)).openInterestLong(
+        address(wbtc)
+      ),
+      0
+    );
+    assertEq(
+      GetterFacetInterface(address(poolDiamond)).openInterestShort(
+        address(wbtc)
+      ),
+      90 * 10**30
+    );
 
     // Assert position
     // 1. Position's size should be 90 USD

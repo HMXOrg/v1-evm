@@ -195,6 +195,14 @@ contract GetterFacet is GetterFacetInterface {
     return LibPoolV1.poolV1DiamondStorage().usdDebtOf[token];
   }
 
+  function openInterestLong(address token) external view returns (uint256) {
+    return LibPoolV1.poolV1DiamondStorage().openInterestLong[token];
+  }
+
+  function openInterestShort(address token) external view returns (uint256) {
+    return LibPoolV1.poolV1DiamondStorage().openInterestShort[token];
+  }
+
   function getDelta(
     address indexToken,
     uint256 size,

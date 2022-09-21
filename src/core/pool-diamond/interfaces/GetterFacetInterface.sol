@@ -242,4 +242,8 @@ interface GetterFacetInterface {
     external
     view
     returns (int256, int256);
+
+  function openInterestLong(address token) external view returns (uint256);
+
+  function openInterestShort(address token) external view returns (uint256);
 }
