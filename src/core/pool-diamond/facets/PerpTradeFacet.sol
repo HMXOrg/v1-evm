@@ -121,7 +121,8 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
         position.size,
         position.averagePrice,
         isLong,
-        position.lastIncreasedTime
+        position.lastIncreasedTime,
+        position.entryFundingRate
       );
     uint256 marginFee = GetterFacetInterface(address(this)).getBorrowingFee(
       account,
@@ -330,7 +331,8 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
           isLong,
           vars.price,
           sizeDelta,
-          position.lastIncreasedTime
+          position.lastIncreasedTime,
+          position.entryFundingRate
         );
     }
 
@@ -823,7 +825,8 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       position.size,
       position.averagePrice,
       isLong,
-      position.lastIncreasedTime
+      position.lastIncreasedTime,
+      position.entryFundingRate
     );
     // Adjusting delta to be proportionally to size delta and position size
     vars.delta = (vars.delta * sizeDelta) / position.size;

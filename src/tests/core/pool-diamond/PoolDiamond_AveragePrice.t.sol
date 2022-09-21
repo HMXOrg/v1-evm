@@ -2118,7 +2118,9 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
       false
     );
     assertEq(delta, 0);
-    assertTrue(isProfit);
+    console.log("delta", delta);
+    console.log("isProfit", isProfit);
+    assertTrue(isProfit, "isProfit");
 
     // Increase position size by 10 USD
     poolPerpTradeFacet.increasePosition(

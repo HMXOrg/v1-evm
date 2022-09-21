@@ -17,6 +17,15 @@ contract GetterFacet is GetterFacetInterface {
     REMOVE
   }
 
+  struct GetDeltaLocalVars {
+    bool isProfit;
+    uint256 delta;
+    int256 signedDelta;
+    int256 fundingFee;
+    uint256 price;
+    uint256 priceDelta;
+  }
+
   address internal constant LINKEDLIST_START = address(1);
   address internal constant LINKEDLIST_END = address(1);
   address internal constant LINKEDLIST_EMPTY = address(0);
@@ -191,8 +200,11 @@ contract GetterFacet is GetterFacetInterface {
     uint256 size,
     uint256 averagePrice,
     bool isLong,
-    uint256 lastIncreasedTime
+    uint256 lastIncreasedTime,
+    int256 entryFundingRate
   ) public view returns (bool, uint256) {
+    GetDeltaLocalVars memory vars;
+
     // Load diamond storage
     LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
       .poolV1DiamondStorage();
@@ -202,22 +214,21 @@ contract GetterFacet is GetterFacetInterface {
       storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
 
     if (averagePrice == 0) revert GetterFacet_InvalidAveragePrice();
-    uint256 price = isLong
+    vars.price = isLong
       ? ds.oracle.getMinPrice(indexToken)
       : ds.oracle.getMaxPrice(indexToken);
-    uint256 priceDelta;
-    unchecked {
-      priceDelta = averagePrice > price
-        ? averagePrice - price
-        : price - averagePrice;
-    }
-    uint256 delta = (size * priceDelta) / averagePrice;
 
-    bool isProfit;
+    unchecked {
+      vars.priceDelta = averagePrice > vars.price
+        ? averagePrice - vars.price
+        : vars.price - averagePrice;
+    }
+    vars.delta = (size * vars.priceDelta) / averagePrice;
+
     if (isLong) {
-      isProfit = price > averagePrice;
+      vars.isProfit = vars.price > averagePrice;
     } else {
-      isProfit = price < averagePrice;
+      vars.isProfit = vars.price < averagePrice;
     }
 
     uint256 minBps = block.timestamp >
@@ -225,9 +236,26 @@ contract GetterFacet is GetterFacetInterface {
       ? 0
       : poolConfigDs.tokenMetas[indexToken].minProfitBps;
 
-    if (isProfit && delta * BPS <= size * minBps) delta = 0;
+    // Negative funding fee means profit to the position
+    vars.fundingFee = getFundingFee(
+      address(0),
+      address(0),
+      indexToken,
+      isLong,
+      size,
+      entryFundingRate
+    );
+    vars.signedDelta = vars.isProfit ? int256(vars.delta) : -int256(vars.delta);
+    vars.signedDelta -= vars.fundingFee;
 
-    return (isProfit, delta);
+    vars.isProfit = vars.signedDelta > 0;
+    vars.delta = vars.signedDelta >= 0
+      ? uint256(vars.signedDelta)
+      : uint256(-vars.signedDelta);
+
+    if (vars.isProfit && vars.delta * BPS <= size * minBps) vars.delta = 0;
+
+    return (vars.isProfit, vars.delta);
   }
 
   function getEntryBorrowingRate(
@@ -409,7 +437,8 @@ contract GetterFacet is GetterFacetInterface {
         position.size,
         position.averagePrice,
         isLong,
-        position.lastIncreasedTime
+        position.lastIncreasedTime,
+        position.entryFundingRate
       );
   }
 
@@ -456,14 +485,16 @@ contract GetterFacet is GetterFacetInterface {
     bool isLong,
     uint256 nextPrice,
     uint256 sizeDelta,
-    uint256 lastIncreasedTime
+    uint256 lastIncreasedTime,
+    int256 entryFundingRate
   ) external view returns (uint256) {
     (bool isProfit, uint256 delta) = getDelta(
       indexToken,
       size,
       averagePrice,
       isLong,
-      lastIncreasedTime
+      lastIncreasedTime,
+      entryFundingRate
     );
     uint256 nextSize = size + sizeDelta;
     uint256 divisor;

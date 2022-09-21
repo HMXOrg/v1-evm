@@ -92,7 +92,8 @@ interface GetterFacetInterface {
     uint256 size,
     uint256 averagePrice,
     bool isLong,
-    uint256 lastIncreasedTime
+    uint256 lastIncreasedTime,
+    int256 entryFundingRate
   ) external view returns (bool, uint256);
 
   function getEntryBorrowingRate(
@@ -194,7 +195,8 @@ interface GetterFacetInterface {
     bool isLong,
     uint256 nextPrice,
     uint256 sizeDelta,
-    uint256 lastIncreasedTime
+    uint256 lastIncreasedTime,
+    int256 entryFundingRate
   ) external view returns (uint256);
 
   function getRedemptionCollateral(address token)
