@@ -8,8 +8,6 @@ import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
 import { GetterFacetInterface } from "../interfaces/GetterFacetInterface.sol";
 import { MintableTokenInterface } from "../../../interfaces/MintableTokenInterface.sol";
 import { StrategyInterface } from "../../../interfaces/StrategyInterface.sol";
-
-import { console } from "../../../tests/utils/console.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract GetterFacet is GetterFacetInterface {
