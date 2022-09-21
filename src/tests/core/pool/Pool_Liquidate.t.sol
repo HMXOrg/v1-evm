@@ -859,10 +859,8 @@ contract Pool_LiquidateTest is Pool_BaseTest {
       address(wbtc),
       Exposure.SHORT
     );
-    checkPoolBalanceWithState(
-      address(dai),
-      (position.collateral * 10**18) / 10**30
-    );
+    int256 offset = (int256(position.collateral) * 10**18) / 10**30;
+    checkPoolBalanceWithState(address(dai), offset);
   }
 
   function testCorrectness_WhenLiquidateShortPosition_WhenLiquidate() external {
@@ -1129,9 +1127,7 @@ contract Pool_LiquidateTest is Pool_BaseTest {
       address(wbtc),
       Exposure.SHORT
     );
-    checkPoolBalanceWithState(
-      address(dai),
-      (position.collateral * 10**18) / 10**30
-    );
+    int256 offset = (int256(position.collateral) * 10**18) / 10**30;
+    checkPoolBalanceWithState(address(dai), offset);
   }
 }

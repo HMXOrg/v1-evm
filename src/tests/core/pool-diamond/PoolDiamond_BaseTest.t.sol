@@ -57,13 +57,15 @@ abstract contract PoolDiamond_BaseTest is BaseTest {
     );
   }
 
-  function checkPoolBalanceWithState(address token, uint256 offset) internal {
+  function checkPoolBalanceWithState(address token, int256 offset) internal {
     uint256 balance = IERC20(token).balanceOf(address(poolDiamond));
     assertEq(
       balance,
-      poolGetterFacet.liquidityOf(token) +
-        poolGetterFacet.feeReserveOf(token) +
-        offset
+      uint256(
+        int256(poolGetterFacet.liquidityOf(token)) +
+          int256(poolGetterFacet.feeReserveOf(token)) +
+          offset
+      )
     );
   }
 }
