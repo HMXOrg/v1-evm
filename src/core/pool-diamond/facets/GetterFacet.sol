@@ -7,6 +7,7 @@ import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
 
 import { GetterFacetInterface } from "../interfaces/GetterFacetInterface.sol";
 import { PLP } from "../../../tokens/PLP.sol";
+import { console } from "src/tests/utils/console.sol";
 
 contract GetterFacet is GetterFacetInterface {
   error GetterFacet_BadSubAccountId();
@@ -211,6 +212,7 @@ contract GetterFacet is GetterFacetInterface {
     uint256 lastIncreasedTime,
     int256 entryFundingRate
   ) public view returns (bool, uint256) {
+    console.log("===getDelta===");
     GetDeltaLocalVars memory vars;
 
     // Load diamond storage
@@ -253,16 +255,19 @@ contract GetterFacet is GetterFacetInterface {
       size,
       entryFundingRate
     );
+    console.log("fundingFee");
+    console.logInt(vars.fundingFee);
     vars.signedDelta = vars.isProfit ? int256(vars.delta) : -int256(vars.delta);
     vars.signedDelta -= vars.fundingFee;
-
+    console.log("signedDelta");
+    console.logInt(vars.signedDelta);
     vars.isProfit = vars.signedDelta > 0;
     vars.delta = vars.signedDelta >= 0
       ? uint256(vars.signedDelta)
       : uint256(-vars.signedDelta);
 
     if (vars.isProfit && vars.delta * BPS <= size * minBps) vars.delta = 0;
-
+    console.log("delta", vars.delta);
     return (vars.isProfit, vars.delta);
   }
 
@@ -817,20 +822,21 @@ contract GetterFacet is GetterFacetInterface {
     uint256 intervals = (block.timestamp - poolV1ds.lastFundingTimeOf[token]) /
       _fundingInterval;
 
-    int256 openInterestLong = int256(poolV1ds.openInterestLong[token]);
-    int256 openInterestShort = int256(poolV1ds.openInterestShort[token]);
-    int256 fundingFeesPaidByLongs = ((openInterestLong - openInterestShort) *
+    int256 openInterestLongValue = int256(poolV1ds.openInterestLong[token]);
+    int256 openInterestShortValue = int256(poolV1ds.openInterestShort[token]);
+    int256 fundingFeesPaidByLongs = (openInterestLongValue -
+      openInterestShortValue) *
       int256(intervals) *
-      int64(poolConfigV1ds.fundingRateFactor)) / int256(FUNDING_RATE_PRECISION);
+      int64(poolConfigV1ds.fundingRateFactor);
 
-    if (openInterestLong > 0) {
-      fundingRateLong = (fundingFeesPaidByLongs * 1e30) / openInterestLong;
+    if (openInterestLongValue > 0) {
+      fundingRateLong = fundingFeesPaidByLongs / openInterestLongValue;
     }
 
-    if (openInterestShort > 0) {
+    if (openInterestShortValue > 0) {
       fundingRateShort =
-        (fundingFeesPaidByLongs * 1e30 * (-1)) /
-        openInterestShort;
+        (fundingFeesPaidByLongs * (-1)) /
+        openInterestShortValue;
     }
   }
 }

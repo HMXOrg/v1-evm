@@ -291,10 +291,6 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       collateralToken,
       indexToken
     );
-    FundingRateFacetInterface(address(this)).updateFundingRate(
-      collateralToken,
-      indexToken
-    );
 
     IncreasePositionLocalVars memory vars;
 
@@ -486,10 +482,6 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       collateralToken,
       indexToken
     );
-    FundingRateFacetInterface(address(this)).updateFundingRate(
-      collateralToken,
-      indexToken
-    );
 
     DecreasePositionLocalVars memory vars;
 
@@ -656,10 +648,6 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       revert PerpTradeFacet_BadLiquidator();
 
     FundingRateFacetInterface(address(this)).updateBorrowingRate(
-      collateralToken,
-      indexToken
-    );
-    FundingRateFacetInterface(address(this)).updateFundingRate(
       collateralToken,
       indexToken
     );
