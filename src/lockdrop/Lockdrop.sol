@@ -450,22 +450,7 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
   function _allPendingReward() internal view returns (uint256[] memory) {
     uint256 length = rewardTokens.length;
-    uint256[] memory rewardBeforeHarvest = new uint256[](length);
     uint256[] memory harvestedReward = new uint256[](length);
-    for (uint256 i = 0; i < length; ) {
-      // check if is native token or ERC20
-      if (rewardTokens[i] == nativeTokenAddress) {
-        rewardBeforeHarvest[i] = address(this).balance;
-      } else {
-        rewardBeforeHarvest[i] = IERC20Upgradeable(rewardTokens[i]).balanceOf(
-          address(this)
-        );
-      }
-
-      unchecked {
-        ++i;
-      }
-    }
 
     address[] memory rewarders = lockdropConfig
       .plpStaking()
