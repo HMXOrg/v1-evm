@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { StrategyInterface } from "../../interfaces/StrategyInterface.sol";
@@ -35,8 +35,11 @@ contract MockStrategy is StrategyInterface {
     vault.deposit(IERC20(token).balanceOf(address(this)));
   }
 
-
-  function _roundedValueToShare(uint256 amount) internal view returns (uint256) {
+  function _roundedValueToShare(uint256 amount)
+    internal
+    view
+    returns (uint256)
+  {
     uint256 share = vault.valueToShare(amount);
     uint256 convertedAmount = vault.shareToValue(share);
     // If calculated share converting back to value is less than the actual value, increase 1 WEI of share

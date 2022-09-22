@@ -16,7 +16,7 @@ import { FlashLoanBorrowerInterface } from "../../../interfaces/FlashLoanBorrowe
 import { StrategyInterface } from "../../../interfaces/StrategyInterface.sol";
 
 contract LiquidityFacet is LiquidityFacetInterface {
-  using SafeERC20 for IERC20;
+  using SafeERC20 for ERC20;
   using SafeCast for uint256;
 
   error LiquidityFacet_BadAmount();
@@ -234,7 +234,7 @@ contract LiquidityFacet is LiquidityFacetInterface {
       storage poolConfigV1ds = LibPoolConfigV1.poolConfigV1DiamondStorage();
 
     StrategyInterface strategy = poolConfigV1ds.strategyOf[token];
-    uint256 balance = IERC20(token).balanceOf(address(this));
+    uint256 balance = ERC20(token).balanceOf(address(this));
     uint256 feeReserve = poolV1ds.feeReserveOf[token];
     if (address(strategy) != address(0)) {
       // Find amountIn for strategy's withdrawal
