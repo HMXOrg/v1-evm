@@ -1,9 +1,13 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers, upgrades } from "hardhat";
+import { ethers, tenderly, upgrades } from "hardhat";
+import { getConfig, writeConfigFile } from "../utils/config";
+import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 
-const esp88Token = "0xEB27B05178515c7E6E51dEE159c8487A011ac030";
-const dragonStaking = "0xCB1EaA1E9Fd640c3900a4325440c80FEF4b1b16d";
+const config = getConfig();
+
+const esp88Token = config.Tokens.esP88;
+const dragonStaking = config.Staking.DragonStaking.address;
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
@@ -18,6 +22,19 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   await lockdropCompounder.deployed();
   console.log(`Deploying LockdropCompounder Contract`);
   console.log(`Deployed at: ${lockdropCompounder.address}`);
+
+  const implAddress = await getImplementationAddress(
+    ethers.provider,
+    lockdropCompounder.address
+  );
+
+  await tenderly.verify({
+    address: implAddress,
+    name: "LockdropCompounder",
+  });
+
+  config.Lockdrop.compounder = lockdropCompounder.address;
+  writeConfigFile(config);
 };
 
 export default func;

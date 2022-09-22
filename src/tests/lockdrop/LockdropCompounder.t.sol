@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { EsP88 } from "../../tokens/EsP88.sol";
@@ -44,7 +44,7 @@ contract Lockdrop_StakePLP is BaseTest {
   function setUp() public {
     // Token
     mockERC20 = new MockErc20("Mock Token", "MT", 18);
-    mockPLPToken = new PLP();
+    mockPLPToken = deployPLP();
     mockP88Token = new P88();
     mockEsP88Token = new EsP88();
     mockWMaticToken = deployMockWNative();
@@ -55,6 +55,8 @@ contract Lockdrop_StakePLP is BaseTest {
     mockEsP88Token.setMinter(address(this), true);
 
     plpStaking = deployPLPStaking();
+
+    mockPLPToken.setWhitelist(address(plpStaking), true);
 
     // For PLPStaking
     esP88rewarder1 = deployFeedableRewarder(

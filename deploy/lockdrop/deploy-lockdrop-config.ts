@@ -1,13 +1,17 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers, upgrades } from "hardhat";
+import { ethers, tenderly, upgrades } from "hardhat";
+import { getConfig, writeConfigFile } from "../utils/config";
+import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 
-const startLockTimestamp = 1662346800;
-const plpStaking = "0x7AAF085e43f059105F7e1ECc525E8142fF962159";
-const plpToken = "0xc88322Ec9526A7A98B7F58ff773b3B003C91ce71";
-const p88Token = "0xB853c09b6d03098b841300daD57701ABcFA80228";
-const gatewayAddress = "0x07bE4AE3E0454D09b3D3cfe63538A9F0970aE32d";
-const lockdropCompounder = "0xDAf969875e355B808e376e649617FDa5b9E73e1C";
+const config = getConfig();
+
+const startLockTimestamp = 1663565400;
+const plpStaking = config.Staking.PLPStaking.address;
+const plpToken = config.Tokens.PLP;
+const p88Token = config.Tokens.P88;
+const gatewayAddress = config.Lockdrop.gateway;
+const lockdropCompounder = config.Lockdrop.compounder;
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
@@ -26,6 +30,19 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   await lockdropConfig.deployed();
   console.log(`Deploying LockdropConfig Contract`);
   console.log(`Deployed at: ${lockdropConfig.address}`);
+
+  const implAddress = await getImplementationAddress(
+    ethers.provider,
+    lockdropConfig.address
+  );
+
+  await tenderly.verify({
+    address: implAddress,
+    name: "LockdropConfig",
+  });
+
+  config.Lockdrop.config = lockdropConfig.address;
+  writeConfigFile(config);
 };
 
 export default func;

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 import { LibReentrancyGuard } from "../libraries/LibReentrancyGuard.sol";
 import { LibPoolV1 } from "../libraries/LibPoolV1.sol";
@@ -7,7 +7,7 @@ import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { FarmFacetInterface } from "../interfaces/FarmFacetInterface.sol";
 import { GetterFacetInterface } from "../interfaces/GetterFacetInterface.sol";
 import { FundingRateFacetInterface } from "../interfaces/FundingRateFacetInterface.sol";
@@ -16,7 +16,7 @@ import { FlashLoanBorrowerInterface } from "../../../interfaces/FlashLoanBorrowe
 import { StrategyInterface } from "../../../interfaces/StrategyInterface.sol";
 
 contract LiquidityFacet is LiquidityFacetInterface {
-  using SafeERC20 for IERC20;
+  using SafeERC20 for ERC20;
   using SafeCast for uint256;
 
   error LiquidityFacet_BadAmount();
@@ -102,8 +102,11 @@ contract LiquidityFacet is LiquidityFacetInterface {
     uint256 fee = amount - amountAfterFee;
 
     poolV1ds.feeReserveOf[token] += fee;
-
-    emit CollectSwapFee(token, fee * tokenPriceUsd, fee);
+    emit CollectSwapFee(
+      token,
+      (fee * tokenPriceUsd) / 10**ERC20(token).decimals(),
+      fee
+    );
 
     return amountAfterFee;
   }
@@ -144,8 +147,6 @@ contract LiquidityFacet is LiquidityFacetInterface {
     uint256 mintAmount = aum == 0 ? usdDebt : (usdDebt * lpSupply) / aum;
 
     poolV1ds.plp.mint(receiver, mintAmount);
-
-    poolV1ds.lastAddLiquidityAtOf[account] = block.timestamp;
 
     emit AddLiquidity(
       account,
@@ -222,13 +223,6 @@ contract LiquidityFacet is LiquidityFacetInterface {
     if (!LibPoolConfigV1.isAcceptToken(tokenOut))
       revert LiquidityFacet_BadToken();
     if (liquidity == 0) revert LiquidityFacet_BadAmount();
-    if (
-      poolV1ds.lastAddLiquidityAtOf[account] +
-        LibPoolConfigV1.liquidityCoolDownDuration() >
-      block.timestamp
-    ) {
-      revert LiquidityFacet_CoolDown();
-    }
 
     LibPoolV1.realizedFarmPnL(tokenOut);
 
@@ -406,7 +400,7 @@ contract LiquidityFacet is LiquidityFacetInterface {
     for (uint256 i = 0; i < tokens.length; ) {
       fees[i] = (amounts[i] * LibPoolConfigV1.flashLoanFeeBps()) / BPS;
 
-      IERC20(tokens[i]).safeTransfer(receivers[i], amounts[i]);
+      ERC20(tokens[i]).safeTransfer(receivers[i], amounts[i]);
 
       unchecked {
         ++i;
@@ -417,7 +411,7 @@ contract LiquidityFacet is LiquidityFacetInterface {
 
     for (uint256 i = 0; i < tokens.length; ) {
       if (
-        IERC20(tokens[i]).balanceOf(address(this)) <
+        ERC20(tokens[i]).balanceOf(address(this)) <
         poolV1ds.totalOf[tokens[i]] + fees[i]
       ) revert LiquidityFacet_BadFlashLoan();
 

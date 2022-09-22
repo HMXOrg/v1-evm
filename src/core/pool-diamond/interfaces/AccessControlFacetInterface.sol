@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 /**
  * @dev External interface of AccessControl declared to support ERC165 detection.

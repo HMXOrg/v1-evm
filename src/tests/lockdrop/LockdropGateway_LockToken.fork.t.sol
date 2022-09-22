@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -18,6 +18,7 @@ contract LockdropGateway_LockToken is BaseTest {
   MockLockdrop2 internal usdtLockdrop;
   MockLockdrop2 internal wbtcLockdrop;
   MockLockdrop2 internal wethLockdrop;
+  MockLockdrop2 internal wmaticLockdrop;
 
   // Tokens
   address internal constant DAI = 0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063;
@@ -25,6 +26,7 @@ contract LockdropGateway_LockToken is BaseTest {
   address internal constant USDT = 0xc2132D05D31c914a87C6611C10748AEb04B58e8F;
   address internal constant WBTC = 0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6;
   address internal constant WETH = 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619;
+  address internal constant WMATIC = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
 
   // AToken
   address internal constant amWETH = 0x28424507fefb6f7f8E9D3860F56504E4e5f5f390;
@@ -62,12 +64,13 @@ contract LockdropGateway_LockToken is BaseTest {
     0x6c5384bBaE7aF65Ed1b6784213A81DaE18e528b2;
 
   function setUp() public {
-    gateway = deployLockdropGateway(address(0), address(0));
+    gateway = deployLockdropGateway(address(0), address(0), WMATIC);
     daiLockdrop = new MockLockdrop2();
     usdcLockdrop = new MockLockdrop2();
     usdtLockdrop = new MockLockdrop2();
     wbtcLockdrop = new MockLockdrop2();
     wethLockdrop = new MockLockdrop2();
+    wmaticLockdrop = new MockLockdrop2();
 
     // Base token
     gateway.setBaseTokenLockdropInfo(DAI, address(daiLockdrop));
@@ -75,6 +78,7 @@ contract LockdropGateway_LockToken is BaseTest {
     gateway.setBaseTokenLockdropInfo(USDT, address(usdtLockdrop));
     gateway.setBaseTokenLockdropInfo(WBTC, address(wbtcLockdrop));
     gateway.setBaseTokenLockdropInfo(WETH, address(wethLockdrop));
+    gateway.setBaseTokenLockdropInfo(WMATIC, address(wmaticLockdrop));
 
     // A Token
     gateway.setATokenLockdropInfo(amWETH);
@@ -122,6 +126,26 @@ contract LockdropGateway_LockToken is BaseTest {
     assertEq(usdcLockdrop.lockTokenForCallCount(), 1);
     assertEq(usdcLockdrop.extendLockPeriodForCallCount(), 2);
     assertEq(usdcLockdrop.addLockAmountForCallCount(), 2);
+    vm.stopPrank();
+  }
+
+  function testCorrectness_LockBaseToken_Native() external {
+    if (!_isExpectedFork()) return;
+
+    vm.deal(WHALE_1, 1 ether);
+    vm.startPrank(WHALE_1);
+
+    // Whale lock MATIC
+    gateway.lockToken{ value: 1 ether }(address(WMATIC), 1 ether, 30 days); // lockTokenFor
+
+    // Assert locked amount/period
+    (uint256 lockedAmount, uint256 lockedPeriod, , ) = wmaticLockdrop
+      .lockdropStates(WHALE_1);
+    assertEq(lockedAmount, 1 ether);
+    assertEq(lockedPeriod, 30 days);
+
+    // Assert call counts
+    assertEq(wmaticLockdrop.lockTokenForCallCount(), 1);
     vm.stopPrank();
   }
 

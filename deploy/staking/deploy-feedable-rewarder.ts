@@ -1,13 +1,17 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers, upgrades } from "hardhat";
+import { ethers, tenderly, upgrades } from "hardhat";
+import { getConfig, writeConfigFile } from "../utils/config";
+import { getImplementationAddress } from "@openzeppelin/upgrades-core";
+
+const config = getConfig();
 
 const NAME = "Dragon Staking esP88 Emission";
-const REWARD_TOKEN_ADDRESS = "0xEB27B05178515c7E6E51dEE159c8487A011ac030";
-const STAKING_CONTRACT_ADDRESS = "0xCB1EaA1E9Fd640c3900a4325440c80FEF4b1b16d";
+const REWARD_TOKEN_ADDRESS = getRewardTokenAddress(NAME);
+const STAKING_CONTRACT_ADDRESS = getStakingContractAddress(NAME);
 
 // CONSTANT DO NOT EDIT
-const WMATIC = "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270";
+const WMATIC = config.Tokens.WMATIC;
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
@@ -22,7 +26,58 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   await rewarder.deployed();
   console.log(`Deploying ${NAME} ${contractName} Contract`);
   console.log(`Deployed at: ${rewarder.address}`);
+
+  const implAddress = await getImplementationAddress(
+    ethers.provider,
+    rewarder.address
+  );
+
+  await tenderly.verify({
+    address: implAddress,
+    name: contractName,
+  });
+
+  if (NAME.includes("PLP")) {
+    config.Staking.PLPStaking.rewarders =
+      config.Staking.PLPStaking.rewarders.map((each: any) => {
+        if (each.name === NAME) {
+          return {
+            ...each,
+            address: rewarder.address,
+            rewardToken: REWARD_TOKEN_ADDRESS,
+          };
+        } else return each;
+      });
+  } else if (NAME.includes("Dragon Staking")) {
+    config.Staking.DragonStaking.rewarders =
+      config.Staking.DragonStaking.rewarders.map((each: any) => {
+        if (each.name === NAME) {
+          return {
+            ...each,
+            address: rewarder.address,
+            rewardToken: REWARD_TOKEN_ADDRESS,
+          };
+        } else return each;
+      });
+  }
+  writeConfigFile(config);
 };
+
+function getRewardTokenAddress(rewarderName: string): string {
+  if (rewarderName.includes("Protocol Revenue")) {
+    return config.Tokens.WMATIC;
+  } else {
+    return config.Tokens.esP88;
+  }
+}
+
+function getStakingContractAddress(rewarderName: string): string {
+  if (rewarderName.includes("Dragon Staking")) {
+    return config.Staking.DragonStaking.address;
+  } else {
+    return config.Staking.PLPStaking.address;
+  }
+}
 
 export default func;
 func.tags = ["FeedableRewarder"];

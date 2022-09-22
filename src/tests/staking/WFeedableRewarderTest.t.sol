@@ -4,18 +4,18 @@ pragma solidity >=0.8.4 <0.9.0;
 import { BaseTest } from "../base/BaseTest.sol";
 import { WFeedableRewarder } from "../../staking/WFeedableRewarder.sol";
 import { MockWNative } from "../mocks/MockWNative.sol";
-import { MockStaking } from "../mocks/MockStaking.sol";
+import { MockSimpleStaking } from "../mocks/MockSimpleStaking.sol";
 import { console } from "../utils/console.sol";
 import { math } from "../utils/math.sol";
 
 contract WFeedableRewarderTest is BaseTest {
   WFeedableRewarder internal rewarder;
   MockWNative internal rewardToken;
-  MockStaking internal mockStaking;
+  MockSimpleStaking internal mockStaking;
 
   // address
   function setUp() external {
-    mockStaking = new MockStaking();
+    mockStaking = new MockSimpleStaking();
 
     rewardToken = new MockWNative();
     rewarder = deployWFeedableRewarder(

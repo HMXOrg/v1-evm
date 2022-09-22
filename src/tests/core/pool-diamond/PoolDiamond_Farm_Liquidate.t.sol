@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 import { PoolDiamond_BaseTest, LibPoolConfigV1, MockDonateVault, MockStrategy, Pool, console, GetterFacetInterface, LiquidityFacetInterface, PerpTradeFacetInterface, stdError } from "./PoolDiamond_BaseTest.t.sol";
 import { StrategyInterface } from "../../../interfaces/StrategyInterface.sol";

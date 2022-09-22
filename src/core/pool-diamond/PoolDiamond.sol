@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 import { PoolConfig } from "../PoolConfig.sol";
 import { PoolOracle } from "../PoolOracle.sol";
-import { MintableTokenInterface } from "../../interfaces/MintableTokenInterface.sol";
+import { PLP } from "../../tokens/PLP.sol";
 
 import { LibReentrancyGuard } from "./libraries/LibReentrancyGuard.sol";
 import { LibDiamond } from "./libraries/LibDiamond.sol";
@@ -15,7 +15,7 @@ import { DiamondCutInterface } from "./interfaces/DiamondCutInterface.sol";
 contract PoolDiamond {
   constructor(
     address diamondCutFacet,
-    MintableTokenInterface plp,
+    PLP plp,
     PoolOracle poolOracle
   ) payable {
     // Set contract owner

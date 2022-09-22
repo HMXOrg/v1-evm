@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 import { Pool_BaseTest, console, PoolConfig } from "./Pool_BaseTest.t.sol";
+import { PLP } from "src/tokens/PLP.sol";
 
 contract Pool_RemoveLiquidityTest is Pool_BaseTest {
   function setUp() public override {
@@ -36,10 +37,9 @@ contract Pool_RemoveLiquidityTest is Pool_BaseTest {
     dai.transfer(address(pool), 100 ether);
     pool.addLiquidity(address(this), address(dai), address(this));
 
-    pool.plp().transfer(address(pool), 1);
-
-    vm.expectRevert(abi.encodeWithSignature("Pool_CoolDown()"));
-    pool.removeLiquidity(address(this), address(dai), address(this));
+    PLP plp = pool.plp();
+    vm.expectRevert(abi.encodeWithSelector(PLP.PLP_Cooldown.selector, 86401));
+    plp.transfer(address(pool), 1);
   }
 
   function testCorrectness_WhenDynamicFeeOff() external {

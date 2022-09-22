@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
-import { BaseTest, console, stdError, MockStrategy, MockDonateVault, MintableTokenInterface, MockFlashLoanBorrower, PoolConfig, LibPoolConfigV1, PoolOracle, Pool, PoolRouter, OwnershipFacetInterface, GetterFacetInterface, LiquidityFacetInterface, PerpTradeFacetInterface, AdminFacetInterface, FarmFacetInterface, AccessControlFacetInterface, LibAccessControl } from "../../base/BaseTest.sol";
+import { BaseTest, console, stdError, MockStrategy, MockDonateVault, PLP, MockFlashLoanBorrower, PoolConfig, LibPoolConfigV1, PoolOracle, Pool, PoolRouter, OwnershipFacetInterface, GetterFacetInterface, LiquidityFacetInterface, PerpTradeFacetInterface, AdminFacetInterface, FarmFacetInterface, AccessControlFacetInterface, LibAccessControl } from "../../base/BaseTest.sol";
+
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 abstract contract PoolDiamond_BaseTest is BaseTest {
   PoolOracle internal poolOracle;
   address internal poolDiamond;
   PoolRouter internal poolRouter;
-  MintableTokenInterface internal plp;
+  PLP internal plp;
 
   AdminFacetInterface internal poolAdminFacet;
   GetterFacetInterface internal poolGetterFacet;
@@ -26,7 +27,6 @@ abstract contract PoolDiamond_BaseTest is BaseTest {
         taxBps: 50,
         stableFundingRateFactor: 600,
         fundingRateFactor: 600,
-        liquidityCoolDownPeriod: 1 days,
         liquidationFeeUsd: 5 * 10**30
       });
 

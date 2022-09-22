@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 import "../base/DSTest.sol";
 import { console } from "../utils/console.sol";
@@ -22,6 +22,7 @@ abstract contract Lockdrop_BaseTest is BaseTest {
   using SafeERC20 for IERC20;
 
   Lockdrop internal lockdrop;
+  Lockdrop internal lockdropWMATIC;
   MockErc20 internal mockERC20;
   MockPool internal pool;
   MockPoolRouter internal poolRouter;
@@ -40,7 +41,7 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     pool = new MockPool();
     mockERC20 = new MockErc20("Mock Token", "MT", 18);
     poolRouter = new MockPoolRouter();
-    mockPLPToken = new PLP();
+    mockPLPToken = deployPLP();
     mockP88Token = new P88();
     mockEsP88 = new EsP88();
     mockMatic = deployMockWNative();
@@ -74,6 +75,16 @@ abstract contract Lockdrop_BaseTest is BaseTest {
       rewardsTokenList,
       address(mockMatic)
     );
+    lockdropWMATIC = deployLockdrop(
+      address(mockMatic),
+      address(pool),
+      address(poolRouter),
+      address(lockdropConfig),
+      rewardsTokenList,
+      address(mockMatic)
+    );
+
+    mockPLPToken.setWhitelist(address(plpStaking), true);
   }
 
   function testCorrectness_WhenLockdropIsInit() external {

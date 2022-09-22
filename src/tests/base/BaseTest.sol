@@ -77,7 +77,6 @@ contract BaseTest is DSTest, CoreConstants {
     uint64 taxBps;
     uint64 stableFundingRateFactor;
     uint64 fundingRateFactor;
-    uint64 liquidityCoolDownPeriod;
     uint256 liquidationFeeUsd;
   }
 
@@ -356,7 +355,7 @@ contract BaseTest is DSTest, CoreConstants {
   {
     GetterFacet getterFacet = new GetterFacet();
 
-    bytes4[] memory selectors = new bytes4[](57);
+    bytes4[] memory selectors = new bytes4[](56);
     selectors[0] = GetterFacet.getAddLiquidityFeeBps.selector;
     selectors[1] = GetterFacet.getRemoveLiquidityFeeBps.selector;
     selectors[2] = GetterFacet.getSwapFeeBps.selector;
@@ -364,7 +363,7 @@ contract BaseTest is DSTest, CoreConstants {
     selectors[4] = GetterFacet.getAumE18.selector;
     selectors[5] = GetterFacet.getNextFundingRate.selector;
     selectors[6] = GetterFacet.plp.selector;
-    selectors[7] = GetterFacet.lastAddLiquidityAtOf.selector;
+    selectors[7] = GetterFacet.totalTokenWeight.selector;
     selectors[8] = GetterFacet.totalUsdDebt.selector;
     selectors[9] = GetterFacet.liquidityOf.selector;
     selectors[10] = GetterFacet.feeReserveOf.selector;
@@ -396,7 +395,7 @@ contract BaseTest is DSTest, CoreConstants {
     selectors[36] = GetterFacet.isLeverageEnable.selector;
     selectors[37] = GetterFacet.isSwapEnable.selector;
     selectors[38] = GetterFacet.liquidationFeeUsd.selector;
-    selectors[39] = GetterFacet.liquidityCoolDownDuration.selector;
+    selectors[39] = GetterFacet.oracle.selector;
     selectors[40] = GetterFacet.maxLeverage.selector;
     selectors[41] = GetterFacet.minProfitDuration.selector;
     selectors[42] = GetterFacet.mintBurnFeeBps.selector;
@@ -408,12 +407,11 @@ contract BaseTest is DSTest, CoreConstants {
     selectors[48] = GetterFacet.swapFeeBps.selector;
     selectors[49] = GetterFacet.taxBps.selector;
     selectors[50] = GetterFacet.tokenMetas.selector;
-    selectors[51] = GetterFacet.totalTokenWeight.selector;
-    selectors[52] = GetterFacet.pendingStrategyOf.selector;
-    selectors[53] = GetterFacet.strategyOf.selector;
-    selectors[54] = GetterFacet.strategyDataOf.selector;
-    selectors[55] = GetterFacet.getStrategyDeltaOf.selector;
-    selectors[56] = GetterFacet.totalOf.selector;
+    selectors[51] = GetterFacet.pendingStrategyOf.selector;
+    selectors[52] = GetterFacet.strategyOf.selector;
+    selectors[53] = GetterFacet.strategyDataOf.selector;
+    selectors[54] = GetterFacet.getStrategyDeltaOf.selector;
+    selectors[55] = GetterFacet.totalOf.selector;
 
     DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
       address(getterFacet),
@@ -508,7 +506,7 @@ contract BaseTest is DSTest, CoreConstants {
   {
     AdminFacet adminFacet = new AdminFacet();
 
-    bytes4[] memory selectors = new bytes4[](20);
+    bytes4[] memory selectors = new bytes4[](19);
     selectors[0] = AdminFacet.setPoolOracle.selector;
     selectors[1] = AdminFacet.withdrawFeeReserve.selector;
     selectors[2] = AdminFacet.setAllowLiquidators.selector;
@@ -518,7 +516,7 @@ contract BaseTest is DSTest, CoreConstants {
     selectors[6] = AdminFacet.setIsLeverageEnable.selector;
     selectors[7] = AdminFacet.setIsSwapEnable.selector;
     selectors[8] = AdminFacet.setLiquidationFeeUsd.selector;
-    selectors[9] = AdminFacet.setLiquidityCoolDownDuration.selector;
+    selectors[9] = AdminFacet.deleteTokenConfig.selector;
     selectors[10] = AdminFacet.setMaxLeverage.selector;
     selectors[11] = AdminFacet.setMinProfitDuration.selector;
     selectors[12] = AdminFacet.setMintBurnFeeBps.selector;
@@ -528,7 +526,6 @@ contract BaseTest is DSTest, CoreConstants {
     selectors[16] = AdminFacet.setTaxBps.selector;
     selectors[17] = AdminFacet.setTokenConfigs.selector;
     selectors[18] = AdminFacet.setTreasury.selector;
-    selectors[19] = AdminFacet.deleteTokenConfig.selector;
 
     DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
       address(adminFacet),
@@ -665,7 +662,15 @@ contract BaseTest is DSTest, CoreConstants {
   }
 
   function deployPLP() internal returns (PLP) {
-    return new PLP();
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/PLP.sol/PLP.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(uint256)")),
+      [1 days]
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return PLP(payable(_proxy));
   }
 
   function deployP88() internal returns (P88) {
@@ -677,7 +682,14 @@ contract BaseTest is DSTest, CoreConstants {
   }
 
   function deployDragonPoint() internal returns (DragonPoint) {
-    return new DragonPoint();
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/DragonPoint.sol/DragonPoint.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize()"))
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return DragonPoint(payable(_proxy));
   }
 
   function deployPoolOracle(uint80 roundDepth) internal returns (PoolOracle) {
@@ -702,7 +714,7 @@ contract BaseTest is DSTest, CoreConstants {
     bytes memory _initializer = abi.encodeWithSelector(
       bytes4(
         keccak256(
-          "initialize(address,uint64,uint64,uint64,uint64,uint64,uint64,uint256)"
+          "initialize(address,uint64,uint64,uint64,uint64,uint64,uint256)"
         )
       ),
       params.treasury,
@@ -711,7 +723,6 @@ contract BaseTest is DSTest, CoreConstants {
       params.taxBps,
       params.stableFundingRateFactor,
       params.fundingRateFactor,
-      params.liquidityCoolDownPeriod,
       params.liquidationFeeUsd
     );
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
@@ -823,7 +834,7 @@ contract BaseTest is DSTest, CoreConstants {
       abi.encodeWithSelector(
         bytes4(
           keccak256(
-            "initialize(address,uint64,uint64,uint64,uint64,uint64,uint64,uint256)"
+            "initialize(address,uint64,uint64,uint64,uint64,uint64,uint256)"
           )
         ),
         params.treasury,
@@ -832,7 +843,6 @@ contract BaseTest is DSTest, CoreConstants {
         params.taxBps,
         params.stableFundingRateFactor,
         params.fundingRateFactor,
-        params.liquidityCoolDownPeriod,
         params.liquidationFeeUsd
       )
     );
@@ -965,17 +975,32 @@ contract BaseTest is DSTest, CoreConstants {
   function deployRewardDistributor(
     address rewardToken,
     address pool,
-    address feedableRewarder
+    address poolRouter,
+    address plpStakingProtocolRevenueRewarder,
+    address dragonStakingProtocolRevenueRewarder,
+    uint256 devFundBps,
+    uint256 plpStakingBps,
+    address devFundAddress
   ) internal returns (RewardDistributor) {
     bytes memory _logicBytecode = abi.encodePacked(
       vm.getCode("./out/RewardDistributor.sol/RewardDistributor.json")
     );
     bytes memory _initializer = abi.encodeWithSelector(
-      bytes4(keccak256("initialize(address,address,address)")),
+      bytes4(
+        keccak256(
+          "initialize(address,address,address,address,address,uint256,uint256,address)"
+        )
+      ),
       rewardToken,
       pool,
-      feedableRewarder
+      poolRouter,
+      plpStakingProtocolRevenueRewarder,
+      dragonStakingProtocolRevenueRewarder,
+      devFundBps,
+      plpStakingBps,
+      devFundAddress
     );
+
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
     return RewardDistributor(payable(_proxy));
   }
@@ -1034,17 +1059,19 @@ contract BaseTest is DSTest, CoreConstants {
     return Lockdrop(payable(_proxy));
   }
 
-  function deployLockdropGateway(address plpToken, address plpStaking)
-    internal
-    returns (LockdropGateway)
-  {
+  function deployLockdropGateway(
+    address plpToken,
+    address plpStaking,
+    address wnative
+  ) internal returns (LockdropGateway) {
     bytes memory _logicBytecode = abi.encodePacked(
       vm.getCode("./out/LockdropGateway.sol/LockdropGateway.json")
     );
     bytes memory _initializer = abi.encodeWithSelector(
-      bytes4(keccak256("initialize(address,address)")),
+      bytes4(keccak256("initialize(address,address,address)")),
       plpToken,
-      plpStaking
+      plpStaking,
+      wnative
     );
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
     return LockdropGateway(payable(_proxy));

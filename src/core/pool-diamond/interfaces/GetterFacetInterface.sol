@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
 import { PoolOracle } from "../../PoolOracle.sol";
-import { MintableTokenInterface } from "../../../interfaces/MintableTokenInterface.sol";
+import { PLP } from "../../../tokens/PLP.sol";
 import { StrategyInterface } from "../../../interfaces/StrategyInterface.sol";
 
 interface GetterFacetInterface {
@@ -42,13 +42,9 @@ interface GetterFacetInterface {
 
   function isSwapEnable() external view returns (bool);
 
-  function lastAddLiquidityAtOf(address user) external view returns (uint256);
-
   function lastFundingTimeOf(address token) external view returns (uint256);
 
   function liquidationFeeUsd() external view returns (uint256);
-
-  function liquidityCoolDownDuration() external view returns (uint64);
 
   function liquidityOf(address token) external view returns (uint256);
 
@@ -65,7 +61,7 @@ interface GetterFacetInterface {
     view
     returns (StrategyInterface);
 
-  function plp() external view returns (MintableTokenInterface);
+  function plp() external view returns (PLP);
 
   function positionFeeBps() external view returns (uint64);
 

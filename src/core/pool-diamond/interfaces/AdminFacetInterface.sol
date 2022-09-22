@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.17;
 
 import { PoolOracle } from "../../PoolOracle.sol";
 
@@ -28,9 +28,6 @@ interface AdminFacetInterface {
   function setIsSwapEnable(bool newIsSwapEnable) external;
 
   function setLiquidationFeeUsd(uint256 newLiquidationFeeUsd) external;
-
-  function setLiquidityCoolDownDuration(uint64 newLiquidityCoolDownPeriod)
-    external;
 
   function setMaxLeverage(uint64 newMaxLeverage) external;
 

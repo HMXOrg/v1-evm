@@ -1,15 +1,17 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers, upgrades } from "hardhat";
+import { ethers, tenderly, upgrades } from "hardhat";
+import { getConfig, writeConfigFile } from "../utils/config";
+import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 
-const lockdropToken = "0xc2132d05d31c914a87c6611c10748aeb04b58e8f";
-const pool = "0x48481A7172C83F1F78d84F943e388351068D3b23";
-const lockdropConfig = "0xE394fF8B542d8869DD308577650a4ae9Aaa3D652";
-const rewardTokens: any[] = [
-  "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
-  "0xEB27B05178515c7E6E51dEE159c8487A011ac030",
-];
-const nativeTokenAddress = "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270";
+const config = getConfig();
+
+const lockdropToken = config.Tokens.USDT;
+const pool = config.Pools.PLP.poolDiamond;
+const poolRouter = config.PoolRouter;
+const lockdropConfig = config.Lockdrop.config;
+const rewardTokens: any[] = [config.Tokens.WMATIC, config.Tokens.esP88];
+const nativeTokenAddress = config.Tokens.WMATIC;
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
@@ -17,6 +19,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const lockdrop = await upgrades.deployProxy(Lockdrop, [
     lockdropToken,
     pool,
+    poolRouter,
     lockdropConfig,
     rewardTokens,
     nativeTokenAddress,
@@ -24,6 +27,23 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   await lockdrop.deployed();
   console.log(`Deploying Lockdrop Contract`);
   console.log(`Deployed at: ${lockdrop.address}`);
+
+  const implAddress = await getImplementationAddress(
+    ethers.provider,
+    lockdrop.address
+  );
+
+  await tenderly.verify({
+    address: implAddress,
+    name: "Lockdrop",
+  });
+
+  config.Lockdrop.lockdrops = config.Lockdrop.lockdrops.map((each: any) => {
+    if (each.lockdropToken === lockdropToken) {
+      return { ...each, address: lockdrop.address };
+    } else return each;
+  });
+  writeConfigFile(config);
 };
 
 export default func;
