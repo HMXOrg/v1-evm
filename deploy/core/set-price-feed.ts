@@ -18,37 +18,37 @@ const TOKENS = [
 ];
 const FEED_INFOS = [
   {
-    priceFeed: "0xAB594600376Ec9fD91F8e885dADF0CE036862dE0", // WMATIC
+    priceFeed: "0xd0D5e3DB44DE05E9F294BB0a3bEEaF030DE24Ada", // WMATIC
     decimals: 8,
     spreadBps: 10,
     isStrictStable: false,
   },
   {
-    priceFeed: "0xF9680D99D6C9589e2a93a78A04A279e509205945", // WETH
+    priceFeed: "0x0715A7794a1dc8e42615F059dD6e406A6594651A", // WETH
     decimals: 8,
     spreadBps: 10,
     isStrictStable: false,
   },
   {
-    priceFeed: "0xDE31F8bFBD8c84b5360CFACCa3539B938dd78ae6", // WBTC
+    priceFeed: "0x007A22900a3B98143368Bd5906f8E17e9867581b", // WBTC
     decimals: 8,
     spreadBps: 10,
     isStrictStable: false,
   },
   {
-    priceFeed: "0x4746DeC9e833A82EC7C2C1356372CcF2cfcD2F3D", // DAI
+    priceFeed: "0x0FCAa9c899EC5A91eBc3D5Dd869De833b06fB046", // DAI
     decimals: 8,
     spreadBps: 10,
     isStrictStable: false,
   },
   {
-    priceFeed: "0xfE4A8cc5b5B2366C1B58Bea3858e81843581b2F7", // USDC
+    priceFeed: "0x572dDec9087154dC5dfBB1546Bb62713147e0Ab0", // USDC
     decimals: 8,
     spreadBps: 10,
     isStrictStable: false,
   },
   {
-    priceFeed: "0x0A6513e40db6EB1b165753AD52E80663aeA50545", // USDT
+    priceFeed: "0x92C09849638959196E976289418e5973CC96d645", // USDT
     decimals: 8,
     spreadBps: 10,
     isStrictStable: false,

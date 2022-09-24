@@ -51,6 +51,7 @@ contract MockPLPStaking is IStaking {
 
   function getUserTokenAmount(address token, address sender)
     external
+    view
     returns (uint256)
   {
     return IERC20(plpTokenAddress).balanceOf(address(this));
@@ -58,6 +59,7 @@ contract MockPLPStaking is IStaking {
 
   function getStakingTokenRewarders(address token)
     external
+    view
     returns (address[] memory)
   {
     address[] memory rewarderList = new address[](1);

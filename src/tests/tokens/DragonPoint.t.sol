@@ -8,7 +8,7 @@ contract DragonPointTest is BaseTest {
   DragonPoint internal dp;
 
   function setUp() external {
-    dp = new DragonPoint();
+    dp = deployDragonPoint();
   }
 
   function testCorrectness_init() external {
@@ -31,7 +31,7 @@ contract DragonPointTest is BaseTest {
   }
 
   function testRevert_mint() external {
-    vm.expectRevert(abi.encodeWithSignature("BaseMintableToken_NotMinter()"));
+    vm.expectRevert(abi.encodeWithSignature("DragonPoint_NotMinter()"));
     dp.mint(BOB, 88 ether);
   }
 
@@ -46,7 +46,7 @@ contract DragonPointTest is BaseTest {
   }
 
   function testRevert_burn() external {
-    vm.expectRevert(abi.encodeWithSignature("BaseMintableToken_NotMinter()"));
+    vm.expectRevert(abi.encodeWithSignature("DragonPoint_NotMinter()"));
     dp.burn(BOB, 88 ether);
   }
 

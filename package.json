@@ -10,20 +10,21 @@
     "build:cjs": "tsc -p tsconfig.cjs.json"
   },
   "devDependencies": {
-    "prettier": "^2.6.2",
-    "prettier-plugin-solidity": "^1.0.0-beta.19",
+    "@tenderly/hardhat-tenderly": "^1.1.6",
     "@typechain/ethers-v5": "^10.0.0",
     "@typechain/hardhat": "^5.0.0",
     "@types/mocha": "^9.1.0",
+    "prettier": "^2.6.2",
+    "prettier-plugin-solidity": "^1.0.0-beta.19",
     "ts-node": "^10.7.0",
     "typechain": "^8.0.0",
     "typescript": "^4.6.2"
   },
   "dependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.5",
-    "@openzeppelin/hardhat-upgrades": "^1.16.1",
-    "@openzeppelin/contracts-upgradeable": "^4.7.3",
     "@openzeppelin/contracts": "^4.7.1",
+    "@openzeppelin/contracts-upgradeable": "^4.7.3",
+    "@openzeppelin/hardhat-upgrades": "^1.16.1",
     "dotenv": "^16.0.0",
     "hardhat": "^2.9.1",
     "hardhat-deploy": "^0.11.10"

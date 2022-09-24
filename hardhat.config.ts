@@ -2,6 +2,9 @@ import { config as dotEnvConfig } from "dotenv";
 import { HardhatUserConfig } from "hardhat/config";
 dotEnvConfig();
 
+import * as tdly from "@tenderly/hardhat-tenderly";
+tdly.setup({ automaticVerifications: false });
+
 import "@openzeppelin/hardhat-upgrades";
 import "@nomiclabs/hardhat-ethers";
 import "@typechain/hardhat";
@@ -22,6 +25,13 @@ const config: HardhatUserConfig = {
       accounts:
         process.env.POLYGON_MUMBAI_PRIVATE_KEY !== undefined
           ? [process.env.POLYGON_MUMBAI_PRIVATE_KEY]
+          : [],
+    },
+    tenderly: {
+      url: process.env.POLYGON_TENDERLY_RPC,
+      accounts:
+        process.env.POLYGON_MAINNET_PRIVATE_KEY !== undefined
+          ? [process.env.POLYGON_MAINNET_PRIVATE_KEY]
           : [],
     },
   },
@@ -45,6 +55,11 @@ const config: HardhatUserConfig = {
   },
   mocha: {
     timeout: 100000,
+  },
+  tenderly: {
+    project: process.env.TENDERLY_PROJECT_NAME!,
+    username: process.env.TENDERLY_USERNAME!,
+    privateVerification: true,
   },
 };
 

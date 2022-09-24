@@ -1,10 +1,11 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { ethers, upgrades } from "hardhat";
-import { getConfig } from "../utils/config";
+import { ethers, tenderly } from "hardhat";
+import { getConfig, writeConfigFile } from "../utils/config";
+
+const config = getConfig();
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-  const config = getConfig();
   const deployer = (await ethers.getSigners())[0];
   const PoolDiamond = await ethers.getContractFactory("PoolDiamond", deployer);
   const poolDiamond = await PoolDiamond.deploy(
@@ -15,6 +16,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   poolDiamond.deployed();
   console.log(`Deploying PoolDiamond Contract`);
   console.log(`Deployed at: ${poolDiamond.address}`);
+
+  await tenderly.verify({
+    address: poolDiamond.address,
+    name: "PoolDiamond",
+  });
+
+  config.Pools.PLP.poolDiamond = poolDiamond.address;
+  writeConfigFile(config);
 };
 
 export default func;

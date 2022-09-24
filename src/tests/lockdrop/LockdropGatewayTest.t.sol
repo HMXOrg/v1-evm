@@ -17,6 +17,7 @@ contract LockdropGatewayTest is BaseTest {
   LockdropGateway internal lockdropGateway;
   MockLockdropConfig internal lockdropConfig;
   MockPLPStaking internal plpStaking;
+  MockPLPStaking internal dragonStaking;
   MockErc20 internal lockdropToken;
   MockLockdrop internal lockdrop;
   address[] internal lockdropList;
@@ -32,6 +33,7 @@ contract LockdropGatewayTest is BaseTest {
     plp = new MockErc20("PLP", "PLP", 18);
     mockEsP88 = new MockErc20("EsP88", "EsP88", 18);
     plpStaking = new MockPLPStaking(address(plp), mockWMatic, address(p88));
+    dragonStaking = new MockPLPStaking(address(plp), mockWMatic, address(p88));
 
     lockdropConfig = new MockLockdropConfig(
       100000,
@@ -42,7 +44,12 @@ contract LockdropGatewayTest is BaseTest {
       mockWMatic
     );
 
-    lockdropGateway = deployLockdropGateway(address(plp), address(plpStaking));
+    lockdropGateway = deployLockdropGateway(
+      address(plp),
+      address(plpStaking),
+      address(dragonStaking),
+      address(mockWMatic)
+    );
     lockdrop = new MockLockdrop(address(lockdropToken), lockdropConfig);
 
     vm.startPrank(ALICE);
@@ -92,6 +99,23 @@ contract LockdropGatewayTest is BaseTest {
 
     // Expect the user get their reward
     assertEq(IERC20(p88).balanceOf(ALICE), 10 ether);
+  }
+
+  function testCorrectness_WhenUserLockToken_ThenClaimAndStakeAllP88Reward()
+    external
+  {
+    // Expect the tokens have been locked;
+    assertEq(IERC20(lockdropToken).balanceOf(address(this)), 0 ether);
+    assertEq(IERC20(lockdropToken).balanceOf(address(lockdrop)), 20 ether);
+
+    // User claim their P88 reward
+    vm.startPrank(ALICE);
+    p88.approve(address(lockdropGateway), type(uint256).max);
+    lockdropGateway.claimAndStakeAllP88(lockdropList, ALICE);
+    vm.stopPrank();
+
+    // Expect the user get their reward
+    assertEq(dragonStaking.userTokenAmount(address(p88), ALICE), 10 ether);
   }
 
   function testCorrectness_WhenUserLockToken_ThenUserWithdrawAllAndStakePLP()

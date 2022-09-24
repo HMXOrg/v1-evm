@@ -15,7 +15,9 @@ import { IUniswapRouter } from "../interfaces/IUniswapRouter.sol";
 import { IUniswapPair } from "../interfaces/IUniswapPair.sol";
 import { ILockdrop } from "./interfaces/ILockdrop.sol";
 import { ILockdropGateway } from "./interfaces/ILockdropGateway.sol";
+import { LockdropConfig } from "./LockdropConfig.sol";
 import { IStaking } from "../staking/interfaces/IStaking.sol";
+import { IWNative } from "../interfaces/IWNative.sol";
 
 contract LockdropGateway is ILockdropGateway, OwnableUpgradeable {
   using SafeERC20Upgradeable for IERC20Upgradeable;
@@ -37,7 +39,9 @@ contract LockdropGateway is ILockdropGateway, OwnableUpgradeable {
 
   IERC20Upgradeable public plpToken;
   IStaking public plpStaking;
+  IStaking public dragonStaking;
   mapping(address => LockdropInfo) public mapTokenLockdropInfo;
+  IWNative public WNATIVE;
 
   error LockdropGateway_UnknownTokenType();
   error LockdropGateway_NotBaseToken();
@@ -49,13 +53,17 @@ contract LockdropGateway is ILockdropGateway, OwnableUpgradeable {
   error LockdropGateway_NothingToDoWithPosition();
   error LockdropGateway_NonBaseTokenZeroLockedAmount();
 
-  function initialize(IERC20Upgradeable plpToken_, IStaking plpStaking_)
-    external
-    initializer
-  {
+  function initialize(
+    IERC20Upgradeable plpToken_,
+    IStaking plpStaking_,
+    IStaking dragonStaking_,
+    IWNative wnative_
+  ) external initializer {
     OwnableUpgradeable.__Ownable_init();
     plpToken = plpToken_;
     plpStaking = plpStaking_;
+    dragonStaking = dragonStaking_;
+    WNATIVE = wnative_;
   }
 
   function setBaseTokenLockdropInfo(address token, address lockdrop)
@@ -138,6 +146,30 @@ contract LockdropGateway is ILockdropGateway, OwnableUpgradeable {
     }
   }
 
+  function claimAndStakeAllP88(address[] memory lockdropList, address user)
+    external
+  {
+    uint256 length = lockdropList.length;
+    uint256 totalP88Amount = 0;
+    for (uint256 index = 0; index < length; ) {
+      uint256 claimedP88Amount = ILockdrop(lockdropList[index]).claimAllP88(
+        user
+      );
+
+      unchecked {
+        totalP88Amount += claimedP88Amount;
+        ++index;
+      }
+    }
+    IERC20Upgradeable p88 = LockdropConfig(
+      ILockdrop(lockdropList[0]).lockdropConfig()
+    ).p88Token();
+
+    p88.safeTransferFrom(user, address(this), totalP88Amount);
+    p88.safeApprove(address(dragonStaking), totalP88Amount);
+    dragonStaking.deposit(user, address(p88), totalP88Amount);
+  }
+
   // Withdraw All Deposit Token
   function withdrawAllAndStakePLP(address[] memory lockdropList, address user)
     external
@@ -164,18 +196,20 @@ contract LockdropGateway is ILockdropGateway, OwnableUpgradeable {
     address token,
     uint256 lockAmount,
     uint256 lockPeriod
-  ) external {
+  ) external payable {
     // Validate token, whether it is supported (whitelisted) by our contract or not
     TokenType tokenInType = mapTokenLockdropInfo[token].tokenInType;
     if (tokenInType == TokenType.UninitializedToken)
       revert LockdropGateway_UninitializedToken();
 
     // Transfer user's token
-    IERC20Upgradeable(token).safeTransferFrom(
-      msg.sender,
-      address(this),
-      lockAmount
-    );
+    if (token != address(WNATIVE)) {
+      IERC20Upgradeable(token).safeTransferFrom(
+        msg.sender,
+        address(this),
+        lockAmount
+      );
+    }
 
     // Call lock function correctly according to its type
     if (tokenInType == TokenType.BaseToken) {
@@ -213,6 +247,10 @@ contract LockdropGateway is ILockdropGateway, OwnableUpgradeable {
   ) internal {
     if (mapTokenLockdropInfo[token].tokenInType != TokenType.BaseToken)
       revert LockdropGateway_NotBaseToken();
+
+    if (token == address(WNATIVE)) {
+      WNATIVE.deposit{ value: msg.value }();
+    }
 
     if (lockAmount > 0)
       IERC20Upgradeable(token).approve(

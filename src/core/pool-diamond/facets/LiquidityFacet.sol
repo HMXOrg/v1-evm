@@ -4,16 +4,20 @@ pragma solidity 0.8.17;
 import { LibReentrancyGuard } from "../libraries/LibReentrancyGuard.sol";
 import { LibPoolV1 } from "../libraries/LibPoolV1.sol";
 import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { FarmFacetInterface } from "../interfaces/FarmFacetInterface.sol";
 import { GetterFacetInterface } from "../interfaces/GetterFacetInterface.sol";
 import { FundingRateFacetInterface } from "../interfaces/FundingRateFacetInterface.sol";
 import { LiquidityFacetInterface } from "../interfaces/LiquidityFacetInterface.sol";
 import { FlashLoanBorrowerInterface } from "../../../interfaces/FlashLoanBorrowerInterface.sol";
+import { StrategyInterface } from "../../../interfaces/StrategyInterface.sol";
 
 contract LiquidityFacet is LiquidityFacetInterface {
   using SafeERC20 for ERC20;
+  using SafeCast for uint256;
 
   error LiquidityFacet_BadAmount();
   error LiquidityFacet_BadAmountOut();
@@ -73,6 +77,7 @@ contract LiquidityFacet is LiquidityFacetInterface {
     uint256 usdDebt,
     uint256 amountOut
   );
+  event StrategyDivest(address token, uint256 amount);
   event Swap(
     address account,
     address tokenIn,
@@ -132,6 +137,8 @@ contract LiquidityFacet is LiquidityFacetInterface {
     // Check
     if (!LibPoolConfigV1.isAcceptToken(token)) revert LiquidityFacet_BadToken();
     if (amount == 0) revert LiquidityFacet_BadAmount();
+
+    LibPoolV1.realizedFarmPnL(token);
 
     uint256 aum = GetterFacetInterface(address(this)).getAumE18(true);
     uint256 lpSupply = poolV1ds.plp.totalSupply();
@@ -217,6 +224,8 @@ contract LiquidityFacet is LiquidityFacetInterface {
       revert LiquidityFacet_BadToken();
     if (liquidity == 0) revert LiquidityFacet_BadAmount();
 
+    LibPoolV1.realizedFarmPnL(tokenOut);
+
     uint256 aum = GetterFacetInterface(address(this)).getAumE18(false);
     uint256 lpSupply = poolV1ds.plp.totalSupply();
 
@@ -227,7 +236,7 @@ contract LiquidityFacet is LiquidityFacetInterface {
     uint256 amountOut = _exit(tokenOut, lpUsdValue, receiver);
 
     poolV1ds.plp.burn(address(this), liquidity);
-    LibPoolV1.pushTokens(tokenOut, receiver, amountOut);
+    LibPoolV1.tokenOut(tokenOut, receiver, amountOut);
 
     emit RemoveLiquidity(
       account,
@@ -302,6 +311,9 @@ contract LiquidityFacet is LiquidityFacetInterface {
     if (tokenIn == tokenOut) revert LiquidityFacet_SameTokenInTokenOut();
     if (amountIn == 0) revert LiquidityFacet_BadAmount();
 
+    LibPoolV1.realizedFarmPnL(tokenIn);
+    LibPoolV1.realizedFarmPnL(tokenOut);
+
     FundingRateFacetInterface(address(this)).updateFundingRate(
       tokenIn,
       tokenIn
@@ -357,8 +369,7 @@ contract LiquidityFacet is LiquidityFacetInterface {
     if (amountOutAfterFee < minAmountOut) revert LiquidityFacet_Slippage();
 
     // Transfer amount out.
-    LibPoolV1.pushTokens(tokenOut, receiver, amountOutAfterFee);
-
+    LibPoolV1.tokenOut(tokenOut, receiver, amountOutAfterFee);
     emit Swap(
       receiver,
       tokenIn,

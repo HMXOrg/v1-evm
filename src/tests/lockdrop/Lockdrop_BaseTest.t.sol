@@ -22,6 +22,7 @@ abstract contract Lockdrop_BaseTest is BaseTest {
   using SafeERC20 for IERC20;
 
   Lockdrop internal lockdrop;
+  Lockdrop internal lockdropWMATIC;
   MockErc20 internal mockERC20;
   MockPool internal pool;
   MockPoolRouter internal poolRouter;
@@ -68,6 +69,14 @@ abstract contract Lockdrop_BaseTest is BaseTest {
 
     lockdrop = deployLockdrop(
       address(mockERC20),
+      address(pool),
+      address(poolRouter),
+      address(lockdropConfig),
+      rewardsTokenList,
+      address(mockMatic)
+    );
+    lockdropWMATIC = deployLockdrop(
+      address(mockMatic),
       address(pool),
       address(poolRouter),
       address(lockdropConfig),
