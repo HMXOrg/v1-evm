@@ -4,14 +4,14 @@ pragma solidity 0.8.17;
 import { LibDiamond } from "../libraries/LibDiamond.sol";
 import { LibPoolV1 } from "../libraries/LibPoolV1.sol";
 import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
+import { LibAccessControl } from "../libraries/LibAccessControl.sol";
+import { AccessControlFacetInterface } from "../interfaces/AccessControlFacetInterface.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { FarmFacetInterface } from "../interfaces/FarmFacetInterface.sol";
 import { StrategyInterface } from "../../../interfaces/StrategyInterface.sol";
-
-import { console } from "../../../tests/utils/console.sol";
 
 contract FarmFacet is FarmFacetInterface {
   using SafeERC20 for ERC20;
@@ -21,6 +21,7 @@ contract FarmFacet is FarmFacetInterface {
   error FarmFacet_InvalidRealizedProfits();
   error FarmFacet_InvalidWithdrawal();
   error FarmFacet_TooEarlyToCommitStrategy();
+  error FarmFacet_InvalidFarmCaller();
 
   uint256 internal constant STRATEGY_DELAY = 1 weeks;
   uint256 internal constant MAX_TARGET_BPS = 9500; // 95%
@@ -34,6 +35,19 @@ contract FarmFacet is FarmFacetInterface {
 
   modifier onlyOwner() {
     LibDiamond.enforceIsContractOwner();
+    _;
+  }
+
+  modifier onlyPoolDiamondOrFarmKeeper() {
+    if (
+      msg.sender != address(this) &&
+      !AccessControlFacetInterface(address(this)).hasRole(
+        LibAccessControl.FARM_KEEPER,
+        msg.sender
+      )
+    ) {
+      revert FarmFacet_InvalidFarmCaller();
+    }
     _;
   }
 
@@ -104,7 +118,10 @@ contract FarmFacet is FarmFacetInterface {
     emit SetStrategyTargetBps(token, targetBps);
   }
 
-  function farm(address token, bool isRebalanceNeeded) external {
+  function farm(address token, bool isRebalanceNeeded)
+    external
+    onlyPoolDiamondOrFarmKeeper
+  {
     // Load PoolV1 diamond storage
     LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
       .poolV1DiamondStorage();
@@ -144,8 +161,8 @@ contract FarmFacet is FarmFacetInterface {
     // If rebalance to make sure the strategy has the right amount of funds to deploy, then do it.
     if (isRebalanceNeeded) {
       // Calculate the target amount of funds to be deployed
-      uint256 targetDeployedFunds = (poolV1ds.liquidityOf[token] *
-        strategyData.targetBps) / 10000;
+      uint256 targetDeployedFunds = ((poolV1ds.liquidityOf[token] -
+        poolV1ds.reservedOf[token]) * strategyData.targetBps) / 10000;
 
       if (strategyData.principle < targetDeployedFunds) {
         // If strategy short of funds, then deposit more funds

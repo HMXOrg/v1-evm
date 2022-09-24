@@ -56,8 +56,12 @@ import { LiquidityFacet, LiquidityFacetInterface } from "../../core/pool-diamond
 import { PerpTradeFacet, PerpTradeFacetInterface } from "../../core/pool-diamond/facets/PerpTradeFacet.sol";
 import { AdminFacet, AdminFacetInterface } from "../../core/pool-diamond/facets/AdminFacet.sol";
 import { FarmFacet, FarmFacetInterface } from "../../core/pool-diamond/facets/FarmFacet.sol";
+import { AccessControlFacet, AccessControlFacetInterface } from "../../core/pool-diamond/facets/AccessControlFacet.sol";
+
+import { LibAccessControl } from "../../core/pool-diamond/libraries/LibAccessControl.sol";
 import { DiamondInitializer } from "../../core/pool-diamond/initializers/DiamondInitializer.sol";
 import { PoolConfigInitializer } from "../../core/pool-diamond/initializers/PoolConfigInitializer.sol";
+import { AccessControlInitializer } from "../../core/pool-diamond/initializers/AccessControlInitializer.sol";
 import { PoolDiamond } from "../../core/pool-diamond/PoolDiamond.sol";
 
 import { PoolRouter } from "../../core/pool-diamond/PoolRouter.sol";
@@ -489,6 +493,13 @@ contract BaseTest is DSTest, CoreConstants {
     return new PoolConfigInitializer();
   }
 
+  function deployAccessControlInitializer()
+    internal
+    returns (AccessControlInitializer)
+  {
+    return new AccessControlInitializer();
+  }
+
   function deployAdminFacet(DiamondCutFacet diamondCutFacet)
     internal
     returns (AdminFacet, bytes4[] memory)
@@ -545,6 +556,37 @@ contract BaseTest is DSTest, CoreConstants {
 
     diamondCutFacet.diamondCut(facetCuts, address(0), "");
     return (farmFacet, selectors);
+  }
+
+  function deployAccessControlFacet(DiamondCutFacet diamondCutFacet)
+    internal
+    returns (AccessControlFacet, bytes4[] memory)
+  {
+    AccessControlFacet accessControlFacet = new AccessControlFacet();
+    AccessControlInitializer accessControlInitializer = deployAccessControlInitializer();
+
+    bytes4[] memory selectors = new bytes4[](5);
+    selectors[0] = AccessControlFacet.hasRole.selector;
+    selectors[1] = AccessControlFacet.getRoleAdmin.selector;
+    selectors[2] = AccessControlFacet.grantRole.selector;
+    selectors[3] = AccessControlFacet.revokeRole.selector;
+    selectors[4] = AccessControlFacet.renounceRole.selector;
+
+    DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
+      address(accessControlFacet),
+      DiamondCutInterface.FacetCutAction.Add,
+      selectors
+    );
+
+    diamondCutFacet.diamondCut(
+      facetCuts,
+      address(accessControlInitializer),
+      abi.encodeWithSelector(
+        bytes4(keccak256("initialize(address)")),
+        address(this)
+      )
+    );
+    return (accessControlFacet, selectors);
   }
 
   function _setupUpgradeable(
@@ -755,6 +797,7 @@ contract BaseTest is DSTest, CoreConstants {
     deployPerpTradeFacet(DiamondCutFacet(address(poolDiamond)));
     deployAdminFacet(DiamondCutFacet(address(poolDiamond)));
     deployFarmFacet(DiamondCutFacet(address(poolDiamond)));
+    deployAccessControlFacet(DiamondCutFacet(address(poolDiamond)));
 
     initializeDiamond(DiamondCutFacet(address(poolDiamond)));
     initializePoolConfig(

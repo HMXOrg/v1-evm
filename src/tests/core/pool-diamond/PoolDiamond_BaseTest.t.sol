@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { BaseTest, console, stdError, MockStrategy, MockDonateVault, PLP, MockFlashLoanBorrower, PoolConfig, LibPoolConfigV1, PoolOracle, Pool, PoolRouter, OwnershipFacetInterface, GetterFacetInterface, LiquidityFacetInterface, PerpTradeFacetInterface, AdminFacetInterface, FarmFacetInterface } from "../../base/BaseTest.sol";
+import { BaseTest, console, stdError, MockStrategy, MockDonateVault, PLP, MockFlashLoanBorrower, PoolConfig, LibPoolConfigV1, PoolOracle, Pool, PoolRouter, OwnershipFacetInterface, GetterFacetInterface, LiquidityFacetInterface, PerpTradeFacetInterface, AdminFacetInterface, FarmFacetInterface, AccessControlFacetInterface, LibAccessControl } from "../../base/BaseTest.sol";
+
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 abstract contract PoolDiamond_BaseTest is BaseTest {
@@ -15,6 +16,7 @@ abstract contract PoolDiamond_BaseTest is BaseTest {
   LiquidityFacetInterface internal poolLiquidityFacet;
   PerpTradeFacetInterface internal poolPerpTradeFacet;
   FarmFacetInterface internal poolFarmFacet;
+  AccessControlFacetInterface internal poolAccessControlFacet;
 
   function setUp() public virtual {
     BaseTest.PoolConfigConstructorParams memory poolConfigParams = BaseTest
@@ -41,20 +43,29 @@ abstract contract PoolDiamond_BaseTest is BaseTest {
     poolLiquidityFacet = LiquidityFacetInterface(poolDiamond);
     poolPerpTradeFacet = PerpTradeFacetInterface(poolDiamond);
     poolFarmFacet = FarmFacetInterface(poolDiamond);
+    poolAccessControlFacet = AccessControlFacetInterface(poolDiamond);
 
     plp = poolGetterFacet.plp();
 
     poolRouter = deployPoolRouter(address(matic));
     poolAdminFacet.setRouter(address(poolRouter));
+
+    // Grant Farm Keeper Role For This testing contract
+    poolAccessControlFacet.grantRole(
+      LibAccessControl.FARM_KEEPER,
+      address(this)
+    );
   }
 
-  function checkPoolBalanceWithState(address token, uint256 offset) internal {
+  function checkPoolBalanceWithState(address token, int256 offset) internal {
     uint256 balance = IERC20(token).balanceOf(address(poolDiamond));
     assertEq(
       balance,
-      poolGetterFacet.liquidityOf(token) +
-        poolGetterFacet.feeReserveOf(token) +
-        offset
+      uint256(
+        int256(poolGetterFacet.liquidityOf(token)) +
+          int256(poolGetterFacet.feeReserveOf(token)) +
+          offset
+      )
     );
   }
 }
