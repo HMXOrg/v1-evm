@@ -4,6 +4,7 @@ pragma solidity 0.8.17;
 import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
 import { PoolOracle } from "../../PoolOracle.sol";
 import { PLP } from "../../../tokens/PLP.sol";
+import { StrategyInterface } from "../../../interfaces/StrategyInterface.sol";
 
 interface GetterFacetInterface {
   function additionalAum() external view returns (uint256);
@@ -20,6 +21,11 @@ interface GetterFacetInterface {
   function fundingInterval() external view returns (uint64);
 
   function fundingRateFactor() external view returns (uint64);
+
+  function getStrategyDeltaOf(address token)
+    external
+    view
+    returns (bool, uint256);
 
   function guaranteedUsdOf(address token) external view returns (uint256);
 
@@ -50,6 +56,11 @@ interface GetterFacetInterface {
 
   function oracle() external view returns (PoolOracle);
 
+  function pendingStrategyOf(address token)
+    external
+    view
+    returns (StrategyInterface);
+
   function plp() external view returns (PLP);
 
   function positionFeeBps() external view returns (uint64);
@@ -67,6 +78,13 @@ interface GetterFacetInterface {
   function stableTaxBps() external view returns (uint64);
 
   function stableSwapFeeBps() external view returns (uint64);
+
+  function strategyOf(address token) external view returns (StrategyInterface);
+
+  function strategyDataOf(address token)
+    external
+    view
+    returns (LibPoolConfigV1.StrategyData memory);
 
   function sumFundingRateOf(address token) external view returns (uint256);
 
