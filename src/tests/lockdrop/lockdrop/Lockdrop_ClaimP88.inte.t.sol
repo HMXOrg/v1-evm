@@ -19,13 +19,13 @@ contract Lockdrop_ClaimP88 is Lockdrop_BaseTest {
     lockPeriod_BOB = 20 days;
 
     vm.startPrank(ALICE);
-    usdc.mint(ALICE, 1e12 ether);
-    usdc.approve(address(lockdrop), 1e12 ether);
+    usdc.mint(ALICE, 1000 ether);
+    usdc.approve(address(lockdrop), 1000 ether);
     vm.stopPrank();
 
     vm.startPrank(BOB);
-    usdc.mint(BOB, 1e12 ether);
-    usdc.approve(address(lockdrop), 1e12 ether);
+    usdc.mint(BOB, 1000 ether);
+    usdc.approve(address(lockdrop), 1000 ether);
     vm.stopPrank();
   }
 
@@ -201,8 +201,8 @@ contract Lockdrop_ClaimP88 is Lockdrop_BaseTest {
 
     // Mint P88 for Allocator
     vm.startPrank(DAVE);
-    p88.mint(DAVE, 1e12 ether);
-    p88.approve(address(lockdrop), 1e12 ether);
+    p88.mint(DAVE, 1000 ether);
+    p88.approve(address(lockdrop), 1000 ether);
     lockdrop.allocateP88(100 ether);
     vm.stopPrank();
 
@@ -288,8 +288,8 @@ contract Lockdrop_ClaimP88 is Lockdrop_BaseTest {
 
     // Mint P88 for Allocator
     vm.startPrank(DAVE);
-    p88.mint(DAVE, 1e12 ether);
-    p88.approve(address(lockdrop), 1e12 ether);
+    p88.mint(DAVE, 1000 ether);
+    p88.approve(address(lockdrop), 1000 ether);
     lockdrop.allocateP88(100 ether);
     vm.stopPrank();
 
