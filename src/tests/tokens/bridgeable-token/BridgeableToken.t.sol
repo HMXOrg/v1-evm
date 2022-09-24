@@ -258,13 +258,13 @@ contract BridgeableToken is BaseTest {
 
     // Hacker mint the full supply
     p88OnPolygon.setMinter(address(this), true);
-    p88OnPolygon.mint(BOB, 99_999_999 ether);
+    p88OnPolygon.mint(BOB, 999_999 ether);
 
     vm.startPrank(BOB);
     p88OnPolygon.bridgeToken(
       ETHEREUM_CHAIN_ID,
       ALICE,
-      100_000_000 ether,
+      1_000_000 ether,
       address(bridgeStratOnPolygon),
       abi.encode(0)
     );
