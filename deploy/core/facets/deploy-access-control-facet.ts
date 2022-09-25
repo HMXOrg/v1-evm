@@ -7,24 +7,23 @@ const config = getConfig();
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
-  const DiamondCutFacet = await ethers.getContractFactory(
-    "DiamondCutFacet",
+  const AccessControlFacet = await ethers.getContractFactory(
+    "AccessControlFacet",
     deployer
   );
+  const accessControlFacet = await AccessControlFacet.deploy();
+  accessControlFacet.deployed();
+  console.log(`Deploying AccessControlFacet Contract`);
+  console.log(`Deployed at: ${accessControlFacet.address}`);
 
-  console.log(`Deploying DiamondCutFacet Contract`);
-  const diamondCutFacet = await DiamondCutFacet.deploy();
-  await diamondCutFacet.deployed();
-  console.log(`Deployed at: ${diamondCutFacet.address}`);
-
-  config.Pools.PLP.facets.diamondCut = diamondCutFacet.address;
+  config.Pools.PLP.facets.accessControl = accessControlFacet.address;
   writeConfigFile(config);
 
   await tenderly.verify({
-    address: diamondCutFacet.address,
-    name: "DiamondCutFacet",
+    address: accessControlFacet.address,
+    name: "AccessControlFacet",
   });
 };
 
 export default func;
-func.tags = ["DiamondCutFacet"];
+func.tags = ["AccessControlFacet"];

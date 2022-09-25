@@ -16,13 +16,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`Deploying PerpTradeFacet Contract`);
   console.log(`Deployed at: ${perpTradeFacet.address}`);
 
+  config.Pools.PLP.facets.perpTrade = perpTradeFacet.address;
+  writeConfigFile(config);
+
   await tenderly.verify({
     address: perpTradeFacet.address,
     name: "PerpTradeFacet",
   });
-
-  config.Pools.PLP.facets.perpTrade = perpTradeFacet.address;
-  writeConfigFile(config);
 };
 
 export default func;

@@ -21,6 +21,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`Deploying DragonStaking Contract`);
   console.log(`Deployed at: ${dragonStaking.address}`);
 
+  config.Staking.DragonStaking.address = dragonStaking.address;
+  writeConfigFile(config);
+
   const implAddress = await getImplementationAddress(
     ethers.provider,
     dragonStaking.address
@@ -30,9 +33,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     address: implAddress,
     name: "DragonStaking",
   });
-
-  config.Staking.DragonStaking.address = dragonStaking.address;
-  writeConfigFile(config);
 };
 
 export default func;

@@ -15,13 +15,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`Deploying PoolRouter Contract`);
   console.log(`Deployed at: ${poolRouter.address}`);
 
+  config.PoolRouter = poolRouter.address;
+  writeConfigFile(config);
+
   await tenderly.verify({
     address: poolRouter.address,
     name: "PoolRouter",
   });
-
-  config.PoolRouter = poolRouter.address;
-  writeConfigFile(config);
 };
 
 export default func;

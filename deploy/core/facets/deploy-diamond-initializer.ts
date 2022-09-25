@@ -16,13 +16,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   await diamondInitializer.deployed();
   console.log(`Deployed at: ${diamondInitializer.address}`);
 
+  config.Pools.PLP.facets.diamondInitializer = diamondInitializer.address;
+  writeConfigFile(config);
+
   await tenderly.verify({
     address: diamondInitializer.address,
     name: "DiamondInitializer",
   });
-
-  config.Pools.PLP.facets.diamondInitializer = diamondInitializer.address;
-  writeConfigFile(config);
 };
 
 export default func;

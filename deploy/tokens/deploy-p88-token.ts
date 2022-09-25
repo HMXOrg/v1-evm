@@ -7,7 +7,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const config = getConfig();
   const deployer = (await ethers.getSigners())[0];
   const P88 = await ethers.getContractFactory("P88", deployer);
-  const p88 = await P88.deploy();
+  const p88 = await P88.deploy(false);
   await p88.deployed();
   console.log(`Deploying P88 Token Contract`);
   console.log(`Deployed at: ${p88.address}`);

@@ -20,6 +20,8 @@
       "oracle": "0xD002d06DcD6C8F78B57DF2db77d08328d4F4B738",
       "facets": {
         "admin": "0x5B375647cBbe02Af99ad362C4445882014A873DB",
+        "accessControl": "",
+        "farm": "",
         "diamondCut": "0x49676dEa8A9140314c7481D2ddB8f1567fA1f1c4",
         "diamondLoupe": "0xb60522925f20Bf0f89a56fB327eD09c5b0b325c7",
         "liquidity": "0x61439aE3DCEA142D93b480f3C3b8e863D3F02B43",

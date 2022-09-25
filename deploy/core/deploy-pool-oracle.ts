@@ -16,6 +16,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`Deploying PoolOracle Contract`);
   console.log(`Deployed at: ${poolOracle.address}`);
 
+  config.Pools.PLP.oracle = poolOracle.address;
+  writeConfigFile(config);
+
   const implAddress = await getImplementationAddress(
     ethers.provider,
     poolOracle.address
@@ -25,9 +28,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     address: implAddress,
     name: "PoolOracle",
   });
-
-  config.Pools.PLP.oracle = poolOracle.address;
-  writeConfigFile(config);
 };
 
 export default func;

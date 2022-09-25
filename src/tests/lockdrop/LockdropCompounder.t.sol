@@ -46,7 +46,7 @@ contract Lockdrop_StakePLP is BaseTest {
     mockERC20 = new MockErc20("Mock Token", "MT", 18);
     mockPLPToken = deployPLP();
     mockP88Token = new P88(true);
-    mockEsP88Token = new EsP88();
+    mockEsP88Token = deployEsP88();
     mockWMaticToken = deployMockWNative();
     dragonStaking = deployDragonStaking(address(0x99));
     mockWMaticToken.deposit{ value: 100 ether }();

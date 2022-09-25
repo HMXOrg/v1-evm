@@ -16,13 +16,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`Deploying FundingRateFacet Contract`);
   console.log(`Deployed at: ${fundingRateFacet.address}`);
 
+  config.Pools.PLP.facets.fundingRate = fundingRateFacet.address;
+  writeConfigFile(config);
+
   await tenderly.verify({
     address: fundingRateFacet.address,
     name: "FundingRateFacet",
   });
-
-  config.Pools.PLP.facets.fundingRate = fundingRateFacet.address;
-  writeConfigFile(config);
 };
 
 export default func;

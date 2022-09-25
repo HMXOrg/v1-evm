@@ -14,6 +14,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`Deploying PLPStaking Contract`);
   console.log(`Deployed at: ${plpStaking.address}`);
 
+  config.Staking.PLPStaking.address = plpStaking.address;
+  writeConfigFile(config);
+
   const implAddress = await getImplementationAddress(
     ethers.provider,
     plpStaking.address
@@ -23,9 +26,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     address: implAddress,
     name: "PLPStaking",
   });
-
-  config.Staking.PLPStaking.address = plpStaking.address;
-  writeConfigFile(config);
 };
 
 export default func;

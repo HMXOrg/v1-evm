@@ -16,13 +16,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`Deploying DiamondLoupeFacet Contract`);
   console.log(`Deployed at: ${diamondLoupeFacet.address}`);
 
+  config.Pools.PLP.facets.diamondLoupe = diamondLoupeFacet.address;
+  writeConfigFile(config);
+
   await tenderly.verify({
     address: diamondLoupeFacet.address,
     name: "DiamondLoupeFacet",
   });
-
-  config.Pools.PLP.facets.diamondLoupe = diamondLoupeFacet.address;
-  writeConfigFile(config);
 };
 
 export default func;

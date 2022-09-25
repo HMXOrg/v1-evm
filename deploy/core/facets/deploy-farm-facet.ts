@@ -7,23 +7,20 @@ const config = getConfig();
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
-  const OwnershipFacet = await ethers.getContractFactory(
-    "OwnershipFacet",
-    deployer
-  );
-  const ownershipFacet = await OwnershipFacet.deploy();
-  await ownershipFacet.deployed();
-  console.log(`Deploying OwnershipFacet Contract`);
-  console.log(`Deployed at: ${ownershipFacet.address}`);
+  const FarmFacet = await ethers.getContractFactory("FarmFacet", deployer);
+  const farmFacet = await FarmFacet.deploy();
+  farmFacet.deployed();
+  console.log(`Deploying FarmFacet Contract`);
+  console.log(`Deployed at: ${farmFacet.address}`);
 
-  config.Pools.PLP.facets.ownership = ownershipFacet.address;
+  config.Pools.PLP.facets.farm = farmFacet.address;
   writeConfigFile(config);
 
   await tenderly.verify({
-    address: ownershipFacet.address,
-    name: "OwnershipFacet",
+    address: farmFacet.address,
+    name: "FarmFacet",
   });
 };
 
 export default func;
-func.tags = ["OwnershipFacet"];
+func.tags = ["FarmFacet"];

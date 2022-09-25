@@ -678,7 +678,7 @@ contract BaseTest is DSTest, CoreConstants {
   }
 
   function deployEsP88() internal returns (EsP88) {
-    return new EsP88();
+    return new EsP88(true);
   }
 
   function deployDragonPoint() internal returns (DragonPoint) {

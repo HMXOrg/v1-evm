@@ -25,16 +25,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`Deploying ${NAME} AdHocMintRewarder Contract`);
   console.log(`Deployed at: ${rewarder.address}`);
 
-  const implAddress = await getImplementationAddress(
-    ethers.provider,
-    rewarder.address
-  );
-
-  await tenderly.verify({
-    address: implAddress,
-    name: "AdHocMintRewarder",
-  });
-
   config.Staking.DragonStaking.rewarders =
     config.Staking.DragonStaking.rewarders.map((each: any) => {
       if (each.name === NAME) {
@@ -46,6 +36,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       } else return each;
     });
   writeConfigFile(config);
+
+  const implAddress = await getImplementationAddress(
+    ethers.provider,
+    rewarder.address
+  );
+
+  await tenderly.verify({
+    address: implAddress,
+    name: "AdHocMintRewarder",
+  });
 };
 
 export default func;

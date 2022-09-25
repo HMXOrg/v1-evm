@@ -27,16 +27,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`Deploying ${NAME} ${contractName} Contract`);
   console.log(`Deployed at: ${rewarder.address}`);
 
-  const implAddress = await getImplementationAddress(
-    ethers.provider,
-    rewarder.address
-  );
-
-  await tenderly.verify({
-    address: implAddress,
-    name: contractName,
-  });
-
   if (NAME.includes("PLP")) {
     config.Staking.PLPStaking.rewarders =
       config.Staking.PLPStaking.rewarders.map((each: any) => {
@@ -61,6 +51,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       });
   }
   writeConfigFile(config);
+
+  const implAddress = await getImplementationAddress(
+    ethers.provider,
+    rewarder.address
+  );
+
+  await tenderly.verify({
+    address: implAddress,
+    name: contractName,
+  });
 };
 
 function getRewardTokenAddress(rewarderName: string): string {

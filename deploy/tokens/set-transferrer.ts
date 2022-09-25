@@ -9,7 +9,10 @@ const config = getConfig();
 const TOKEN_ADDRESS = config.Tokens.DragonPoint;
 const TRANSFERRER_ADDRESSES = [
   config.Staking.DragonStaking.address,
-  config.Staking.DragonStaking.rewarders[2].address,
+  config.Staking.DragonStaking.rewarders.find(
+    (each) => each.name === "Dragon Staking Dragon Point Emission"
+  )!.address,
+  config.Staking.Compounder,
 ];
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {

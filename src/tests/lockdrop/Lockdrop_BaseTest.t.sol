@@ -43,7 +43,7 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     poolRouter = new MockPoolRouter();
     mockPLPToken = deployPLP();
     mockP88Token = new P88(true);
-    mockEsP88 = new EsP88();
+    mockEsP88 = deployEsP88();
     mockMatic = deployMockWNative();
 
     rewardsTokenList.push(address(mockEsP88));
