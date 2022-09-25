@@ -153,7 +153,22 @@
     "deploy:tenderly:staking:set-reward-feeder": "npx hardhat --network tenderly deploy --no-compile --reset --tags SetFeeder",
     "deploy:polygon:vesting:vester": "npx hardhat --network polygon deploy --no-compile --reset --tags Vester",
     "deploy:mumbai:vesting:vester": "npx hardhat --network mumbai deploy --no-compile --reset --tags Vester",
-    "deploy:tenderly:vesting:vester": "npx hardhat --network tenderly deploy --no-compile --reset --tags Vester"
+    "deploy:tenderly:vesting:vester": "npx hardhat --network tenderly deploy --no-compile --reset --tags Vester",
+    "deploy:polygon:lockdrop:lockdrop-compounder": "npx hardhat --network polygon deploy --no-compile --reset --tags LockdropCompounder",
+    "deploy:mumbai:lockdrop:lockdrop-compounder": "npx hardhat --network mumbai deploy --no-compile --reset --tags LockdropCompounder",
+    "deploy:tenderly:lockdrop:lockdrop-compounder": "npx hardhat --network tenderly deploy --no-compile --reset --tags LockdropCompounder",
+    "deploy:polygon:lockdrop:lockdrop-gateway": "npx hardhat --network polygon deploy --no-compile --reset --tags LockdropGateway",
+    "deploy:mumbai:lockdrop:lockdrop-gateway": "npx hardhat --network mumbai deploy --no-compile --reset --tags LockdropGateway",
+    "deploy:tenderly:lockdrop:lockdrop-gateway": "npx hardhat --network tenderly deploy --no-compile --reset --tags LockdropGateway",
+    "deploy:polygon:lockdrop:lockdrop-config": "npx hardhat --network polygon deploy --no-compile --reset --tags LockdropConfig",
+    "deploy:mumbai:lockdrop:lockdrop-config": "npx hardhat --network mumbai deploy --no-compile --reset --tags LockdropConfig",
+    "deploy:tenderly:lockdrop:lockdrop-config": "npx hardhat --network tenderly deploy --no-compile --reset --tags LockdropConfig",
+    "deploy:polygon:lockdrop:lockdrop": "npx hardhat --network polygon deploy --no-compile --reset --tags Lockdrop",
+    "deploy:mumbai:lockdrop:lockdrop": "npx hardhat --network mumbai deploy --no-compile --reset --tags Lockdrop",
+    "deploy:tenderly:lockdrop:lockdrop": "npx hardhat --network tenderly deploy --no-compile --reset --tags Lockdrop",
+    "deploy:polygon:lockdrop:set-lockdrop-token": "npx hardhat --network polygon deploy --no-compile --reset --tags SetLockdropToken",
+    "deploy:mumbai:lockdrop:set-lockdrop-token": "npx hardhat --network mumbai deploy --no-compile --reset --tags SetLockdropToken",
+    "deploy:tenderly:lockdrop:set-lockdrop-token": "npx hardhat --network tenderly deploy --no-compile --reset --tags SetLockdropToken"
   },
   "devDependencies": {
     "@tenderly/hardhat-tenderly": "^1.1.6",

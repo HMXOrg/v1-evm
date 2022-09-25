@@ -28,6 +28,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`Deploying Lockdrop Contract`);
   console.log(`Deployed at: ${lockdrop.address}`);
 
+  config.Lockdrop.lockdrops = config.Lockdrop.lockdrops.map((each: any) => {
+    if (each.lockdropToken === lockdropToken) {
+      return { ...each, address: lockdrop.address };
+    } else return each;
+  });
+  writeConfigFile(config);
+
   const implAddress = await getImplementationAddress(
     ethers.provider,
     lockdrop.address
@@ -37,13 +44,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     address: implAddress,
     name: "Lockdrop",
   });
-
-  config.Lockdrop.lockdrops = config.Lockdrop.lockdrops.map((each: any) => {
-    if (each.lockdropToken === lockdropToken) {
-      return { ...each, address: lockdrop.address };
-    } else return each;
-  });
-  writeConfigFile(config);
 };
 
 export default func;
