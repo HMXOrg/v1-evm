@@ -194,10 +194,6 @@ contract GetterFacet is GetterFacetInterface {
     return LibPoolV1.poolV1DiamondStorage().sumBorrowingRateOf[token];
   }
 
-  function sumFundingRateOf(address token) external view returns (uint256) {
-    return LibPoolV1.poolV1DiamondStorage().sumFundingRateOf[token];
-  }
-
   function swapFeeBps() external view returns (uint64) {
     return LibPoolConfigV1.poolConfigV1DiamondStorage().swapFeeBps;
   }
@@ -453,6 +449,7 @@ contract GetterFacet is GetterFacetInterface {
       collateral: position.collateral,
       averagePrice: position.averagePrice,
       entryBorrowingRate: position.entryBorrowingRate,
+      entryFundingRate: position.entryFundingRate,
       reserveAmount: position.reserveAmount,
       realizedPnl: realizedPnl,
       hasProfit: position.realizedPnl >= 0,

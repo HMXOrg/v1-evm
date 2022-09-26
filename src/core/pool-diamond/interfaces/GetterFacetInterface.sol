@@ -88,8 +88,6 @@ interface GetterFacetInterface {
     view
     returns (LibPoolConfigV1.StrategyData memory);
 
-  function sumFundingRateOf(address token) external view returns (uint256);
-
   function swapFeeBps() external view returns (uint64);
 
   function taxBps() external view returns (uint64);
@@ -158,6 +156,7 @@ interface GetterFacetInterface {
     uint256 collateral;
     uint256 averagePrice;
     uint256 entryBorrowingRate;
+    int256 entryFundingRate;
     uint256 reserveAmount;
     uint256 realizedPnl;
     bool hasProfit;

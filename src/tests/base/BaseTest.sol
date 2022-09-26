@@ -434,9 +434,8 @@ contract BaseTest is DSTest, CoreConstants {
   {
     FundingRateFacet fundingRateFacet = new FundingRateFacet();
 
-    bytes4[] memory selectors = new bytes4[](2);
+    bytes4[] memory selectors = new bytes4[](1);
     selectors[0] = FundingRateFacet.updateFundingRate.selector;
-    selectors[1] = FundingRateFacet.updateFundingRate.selector;
 
     DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
       address(fundingRateFacet),

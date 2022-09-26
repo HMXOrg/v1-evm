@@ -75,7 +75,6 @@ const methods = [
   "stableTaxBps()",
   "strategyDataOf(address)",
   "strategyOf(address)",
-  "sumFundingRateOf(address)",
   "swapFeeBps()",
   "taxBps()",
   "tokenMetas(address)",
