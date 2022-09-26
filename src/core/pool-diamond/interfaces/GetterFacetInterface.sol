@@ -112,7 +112,14 @@ interface GetterFacetInterface {
     bool isLong,
     uint256 lastIncreasedTime,
     int256 entryFundingRate
-  ) external view returns (bool, uint256);
+  )
+    external
+    view
+    returns (
+      bool,
+      uint256,
+      int256
+    );
 
   function getEntryBorrowingRate(
     address collateralToken,
@@ -189,7 +196,14 @@ interface GetterFacetInterface {
     address collateralToken,
     address indexToken,
     bool isLong
-  ) external view returns (bool, uint256);
+  )
+    external
+    view
+    returns (
+      bool,
+      uint256,
+      int256
+    );
 
   function getPositionFee(
     address account,

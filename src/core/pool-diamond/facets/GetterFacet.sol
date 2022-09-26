@@ -26,6 +26,7 @@ contract GetterFacet is GetterFacetInterface {
     int256 fundingFee;
     uint256 price;
     uint256 priceDelta;
+    uint256 minBps;
   }
 
   address internal constant LINKEDLIST_START = address(1);
@@ -241,8 +242,15 @@ contract GetterFacet is GetterFacetInterface {
     bool isLong,
     uint256 lastIncreasedTime,
     int256 entryFundingRate
-  ) public view returns (bool, uint256) {
-    console.log("===getDelta===");
+  )
+    public
+    view
+    returns (
+      bool,
+      uint256,
+      int256
+    )
+  {
     GetDeltaLocalVars memory vars;
 
     // Load diamond storage
@@ -271,7 +279,7 @@ contract GetterFacet is GetterFacetInterface {
       vars.isProfit = vars.price < averagePrice;
     }
 
-    uint256 minBps = block.timestamp >
+    vars.minBps = block.timestamp >
       lastIncreasedTime + poolConfigDs.minProfitDuration
       ? 0
       : poolConfigDs.tokenMetas[indexToken].minProfitBps;
@@ -285,20 +293,15 @@ contract GetterFacet is GetterFacetInterface {
       size,
       entryFundingRate
     );
-    console.log("fundingFee");
-    console.logInt(vars.fundingFee);
     vars.signedDelta = vars.isProfit ? int256(vars.delta) : -int256(vars.delta);
     vars.signedDelta -= vars.fundingFee;
-    console.log("signedDelta");
-    console.logInt(vars.signedDelta);
     vars.isProfit = vars.signedDelta > 0;
     vars.delta = vars.signedDelta >= 0
       ? uint256(vars.signedDelta)
       : uint256(-vars.signedDelta);
 
-    if (vars.isProfit && vars.delta * BPS <= size * minBps) vars.delta = 0;
-    console.log("delta", vars.delta);
-    return (vars.isProfit, vars.delta);
+    if (vars.isProfit && vars.delta * BPS <= size * vars.minBps) vars.delta = 0;
+    return (vars.isProfit, vars.delta, vars.fundingFee);
   }
 
   function getEntryBorrowingRate(
@@ -464,7 +467,15 @@ contract GetterFacet is GetterFacetInterface {
     address collateralToken,
     address indexToken,
     bool isLong
-  ) external view returns (bool, uint256) {
+  )
+    external
+    view
+    returns (
+      bool,
+      uint256,
+      int256
+    )
+  {
     LibPoolV1.Position memory position = LibPoolV1
       .poolV1DiamondStorage()
       .positions[
@@ -532,7 +543,7 @@ contract GetterFacet is GetterFacetInterface {
     uint256 lastIncreasedTime,
     int256 entryFundingRate
   ) external view returns (uint256) {
-    (bool isProfit, uint256 delta) = getDelta(
+    (bool isProfit, uint256 delta, ) = getDelta(
       indexToken,
       size,
       averagePrice,

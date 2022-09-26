@@ -115,7 +115,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       LibPoolV1.getPositionId(account, collateralToken, indexToken, isLong)
     ];
 
-    (bool isProfit, uint256 delta) = GetterFacetInterface(address(this))
+    (bool isProfit, uint256 delta, ) = GetterFacetInterface(address(this))
       .getDelta(
         indexToken,
         position.size,
@@ -823,14 +823,15 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     );
 
     // Calculate position's delta.
-    (vars.isProfit, vars.delta) = GetterFacetInterface(address(this)).getDelta(
-      indexToken,
-      position.size,
-      position.averagePrice,
-      isLong,
-      position.lastIncreasedTime,
-      position.entryFundingRate
-    );
+    (vars.isProfit, vars.delta, ) = GetterFacetInterface(address(this))
+      .getDelta(
+        indexToken,
+        position.size,
+        position.averagePrice,
+        isLong,
+        position.lastIncreasedTime,
+        position.entryFundingRate
+      );
     // Adjusting delta to be proportionally to size delta and position size
     vars.delta = (vars.delta * sizeDelta) / position.size;
 

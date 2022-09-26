@@ -227,7 +227,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
     wbtcPriceFeed.setLatestAnswer((41_000 - 1) * 10**8);
     wbtcPriceFeed.setLatestAnswer((41_000 - 1) * 10**8);
 
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       ALICE,
       0,
       address(wbtc),
@@ -242,7 +242,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
     wbtcPriceFeed.setLatestAnswer((41_000 + 307.5) * 10**8);
     wbtcPriceFeed.setLatestAnswer((41_000 + 307.5) * 10**8);
 
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       ALICE,
       0,
       address(wbtc),
@@ -257,7 +257,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
     wbtcPriceFeed.setLatestAnswer((41_000 + 308) * 10**8);
     wbtcPriceFeed.setLatestAnswer((41_000 + 308) * 10**8);
 
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       ALICE,
       0,
       address(wbtc),
@@ -272,7 +272,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
     wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
     wbtcPriceFeed.setLatestAnswer(45_100 * 10**8);
 
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       ALICE,
       0,
       address(wbtc),
@@ -284,7 +284,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
 
     wbtcPriceFeed.setLatestAnswer(46_100 * 10**8);
 
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       ALICE,
       0,
       address(wbtc),
@@ -296,7 +296,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
 
     wbtcPriceFeed.setLatestAnswer(47_100 * 10**8);
 
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       ALICE,
       0,
       address(wbtc),
@@ -510,7 +510,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
     // = 90 * ((45100 - 41000) / 41000)
     // = 9 USD
     // 2. Position should be profitable
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -682,7 +682,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
     // = 90 * ((45100 - 41000) / 41000)
     // = 9 USD
     // 2. Position should be profitable
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -877,7 +877,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
     // = 90 * ((39000 - 41000) / 41000)
     // = -4.390243902439025 USD
     // 2. Position should be loss
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -1090,7 +1090,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
     wbtcPriceFeed.setLatestAnswer((41_000 - 1) * 10**8);
     wbtcPriceFeed.setLatestAnswer((41_000 - 1) * 10**8);
 
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -1104,7 +1104,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
     wbtcPriceFeed.setLatestAnswer((41_000 + 307) * 10**8);
     wbtcPriceFeed.setLatestAnswer((41_000 + 307) * 10**8);
 
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -1116,7 +1116,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
 
     vm.warp(10 * 60 + 10);
 
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -1223,7 +1223,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
     // = 0.9 USD
     // 2. WBTC price below the position's average price
     // Hence, position should be in loss
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -1444,7 +1444,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
     // = 90 * ((40000-44000) / 40000)
     // = -9 USD
     // 2. Hence, position is not profitable.
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -1459,7 +1459,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
 
     // Assert position's delta. This shouldn't affect the delta.
     // As when calculate position delta, we take max price.
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -1480,7 +1480,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
     // = 90 * ((40000 - 1) / 40000)
     // = 89.99775 USD
     // 2. Position should be profitable
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -1688,7 +1688,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
     // = 90 * ((40000-44000) / 40000)
     // = -9 USD
     // 2. Hence, position is not profitable.
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -1703,7 +1703,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
 
     // Assert position's delta. This shouldn't affect the delta.
     // As when calculate position delta, we take max price.
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -1724,7 +1724,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
     // = 90 * ((40000 - 1) / 40000)
     // = 89.99775 USD
     // 2. Position should be profitable
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -1964,7 +1964,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
     // Pool's AUM by max price:
     // = 99.96 + (90 * (40400-40000) / 40000) [Short Delta]
     // = 100.86 USD
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -2207,7 +2207,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
     // = 90 * ((40000 - 36000) / 40000)
     // = 9 USD
     // 2. Position should be profitable
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -2398,7 +2398,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
     // = 90 * (40000 - 41000) / 40000
     // = -2.25 USD
     // 2. Position should be loss
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),

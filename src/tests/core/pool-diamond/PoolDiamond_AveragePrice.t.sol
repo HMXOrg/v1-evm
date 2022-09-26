@@ -136,7 +136,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 90 * ((45100 - 41000) / 41000)
     // = 9 USD
     // 2. Position is profitable
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -227,7 +227,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 4.371549893842888 USD
     // 2. Position is profitable
     // Profits decrease a lot due to the price different between price ref and mark price.
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -247,7 +247,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 100 * ((47100 - 43211.00917431193) / 43211.00917431193)
     // = 9 USD
     // 2. Position is profitable
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -376,7 +376,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 90 * ((45100 - 41000) / 41000)
     // = 9 USD
     // 2. Position is profitable
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -466,7 +466,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 100 * ((45100 - 41376.14678899082) / 41376.14678899082)
     // = 9 USD
     // 2. Position is profitable
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -484,7 +484,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 100 * ((41000 - 41376.14678899082) / 41376.14678899082)
     // = -0.9090909090909041 USD
     // 2. Position is unprofitable
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -504,7 +504,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 100 * ((50000 - 41376.14678899082) / 41376.14678899082)
     // = 20.842572062084265 USD
     // 2. Position is profitable
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -633,7 +633,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 90 * ((36900 - 41000) / 41000)
     // = -9 USD
     // 2. Position is loss
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -725,7 +725,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 100 * ((36900 - 40549.45054945055) / 40549.45054945055)
     // = -9 USD
     // 2. Position is loss
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -745,7 +745,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 100 * ((41000 - 40549.45054945055) / 40549.45054945055)
     // = 1.11 USD
     // 2. Position is profit
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -854,7 +854,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 90 * ((40000 - 40000) / 40000)
     // = 0 USD
     // 2. Position is not profit
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -906,7 +906,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 100 * ((40000 - 40000) / 40000)
     // = 0 USD
     // 2. Position is not profit
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -1017,7 +1017,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 90 * ((50000 - 40000) / 40000)
     // = 22.5 USD
     // 2. Position is profitable
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -1069,7 +1069,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 100 * ((50000 - 40816.32653061225) / 40816.32653061225)
     // = 22.5 USD
     // 2. Position is profit
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -1179,7 +1179,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 90 * ((30000 - 40000) / 40000)
     // = -22.5 USD
     // 2. Position is loss
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -1231,7 +1231,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 100 * ((30000 - 38709.67741935484) / 38709.67741935484)
     // = -22.5 USD
     // 2. Position is loss
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -1311,7 +1311,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 5050.322181222357 * ((2373.23502539 - 2521.45037536) / 2521.45037536)
     // = -296.8669448607548 USD
     // 2. Position is loss
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(matic),
@@ -1460,7 +1460,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // 90 * 0.0075 [MinProfitBps] =  0.6749999999999999
     // Hence, delta is 0.
     // 2. Position is neutral
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -1512,7 +1512,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 100 * ((40300 - 40300) / 40300)
     // = 0 USD
     // 2. Position is neutral
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -1610,7 +1610,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 90 * ((40000 - 40000) / 40000)
     // = 0 USD
     // 2. Position is neutral
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -1660,7 +1660,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 100 * ((40000 - 40000) / 40000)
     // = 0 USD
     // 2. Position is neutral
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -1768,7 +1768,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 90 * ((40000 - 50000) / 40000)
     // = -22.5 USD
     // 2. Position is loss
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -1830,7 +1830,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 100 * ((40816.32653061225 - 50000) / 40816.32653061225)
     // = -22.5 USD
     // 2. Position is loss
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -1938,7 +1938,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 90 * ((40000 - 30000) / 40000)
     // = 22.5 USD
     // 2. Position is profit
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -2000,7 +2000,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 100 * ((38709.67741935484 - 30000) / 38709.67741935484)
     // = 22.5 USD
     // 2. Position is profit
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -2110,7 +2110,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // Which is <= 90 * 0.0075 = 0.675 USD
     // Hence, delta turns to 0
     // 2. Position is profit
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -2183,7 +2183,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 90 * ((39700 - 39700) / 39700)
     // = 0 USD
     // 2. Position is not profiting
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -2213,7 +2213,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 100 * ((39700 - 39000) / 39700)
     // = 1.7632241813602016 USD
     // 2. Position is profiting
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),

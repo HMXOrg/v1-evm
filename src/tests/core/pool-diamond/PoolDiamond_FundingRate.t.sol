@@ -112,7 +112,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // = 90 * ((45100 - 41000) / 41000)
     // = 9 USD
     // 2. Position is profitable
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -205,7 +205,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
 
     assertEq(poolGetterFacet.getNextBorrowingRate(address(wbtc)), 233);
 
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -317,7 +317,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
   //   // = 90 * ((45100 - 41000) / 41000)
   //   // = 9 USD
   //   // 2. Position is profitable
-  //   (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+  //   (bool isProfit, uint256 delta,) = poolGetterFacet.getPositionDelta(
   //     address(this),
   //     0,
   //     address(wbtc),
