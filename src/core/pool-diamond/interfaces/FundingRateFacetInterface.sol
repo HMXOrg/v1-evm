@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 interface FundingRateFacetInterface {
-  function updateBorrowingRate(address collateralToken, address indexToken)
+  function updateFundingRate(address collateralToken, address indexToken)
     external;
 
   function updateFundingRate(address collateralToken, address indexToken)

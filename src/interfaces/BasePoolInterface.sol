@@ -155,7 +155,7 @@ interface BasePoolInterface {
 
   function transferOwnership(address newOwner) external;
 
-  function updateBorrowingRate(address collateralToken, address indexToken)
+  function updateFundingRate(address collateralToken, address indexToken)
     external;
 
   function usdDebtOf(address) external view returns (uint256);

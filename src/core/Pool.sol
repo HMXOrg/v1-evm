@@ -233,7 +233,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
   // ---------------------------
   // Pool's core functionalities
   // ---------------------------
-  function updateBorrowingRate(address collateralToken, address indexToken)
+  function updateFundingRate(address collateralToken, address indexToken)
     public
   {
     if (!config.shouldUpdateBorrowingRate(collateralToken, indexToken)) return;
@@ -311,7 +311,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
     uint256 amount,
     address receiver
   ) internal returns (uint256) {
-    updateBorrowingRate(token, token);
+    updateFundingRate(token, token);
 
     uint256 price = oracle.getMinPrice(token);
 
@@ -390,7 +390,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
     uint256 usdValue,
     address receiver
   ) internal returns (uint256) {
-    updateBorrowingRate(token, token);
+    updateFundingRate(token, token);
 
     uint256 tokenPrice = oracle.getMaxPrice(token);
     uint256 amountOut = _convertTokenDecimals(
@@ -438,8 +438,8 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
     if (tokenIn == tokenOut) revert Pool_BadArgument();
     if (amountIn == 0) revert Pool_BadArgument();
 
-    updateBorrowingRate(tokenIn, tokenIn);
-    updateBorrowingRate(tokenOut, tokenOut);
+    updateFundingRate(tokenIn, tokenIn);
+    updateFundingRate(tokenOut, tokenOut);
 
     uint256 priceIn = oracle.getMinPrice(tokenIn);
     uint256 priceOut = oracle.getMaxPrice(tokenOut);
@@ -535,7 +535,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
     );
     // TODO: Add validate increase position
 
-    updateBorrowingRate(collateralToken, indexToken);
+    updateFundingRate(collateralToken, indexToken);
 
     IncreasePositionLocalVars memory vars;
 
@@ -723,7 +723,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
     Exposure exposure,
     address receiver
   ) internal returns (uint256) {
-    updateBorrowingRate(collateralToken, indexToken);
+    updateFundingRate(collateralToken, indexToken);
 
     DecreasePositionLocalVars memory vars;
 
@@ -882,7 +882,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
   ) external nonReentrant {
     if (!config.isAllowedLiquidators(msg.sender)) revert Pool_BadLiquidator();
 
-    updateBorrowingRate(collateralToken, indexToken);
+    updateFundingRate(collateralToken, indexToken);
 
     address subAccount = getSubAccount(primaryAccount, subAccountId);
 

@@ -287,7 +287,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       revert PerpTradeFacet_LeverageDisabled();
     _checkTokenInputs(collateralToken, indexToken, isLong);
 
-    FundingRateFacetInterface(address(this)).updateBorrowingRate(
+    FundingRateFacetInterface(address(this)).updateFundingRate(
       collateralToken,
       indexToken
     );
@@ -478,7 +478,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
       .poolV1DiamondStorage();
 
-    FundingRateFacetInterface(address(this)).updateBorrowingRate(
+    FundingRateFacetInterface(address(this)).updateFundingRate(
       collateralToken,
       indexToken
     );
@@ -647,7 +647,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     if (!LibPoolConfigV1.isAllowedLiquidators(msg.sender))
       revert PerpTradeFacet_BadLiquidator();
 
-    FundingRateFacetInterface(address(this)).updateBorrowingRate(
+    FundingRateFacetInterface(address(this)).updateFundingRate(
       collateralToken,
       indexToken
     );

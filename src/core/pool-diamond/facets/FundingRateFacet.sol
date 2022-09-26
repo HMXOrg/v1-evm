@@ -16,7 +16,7 @@ contract FundingRateFacet is FundingRateFacetInterface {
     int256 sumRateShort
   );
 
-  function updateBorrowingRate(address collateralToken, address indexToken)
+  function updateFundingRate(address collateralToken, address indexToken)
     external
   {
     LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
