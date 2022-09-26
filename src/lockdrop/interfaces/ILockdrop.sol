@@ -30,7 +30,7 @@ interface ILockdrop {
 
   function withdrawAll(address user) external;
 
-  function claimAllP88(address user) external;
+  function claimAllP88(address user) external returns (uint256);
 
   function lockdropStates(address user)
     external
@@ -41,4 +41,6 @@ interface ILockdrop {
       bool p88Claimed,
       bool restrictedWithdrawn
     );
+
+  function lockdropConfig() external returns (address);
 }

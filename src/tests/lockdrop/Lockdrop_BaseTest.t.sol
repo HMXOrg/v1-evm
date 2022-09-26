@@ -42,8 +42,8 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     mockERC20 = new MockErc20("Mock Token", "MT", 18);
     poolRouter = new MockPoolRouter();
     mockPLPToken = deployPLP();
-    mockP88Token = new P88();
-    mockEsP88 = new EsP88();
+    mockP88Token = new P88(true);
+    mockEsP88 = deployEsP88();
     mockMatic = deployMockWNative();
 
     rewardsTokenList.push(address(mockEsP88));

@@ -9,11 +9,14 @@ import { stdError } from "../utils/stdError.sol";
 import { math } from "../utils/math.sol";
 
 import { Constants as CoreConstants } from "../../core/Constants.sol";
+import { MintableTokenInterface } from "../../interfaces/MintableTokenInterface.sol";
 
 import { MockErc20 } from "../mocks/MockERC20.sol";
 import { MockWNative } from "../mocks/MockWNative.sol";
 import { MockChainlinkPriceFeed } from "../mocks/MockChainlinkPriceFeed.sol";
+import { MockDonateVault } from "../mocks/MockDonateVault.sol";
 import { MockFlashLoanBorrower } from "../mocks/MockFlashLoanBorrower.sol";
+import { MockStrategy } from "../mocks/MockStrategy.sol";
 
 import { PoolOracle } from "../../core/PoolOracle.sol";
 import { PoolConfig } from "../../core/PoolConfig.sol";
@@ -52,8 +55,13 @@ import { FundingRateFacet, FundingRateFacetInterface } from "../../core/pool-dia
 import { LiquidityFacet, LiquidityFacetInterface } from "../../core/pool-diamond/facets/LiquidityFacet.sol";
 import { PerpTradeFacet, PerpTradeFacetInterface } from "../../core/pool-diamond/facets/PerpTradeFacet.sol";
 import { AdminFacet, AdminFacetInterface } from "../../core/pool-diamond/facets/AdminFacet.sol";
+import { FarmFacet, FarmFacetInterface } from "../../core/pool-diamond/facets/FarmFacet.sol";
+import { AccessControlFacet, AccessControlFacetInterface } from "../../core/pool-diamond/facets/AccessControlFacet.sol";
+
+import { LibAccessControl } from "../../core/pool-diamond/libraries/LibAccessControl.sol";
 import { DiamondInitializer } from "../../core/pool-diamond/initializers/DiamondInitializer.sol";
 import { PoolConfigInitializer } from "../../core/pool-diamond/initializers/PoolConfigInitializer.sol";
+import { AccessControlInitializer } from "../../core/pool-diamond/initializers/AccessControlInitializer.sol";
 import { PoolDiamond } from "../../core/pool-diamond/PoolDiamond.sol";
 
 import { PoolRouter } from "../../core/pool-diamond/PoolRouter.sol";
@@ -348,7 +356,7 @@ contract BaseTest is DSTest, CoreConstants {
   {
     GetterFacet getterFacet = new GetterFacet();
 
-    bytes4[] memory selectors = new bytes4[](55);
+    bytes4[] memory selectors = new bytes4[](60);
     selectors[0] = GetterFacet.getAddLiquidityFeeBps.selector;
     selectors[1] = GetterFacet.getRemoveLiquidityFeeBps.selector;
     selectors[2] = GetterFacet.getSwapFeeBps.selector;
@@ -404,6 +412,11 @@ contract BaseTest is DSTest, CoreConstants {
     selectors[52] = GetterFacet.openInterestLong.selector;
     selectors[53] = GetterFacet.openInterestShort.selector;
     selectors[54] = GetterFacet.getNextFundingRate.selector;
+    selectors[55] = GetterFacet.pendingStrategyOf.selector;
+    selectors[56] = GetterFacet.strategyOf.selector;
+    selectors[57] = GetterFacet.strategyDataOf.selector;
+    selectors[58] = GetterFacet.getStrategyDeltaOf.selector;
+    selectors[59] = GetterFacet.totalOf.selector;
 
     DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
       address(getterFacet),
@@ -486,6 +499,13 @@ contract BaseTest is DSTest, CoreConstants {
     return new PoolConfigInitializer();
   }
 
+  function deployAccessControlInitializer()
+    internal
+    returns (AccessControlInitializer)
+  {
+    return new AccessControlInitializer();
+  }
+
   function deployAdminFacet(DiamondCutFacet diamondCutFacet)
     internal
     returns (AdminFacet, bytes4[] memory)
@@ -521,6 +541,58 @@ contract BaseTest is DSTest, CoreConstants {
 
     diamondCutFacet.diamondCut(facetCuts, address(0), "");
     return (adminFacet, selectors);
+  }
+
+  function deployFarmFacet(DiamondCutFacet diamondCutFacet)
+    internal
+    returns (FarmFacet, bytes4[] memory)
+  {
+    FarmFacet farmFacet = new FarmFacet();
+
+    bytes4[] memory selectors = new bytes4[](3);
+    selectors[0] = FarmFacet.setStrategyOf.selector;
+    selectors[1] = FarmFacet.setStrategyTargetBps.selector;
+    selectors[2] = FarmFacet.farm.selector;
+
+    DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
+      address(farmFacet),
+      DiamondCutInterface.FacetCutAction.Add,
+      selectors
+    );
+
+    diamondCutFacet.diamondCut(facetCuts, address(0), "");
+    return (farmFacet, selectors);
+  }
+
+  function deployAccessControlFacet(DiamondCutFacet diamondCutFacet)
+    internal
+    returns (AccessControlFacet, bytes4[] memory)
+  {
+    AccessControlFacet accessControlFacet = new AccessControlFacet();
+    AccessControlInitializer accessControlInitializer = deployAccessControlInitializer();
+
+    bytes4[] memory selectors = new bytes4[](5);
+    selectors[0] = AccessControlFacet.hasRole.selector;
+    selectors[1] = AccessControlFacet.getRoleAdmin.selector;
+    selectors[2] = AccessControlFacet.grantRole.selector;
+    selectors[3] = AccessControlFacet.revokeRole.selector;
+    selectors[4] = AccessControlFacet.renounceRole.selector;
+
+    DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
+      address(accessControlFacet),
+      DiamondCutInterface.FacetCutAction.Add,
+      selectors
+    );
+
+    diamondCutFacet.diamondCut(
+      facetCuts,
+      address(accessControlInitializer),
+      abi.encodeWithSelector(
+        bytes4(keccak256("initialize(address)")),
+        address(this)
+      )
+    );
+    return (accessControlFacet, selectors);
   }
 
   function _setupUpgradeable(
@@ -573,11 +645,26 @@ contract BaseTest is DSTest, CoreConstants {
     return new MockChainlinkPriceFeed();
   }
 
+  function deployMockDonateVault(address token)
+    internal
+    returns (MockDonateVault)
+  {
+    return new MockDonateVault(token);
+  }
+
   function deployMockFlashLoanBorrower()
     internal
     returns (MockFlashLoanBorrower)
   {
     return new MockFlashLoanBorrower();
+  }
+
+  function deployMockStrategy(
+    address token,
+    MockDonateVault vault,
+    address pool
+  ) internal returns (MockStrategy) {
+    return new MockStrategy(token, vault, pool);
   }
 
   function deployPLP() internal returns (PLP) {
@@ -593,15 +680,22 @@ contract BaseTest is DSTest, CoreConstants {
   }
 
   function deployP88() internal returns (P88) {
-    return new P88();
+    return new P88(true);
   }
 
   function deployEsP88() internal returns (EsP88) {
-    return new EsP88();
+    return new EsP88(true);
   }
 
   function deployDragonPoint() internal returns (DragonPoint) {
-    return new DragonPoint();
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/DragonPoint.sol/DragonPoint.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize()"))
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return DragonPoint(payable(_proxy));
   }
 
   function deployPoolOracle(uint80 roundDepth) internal returns (PoolOracle) {
@@ -708,6 +802,8 @@ contract BaseTest is DSTest, CoreConstants {
     deployOwnershipFacet(DiamondCutFacet(address(poolDiamond)));
     deployPerpTradeFacet(DiamondCutFacet(address(poolDiamond)));
     deployAdminFacet(DiamondCutFacet(address(poolDiamond)));
+    deployFarmFacet(DiamondCutFacet(address(poolDiamond)));
+    deployAccessControlFacet(DiamondCutFacet(address(poolDiamond)));
 
     initializeDiamond(DiamondCutFacet(address(poolDiamond)));
     initializePoolConfig(
@@ -973,15 +1069,17 @@ contract BaseTest is DSTest, CoreConstants {
   function deployLockdropGateway(
     address plpToken,
     address plpStaking,
+    address dragonStaking,
     address wnative
   ) internal returns (LockdropGateway) {
     bytes memory _logicBytecode = abi.encodePacked(
       vm.getCode("./out/LockdropGateway.sol/LockdropGateway.json")
     );
     bytes memory _initializer = abi.encodeWithSelector(
-      bytes4(keccak256("initialize(address,address,address)")),
+      bytes4(keccak256("initialize(address,address,address,address)")),
       plpToken,
       plpStaking,
+      dragonStaking,
       wnative
     );
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);

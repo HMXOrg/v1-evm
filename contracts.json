@@ -20,6 +20,8 @@
       "oracle": "",
       "facets": {
         "admin": "",
+        "accessControl": "",
+        "farm": "",
         "diamondCut": "",
         "diamondLoupe": "",
         "liquidity": "",

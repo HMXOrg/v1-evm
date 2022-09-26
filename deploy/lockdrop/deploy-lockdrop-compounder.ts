@@ -23,6 +23,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`Deploying LockdropCompounder Contract`);
   console.log(`Deployed at: ${lockdropCompounder.address}`);
 
+  config.Lockdrop.compounder = lockdropCompounder.address;
+  writeConfigFile(config);
+
   const implAddress = await getImplementationAddress(
     ethers.provider,
     lockdropCompounder.address
@@ -32,9 +35,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     address: implAddress,
     name: "LockdropCompounder",
   });
-
-  config.Lockdrop.compounder = lockdropCompounder.address;
-  writeConfigFile(config);
 };
 
 export default func;

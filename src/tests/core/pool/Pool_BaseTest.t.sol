@@ -31,11 +31,15 @@ abstract contract Pool_BaseTest is BaseTest {
     poolOracle.setPriceFeed(tokens, priceFeedInfo);
   }
 
-  function checkPoolBalanceWithState(address token, uint256 offset) internal {
+  function checkPoolBalanceWithState(address token, int256 offset) internal {
     uint256 balance = IERC20(token).balanceOf(address(pool));
     assertEq(
       balance,
-      pool.liquidityOf(token) + pool.feeReserveOf(token) + offset
+      uint256(
+        int256(pool.liquidityOf(token)) +
+          int256(pool.feeReserveOf(token)) +
+          offset
+      )
     );
   }
 }

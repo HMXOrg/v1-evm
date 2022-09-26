@@ -6,6 +6,7 @@ import { LibPoolV1 } from "../libraries/LibPoolV1.sol";
 import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
 
 import { GetterFacetInterface } from "../interfaces/GetterFacetInterface.sol";
+import { StrategyInterface } from "../../../interfaces/StrategyInterface.sol";
 import { PLP } from "../../../tokens/PLP.sol";
 import { console } from "src/tests/utils/console.sol";
 
@@ -67,6 +68,14 @@ contract GetterFacet is GetterFacetInterface {
     return LibPoolConfigV1.poolConfigV1DiamondStorage().borrowingRateFactor;
   }
 
+  function getStrategyDeltaOf(address token)
+    external
+    view
+    returns (bool, uint256)
+  {
+    return LibPoolConfigV1.getStrategyDelta(token);
+  }
+
   function guaranteedUsdOf(address token) external view returns (uint256) {
     return LibPoolV1.poolV1DiamondStorage().guaranteedUsdOf[token];
   }
@@ -123,6 +132,15 @@ contract GetterFacet is GetterFacetInterface {
     return LibPoolV1.poolV1DiamondStorage().oracle;
   }
 
+  function pendingStrategyOf(address token)
+    external
+    view
+    returns (StrategyInterface)
+  {
+    return
+      LibPoolConfigV1.poolConfigV1DiamondStorage().pendingStrategyOf[token];
+  }
+
   function plp() external view returns (PLP) {
     return LibPoolV1.poolV1DiamondStorage().plp;
   }
@@ -160,8 +178,24 @@ contract GetterFacet is GetterFacetInterface {
     return LibPoolConfigV1.poolConfigV1DiamondStorage().stableSwapFeeBps;
   }
 
+  function strategyOf(address token) external view returns (StrategyInterface) {
+    return LibPoolConfigV1.poolConfigV1DiamondStorage().strategyOf[token];
+  }
+
+  function strategyDataOf(address token)
+    external
+    view
+    returns (LibPoolConfigV1.StrategyData memory)
+  {
+    return LibPoolConfigV1.poolConfigV1DiamondStorage().strategyDataOf[token];
+  }
+
   function sumBorrowingRateOf(address token) external view returns (uint256) {
     return LibPoolV1.poolV1DiamondStorage().sumBorrowingRateOf[token];
+  }
+
+  function sumFundingRateOf(address token) external view returns (uint256) {
+    return LibPoolV1.poolV1DiamondStorage().sumFundingRateOf[token];
   }
 
   function swapFeeBps() external view returns (uint64) {
@@ -595,6 +629,12 @@ contract GetterFacet is GetterFacetInterface {
         : poolV1ds.oracle.getMaxPrice(token);
       uint256 liquidity = poolV1ds.liquidityOf[token];
       uint256 decimals = LibPoolConfigV1.getTokenDecimalsOf(token);
+
+      // Handle strategy delta
+      (bool isStrategyProfit, uint256 strategyDelta) = LibPoolConfigV1
+        .getStrategyDelta(token);
+      if (isStrategyProfit) liquidity += strategyDelta;
+      else liquidity -= strategyDelta;
 
       if (LibPoolConfigV1.isStableToken(token)) {
         aum += (liquidity * price) / 10**decimals;

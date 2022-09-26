@@ -4,31 +4,84 @@ import { console } from "../utils/console.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { MockErc20 } from "../mocks/MockERC20.sol";
-import { BaseTest, MockWNative } from "../base/BaseTest.sol";
+import { BaseTest, PLPStaking, PLP, EsP88, MockErc20, MockWNative, FeedableRewarder, WFeedableRewarder } from "../base/BaseTest.sol";
 import { LockdropConfig } from "../../lockdrop/LockdropConfig.sol";
 import { Lockdrop } from "../../lockdrop/Lockdrop.sol";
 import { MockPool } from "../mocks/MockPool.sol";
 import { MockPoolRouter } from "../mocks/MockPoolRouter.sol";
-import { MockPLPStaking } from "../mocks/MockPLPStaking.sol";
+import { PLPStaking } from "src/staking/PLPStaking.sol";
 
 contract Lockdrop_ClaimReward is BaseTest {
   using SafeERC20 for IERC20;
 
-  MockErc20 internal mockPLP;
+  PLP internal plp;
+  EsP88 internal esP88;
+  MockWNative internal revenueToken;
+  MockErc20 internal partnerAToken;
+  MockErc20 internal partnerBToken;
+
+  PLPStaking internal plpStaking;
+
+  WFeedableRewarder internal revenueRewarder;
+  FeedableRewarder internal esP88Rewarder;
+  FeedableRewarder internal partnerARewarder;
+  FeedableRewarder internal partnerBRewarder;
+
   MockErc20 internal mockP88;
-  MockErc20 internal mockEsP88;
-  MockWNative internal mockWMatic;
   MockErc20 internal lockdropToken;
   address[] internal rewardsTokenList;
   LockdropConfig internal lockdropConfig;
   Lockdrop internal lockdrop;
-  MockPLPStaking internal mockPLPStaking;
   MockPool internal pool;
   MockPoolRouter internal poolRouter;
   address internal mockGateway;
   address internal mockLockdropCompounder;
 
   function setUp() external {
+    vm.startPrank(DAVE);
+    plpStaking = BaseTest.deployPLPStaking();
+
+    plp = BaseTest.deployPLP();
+    plp.setMinter(DAVE, true);
+
+    esP88 = BaseTest.deployEsP88();
+    esP88.setMinter(DAVE, true);
+
+    revenueToken = deployMockWNative();
+    partnerAToken = BaseTest.deployMockErc20("Partner A", "PA", 18);
+    partnerBToken = BaseTest.deployMockErc20("Partner B", "PB", 18);
+
+    revenueRewarder = BaseTest.deployWFeedableRewarder(
+      "Protocol Revenue Rewarder",
+      address(revenueToken),
+      address(plpStaking)
+    );
+    esP88Rewarder = BaseTest.deployFeedableRewarder(
+      "esP88 Rewarder",
+      address(esP88),
+      address(plpStaking)
+    );
+    partnerARewarder = BaseTest.deployFeedableRewarder(
+      "Partner A Rewarder",
+      address(partnerAToken),
+      address(plpStaking)
+    );
+    partnerBRewarder = BaseTest.deployFeedableRewarder(
+      "Partner B Rewarder",
+      address(partnerBToken),
+      address(plpStaking)
+    );
+
+    address[] memory rewarders = new address[](3);
+    rewarders[0] = address(revenueRewarder);
+    rewarders[1] = address(esP88Rewarder);
+    rewarders[2] = address(partnerARewarder);
+
+    plpStaking.addStakingToken(address(plp), rewarders);
+
+    plp.setWhitelist(address(plpStaking), true);
+    vm.stopPrank();
+
     mockGateway = address(0x88);
     mockLockdropCompounder = address(0x77);
 
@@ -36,32 +89,21 @@ contract Lockdrop_ClaimReward is BaseTest {
     poolRouter = new MockPoolRouter();
 
     lockdropToken = new MockErc20("LockdropToken", "LCKT", 18);
-    mockPLP = new MockErc20("PLP", "PLP", 18);
     mockP88 = new MockErc20("P88", "P88", 18);
-    mockEsP88 = new MockErc20("EsP88", "EsP88", 18);
-    mockWMatic = deployMockWNative();
 
-    // mockWMatic.mint(address(this), 100 ether);
-    // mockWMatic.approve(address(this), 100 ether);
-    mockWMatic.deposit{ value: 100 ether }();
-
-    mockPLPStaking = new MockPLPStaking(
-      address(mockPLP),
-      mockWMatic,
-      address(mockEsP88)
-    );
+    revenueToken.deposit{ value: 100 ether }();
 
     lockdropConfig = deployLockdropConfig(
       1 days,
-      address(mockPLPStaking),
-      address(mockPLP),
+      address(plpStaking),
+      address(plp),
       address(mockP88),
       address(mockGateway),
       address(mockLockdropCompounder)
     );
 
-    rewardsTokenList.push(address(mockEsP88));
-    rewardsTokenList.push(address(mockWMatic));
+    rewardsTokenList.push(address(revenueToken));
+    rewardsTokenList.push(address(esP88));
 
     lockdrop = deployLockdrop(
       address(lockdropToken),
@@ -69,7 +111,7 @@ contract Lockdrop_ClaimReward is BaseTest {
       address(poolRouter),
       address(lockdropConfig),
       rewardsTokenList,
-      address(mockWMatic)
+      address(revenueToken)
     );
 
     // Be Alice
@@ -115,11 +157,13 @@ contract Lockdrop_ClaimReward is BaseTest {
     vm.stopPrank();
 
     // mint PLP tokens for PLPStaking
-    mockPLP.mint(address(lockdrop), 62 ether);
-    mockPLP.approve(address(lockdrop), 62 ether);
+    vm.startPrank(DAVE);
+    plp.mint(address(lockdrop), 62 ether);
+    plp.approve(address(lockdrop), 62 ether);
+    vm.stopPrank();
 
     vm.startPrank(address(lockdrop));
-    mockPLP.approve(address(lockdropConfig.plpStaking()), 62 ether);
+    plp.approve(address(lockdropConfig.plpStaking()), 62 ether);
     vm.stopPrank();
 
     // After the lockdrop period ends, owner can stake PLP
@@ -132,100 +176,116 @@ contract Lockdrop_ClaimReward is BaseTest {
     vm.stopPrank();
   }
 
-  function testCorrectness_ClaimAllReward_WhenOnlyOneUserWantToClaimTwiceInADay_ThenTheSecondClaimWillGetOnlyEsP88()
-    external
-  {
-    assertEq(lockdrop.totalPLPAmount(), 62 ether);
-    assertEq(lockdrop.totalAmount(), 31 ether);
+  // function testCorrectness_ClaimAllReward_WhenOnlyOneUserWantToClaimTwiceInADay()
+  //   external
+  // {
+  //   assertEq(lockdrop.totalPLPAmount(), 62 ether);
+  //   assertEq(lockdrop.totalAmount(), 31 ether);
 
-    // after stake PLP token for 10 days
-    // Feed Matic and EsP88 to PLPStaking
-    vm.warp(block.timestamp + 10 days);
-    mockWMatic.approve(address(mockPLPStaking), 10 ether);
-    mockPLPStaking.feedRevenueReward(10 ether);
+  //   // Feed Matic and EsP88 to PLPStaking
+  //   vm.startPrank(DAVE);
+  //   esP88.mint(DAVE, 604800 ether);
+  //   esP88.approve(address(esP88Rewarder), type(uint256).max);
+  //   // Feeder feed esP88 to esP88Rewarder
+  //   // 604800 / 7 day rewardPerSec ~= 1 esP88
+  //   esP88Rewarder.feed(604800 ether, 7 days);
+  //   vm.deal(DAVE, 302400 ether);
+  //   revenueToken.deposit{ value: 302400 ether }();
+  //   revenueToken.approve(address(revenueRewarder), type(uint256).max);
+  //   // Feeder feed revenueToken to revenueRewarder
+  //   // 302400 / 7 day rewardPerSec ~= 0.5 revenueToken
+  //   revenueRewarder.feed(302400 ether, 7 days);
+  //   vm.stopPrank();
 
-    assertEq(mockWMatic.balanceOf(address(mockPLPStaking)), 10 ether);
+  //   // after stake PLP token for 3 days
+  //   vm.warp(block.timestamp + 3 days);
 
-    // First Claim by Alice
-    assertEq(mockWMatic.balanceOf(ALICE), 0 ether);
-    assertEq(IERC20(mockEsP88).balanceOf(ALICE), 0 ether);
-    vm.startPrank(ALICE, ALICE);
-    lockdrop.claimAllRewards(ALICE);
-    vm.stopPrank();
+  //   // First Claim by Alice
+  //   assertEq(ALICE.balance, 0 ether);
+  //   assertEq(IERC20(esP88).balanceOf(ALICE), 0 ether);
+  //   vm.startPrank(ALICE, ALICE);
+  //   uint256[] memory rewardAmounts = lockdrop.pendingReward(ALICE);
+  //   lockdrop.claimAllRewards(ALICE);
+  //   vm.stopPrank();
 
-    assertGt(ALICE.balance, 0);
-    assertGt(IERC20(mockEsP88).balanceOf(ALICE), 0);
+  //   assertEq(ALICE.balance, rewardAmounts[0]);
+  //   assertEq(IERC20(esP88).balanceOf(ALICE), rewardAmounts[1]);
 
-    // ALICE spend her reward
-    vm.startPrank(ALICE);
-    mockWMatic.approve(address(this), mockWMatic.balanceOf(ALICE));
-    mockEsP88.approve(address(this), mockEsP88.balanceOf(ALICE));
-    vm.stopPrank();
+  //   // after 10 minute
+  //   vm.warp(block.timestamp + 10 minutes);
+  //   vm.startPrank(ALICE);
+  //   uint256 revenueTokenBalanceBefore = ALICE.balance;
+  //   uint256 esP88BalanceBefore = IERC20(esP88).balanceOf(ALICE);
+  //   rewardAmounts = lockdrop.pendingReward(ALICE);
+  //   lockdrop.claimAllRewards(ALICE);
+  //   vm.stopPrank();
+  //   assertEq(ALICE.balance - revenueTokenBalanceBefore, rewardAmounts[0]);
+  //   assertEq(
+  //     IERC20(esP88).balanceOf(ALICE) - esP88BalanceBefore,
+  //     rewardAmounts[1]
+  //   );
+  // }
 
-    vm.startPrank(address(this));
+  // function testCorrectness_ClaimAllReward_WhenMultipleUserWantToClaimInTheSameTime()
+  //   external
+  // {
+  //   assertEq(lockdrop.totalPLPAmount(), 62 ether);
+  //   assertEq(lockdrop.totalAmount(), 31 ether);
 
-    mockWMatic.transferFrom(ALICE, address(this), mockWMatic.balanceOf(ALICE));
+  //   // Feed Matic and EsP88 to PLPStaking
+  //   vm.startPrank(DAVE);
+  //   esP88.mint(DAVE, 604800 ether);
+  //   esP88.approve(address(esP88Rewarder), type(uint256).max);
+  //   // Feeder feed esP88 to esP88Rewarder
+  //   // 604800 / 7 day rewardPerSec ~= 1 esP88
+  //   esP88Rewarder.feed(604800 ether, 7 days);
+  //   vm.deal(DAVE, 302400 ether);
+  //   revenueToken.deposit{ value: 302400 ether }();
+  //   revenueToken.approve(address(revenueRewarder), type(uint256).max);
+  //   // Feeder feed revenueToken to revenueRewarder
+  //   // 302400 / 7 day rewardPerSec ~= 0.5 revenueToken
+  //   revenueRewarder.feed(302400 ether, 7 days);
+  //   vm.stopPrank();
 
-    IERC20(mockEsP88).safeTransferFrom(
-      ALICE,
-      address(this),
-      IERC20(mockEsP88).balanceOf(ALICE)
-    );
-    vm.stopPrank();
+  //   // after stake PLP token for 3 days
+  //   vm.warp(block.timestamp + 3 days);
 
-    // after 10 minute
-    // ALICE want to claim again but she will get only EsP88
-    vm.warp(block.timestamp + 10 minutes);
-    vm.startPrank(ALICE);
-    lockdrop.claimAllRewards(ALICE);
-    vm.stopPrank();
-    assertEq(mockWMatic.balanceOf(ALICE), 0 ether);
-    assertTrue(IERC20(mockEsP88).balanceOf(ALICE) > 0);
-  }
+  //   // First Claim
 
-  function testCorrectness_ClaimAllReward_WhenMultipleUserWantToClaimInTheSameTime()
-    external
-  {
-    assertEq(lockdrop.totalPLPAmount(), 62 ether);
-    assertEq(lockdrop.totalAmount(), 31 ether);
+  //   // Claim by Alice
+  //   assertEq(ALICE.balance, 0 ether);
+  //   assertEq(IERC20(esP88).balanceOf(ALICE), 0 ether);
+  //   vm.startPrank(ALICE);
+  //   uint256[] memory rewardAmounts = lockdrop.pendingReward(ALICE);
+  //   lockdrop.claimAllRewards(ALICE);
+  //   vm.stopPrank();
 
-    // after stake PLP token for 10 days
-    // Feed Matic and EsP88 to PLPStaking
-    vm.warp(block.timestamp + 10 days);
-    mockWMatic.approve(address(mockPLPStaking), 10 ether);
-    mockPLPStaking.feedRevenueReward(10 ether);
-    assertEq(mockWMatic.balanceOf(address(mockPLPStaking)), 10 ether);
+  //   assertEq(ALICE.balance, rewardAmounts[0]);
+  //   assertEq(IERC20(esP88).balanceOf(ALICE), rewardAmounts[1]);
 
-    // First Claim
+  //   // Claim by BOB
+  //   assertEq(BOB.balance, 0 ether);
+  //   assertEq(IERC20(esP88).balanceOf(BOB), 0 ether);
+  //   vm.startPrank(BOB);
+  //   rewardAmounts = lockdrop.pendingReward(BOB);
+  //   lockdrop.claimAllRewards(BOB);
+  //   vm.stopPrank();
+  //   console.log("revenueToken", address(revenueToken));
+  //   console.log("BOB.balance", BOB.balance);
+  //   console.log("rewardAmounts[0]", rewardAmounts[0]);
+  //   assertEq(BOB.balance, rewardAmounts[0], "bob 1");
+  //   assertEq(IERC20(esP88).balanceOf(BOB), rewardAmounts[1], "bob 2");
 
-    // Claim by Alice
-    assertEq(mockWMatic.balanceOf(ALICE), 0 ether);
-    assertEq(IERC20(mockEsP88).balanceOf(ALICE), 0 ether);
-    vm.startPrank(ALICE);
-    lockdrop.claimAllRewards(ALICE);
-    vm.stopPrank();
-
-    assertGt(ALICE.balance, 0);
-    assertGt(IERC20(mockEsP88).balanceOf(ALICE), 0);
-
-    // Claim by BOB
-    assertEq(mockWMatic.balanceOf(BOB), 0 ether);
-    assertEq(IERC20(mockEsP88).balanceOf(BOB), 0 ether);
-    vm.startPrank(BOB);
-    lockdrop.claimAllRewards(BOB);
-    vm.stopPrank();
-    assertGt(BOB.balance, 0);
-    assertGt(IERC20(mockEsP88).balanceOf(BOB), 0);
-
-    // Claim By CAT
-    assertEq(mockWMatic.balanceOf(CAT), 0 ether);
-    assertEq(IERC20(mockEsP88).balanceOf(CAT), 0 ether);
-    vm.startPrank(CAT);
-    lockdrop.claimAllRewards(CAT);
-    vm.stopPrank();
-    assertGt(BOB.balance, 0);
-    assertGt(IERC20(mockEsP88).balanceOf(BOB), 0);
-  }
+  //   // Claim By CAT
+  //   assertEq(CAT.balance, 0 ether);
+  //   assertEq(IERC20(esP88).balanceOf(CAT), 0 ether);
+  //   vm.startPrank(CAT);
+  //   rewardAmounts = lockdrop.pendingReward(CAT);
+  //   lockdrop.claimAllRewards(CAT);
+  //   vm.stopPrank();
+  //   assertEq(CAT.balance, rewardAmounts[0], "cat 1");
+  //   assertEq(IERC20(esP88).balanceOf(CAT), rewardAmounts[1], "cat 2");
+  // }
 
   function testCorrectness_ClaimAllReward_WhenMultipleUserWantToClaimInTheMultipleTime()
     external
@@ -233,192 +293,95 @@ contract Lockdrop_ClaimReward is BaseTest {
     assertEq(lockdrop.totalPLPAmount(), 62 ether);
     assertEq(lockdrop.totalAmount(), 31 ether);
 
-    // after stake PLP token for 10 days
     // Feed Matic and EsP88 to PLPStaking
-    vm.warp(block.timestamp + 10 days);
-    mockWMatic.approve(address(mockPLPStaking), 10 ether);
-    mockPLPStaking.feedRevenueReward(10 ether);
-    assertEq(mockWMatic.balanceOf(address(mockPLPStaking)), 10 ether);
+    vm.startPrank(DAVE);
+    esP88.mint(DAVE, 604800 ether);
+    esP88.approve(address(esP88Rewarder), type(uint256).max);
+    // Feeder feed esP88 to esP88Rewarder
+    // 604800 / 7 day rewardPerSec ~= 1 esP88
+    esP88Rewarder.feed(604800 ether, 7 days);
+    vm.deal(DAVE, 302400 ether);
+    revenueToken.deposit{ value: 302400 ether }();
+    revenueToken.approve(address(revenueRewarder), type(uint256).max);
+    // Feeder feed revenueToken to revenueRewarder
+    // 302400 / 7 day rewardPerSec ~= 0.5 revenueToken
+    revenueRewarder.feed(302400 ether, 7 days);
+    vm.stopPrank();
+
+    // after stake PLP token for 3 days
+    vm.warp(block.timestamp + 3 days);
 
     // First Claim
 
     // Claim by Alice
-    assertEq(mockWMatic.balanceOf(ALICE), 0 ether);
-    assertEq(IERC20(mockEsP88).balanceOf(ALICE), 0 ether);
+    assertEq(ALICE.balance, 0 ether);
+    assertEq(IERC20(esP88).balanceOf(ALICE), 0 ether);
     vm.startPrank(ALICE);
+    uint256[] memory rewardAmounts = lockdrop.pendingReward(ALICE);
     lockdrop.claimAllRewards(ALICE);
     vm.stopPrank();
-    assertGt(ALICE.balance, 0);
-    assertGt(IERC20(mockEsP88).balanceOf(ALICE), 0);
+    assertEq(ALICE.balance, rewardAmounts[0]);
+    assertEq(IERC20(esP88).balanceOf(ALICE), rewardAmounts[1]);
 
     // 1 Hr after ALICE claim
     vm.warp(block.timestamp + 1 hours);
 
     // Claim by BOB
-    assertEq(mockWMatic.balanceOf(BOB), 0 ether);
-    assertEq(IERC20(mockEsP88).balanceOf(BOB), 0 ether);
     vm.startPrank(BOB);
+    rewardAmounts = lockdrop.pendingReward(BOB);
     lockdrop.claimAllRewards(BOB);
     vm.stopPrank();
-    assertGt(BOB.balance, 0);
-    assertGt(IERC20(mockEsP88).balanceOf(BOB), 0);
+    assertEq(BOB.balance, rewardAmounts[0]);
+    assertEq(IERC20(esP88).balanceOf(BOB), rewardAmounts[1]);
 
     // 2 Hr after BOB
     vm.warp(block.timestamp + 2 hours);
 
     // Claim By CAT
-    assertEq(mockWMatic.balanceOf(CAT), 0 ether);
-    assertEq(IERC20(mockEsP88).balanceOf(CAT), 0 ether);
+    assertEq(CAT.balance, 0 ether);
+    assertEq(IERC20(esP88).balanceOf(CAT), 0 ether);
     vm.startPrank(CAT);
+    rewardAmounts = lockdrop.pendingReward(CAT);
     lockdrop.claimAllRewards(CAT);
     vm.stopPrank();
-    assertGt(CAT.balance, 0);
-    assertGt(IERC20(mockEsP88).balanceOf(CAT), 0);
-
-    vm.warp(block.timestamp + 5 hours);
-
-    // ALICE, BOB and CAT spend their reward.
-    vm.startPrank(ALICE);
-    mockWMatic.approve(address(this), mockWMatic.balanceOf(ALICE));
-    mockEsP88.approve(address(this), IERC20(mockEsP88).balanceOf(ALICE));
-    vm.stopPrank();
-
-    vm.startPrank(BOB);
-    mockWMatic.approve(address(this), mockWMatic.balanceOf(BOB));
-    mockEsP88.approve(address(this), IERC20(mockEsP88).balanceOf(BOB));
-    vm.stopPrank();
-
-    vm.startPrank(CAT);
-    mockWMatic.approve(address(this), mockWMatic.balanceOf(CAT));
-    mockEsP88.approve(address(this), IERC20(mockEsP88).balanceOf(CAT));
-    vm.stopPrank();
-
-    vm.startPrank(address(this));
-
-    mockWMatic.transferFrom(ALICE, address(this), mockWMatic.balanceOf(ALICE));
-
-    IERC20(mockEsP88).safeTransferFrom(
-      ALICE,
-      address(this),
-      IERC20(mockEsP88).balanceOf(ALICE)
-    );
-
-    mockWMatic.transferFrom(BOB, address(this), mockWMatic.balanceOf(BOB));
-
-    IERC20(mockEsP88).safeTransferFrom(
-      BOB,
-      address(this),
-      IERC20(mockEsP88).balanceOf(BOB)
-    );
-
-    mockWMatic.transferFrom(CAT, address(this), mockWMatic.balanceOf(CAT));
-
-    IERC20(mockEsP88).safeTransferFrom(
-      CAT,
-      address(this),
-      IERC20(mockEsP88).balanceOf(CAT)
-    );
-    vm.stopPrank();
-
-    // 10 days after each first claim
-    // Matic not yet feed from rewarder.
-    // ALICE and CAT need To claim but they will get just only EsP88
-
-    // Claim by Alice
-    assertEq(mockWMatic.balanceOf(ALICE), 0 ether);
-    assertEq(IERC20(mockEsP88).balanceOf(ALICE), 0 ether);
-    vm.startPrank(ALICE);
-    lockdrop.claimAllRewards(ALICE);
-    vm.stopPrank();
-    assertGt(ALICE.balance, 0);
-    assertGt(IERC20(mockEsP88).balanceOf(ALICE), 0);
-
-    // Claim By CAT
-    assertEq(mockWMatic.balanceOf(CAT), 0 ether);
-    assertEq(IERC20(mockEsP88).balanceOf(CAT), 0 ether);
-    vm.startPrank(CAT);
-    lockdrop.claimAllRewards(CAT);
-    vm.stopPrank();
-    assertGt(CAT.balance, 0);
-    assertGt(IERC20(mockEsP88).balanceOf(CAT), 0);
-
-    // ALICE, BOB and CAT spend their reward.
-    vm.startPrank(ALICE);
-    mockWMatic.approve(address(this), mockWMatic.balanceOf(ALICE));
-    mockEsP88.approve(address(this), IERC20(mockEsP88).balanceOf(ALICE));
-    vm.stopPrank();
-
-    vm.startPrank(CAT);
-    mockWMatic.approve(address(this), mockWMatic.balanceOf(CAT));
-    mockEsP88.approve(address(this), IERC20(mockEsP88).balanceOf(CAT));
-    vm.stopPrank();
-
-    vm.startPrank(address(this));
-
-    mockWMatic.transferFrom(ALICE, address(this), mockWMatic.balanceOf(ALICE));
-
-    IERC20(mockEsP88).safeTransferFrom(
-      ALICE,
-      address(this),
-      IERC20(mockEsP88).balanceOf(ALICE)
-    );
-
-    mockWMatic.transferFrom(CAT, address(this), mockWMatic.balanceOf(CAT));
-
-    IERC20(mockEsP88).safeTransferFrom(
-      CAT,
-      address(this),
-      IERC20(mockEsP88).balanceOf(CAT)
-    );
-    vm.stopPrank();
-
-    // 2 days after first claim
-    // Feed Matic to PLPStaking
-    vm.warp(block.timestamp + 2 days);
-    mockWMatic.approve(address(mockPLPStaking), 50 ether);
-    mockPLPStaking.feedRevenueReward(50 ether);
+    assertEq(CAT.balance, rewardAmounts[0]);
+    assertEq(IERC20(esP88).balanceOf(CAT), rewardAmounts[1]);
 
     vm.warp(block.timestamp + 5 hours);
 
     // Claim by Alice
-    assertEq(mockWMatic.balanceOf(ALICE), 0 ether);
-    assertEq(IERC20(mockEsP88).balanceOf(ALICE), 0 ether);
     vm.startPrank(ALICE);
+    uint256 revenueTokenBalanceBefore = ALICE.balance;
+    uint256 esP88BalanceBefore = IERC20(esP88).balanceOf(ALICE);
+    rewardAmounts = lockdrop.pendingReward(ALICE);
     lockdrop.claimAllRewards(ALICE);
     vm.stopPrank();
-    assertGt(ALICE.balance, 0);
-    assertGt(IERC20(mockEsP88).balanceOf(ALICE), 0);
-
-    // 1 Hr after ALICE claim
-    vm.warp(block.timestamp + 1 hours);
-
-    // Claim by BOB
-    assertEq(mockWMatic.balanceOf(BOB), 0 ether);
-    assertEq(IERC20(mockEsP88).balanceOf(BOB), 0 ether);
-    vm.startPrank(BOB);
-    lockdrop.claimAllRewards(BOB);
-    vm.stopPrank();
-    assertGt(BOB.balance, 0);
-    assertGt(IERC20(mockEsP88).balanceOf(BOB), 0);
-
-    // 2 Hr after BOB
-    vm.warp(block.timestamp + 2 hours);
+    assertEq(ALICE.balance - revenueTokenBalanceBefore, rewardAmounts[0]);
+    assertEq(
+      IERC20(esP88).balanceOf(ALICE) - esP88BalanceBefore,
+      rewardAmounts[1]
+    );
 
     // Claim By CAT
-    assertEq(mockWMatic.balanceOf(CAT), 0 ether);
-    assertEq(IERC20(mockEsP88).balanceOf(CAT), 0 ether);
     vm.startPrank(CAT);
+    revenueTokenBalanceBefore = CAT.balance;
+    esP88BalanceBefore = IERC20(esP88).balanceOf(CAT);
+    rewardAmounts = lockdrop.pendingReward(CAT);
     lockdrop.claimAllRewards(CAT);
     vm.stopPrank();
-    assertGt(CAT.balance, 0);
-    assertGt(IERC20(mockEsP88).balanceOf(CAT), 0);
+    assertEq(CAT.balance - revenueTokenBalanceBefore, rewardAmounts[0]);
+    assertEq(
+      IERC20(esP88).balanceOf(CAT) - esP88BalanceBefore,
+      rewardAmounts[1]
+    );
+    vm.stopPrank();
   }
 
-  function testRevert_ClaimAllRewardFor_CallerNotLockdropCompounder() external {
-    vm.prank(ALICE);
-    vm.expectRevert(
-      abi.encodeWithSignature("Lockdrop_NotLockdropCompounder()")
-    );
-    lockdrop.claimAllRewardsFor(BOB, ALICE);
-  }
+  // function testRevert_ClaimAllRewardFor_CallerNotLockdropCompounder() external {
+  //   vm.prank(ALICE);
+  //   vm.expectRevert(
+  //     abi.encodeWithSignature("Lockdrop_NotLockdropCompounder()")
+  //   );
+  //   lockdrop.claimAllRewardsFor(BOB, ALICE);
+  // }
 }

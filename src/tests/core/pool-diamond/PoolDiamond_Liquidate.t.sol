@@ -908,10 +908,8 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
       address(wbtc),
       false
     );
-    checkPoolBalanceWithState(
-      address(dai),
-      (position.collateral * 10**18) / 10**30
-    );
+    int256 offset = (int256(position.collateral) * 10**18) / 10**30;
+    checkPoolBalanceWithState(address(dai), offset);
   }
 
   function testCorrectness_WhenLiquidateShortPosition_WhenLiquidate() external {
@@ -1195,9 +1193,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
       address(wbtc),
       false
     );
-    checkPoolBalanceWithState(
-      address(dai),
-      (position.collateral * 10**18) / 10**30
-    );
+    int256 offset = (int256(position.collateral) * 10**18) / 10**30;
+    checkPoolBalanceWithState(address(dai), offset);
   }
 }

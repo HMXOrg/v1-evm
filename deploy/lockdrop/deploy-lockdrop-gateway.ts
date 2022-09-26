@@ -8,6 +8,7 @@ const config = getConfig();
 
 const plpToken = config.Tokens.PLP;
 const plpStaking = config.Staking.PLPStaking.address;
+const dragonStaking = config.Staking.DragonStaking.address;
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
@@ -18,11 +19,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const lockdropGateway = await upgrades.deployProxy(LockdropGateway, [
     plpToken,
     plpStaking,
+    dragonStaking,
     config.Tokens.WMATIC,
   ]);
   await lockdropGateway.deployed();
   console.log(`Deploying LockdropGateway Contract`);
   console.log(`Deployed at: ${lockdropGateway.address}`);
+
+  config.Lockdrop.gateway = lockdropGateway.address;
+  writeConfigFile(config);
 
   const implAddress = await getImplementationAddress(
     ethers.provider,
@@ -33,9 +38,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     address: implAddress,
     name: "LockdropGateway",
   });
-
-  config.Lockdrop.gateway = lockdropGateway.address;
-  writeConfigFile(config);
 };
 
 export default func;

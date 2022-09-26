@@ -8,7 +8,7 @@ contract P88Test is BaseTest {
   P88 internal p88;
 
   function setUp() external {
-    p88 = new P88();
+    p88 = new P88(true);
   }
 
   function testCorrectness_init() external {

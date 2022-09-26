@@ -24,6 +24,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`Deploying Compounder Contract`);
   console.log(`Deployed at: ${compounder.address}`);
 
+  config.Staking.Compounder = compounder.address;
+  writeConfigFile(config);
+
   const implAddress = await getImplementationAddress(
     ethers.provider,
     compounder.address
@@ -33,9 +36,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     address: implAddress,
     name: "Compounder",
   });
-
-  config.Staking.Compounder = compounder.address;
-  writeConfigFile(config);
 };
 
 export default func;

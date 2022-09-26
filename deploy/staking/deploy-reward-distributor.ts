@@ -21,7 +21,7 @@ const DRAGON_STAKING_PROTOCOL_REVENUE_REWARDER: string = (
 ).address;
 const DEV_FUND_BPS: number = 1000; // 10%
 const PLP_STAKING_BPS: number = 7000; // PLP -> 70%, Dragon -> 30%
-const DEV_FUND_ADDRESS: string = "0x0072386578D0775E37E7f2F93ed45D11E473291f";
+const DEV_FUND_ADDRESS: string = "0x6629eC35c8Aa279BA45Dbfb575c728d3812aE31a";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
@@ -43,6 +43,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`Deploying RewardDistributor Contract`);
   console.log(`Deployed at: ${rewardDistributor.address}`);
 
+  config.Staking.RewardDistributor.address = rewardDistributor.address;
+  writeConfigFile(config);
+
   const implAddress = await getImplementationAddress(
     ethers.provider,
     rewardDistributor.address
@@ -52,9 +55,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     address: implAddress,
     name: "RewardDistributor",
   });
-
-  config.Staking.RewardDistributor.address = rewardDistributor.address;
-  writeConfigFile(config);
 };
 
 export default func;

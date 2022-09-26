@@ -11,10 +11,12 @@ interface IStaking {
 
   function getUserTokenAmount(address token, address sender)
     external
+    view
     returns (uint256);
 
   function getStakingTokenRewarders(address token)
     external
+    view
     returns (address[] memory);
 
   function harvest(address[] memory rewarders) external;

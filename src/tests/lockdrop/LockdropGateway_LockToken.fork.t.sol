@@ -64,7 +64,7 @@ contract LockdropGateway_LockToken is BaseTest {
     0x6c5384bBaE7aF65Ed1b6784213A81DaE18e528b2;
 
   function setUp() public {
-    gateway = deployLockdropGateway(address(0), address(0), WMATIC);
+    gateway = deployLockdropGateway(address(0), address(0), address(0), WMATIC);
     daiLockdrop = new MockLockdrop2();
     usdcLockdrop = new MockLockdrop2();
     usdtLockdrop = new MockLockdrop2();

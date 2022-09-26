@@ -6,8 +6,8 @@ import { getConfig } from "../utils/config";
 
 const config = getConfig();
 
-const TOKEN_ADDRESS = config.Tokens.esP88;
-const MINTER_ADDRESSES = ["0x6629eC35c8Aa279BA45Dbfb575c728d3812aE31a"];
+const TOKEN_ADDRESS = config.Tokens.PLP;
+const MINTER_ADDRESSES = [config.Pools.PLP.poolDiamond];
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];

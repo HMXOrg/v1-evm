@@ -17,13 +17,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   await diamondCutFacet.deployed();
   console.log(`Deployed at: ${diamondCutFacet.address}`);
 
+  config.Pools.PLP.facets.diamondCut = diamondCutFacet.address;
+  writeConfigFile(config);
+
   await tenderly.verify({
     address: diamondCutFacet.address,
     name: "DiamondCutFacet",
   });
-
-  config.Pools.PLP.facets.diamondCut = diamondCutFacet.address;
-  writeConfigFile(config);
 };
 
 export default func;

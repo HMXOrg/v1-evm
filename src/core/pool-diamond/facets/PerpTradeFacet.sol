@@ -347,7 +347,6 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       vars.collateralDelta,
       false
     );
-
     position.collateral += vars.collateralDeltaUsd;
     if (position.collateral < vars.feeUsd)
       revert PerpTradeFacet_CollateralNotCoverFee();
@@ -376,6 +375,11 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     );
     position.reserveAmount += reserveDelta;
     LibPoolV1.increaseReserved(collateralToken, reserveDelta);
+    // Realize profit/loss result from the farm strategy
+    // NOTE: This should be called after pullTokens() so that the profit won't be included in the function
+    LibPoolV1.realizedFarmPnL(collateralToken);
+    // If indexToken != collateralToken, need to realize indexToken as well
+    if (collateralToken != indexToken) LibPoolV1.realizedFarmPnL(indexToken);
 
     if (isLong) {
       // guaranteedUsd stores the sum of (position.size - position.collateral) for all positions
@@ -449,6 +453,11 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     bool isLong,
     address receiver
   ) external nonReentrant allowed(primaryAccount) returns (uint256) {
+    // Realize profit/loss result from the farm strategy
+    LibPoolV1.realizedFarmPnL(collateralToken);
+    // If indexToken != collateralToken, need to realize indexToken as well
+    if (collateralToken != indexToken) LibPoolV1.realizedFarmPnL(indexToken);
+
     uint256 amountOut = _decreasePosition(
       primaryAccount,
       subAccountId,
@@ -624,7 +633,8 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
         vars.usdOutAfterFee,
         true
       );
-      LibPoolV1.pushTokens(collateralToken, receiver, amountOutAfterFee);
+
+      LibPoolV1.tokenOut(collateralToken, receiver, amountOutAfterFee);
 
       return amountOutAfterFee;
     }
@@ -646,6 +656,11 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
 
     if (!LibPoolConfigV1.isAllowedLiquidators(msg.sender))
       revert PerpTradeFacet_BadLiquidator();
+
+    // Realize profit/loss result from the farm strategy
+    LibPoolV1.realizedFarmPnL(collateralToken);
+    // If indexToken != collateralToken, need to realize indexToken as well
+    if (collateralToken != indexToken) LibPoolV1.realizedFarmPnL(indexToken);
 
     FundingRateFacetInterface(address(this)).updateFundingRate(
       collateralToken,
@@ -755,7 +770,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
         true
       )
     );
-    LibPoolV1.pushTokens(
+    LibPoolV1.tokenOut(
       collateralToken,
       to,
       LibPoolV1.convertUsde30ToTokens(

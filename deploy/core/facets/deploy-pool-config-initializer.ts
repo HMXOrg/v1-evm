@@ -16,13 +16,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   await poolConfigInitializer.deployed();
   console.log(`Deployed at: ${poolConfigInitializer.address}`);
 
+  config.Pools.PLP.facets.poolConfigInitializer = poolConfigInitializer.address;
+  writeConfigFile(config);
+
   await tenderly.verify({
     address: poolConfigInitializer.address,
     name: "PoolConfigInitializer",
   });
-
-  config.Pools.PLP.facets.poolConfigInitializer = poolConfigInitializer.address;
-  writeConfigFile(config);
 };
 
 export default func;

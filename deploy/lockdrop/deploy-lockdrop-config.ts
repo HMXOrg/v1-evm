@@ -6,7 +6,7 @@ import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 
 const config = getConfig();
 
-const startLockTimestamp = 1663565400;
+const startLockTimestamp = 1664163000;
 const plpStaking = config.Staking.PLPStaking.address;
 const plpToken = config.Tokens.PLP;
 const p88Token = config.Tokens.P88;
@@ -31,6 +31,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`Deploying LockdropConfig Contract`);
   console.log(`Deployed at: ${lockdropConfig.address}`);
 
+  config.Lockdrop.config = lockdropConfig.address;
+  writeConfigFile(config);
+
   const implAddress = await getImplementationAddress(
     ethers.provider,
     lockdropConfig.address
@@ -40,9 +43,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     address: implAddress,
     name: "LockdropConfig",
   });
-
-  config.Lockdrop.config = lockdropConfig.address;
-  writeConfigFile(config);
 };
 
 export default func;
