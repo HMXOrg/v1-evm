@@ -22,12 +22,12 @@ abstract contract PoolDiamond_BaseTest is BaseTest {
     BaseTest.PoolConfigConstructorParams memory poolConfigParams = BaseTest
       .PoolConfigConstructorParams({
         treasury: TREASURY,
-        fundingInterval: 8 hours,
+        fundingInterval: 1 hours,
         mintBurnFeeBps: 30,
         taxBps: 50,
-        stableBorrowingRateFactor: 600,
-        borrowingRateFactor: 600,
-        fundingRateFactor: 600,
+        stableBorrowingRateFactor: 100,
+        borrowingRateFactor: 100,
+        fundingRateFactor: 25,
         liquidationFeeUsd: 5 * 10**30
       });
 

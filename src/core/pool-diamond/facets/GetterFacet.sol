@@ -293,6 +293,8 @@ contract GetterFacet is GetterFacetInterface {
       size,
       entryFundingRate
     );
+    console.log("vars.fundingFee");
+    console.logInt(vars.fundingFee);
     vars.signedDelta = vars.isProfit ? int256(vars.delta) : -int256(vars.delta);
     vars.signedDelta -= vars.fundingFee;
     vars.isProfit = vars.signedDelta > 0;
@@ -301,6 +303,7 @@ contract GetterFacet is GetterFacetInterface {
       : uint256(-vars.signedDelta);
 
     if (vars.isProfit && vars.delta * BPS <= size * vars.minBps) vars.delta = 0;
+    console.log("vars.delta", vars.delta);
     return (vars.isProfit, vars.delta, vars.fundingFee);
   }
 

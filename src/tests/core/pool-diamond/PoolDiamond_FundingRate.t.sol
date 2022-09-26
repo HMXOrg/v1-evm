@@ -203,7 +203,9 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // Warp to pass funding time interval
     vm.warp(block.timestamp + 8 hours + 1);
 
-    assertEq(poolGetterFacet.getNextBorrowingRate(address(wbtc)), 233);
+    // = 0.01% * 100000.0 / 257046.0 * 8
+    // = 0.0311% --> Borrowing Rate
+    assertEq(poolGetterFacet.getNextBorrowingRate(address(wbtc)), 311);
 
     (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
@@ -212,8 +214,202 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       address(wbtc),
       true
     );
-    console.log("test isProfit", isProfit);
-    console.log("test delta", delta);
+
+    // Withdraw collateral so postion get charged by the funding fee
+    poolPerpTradeFacet.decreasePosition(
+      address(this),
+      0,
+      address(wbtc),
+      address(wbtc),
+      1 * 10**30,
+      0,
+      true,
+      BOB
+    );
+
+    // Assert pool state:
+    // 1. Pool shoulud make:
+    // = 1075 + funding fee
+    // Where funding fee is:
+    // = 0.01% * 100000.0 / 257046.0 * 8
+    // = 0.0311% --> Borrowing Rate
+    // = 40 * 0.0311%
+    // = 0.01244 USD --> Borrowing Fee USD
+    // = 0.01244 / 47100 * 1e8
+    // = 26 sats
+    // Hence; 1075 + 26 = 1101 sathoshi
+    // 2. Pool's WBTC reserved should remind the same.
+    // 3. Pool's guaranteed usd of WBTC should be:
+    // = 33.09 + (6.91 - 5.91) = 34.09 USD
+    // 4. Pool's WBTC liquidity should be:
+    // = 257046 - ((1 [CollateralDelta]) / 47100 * 1e8)
+    // = 257046 - 2123
+    // = 254923 WBTC
+    // 5. Bob's WBTC balance should be:
+    // = 16878 + (1 [CollateralDelta] / 47100 * 1e8) - fundingFee
+    // = 16878 + 2123 - 26 - 1 (offset)
+    // = 18974 sathoshi
+    assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 1101);
+    assertEq(poolGetterFacet.reservedOf(address(wbtc)), 0.001 * 10**8);
+    assertEq(poolGetterFacet.guaranteedUsdOf(address(wbtc)), 34.09 * 10**30);
+    assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 254923);
+    assertEq(wbtc.balanceOf(BOB), 18974);
+
+    checkPoolBalanceWithState(address(wbtc), 2);
+  }
+
+  function testCorrectness_FundingRate() external {
+    // Warp 8 hours so time not start with 0
+    vm.warp(1662100761);
+
+    // Initialized price feeds
+    daiPriceFeed.setLatestAnswer(1 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    maticPriceFeed.setLatestAnswer(400 * 10**8);
+
+    // Assuming WBTC price is at 40,000 - 41,000 USD
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+
+    // Add 0.0025 WBTC as a liquidity of the pool
+    wbtc.mint(address(poolDiamond), 0.0025 * 10**8);
+    poolLiquidityFacet.addLiquidity(
+      address(this),
+      address(wbtc),
+      address(this)
+    );
+
+    dai.mint(address(poolDiamond), 1000000 ether);
+    poolLiquidityFacet.addLiquidity(address(this), address(dai), address(this));
+
+    // Increase long position with 0.00025 WBTC (=10 USD) as a collateral
+    // With 9x leverage; Hence position's size should be 90 USD.
+    wbtc.mint(address(poolDiamond), 0.00025 * 10**8);
+    poolPerpTradeFacet.increasePosition(
+      address(this),
+      0,
+      address(wbtc),
+      address(wbtc),
+      90 * 10**30,
+      true
+    );
+
+    // Increase short WBTC position with 10 DAI (=10 USD) as a collateral
+    // With 18x leverage; Hence position's size should be 180 USD.
+    dai.mint(address(poolDiamond), 10 ether);
+    poolPerpTradeFacet.increasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      180 * 10**30,
+      false
+    );
+
+    // WBTC price chanaged
+    wbtcPriceFeed.setLatestAnswer(45_100 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(46_100 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(47_100 * 10**8);
+
+    // Assert position's delta
+    // 1. Position's delta should be:
+    // = 90 * ((45100 - 41000) / 41000)
+    // = 9 USD
+    // 2. Position is profitable
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
+      address(this),
+      0,
+      address(wbtc),
+      address(wbtc),
+      true
+    );
+    assertEq(delta, 9 * 10**30);
+    assertTrue(isProfit);
+
+    // Assert position's leverage
+    assertEq(
+      poolGetterFacet.getPositionLeverage(
+        address(this),
+        0,
+        address(wbtc),
+        address(wbtc),
+        true
+      ),
+      90817
+    );
+
+    // Decrease position size 50 USD and collateral 3 USD
+    poolPerpTradeFacet.decreasePosition(
+      address(this),
+      0,
+      address(wbtc),
+      address(wbtc),
+      3 * 10**30,
+      50 * 10**30,
+      true,
+      BOB
+    );
+
+    // Assert pool's state
+    // 1. Pool shoulud make:
+    // = 969 + Trunc(((50 * 0.001) / 47100) * 1e8)
+    // = 969 + 106 = 1079 sathoshi
+    // 2. Pool's WBTC reserved should be 0.00225 * 40 / 90 = 0.001 WBTC
+    // 3. Pool's guaranteed usd of WBTC should be:
+    // = 80.90 + (9.91 - 6.91) - 50 = 33.09 USD
+    // 4. Pool's WBTC liquidity should be:
+    // = 0.00274031 - ((3 [CollateralDelta] + 5 [Profit]) / 47100)
+    // = 0.00257046 WBTC
+    // 5. Bob's WBTC balance should be:
+    // = ((3 [CollateralDelta] + 5 [Profit] - 0.05 [MarginFee]) / 47100)
+    // = 16878 sathoshi
+    assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 1075);
+    assertEq(poolGetterFacet.reservedOf(address(wbtc)), 0.001 * 10**8);
+    assertEq(poolGetterFacet.guaranteedUsdOf(address(wbtc)), 33.09 * 10**30);
+    assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 0.00257046 * 10**8);
+    assertEq(wbtc.balanceOf(BOB), 16878);
+
+    // Assert position
+    // 1. Position's size should be: 40 USD
+    // 2. Position's collateral should be: 6.91 USD
+    // 3. Position's average price should be: 41000 USD
+    // 4. Position's entry funding rate should be: 0
+    // 5. Position's reserve amount should be: 0.00225 * 40 / 90 = 0.001 WBTC
+    // 6. Position's realized PnL should be: 5 USD
+    // 7. Position should be profitable
+    GetterFacetInterface.GetPositionReturnVars memory position = poolGetterFacet
+      .getPositionWithSubAccountId(
+        address(this),
+        0,
+        address(wbtc),
+        address(wbtc),
+        true
+      );
+    assertEq(position.size, 40 * 10**30);
+    assertEq(position.collateral, 6.91 * 10**30);
+    assertEq(position.averagePrice, 41000 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
+    assertEq(position.reserveAmount, 0.001 * 10**8);
+    assertEq(position.realizedPnl, 5 * 10**30);
+    assertTrue(position.hasProfit);
+
+    // Assert position's leverage
+    assertEq(
+      poolGetterFacet.getPositionLeverage(
+        address(this),
+        0,
+        address(wbtc),
+        address(wbtc),
+        true
+      ),
+      57887
+    );
+
+    // Warp to pass funding time interval
+    vm.warp(block.timestamp + 8 hours + 1);
+
+    assertEq(poolGetterFacet.getNextBorrowingRate(address(wbtc)), 233);
 
     // Withdraw collateral so postion get charged by the funding fee
     poolPerpTradeFacet.decreasePosition(
@@ -257,199 +453,4 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
 
     checkPoolBalanceWithState(address(wbtc), 2);
   }
-
-  // function testCorrectness_FundingRate() external {
-  //   // Warp 8 hours so time not start with 0
-  //   vm.warp(1662100761);
-
-  //   // Initialized price feeds
-  //   daiPriceFeed.setLatestAnswer(1 * 10**8);
-  //   wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
-  //   maticPriceFeed.setLatestAnswer(400 * 10**8);
-
-  //   // Assuming WBTC price is at 40,000 - 41,000 USD
-  //   wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
-  //   wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
-  //   wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
-
-  //   // Add 0.0025 WBTC as a liquidity of the pool
-  //   wbtc.mint(address(poolDiamond), 0.0025 * 10**8);
-  //   poolLiquidityFacet.addLiquidity(
-  //     address(this),
-  //     address(wbtc),
-  //     address(this)
-  //   );
-
-  //   dai.mint(address(poolDiamond), 1000000 ether);
-  //   poolLiquidityFacet.addLiquidity(address(this), address(dai), address(this));
-
-  //   // Increase long position with 0.00025 WBTC (=10 USD) as a collateral
-  //   // With 9x leverage; Hence position's size should be 90 USD.
-  //   wbtc.mint(address(poolDiamond), 0.00025 * 10**8);
-  //   poolPerpTradeFacet.increasePosition(
-  //     address(this),
-  //     0,
-  //     address(wbtc),
-  //     address(wbtc),
-  //     90 * 10**30,
-  //     true
-  //   );
-
-  //   // Increase short WBTC position with 10 DAI (=10 USD) as a collateral
-  //   // With 18x leverage; Hence position's size should be 180 USD.
-  //   dai.mint(address(poolDiamond), 10 ether);
-  //   poolPerpTradeFacet.increasePosition(
-  //     address(this),
-  //     0,
-  //     address(dai),
-  //     address(wbtc),
-  //     180 * 10**30,
-  //     true
-  //   );
-
-  //   // WBTC price chanaged
-  //   wbtcPriceFeed.setLatestAnswer(45_100 * 10**8);
-  //   wbtcPriceFeed.setLatestAnswer(46_100 * 10**8);
-  //   wbtcPriceFeed.setLatestAnswer(47_100 * 10**8);
-
-  //   // Assert position's delta
-  //   // 1. Position's delta should be:
-  //   // = 90 * ((45100 - 41000) / 41000)
-  //   // = 9 USD
-  //   // 2. Position is profitable
-  //   (bool isProfit, uint256 delta,) = poolGetterFacet.getPositionDelta(
-  //     address(this),
-  //     0,
-  //     address(wbtc),
-  //     address(wbtc),
-  //     true
-  //   );
-  //   assertEq(delta, 9 * 10**30);
-  //   assertTrue(isProfit);
-
-  //   // Assert position's leverage
-  //   assertEq(
-  //     poolGetterFacet.getPositionLeverage(
-  //       address(this),
-  //       0,
-  //       address(wbtc),
-  //       address(wbtc),
-  //       true
-  //     ),
-  //     90817
-  //   );
-
-  //   // Decrease position size 50 USD and collateral 3 USD
-  //   poolPerpTradeFacet.decreasePosition(
-  //     address(this),
-  //     0,
-  //     address(wbtc),
-  //     address(wbtc),
-  //     3 * 10**30,
-  //     50 * 10**30,
-  //     true,
-  //     BOB
-  //   );
-
-  //   // Assert pool's state
-  //   // 1. Pool shoulud make:
-  //   // = 969 + Trunc(((50 * 0.001) / 47100) * 1e8)
-  //   // = 969 + 106 = 1079 sathoshi
-  //   // 2. Pool's WBTC reserved should be 0.00225 * 40 / 90 = 0.001 WBTC
-  //   // 3. Pool's guaranteed usd of WBTC should be:
-  //   // = 80.90 + (9.91 - 6.91) - 50 = 33.09 USD
-  //   // 4. Pool's WBTC liquidity should be:
-  //   // = 0.00274031 - ((3 [CollateralDelta] + 5 [Profit]) / 47100)
-  //   // = 0.00257046 WBTC
-  //   // 5. Bob's WBTC balance should be:
-  //   // = ((3 [CollateralDelta] + 5 [Profit] - 0.05 [MarginFee]) / 47100)
-  //   // = 16878 sathoshi
-  //   assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 1075);
-  //   assertEq(poolGetterFacet.reservedOf(address(wbtc)), 0.001 * 10**8);
-  //   assertEq(poolGetterFacet.guaranteedUsdOf(address(wbtc)), 33.09 * 10**30);
-  //   assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 0.00257046 * 10**8);
-  //   assertEq(wbtc.balanceOf(BOB), 16878);
-
-  //   // Assert position
-  //   // 1. Position's size should be: 40 USD
-  //   // 2. Position's collateral should be: 6.91 USD
-  //   // 3. Position's average price should be: 41000 USD
-  //   // 4. Position's entry funding rate should be: 0
-  //   // 5. Position's reserve amount should be: 0.00225 * 40 / 90 = 0.001 WBTC
-  //   // 6. Position's realized PnL should be: 5 USD
-  //   // 7. Position should be profitable
-  //   position = poolGetterFacet.getPositionWithSubAccountId(
-  //     address(this),
-  //     0,
-  //     address(wbtc),
-  //     address(wbtc),
-  //     true
-  //   );
-  //   assertEq(position.size, 40 * 10**30);
-  //   assertEq(position.collateral, 6.91 * 10**30);
-  //   assertEq(position.averagePrice, 41000 * 10**30);
-  //   assertEq(position.entryBorrowingRate, 0 * 10**30);
-  //   assertEq(position.reserveAmount, 0.001 * 10**8);
-  //   assertEq(position.realizedPnl, 5 * 10**30);
-  //   assertTrue(position.hasProfit);
-
-  //   // Assert position's leverage
-  //   assertEq(
-  //     poolGetterFacet.getPositionLeverage(
-  //       address(this),
-  //       0,
-  //       address(wbtc),
-  //       address(wbtc),
-  //       true
-  //     ),
-  //     57887
-  //   );
-
-  //   // Warp to pass funding time interval
-  //   vm.warp(block.timestamp + 8 hours + 1);
-
-  //   assertEq(poolGetterFacet.getNextBorrowingRate(address(wbtc)), 233);
-
-  //   // Withdraw collateral so postion get charged by the funding fee
-  //   poolPerpTradeFacet.decreasePosition(
-  //     address(this),
-  //     0,
-  //     address(wbtc),
-  //     address(wbtc),
-  //     1 * 10**30,
-  //     0,
-  //     true,
-  //     BOB
-  //   );
-
-  //   // Assert pool state:
-  //   // 1. Pool shoulud make:
-  //   // = 1075 + funding fee
-  //   // Where funding fee is:
-  //   // = 0.06% * 100000.0 / 257046.0
-  //   // = 0.0233% --> Funding Rate
-  //   // = 40 * 0.0233%
-  //   // = 0.00932 USD --> Funding Fee USD
-  //   // = 0.00932 / 47100 * 1e8
-  //   // = 19 sats
-  //   // Hence; 1075 + 19 = 1094 sathoshi
-  //   // 2. Pool's WBTC reserved should remind the same.
-  //   // 3. Pool's guaranteed usd of WBTC should be:
-  //   // = 33.09 + (6.91 - 5.91) = 34.09 USD
-  //   // 4. Pool's WBTC liquidity should be:
-  //   // = 257046 - ((1 [CollateralDelta]) / 47100 * 1e8)
-  //   // = 257046 - 2123
-  //   // = 254923 WBTC
-  //   // 5. Bob's WBTC balance should be:
-  //   // = 16878 + (1 [CollateralDelta] / 47100 * 1e8) - fundingFee
-  //   // = 16878 + 2123 - 19 - 1 (offset)
-  //   // = 18982 sathoshi
-  //   assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 1094);
-  //   assertEq(poolGetterFacet.reservedOf(address(wbtc)), 0.001 * 10**8);
-  //   assertEq(poolGetterFacet.guaranteedUsdOf(address(wbtc)), 34.09 * 10**30);
-  //   assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 254923);
-  //   assertEq(wbtc.balanceOf(BOB), 18981);
-
-  //   checkPoolBalanceWithState(address(wbtc), 2);
-  // }
 }
