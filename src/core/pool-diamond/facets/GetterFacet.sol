@@ -627,6 +627,7 @@ contract GetterFacet is GetterFacetInterface {
   // ---------------------------
 
   function getAum(bool isUseMaxPrice) public view returns (uint256) {
+    console.log("====================getAum====================");
     LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
       .poolV1DiamondStorage();
 
@@ -648,6 +649,8 @@ contract GetterFacet is GetterFacetInterface {
       else liquidity -= strategyDelta;
 
       if (LibPoolConfigV1.isStableToken(token)) {
+        console.log("stable liquidity", liquidity);
+        console.log("stable price", price);
         aum += (liquidity * price) / 10**decimals;
       } else {
         uint256 shortSize = poolV1ds.shortSizeOf[token];
@@ -672,9 +675,16 @@ contract GetterFacet is GetterFacetInterface {
         }
 
         // Add guaranteed USD to the aum.
+        console.log(
+          "poolV1ds.guaranteedUsdOf[token]",
+          poolV1ds.guaranteedUsdOf[token]
+        );
         aum += poolV1ds.guaranteedUsdOf[token];
 
         // Add actual liquidity of the token to the aum.
+        console.log("liquidity", liquidity);
+        console.log("poolV1ds.reservedOf[token]", poolV1ds.reservedOf[token]);
+        console.log("price", price);
         aum +=
           ((liquidity - poolV1ds.reservedOf[token]) * price) /
           10**decimals;
@@ -682,7 +692,7 @@ contract GetterFacet is GetterFacetInterface {
 
       token = LibPoolConfigV1.getNextAllowTokenOf(token);
     }
-
+    console.log("shortProfits", shortProfits);
     aum = shortProfits > aum ? 0 : aum - shortProfits;
     console.log("getAum::aum", aum);
     console.log("getAum::fundingFeePayable", poolV1ds.fundingFeePayable);
@@ -888,13 +898,16 @@ contract GetterFacet is GetterFacetInterface {
       openInterestShortValue) *
       int256(intervals) *
       int64(poolConfigV1ds.fundingRateFactor);
+    int256 absFundingFeesPaidByLongs = fundingFeesPaidByLongs < 0
+      ? -fundingFeesPaidByLongs
+      : fundingFeesPaidByLongs;
 
     if (openInterestLongValue > 0) {
       fundingRateLong = fundingFeesPaidByLongs / openInterestLongValue;
 
       // Handle the precision loss of 1 wei
       fundingRateLong = fundingRateLong > 0 &&
-        fundingRateLong * openInterestLongValue < fundingFeesPaidByLongs
+        fundingRateLong * openInterestLongValue < absFundingFeesPaidByLongs
         ? fundingRateLong + 1
         : fundingRateLong;
     }
@@ -903,10 +916,12 @@ contract GetterFacet is GetterFacetInterface {
       fundingRateShort =
         (fundingFeesPaidByLongs * (-1)) /
         openInterestShortValue;
-
+      console.log("openInterestShortValue");
+      console.logInt(fundingRateShort * openInterestShortValue);
+      console.logInt(absFundingFeesPaidByLongs);
       // Handle the precision loss of 1 wei
       fundingRateShort = fundingRateShort > 0 &&
-        fundingRateShort * openInterestShortValue < fundingFeesPaidByLongs
+        fundingRateShort * openInterestShortValue < absFundingFeesPaidByLongs
         ? fundingRateShort + 1
         : fundingRateShort;
     }
