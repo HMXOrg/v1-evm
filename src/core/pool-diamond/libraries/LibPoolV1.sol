@@ -47,6 +47,7 @@ library LibPoolV1 {
     uint256 reserveAmount;
     int256 realizedPnl;
     uint256 lastIncreasedTime;
+    uint256 openInterest;
   }
 
   struct PoolV1DiamondStorage {
@@ -74,12 +75,15 @@ library LibPoolV1 {
     // Position
     mapping(bytes32 => Position) positions;
     mapping(address => mapping(address => bool)) approvedPlugins;
-    // Open Interests in 1e30
+    // Open Interests in token amount with that token decimals
     mapping(address => uint256) openInterestLong;
     mapping(address => uint256) openInterestShort;
     // Funding Rate
     mapping(address => int256) accumFundingRateLong;
     mapping(address => int256) accumFundingRateShort;
+    // Funding Fee Accounting
+    uint256 fundingFeePayable;
+    uint256 fundingFeeReceivable;
   }
 
   // -----------
@@ -458,23 +462,23 @@ library LibPoolV1 {
     emit DecreaseOpenInterest(isLong, indexToken, value);
   }
 
-  function addInt256(uint256 a, int256 b) internal pure returns (uint256) {
-    if (b > 0) {
-      return a + uint256(b);
-    } else if (b < 0 && a >= uint256(-b)) {
-      return a - uint256(-b);
-    } else {
-      return 0;
-    }
-  }
+  function updateFundingFeeAccounting(int256 fundingFee) internal {
+    PoolV1DiamondStorage storage poolV1ds = poolV1DiamondStorage();
 
-  function subInt256(uint256 a, int256 b) internal pure returns (uint256) {
-    if (b > 0 && a >= uint256(b)) {
-      return a - uint256(b);
-    } else if (b < 0) {
-      return a + uint256(-b);
+    if (fundingFee < 0) {
+      poolV1ds.fundingFeeReceivable += uint256(-fundingFee);
     } else {
-      return 0;
+      poolV1ds.fundingFeePayable += uint256(fundingFee);
+    }
+
+    if (poolV1ds.fundingFeeReceivable > 0 && poolV1ds.fundingFeePayable > 0) {
+      if (poolV1ds.fundingFeeReceivable > poolV1ds.fundingFeePayable) {
+        poolV1ds.fundingFeeReceivable -= poolV1ds.fundingFeePayable;
+        poolV1ds.fundingFeePayable = 0;
+      } else {
+        poolV1ds.fundingFeePayable -= poolV1ds.fundingFeeReceivable;
+        poolV1ds.fundingFeeReceivable = 0;
+      }
     }
   }
 }

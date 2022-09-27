@@ -28,49 +28,67 @@ contract FundingRateFacet is FundingRateFacetInterface {
       poolV1ds.lastFundingTimeOf[collateralToken] =
         (block.timestamp / fundingInterval) *
         fundingInterval;
-      return;
     }
 
-    // If block.timestamp is not passed the next funding interval, do nothing.
-    if (
-      poolV1ds.lastFundingTimeOf[collateralToken] + fundingInterval >
-      block.timestamp
-    ) {
-      return;
-    }
-
-    uint256 borrowingRate = GetterFacetInterface(address(this))
-      .getNextBorrowingRate(collateralToken);
-    unchecked {
-      poolV1ds.sumBorrowingRateOf[collateralToken] += borrowingRate;
-    }
-
-    console.log("borrowingRate", borrowingRate);
-
-    emit UpdateBorrowingRate(
-      collateralToken,
-      poolV1ds.sumBorrowingRateOf[collateralToken]
-    );
-
-    (int256 fundingRateLong, int256 fundingRateShort) = GetterFacetInterface(
-      address(this)
-    ).getNextFundingRate(indexToken);
-    unchecked {
-      poolV1ds.accumFundingRateLong[indexToken] += fundingRateLong;
-      poolV1ds.accumFundingRateShort[indexToken] += fundingRateShort;
+    if (poolV1ds.lastFundingTimeOf[indexToken] == 0) {
       poolV1ds.lastFundingTimeOf[indexToken] =
         (block.timestamp / fundingInterval) *
         fundingInterval;
     }
-    console.log("fundingRateLong");
-    console.logInt(fundingRateLong);
-    console.log("fundingRateShort");
-    console.logInt(fundingRateShort);
 
-    emit UpdateFundingRate(
-      indexToken,
-      poolV1ds.accumFundingRateLong[indexToken],
-      poolV1ds.accumFundingRateShort[indexToken]
+    // If block.timestamp is not passed the next funding interval, do nothing.
+    console.log(
+      "poolV1ds.lastFundingTimeOf[collateralToken]",
+      poolV1ds.lastFundingTimeOf[collateralToken]
     );
+    console.log(
+      "poolV1ds.lastFundingTimeOf[indexToken]",
+      poolV1ds.lastFundingTimeOf[indexToken]
+    );
+    console.log("fundingInterval", fundingInterval);
+    console.log("block.timestamp", block.timestamp);
+    if (
+      poolV1ds.lastFundingTimeOf[collateralToken] + fundingInterval <=
+      block.timestamp
+    ) {
+      uint256 borrowingRate = GetterFacetInterface(address(this))
+        .getNextBorrowingRate(collateralToken);
+      unchecked {
+        poolV1ds.sumBorrowingRateOf[collateralToken] += borrowingRate;
+      }
+
+      console.log("borrowingRate", borrowingRate);
+
+      emit UpdateBorrowingRate(
+        collateralToken,
+        poolV1ds.sumBorrowingRateOf[collateralToken]
+      );
+    }
+
+    if (
+      poolV1ds.lastFundingTimeOf[indexToken] + fundingInterval <=
+      block.timestamp
+    ) {
+      (int256 fundingRateLong, int256 fundingRateShort) = GetterFacetInterface(
+        address(this)
+      ).getNextFundingRate(indexToken);
+      unchecked {
+        poolV1ds.accumFundingRateLong[indexToken] += fundingRateLong;
+        poolV1ds.accumFundingRateShort[indexToken] += fundingRateShort;
+        poolV1ds.lastFundingTimeOf[indexToken] =
+          (block.timestamp / fundingInterval) *
+          fundingInterval;
+      }
+      console.log("fundingRateLong");
+      console.logInt(fundingRateLong);
+      console.log("fundingRateShort");
+      console.logInt(fundingRateShort);
+
+      emit UpdateFundingRate(
+        indexToken,
+        poolV1ds.accumFundingRateLong[indexToken],
+        poolV1ds.accumFundingRateShort[indexToken]
+      );
+    }
   }
 }

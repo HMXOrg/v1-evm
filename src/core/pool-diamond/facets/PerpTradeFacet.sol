@@ -262,6 +262,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     uint256 collateralDelta;
     uint256 collateralDeltaUsd;
     uint256 reserveDelta;
+    uint256 openInterestDelta;
   }
 
   /// @notice Increase leverage position size.
@@ -375,6 +376,12 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     );
     position.reserveAmount += reserveDelta;
     LibPoolV1.increaseReserved(collateralToken, reserveDelta);
+    position.openInterest = LibPoolV1.convertUsde30ToTokens(
+      indexToken,
+      sizeDelta,
+      true
+    );
+    LibPoolV1.increaseOpenInterest(isLong, indexToken, position.openInterest);
     // Realize profit/loss result from the farm strategy
     // NOTE: This should be called after pullTokens() so that the profit won't be included in the function
     LibPoolV1.realizedFarmPnL(collateralToken);
@@ -406,8 +413,6 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
 
       LibPoolV1.increaseShortSize(indexToken, sizeDelta);
     }
-
-    LibPoolV1.increaseOpenInterest(isLong, indexToken, sizeDelta);
 
     emit IncreasePosition(
       vars.posId,
@@ -441,6 +446,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     uint256 usdOut;
     uint256 usdOutAfterFee;
     uint256 price;
+    uint256 openInterestDelta;
   }
 
   function decreasePosition(
@@ -516,7 +522,10 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     vars.reserveDelta = (position.reserveAmount * sizeDelta) / position.size;
     position.reserveAmount -= vars.reserveDelta;
     LibPoolV1.decreaseReserved(collateralToken, vars.reserveDelta);
-    LibPoolV1.decreaseOpenInterest(isLong, indexToken, sizeDelta);
+    vars.openInterestDelta =
+      (position.openInterest * sizeDelta) /
+      position.size;
+    LibPoolV1.decreaseOpenInterest(isLong, indexToken, vars.openInterestDelta);
 
     // Preload position's collateral here as _reduceCollateral will alter it
     vars.collateral = position.collateral;
@@ -714,6 +723,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
 
     // Decreases reserve amount of a collateral token.
     LibPoolV1.decreaseReserved(collateralToken, position.reserveAmount);
+    LibPoolV1.decreaseOpenInterest(isLong, indexToken, position.openInterest);
 
     if (isLong) {
       // If it is long, then decrease guaranteed usd and pool's liquidity
@@ -787,6 +797,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     uint256 usdOut;
     uint256 usdOutAfterFee;
     bool isProfit;
+    int256 fundingFee;
   }
 
   function _reduceCollateral(
@@ -823,8 +834,9 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     );
 
     // Calculate position's delta.
-    (vars.isProfit, vars.delta, ) = GetterFacetInterface(address(this))
-      .getDelta(
+    (vars.isProfit, vars.delta, vars.fundingFee) = GetterFacetInterface(
+      address(this)
+    ).getDelta(
         indexToken,
         position.size,
         position.averagePrice,
@@ -832,6 +844,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
         position.lastIncreasedTime,
         position.entryFundingRate
       );
+    LibPoolV1.updateFundingFeeAccounting(vars.fundingFee);
     // Adjusting delta to be proportionally to size delta and position size
     vars.delta = (vars.delta * sizeDelta) / position.size;
 

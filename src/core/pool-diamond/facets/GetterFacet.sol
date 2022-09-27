@@ -684,7 +684,16 @@ contract GetterFacet is GetterFacetInterface {
     }
 
     aum = shortProfits > aum ? 0 : aum - shortProfits;
-    return poolV1ds.discountedAum > aum ? 0 : aum - poolV1ds.discountedAum;
+    console.log("getAum::aum", aum);
+    console.log("getAum::fundingFeePayable", poolV1ds.fundingFeePayable);
+    console.log("getAum::fundingFeeReceivable", poolV1ds.fundingFeeReceivable);
+    return
+      poolV1ds.discountedAum > aum
+        ? 0
+        : aum -
+          poolV1ds.discountedAum -
+          poolV1ds.fundingFeePayable +
+          poolV1ds.fundingFeeReceivable;
   }
 
   function getAumE18(bool isUseMaxPrice) external view returns (uint256) {
@@ -882,12 +891,30 @@ contract GetterFacet is GetterFacetInterface {
 
     if (openInterestLongValue > 0) {
       fundingRateLong = fundingFeesPaidByLongs / openInterestLongValue;
+
+      // Handle the precision loss of 1 wei
+      fundingRateLong = fundingRateLong > 0 &&
+        fundingRateLong * openInterestLongValue < fundingFeesPaidByLongs
+        ? fundingRateLong + 1
+        : fundingRateLong;
     }
 
     if (openInterestShortValue > 0) {
       fundingRateShort =
         (fundingFeesPaidByLongs * (-1)) /
         openInterestShortValue;
+
+      // Handle the precision loss of 1 wei
+      fundingRateShort = fundingRateShort > 0 &&
+        fundingRateShort * openInterestShortValue < fundingFeesPaidByLongs
+        ? fundingRateShort + 1
+        : fundingRateShort;
     }
+  }
+
+  function getFundingFeeAccounting() external view returns (uint256, uint256) {
+    LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
+      .poolV1DiamondStorage();
+    return (poolV1ds.fundingFeePayable, poolV1ds.fundingFeeReceivable);
   }
 }
