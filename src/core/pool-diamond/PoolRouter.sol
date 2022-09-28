@@ -371,6 +371,7 @@ contract PoolRouter {
 
     return
       LiquidityFacetInterface(pool).swap(
+        msg.sender,
         tokenIn,
         tokenOut,
         minAmountOut,
@@ -396,6 +397,7 @@ contract PoolRouter {
 
     if (tokenOut == address(WNATIVE)) {
       uint256 amountOut = LiquidityFacetInterface(pool).swap(
+        msg.sender,
         tokenIn,
         tokenOut,
         minAmountOut,
@@ -408,6 +410,7 @@ contract PoolRouter {
     } else {
       return
         LiquidityFacetInterface(pool).swap(
+          msg.sender,
           tokenIn,
           tokenOut,
           minAmountOut,
