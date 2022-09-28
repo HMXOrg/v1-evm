@@ -14,7 +14,14 @@ interface PerpTradeFacetInterface {
     address indexToken,
     bool isLong,
     bool isRevertOnError
-  ) external view returns (LiquidationState, uint256);
+  )
+    external
+    view
+    returns (
+      LiquidationState,
+      uint256,
+      uint256
+    );
 
   function increasePosition(
     address primaryAccount,

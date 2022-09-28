@@ -39,7 +39,18 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     uint256 reserveAmount,
     int256 realisedPnL
   );
-  event CollectMarginFee(address token, uint256 feeUsd, uint256 feeTokens);
+  event CollectPositionFee(
+    address account,
+    address token,
+    uint256 feeUsd,
+    uint256 feeTokens
+  );
+  event CollectBorrowingFee(
+    address account,
+    address token,
+    uint256 feeUsd,
+    uint256 feeTokens
+  );
   event DecreasePosition(
     bytes32 posId,
     address primaryAccount,
@@ -106,7 +117,15 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     address indexToken,
     bool isLong,
     bool isRevertOnError
-  ) public view returns (LiquidationState, uint256) {
+  )
+    public
+    view
+    returns (
+      LiquidationState,
+      uint256,
+      uint256
+    )
+  {
     // Load diamond storage
     LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
       .poolV1DiamondStorage();
@@ -123,7 +142,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
         isLong,
         position.lastIncreasedTime
       );
-    uint256 marginFee = GetterFacetInterface(address(this)).getFundingFee(
+    uint256 fundingFee = GetterFacetInterface(address(this)).getFundingFee(
       account,
       collateralToken,
       indexToken,
@@ -131,17 +150,18 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       position.size,
       position.entryFundingRate
     );
-    marginFee += GetterFacetInterface(address(this)).getPositionFee(
+    uint256 positionFee = GetterFacetInterface(address(this)).getPositionFee(
       account,
       collateralToken,
       indexToken,
       isLong,
       position.size
     );
+    uint256 marginFee = fundingFee + positionFee;
 
     if (!isProfit && position.collateral < delta) {
       if (isRevertOnError) revert PerpTradeFacet_LossesExceedCollateral();
-      return (LiquidationState.LIQUIDATE, marginFee);
+      return (LiquidationState.LIQUIDATE, fundingFee, positionFee);
     }
 
     uint256 remainingCollateral = position.collateral;
@@ -152,24 +172,24 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     if (remainingCollateral < marginFee) {
       if (isRevertOnError) revert PerpTradeFacet_FeeExceedCollateral();
       // Cap the fee to the remainingCollateral.
-      return (LiquidationState.LIQUIDATE, remainingCollateral);
+      return (LiquidationState.LIQUIDATE, 0, remainingCollateral);
     }
 
     if (remainingCollateral < marginFee + LibPoolConfigV1.liquidationFeeUsd()) {
       if (isRevertOnError)
         revert PerpTradeFacet_LiquidationFeeExceedCollateral();
       // Cap the fee to the margin fee
-      return (LiquidationState.LIQUIDATE, marginFee);
+      return (LiquidationState.LIQUIDATE, fundingFee, positionFee);
     }
 
     if (
       remainingCollateral * LibPoolConfigV1.maxLeverage() < position.size * BPS
     ) {
       if (isRevertOnError) revert PerpTradeFacet_MaxLeverageExceed();
-      return (LiquidationState.SOFT_LIQUIDATE, marginFee);
+      return (LiquidationState.SOFT_LIQUIDATE, fundingFee, positionFee);
     }
 
-    return (LiquidationState.HEALTHY, marginFee);
+    return (LiquidationState.HEALTHY, fundingFee, positionFee);
   }
 
   function _checkPosition(uint256 size, uint256 collateral) internal pure {
@@ -209,6 +229,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
   }
 
   function _collectMarginFee(
+    address primaryAccount,
     address account,
     address collateralToken,
     address indexToken,
@@ -228,6 +249,12 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       isLong,
       sizeDelta
     );
+    emit CollectPositionFee(
+      primaryAccount,
+      collateralToken,
+      feeUsd,
+      LibPoolV1.convertUsde30ToTokens(collateralToken, feeUsd, true)
+    );
 
     uint256 fundingFeeUsd = GetterFacetInterface(address(this)).getFundingFee(
       account,
@@ -238,6 +265,13 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       entryFundingRate
     );
 
+    emit CollectBorrowingFee(
+      primaryAccount,
+      collateralToken,
+      fundingFeeUsd,
+      LibPoolV1.convertUsde30ToTokens(collateralToken, fundingFeeUsd, true)
+    );
+
     feeUsd += fundingFeeUsd;
 
     uint256 feeTokens = LibPoolV1.convertUsde30ToTokens(
@@ -246,8 +280,6 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       true
     );
     ds.feeReserveOf[collateralToken] += feeTokens;
-
-    emit CollectMarginFee(collateralToken, feeUsd, feeTokens);
 
     return feeUsd;
   }
@@ -330,6 +362,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     }
 
     vars.feeUsd = _collectMarginFee(
+      primaryAccount,
       vars.subAccount,
       collateralToken,
       indexToken,
@@ -517,6 +550,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
 
     // Perform the actual reduce collateral
     (vars.usdOut, vars.usdOutAfterFee) = _reduceCollateral(
+      primaryAccount,
       vars.subAccount,
       collateralToken,
       indexToken,
@@ -634,6 +668,17 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     return 0;
   }
 
+  struct LiquidateLocalVars {
+    uint256 borrowingFee;
+    uint256 positionFee;
+    uint256 marginFee;
+    address subAccount;
+    bytes32 posId;
+    uint256 feeTokens;
+    uint256 markPrice;
+    LiquidationState liquidationState;
+  }
+
   function liquidate(
     address primaryAccount,
     uint256 subAccountId,
@@ -642,6 +687,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     bool isLong,
     address to
   ) external {
+    LiquidateLocalVars memory vars;
     // Load diamond storage
     LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
       .poolV1DiamondStorage();
@@ -659,29 +705,34 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       indexToken
     );
 
-    address subAccount = GetterFacetInterface(address(this)).getSubAccount(
+    vars.subAccount = GetterFacetInterface(address(this)).getSubAccount(
       primaryAccount,
       subAccountId
     );
 
-    bytes32 posId = LibPoolV1.getPositionId(
-      subAccount,
+    vars.posId = LibPoolV1.getPositionId(
+      vars.subAccount,
       collateralToken,
       indexToken,
       isLong
     );
-    LibPoolV1.Position memory position = ds.positions[posId];
+    LibPoolV1.Position memory position = ds.positions[vars.posId];
 
     if (position.size == 0) revert PerpTradeFacet_BadPositionSize();
 
-    (LiquidationState liquidationState, uint256 marginFee) = checkLiquidation(
-      subAccount,
+    (
+      vars.liquidationState,
+      vars.borrowingFee,
+      vars.positionFee
+    ) = checkLiquidation(
+      vars.subAccount,
       collateralToken,
       indexToken,
       isLong,
       false
     );
-    if (liquidationState == LiquidationState.SOFT_LIQUIDATE) {
+    vars.marginFee = vars.borrowingFee + vars.positionFee;
+    if (vars.liquidationState == LiquidationState.SOFT_LIQUIDATE) {
       // Position's leverage is exceeded, but there is enough collateral to soft-liquidate.
       _decreasePosition(
         primaryAccount,
@@ -696,13 +747,24 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       return;
     }
 
-    uint256 feeTokens = LibPoolV1.convertUsde30ToTokens(
+    vars.feeTokens = LibPoolV1.convertUsde30ToTokens(
       collateralToken,
-      marginFee,
+      vars.marginFee,
       true
     );
-    ds.feeReserveOf[collateralToken] += feeTokens;
-    emit CollectMarginFee(collateralToken, marginFee, feeTokens);
+    ds.feeReserveOf[collateralToken] += vars.feeTokens;
+    emit CollectPositionFee(
+      primaryAccount,
+      collateralToken,
+      vars.positionFee,
+      vars.feeTokens
+    );
+    emit CollectBorrowingFee(
+      primaryAccount,
+      collateralToken,
+      vars.borrowingFee,
+      vars.feeTokens
+    );
 
     // Decreases reserve amount of a collateral token.
     LibPoolV1.decreaseReserved(collateralToken, position.reserveAmount);
@@ -715,16 +777,16 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       );
       LibPoolV1.decreasePoolLiquidity(
         collateralToken,
-        LibPoolV1.convertUsde30ToTokens(collateralToken, marginFee, true)
+        LibPoolV1.convertUsde30ToTokens(collateralToken, vars.marginFee, true)
       );
     }
 
-    uint256 markPrice = isLong
+    vars.markPrice = isLong
       ? ds.oracle.getMinPrice(indexToken)
       : ds.oracle.getMaxPrice(indexToken);
 
     emit LiquidatePosition(
-      posId,
+      vars.posId,
       primaryAccount,
       subAccountId,
       collateralToken,
@@ -734,11 +796,11 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       position.collateral,
       position.reserveAmount,
       position.realizedPnl,
-      markPrice
+      vars.markPrice
     );
 
-    if (!isLong && marginFee < position.collateral) {
-      uint256 remainingCollateral = position.collateral - marginFee;
+    if (!isLong && vars.marginFee < position.collateral) {
+      uint256 remainingCollateral = position.collateral - vars.marginFee;
       LibPoolV1.increasePoolLiquidity(
         collateralToken,
         LibPoolV1.convertUsde30ToTokens(
@@ -751,7 +813,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
 
     if (!isLong) LibPoolV1.decreaseShortSize(indexToken, position.size);
 
-    delete ds.positions[posId];
+    delete ds.positions[vars.posId];
 
     // Pay liquidation bounty with the pool's liquidity
     LibPoolV1.decreasePoolLiquidity(
@@ -782,6 +844,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
   }
 
   function _reduceCollateral(
+    address primaryAccount,
     address account,
     address collateralToken,
     address indexToken,
@@ -805,6 +868,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
 
     // Collect margin fee
     vars.feeUsd = _collectMarginFee(
+      primaryAccount,
       account,
       collateralToken,
       indexToken,
