@@ -272,6 +272,7 @@ contract GetterFacet is GetterFacetInterface {
         : vars.price - averagePrice;
     }
     vars.delta = (size * vars.priceDelta) / averagePrice;
+    console.log("freshDelta", vars.delta);
 
     if (isLong) {
       vars.isProfit = vars.price > averagePrice;
@@ -303,7 +304,6 @@ contract GetterFacet is GetterFacetInterface {
       : uint256(-vars.signedDelta);
 
     if (vars.isProfit && vars.delta * BPS <= size * vars.minBps) vars.delta = 0;
-    console.log("vars.delta", vars.delta);
     return (vars.isProfit, vars.delta, vars.fundingFee);
   }
 
@@ -459,7 +459,8 @@ contract GetterFacet is GetterFacetInterface {
       reserveAmount: position.reserveAmount,
       realizedPnl: realizedPnl,
       hasProfit: position.realizedPnl >= 0,
-      lastIncreasedTime: position.lastIncreasedTime
+      lastIncreasedTime: position.lastIncreasedTime,
+      fundingFeeDebt: position.fundingFeeDebt
     });
     return vars;
   }

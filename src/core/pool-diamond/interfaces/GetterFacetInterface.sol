@@ -168,6 +168,7 @@ interface GetterFacetInterface {
     uint256 realizedPnl;
     bool hasProfit;
     uint256 lastIncreasedTime;
+    int256 fundingFeeDebt;
   }
 
   function getPoolShortDelta(address token)

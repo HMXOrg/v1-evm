@@ -48,6 +48,7 @@ library LibPoolV1 {
     int256 realizedPnl;
     uint256 lastIncreasedTime;
     uint256 openInterest;
+    int256 fundingFeeDebt;
   }
 
   struct PoolV1DiamondStorage {

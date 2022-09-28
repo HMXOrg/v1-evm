@@ -8,6 +8,7 @@ import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
 import { PerpTradeFacetInterface } from "../interfaces/PerpTradeFacetInterface.sol";
 import { GetterFacetInterface } from "../interfaces/GetterFacetInterface.sol";
 import { FundingRateFacetInterface } from "../interfaces/FundingRateFacetInterface.sol";
+import { console } from "src/tests/utils/console.sol";
 
 contract PerpTradeFacet is PerpTradeFacetInterface {
   error PerpTradeFacet_BadCollateralDelta();
@@ -376,12 +377,13 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     );
     position.reserveAmount += reserveDelta;
     LibPoolV1.increaseReserved(collateralToken, reserveDelta);
-    position.openInterest = LibPoolV1.convertUsde30ToTokens(
+    uint256 openInterestDelta = LibPoolV1.convertUsde30ToTokens(
       indexToken,
       sizeDelta,
       true
     );
-    LibPoolV1.increaseOpenInterest(isLong, indexToken, position.openInterest);
+    position.openInterest += openInterestDelta;
+    LibPoolV1.increaseOpenInterest(isLong, indexToken, openInterestDelta);
     // Realize profit/loss result from the farm strategy
     // NOTE: This should be called after pullTokens() so that the profit won't be included in the function
     LibPoolV1.realizedFarmPnL(collateralToken);
@@ -525,6 +527,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     vars.openInterestDelta =
       (position.openInterest * sizeDelta) /
       position.size;
+    position.openInterest -= vars.openInterestDelta;
     LibPoolV1.decreaseOpenInterest(isLong, indexToken, vars.openInterestDelta);
 
     // Preload position's collateral here as _reduceCollateral will alter it
@@ -798,6 +801,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     uint256 usdOutAfterFee;
     bool isProfit;
     int256 fundingFee;
+    int256 realizedFundingFee;
   }
 
   function _reduceCollateral(
@@ -844,9 +848,32 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
         position.lastIncreasedTime,
         position.entryFundingRate
       );
-    LibPoolV1.updateFundingFeeAccounting(vars.fundingFee);
+    console.log("initialDelta", vars.delta);
+    console.log("initialFundingFee");
+    console.logInt(vars.fundingFee);
+
+    // Add the fundingFeeDebt here to be adjusted along with delta
+    if (vars.isProfit) {
+      vars.delta = position.fundingFeeDebt > 0
+        ? vars.delta - uint256(position.fundingFeeDebt)
+        : vars.delta + uint256(-position.fundingFeeDebt);
+    } else {
+      vars.delta = position.fundingFeeDebt > 0
+        ? vars.delta + uint256(position.fundingFeeDebt)
+        : vars.delta - uint256(-position.fundingFeeDebt);
+    }
+
     // Adjusting delta to be proportionally to size delta and position size
     vars.delta = (vars.delta * sizeDelta) / position.size;
+    console.log("adjustedDelta", vars.delta);
+    vars.fundingFee += position.fundingFeeDebt;
+    vars.realizedFundingFee =
+      (vars.fundingFee * int256(sizeDelta)) /
+      int256(position.size);
+    console.log("adjustedFundingFee");
+    console.logInt(vars.realizedFundingFee);
+    position.fundingFeeDebt = vars.fundingFee - vars.realizedFundingFee;
+    LibPoolV1.updateFundingFeeAccounting(vars.realizedFundingFee);
 
     if (vars.isProfit && vars.delta > 0) {
       // Position is profitable. Handle profits here.
