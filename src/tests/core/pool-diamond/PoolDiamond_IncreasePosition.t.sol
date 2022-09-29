@@ -218,6 +218,57 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
     );
   }
 
+  function testRevert_WhenLong_WhenOpenInterestLongCeilingExceed() external {
+    daiPriceFeed.setLatestAnswer(1 * 10**8);
+    maticPriceFeed.setLatestAnswer(400 * 10**8);
+
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+
+    wbtc.mint(address(this), 3 * 10**8);
+    wbtc.approve(address(poolRouter), 3 * 10**8);
+    poolRouter.addLiquidity(
+      address(poolDiamond),
+      address(wbtc),
+      3 * 10**8,
+      ALICE,
+      0
+    );
+
+    wbtc.mint(address(poolDiamond), 1 * 10**8);
+
+    address[] memory tokens = new address[](1);
+    tokens[0] = address(wbtc);
+    LibPoolConfigV1.TokenConfig[]
+      memory tokenConfigs = new LibPoolConfigV1.TokenConfig[](1);
+    tokenConfigs[0] = LibPoolConfigV1.TokenConfig({
+      accept: true,
+      isStable: false,
+      isShortable: true,
+      decimals: wbtc.decimals(),
+      weight: 10000,
+      minProfitBps: 75,
+      usdDebtCeiling: 0,
+      shortCeiling: 0,
+      bufferLiquidity: 9.97 * 10**8,
+      openInterestLongCeiling: 1.5 * 10**8
+    });
+    poolAdminFacet.setTokenConfigs(tokens, tokenConfigs);
+
+    vm.expectRevert(
+      abi.encodeWithSignature("LibPoolV1_OverOpenInterestLongCeiling()")
+    );
+    poolPerpTradeFacet.increasePosition(
+      address(this),
+      0,
+      address(wbtc),
+      address(wbtc),
+      80000 * 10**30,
+      true
+    );
+  }
+
   function testCorrectness_WhenLong() external {
     maticPriceFeed.setLatestAnswer(400 * 10**8);
     daiPriceFeed.setLatestAnswer(1 * 10**8);
@@ -1110,7 +1161,8 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
       minProfitBps: 75,
       usdDebtCeiling: 0,
       shortCeiling: 0,
-      bufferLiquidity: 0
+      bufferLiquidity: 0,
+      openInterestLongCeiling: 0
     });
     poolAdminFacet.setTokenConfigs(tokens, tokenConfigs);
 

@@ -100,7 +100,8 @@ abstract contract Lockdrop_BaseTest is BaseTest {
       minProfitBps: 75,
       usdDebtCeiling: 0,
       shortCeiling: 0,
-      bufferLiquidity: 0
+      bufferLiquidity: 0,
+      openInterestLongCeiling: 0
     });
 
     poolAdminFacet.setTokenConfigs(poolTokens, poolTokenConfigs);

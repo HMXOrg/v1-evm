@@ -265,7 +265,8 @@ contract BaseTest is DSTest, CoreConstants {
       minProfitBps: 75,
       usdDebtCeiling: 0,
       shortCeiling: 0,
-      bufferLiquidity: 0
+      bufferLiquidity: 0,
+      openInterestLongCeiling: 0
     });
     tokenConfigs[1] = LibPoolConfigV1.TokenConfig({
       accept: true,
@@ -276,7 +277,8 @@ contract BaseTest is DSTest, CoreConstants {
       minProfitBps: 75,
       usdDebtCeiling: 0,
       shortCeiling: 0,
-      bufferLiquidity: 0
+      bufferLiquidity: 0,
+      openInterestLongCeiling: 0
     });
     tokenConfigs[2] = LibPoolConfigV1.TokenConfig({
       accept: true,
@@ -287,7 +289,8 @@ contract BaseTest is DSTest, CoreConstants {
       minProfitBps: 75,
       usdDebtCeiling: 0,
       shortCeiling: 0,
-      bufferLiquidity: 0
+      bufferLiquidity: 0,
+      openInterestLongCeiling: 0
     });
 
     return (tokens, tokenConfigs);

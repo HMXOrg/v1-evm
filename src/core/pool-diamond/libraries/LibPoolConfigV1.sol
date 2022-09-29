@@ -27,6 +27,7 @@ library LibPoolConfigV1 {
     uint256 usdDebtCeiling;
     uint256 shortCeiling;
     uint256 bufferLiquidity;
+    uint256 openInterestLongCeiling;
   }
 
   struct StrategyData {
@@ -172,6 +173,15 @@ library LibPoolConfigV1 {
     returns (uint256)
   {
     return poolConfigV1DiamondStorage().tokenMetas[token].shortCeiling;
+  }
+
+  function getTokenOpenInterestLongCeilingOf(address token)
+    internal
+    view
+    returns (uint256)
+  {
+    return
+      poolConfigV1DiamondStorage().tokenMetas[token].openInterestLongCeiling;
   }
 
   function isAcceptToken(address token) internal view returns (bool) {

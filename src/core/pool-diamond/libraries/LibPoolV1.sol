@@ -21,6 +21,7 @@ library LibPoolV1 {
   error LibPoolV1_InsufficientLiquidity();
   error LibPoolV1_OverUsdDebtCeiling();
   error LibPoolV1_OverShortCeiling();
+  error LibPoolV1_OverOpenInterestLongCeiling();
 
   // -------------
   //   Constants
@@ -442,6 +443,14 @@ library LibPoolV1 {
 
     if (isLong) {
       poolV1ds.openInterestLong[indexToken] += value;
+      uint256 openInterestLongCeiling = LibPoolConfigV1
+        .getTokenOpenInterestLongCeilingOf(indexToken);
+      if (
+        openInterestLongCeiling > 0 &&
+        poolV1ds.openInterestLong[indexToken] > openInterestLongCeiling
+      ) {
+        revert LibPoolV1_OverOpenInterestLongCeiling();
+      }
     } else {
       poolV1ds.openInterestShort[indexToken] += value;
     }
