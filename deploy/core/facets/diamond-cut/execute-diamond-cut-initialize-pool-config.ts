@@ -14,7 +14,8 @@ const fundingInterval = 60 * 60; // 1 hour
 const mintBurnFeeBps = 30;
 const taxBps = 50;
 const stableFundingRateFactor = 100; // 0.01% / 1 hour
-const fundingRateFactor = 100; // 0.01% / 1 hour
+const fundingRateFactor = 25; // 0.0025% / 1 hour
+const borrowingRateFactor = 100; // 0.01% / 1 hour
 const liquidationFeeUsd = ethers.utils.parseUnits("5", 30);
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -37,6 +38,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           mintBurnFeeBps,
           taxBps,
           stableFundingRateFactor,
+          borrowingRateFactor,
           fundingRateFactor,
           liquidationFeeUsd,
         ]
