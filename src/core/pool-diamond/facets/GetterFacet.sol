@@ -8,7 +8,6 @@ import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
 import { GetterFacetInterface } from "../interfaces/GetterFacetInterface.sol";
 import { StrategyInterface } from "../../../interfaces/StrategyInterface.sol";
 import { PLP } from "../../../tokens/PLP.sol";
-import { console } from "src/tests/utils/console.sol";
 
 contract GetterFacet is GetterFacetInterface {
   error GetterFacet_BadSubAccountId();
@@ -272,7 +271,6 @@ contract GetterFacet is GetterFacetInterface {
         : vars.price - averagePrice;
     }
     vars.delta = (size * vars.priceDelta) / averagePrice;
-    console.log("freshDelta", vars.delta);
 
     if (isLong) {
       vars.isProfit = vars.price > averagePrice;
@@ -294,8 +292,6 @@ contract GetterFacet is GetterFacetInterface {
       size,
       entryFundingRate
     );
-    console.log("vars.fundingFee");
-    console.logInt(vars.fundingFee);
     vars.signedDelta = vars.isProfit ? int256(vars.delta) : -int256(vars.delta);
     vars.signedDelta -= vars.fundingFee;
     vars.isProfit = vars.signedDelta > 0;
@@ -628,7 +624,6 @@ contract GetterFacet is GetterFacetInterface {
   // ---------------------------
 
   function getAum(bool isUseMaxPrice) public view returns (uint256) {
-    console.log("====================getAum====================");
     LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
       .poolV1DiamondStorage();
 
@@ -650,8 +645,6 @@ contract GetterFacet is GetterFacetInterface {
       else liquidity -= strategyDelta;
 
       if (LibPoolConfigV1.isStableToken(token)) {
-        console.log("stable liquidity", liquidity);
-        console.log("stable price", price);
         aum += (liquidity * price) / 10**decimals;
       } else {
         uint256 shortSize = poolV1ds.shortSizeOf[token];
@@ -676,16 +669,9 @@ contract GetterFacet is GetterFacetInterface {
         }
 
         // Add guaranteed USD to the aum.
-        console.log(
-          "poolV1ds.guaranteedUsdOf[token]",
-          poolV1ds.guaranteedUsdOf[token]
-        );
         aum += poolV1ds.guaranteedUsdOf[token];
 
         // Add actual liquidity of the token to the aum.
-        console.log("liquidity", liquidity);
-        console.log("poolV1ds.reservedOf[token]", poolV1ds.reservedOf[token]);
-        console.log("price", price);
         aum +=
           ((liquidity - poolV1ds.reservedOf[token]) * price) /
           10**decimals;
@@ -693,11 +679,7 @@ contract GetterFacet is GetterFacetInterface {
 
       token = LibPoolConfigV1.getNextAllowTokenOf(token);
     }
-    console.log("shortProfits", shortProfits);
     aum = shortProfits > aum ? 0 : aum - shortProfits;
-    console.log("getAum::aum", aum);
-    console.log("getAum::fundingFeePayable", poolV1ds.fundingFeePayable);
-    console.log("getAum::fundingFeeReceivable", poolV1ds.fundingFeeReceivable);
     return
       poolV1ds.discountedAum > aum
         ? 0
@@ -917,9 +899,6 @@ contract GetterFacet is GetterFacetInterface {
       fundingRateShort =
         (fundingFeesPaidByLongs * (-1)) /
         openInterestShortValue;
-      console.log("openInterestShortValue");
-      console.logInt(fundingRateShort * openInterestShortValue);
-      console.logInt(absFundingFeesPaidByLongs);
       // Handle the precision loss of 1 wei
       fundingRateShort = fundingRateShort > 0 &&
         fundingRateShort * openInterestShortValue < absFundingFeesPaidByLongs

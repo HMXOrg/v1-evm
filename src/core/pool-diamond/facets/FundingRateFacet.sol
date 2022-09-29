@@ -6,7 +6,6 @@ import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
 
 import { FundingRateFacetInterface } from "../interfaces/FundingRateFacetInterface.sol";
 import { GetterFacetInterface } from "../interfaces/GetterFacetInterface.sol";
-import { console } from "src/tests/utils/console.sol";
 
 contract FundingRateFacet is FundingRateFacetInterface {
   event UpdateBorrowingRate(address token, uint256 sumBorrowingRate);
@@ -37,16 +36,6 @@ contract FundingRateFacet is FundingRateFacetInterface {
     }
 
     // If block.timestamp is not passed the next funding interval, do nothing.
-    console.log(
-      "poolV1ds.lastFundingTimeOf[collateralToken]",
-      poolV1ds.lastFundingTimeOf[collateralToken]
-    );
-    console.log(
-      "poolV1ds.lastFundingTimeOf[indexToken]",
-      poolV1ds.lastFundingTimeOf[indexToken]
-    );
-    console.log("fundingInterval", fundingInterval);
-    console.log("block.timestamp", block.timestamp);
     if (
       poolV1ds.lastFundingTimeOf[collateralToken] + fundingInterval <=
       block.timestamp
@@ -56,8 +45,6 @@ contract FundingRateFacet is FundingRateFacetInterface {
       unchecked {
         poolV1ds.sumBorrowingRateOf[collateralToken] += borrowingRate;
       }
-
-      console.log("borrowingRate", borrowingRate);
 
       emit UpdateBorrowingRate(
         collateralToken,
@@ -79,10 +66,6 @@ contract FundingRateFacet is FundingRateFacetInterface {
           (block.timestamp / fundingInterval) *
           fundingInterval;
       }
-      console.log("fundingRateLong");
-      console.logInt(fundingRateLong);
-      console.log("fundingRateShort");
-      console.logInt(fundingRateShort);
 
       emit UpdateFundingRate(
         indexToken,

@@ -180,6 +180,7 @@ contract PoolDiamond_Farm_LiquidateTest is PoolDiamond_BaseTest {
 
     (
       PerpTradeFacetInterface.LiquidationState liquidationState,
+      ,
 
     ) = poolPerpTradeFacet.checkLiquidation(
         address(this),
@@ -260,7 +261,7 @@ contract PoolDiamond_Farm_LiquidateTest is PoolDiamond_BaseTest {
 
     // Assert liquidationState
     // 1. LiquidationState should be: SOFT_LIQUIDATE
-    (liquidationState, ) = poolPerpTradeFacet.checkLiquidation(
+    (liquidationState, , ) = poolPerpTradeFacet.checkLiquidation(
       address(this),
       address(wbtc),
       address(wbtc),
@@ -454,6 +455,7 @@ contract PoolDiamond_Farm_LiquidateTest is PoolDiamond_BaseTest {
 
     (
       PerpTradeFacetInterface.LiquidationState liquidationState,
+      ,
 
     ) = poolPerpTradeFacet.checkLiquidation(
         address(this),
@@ -537,7 +539,7 @@ contract PoolDiamond_Farm_LiquidateTest is PoolDiamond_BaseTest {
     //    remainingCollateral * LibPoolConfigV1.maxLeverage() < position.size * BPS
     //    (99 - 79.02439024390245) * 50 < 1000
     //    998.7804878048775 < 1000
-    (liquidationState, ) = poolPerpTradeFacet.checkLiquidation(
+    (liquidationState, , ) = poolPerpTradeFacet.checkLiquidation(
       address(this),
       address(wbtc),
       address(wbtc),
@@ -720,6 +722,7 @@ contract PoolDiamond_Farm_LiquidateTest is PoolDiamond_BaseTest {
     // Position's liquidation state should be healthy
     (
       PerpTradeFacetInterface.LiquidationState liquidationState,
+      ,
 
     ) = poolPerpTradeFacet.checkLiquidation(
         address(this),
@@ -754,7 +757,7 @@ contract PoolDiamond_Farm_LiquidateTest is PoolDiamond_BaseTest {
 
     // Assert position liquidation state
     // Position's liquidation state should be healthy
-    (liquidationState, ) = poolPerpTradeFacet.checkLiquidation(
+    (liquidationState, , ) = poolPerpTradeFacet.checkLiquidation(
       address(this),
       address(dai),
       address(wbtc),
@@ -787,7 +790,7 @@ contract PoolDiamond_Farm_LiquidateTest is PoolDiamond_BaseTest {
 
     // Assert liquidation state
     // Position should still be healthy
-    (liquidationState, ) = poolPerpTradeFacet.checkLiquidation(
+    (liquidationState, , ) = poolPerpTradeFacet.checkLiquidation(
       address(this),
       address(dai),
       address(wbtc),
@@ -820,7 +823,7 @@ contract PoolDiamond_Farm_LiquidateTest is PoolDiamond_BaseTest {
 
     // Assert liquidation state
     // Position should be liquidated
-    (liquidationState, ) = poolPerpTradeFacet.checkLiquidation(
+    (liquidationState, , ) = poolPerpTradeFacet.checkLiquidation(
       address(this),
       address(dai),
       address(wbtc),
@@ -861,7 +864,7 @@ contract PoolDiamond_Farm_LiquidateTest is PoolDiamond_BaseTest {
 
     // Assert liquidation state
     // Position should be soft liquidate
-    (liquidationState, ) = poolPerpTradeFacet.checkLiquidation(
+    (liquidationState, , ) = poolPerpTradeFacet.checkLiquidation(
       address(this),
       address(dai),
       address(wbtc),
@@ -1062,6 +1065,7 @@ contract PoolDiamond_Farm_LiquidateTest is PoolDiamond_BaseTest {
     // Position's liquidation state should be healthy
     (
       PerpTradeFacetInterface.LiquidationState liquidationState,
+      ,
 
     ) = poolPerpTradeFacet.checkLiquidation(
         address(this),
@@ -1096,7 +1100,7 @@ contract PoolDiamond_Farm_LiquidateTest is PoolDiamond_BaseTest {
 
     // Assert position liquidation state
     // Position's liquidation state should be healthy
-    (liquidationState, ) = poolPerpTradeFacet.checkLiquidation(
+    (liquidationState, , ) = poolPerpTradeFacet.checkLiquidation(
       address(this),
       address(dai),
       address(wbtc),
@@ -1129,7 +1133,7 @@ contract PoolDiamond_Farm_LiquidateTest is PoolDiamond_BaseTest {
 
     // Assert liquidation state
     // Position should still be healthy
-    (liquidationState, ) = poolPerpTradeFacet.checkLiquidation(
+    (liquidationState, , ) = poolPerpTradeFacet.checkLiquidation(
       address(this),
       address(dai),
       address(wbtc),
@@ -1162,7 +1166,7 @@ contract PoolDiamond_Farm_LiquidateTest is PoolDiamond_BaseTest {
 
     // Assert liquidation state
     // Position should be liquidated
-    (liquidationState, ) = poolPerpTradeFacet.checkLiquidation(
+    (liquidationState, , ) = poolPerpTradeFacet.checkLiquidation(
       address(this),
       address(dai),
       address(wbtc),
@@ -1203,7 +1207,7 @@ contract PoolDiamond_Farm_LiquidateTest is PoolDiamond_BaseTest {
 
     // Assert liquidation state
     // Position should be soft liquidate
-    (liquidationState, ) = poolPerpTradeFacet.checkLiquidation(
+    (liquidationState, , ) = poolPerpTradeFacet.checkLiquidation(
       address(this),
       address(dai),
       address(wbtc),
@@ -1392,6 +1396,7 @@ contract PoolDiamond_Farm_LiquidateTest is PoolDiamond_BaseTest {
     // 1. Position's liquidation state should be CANNOT_LIQUIDATE
     (
       PerpTradeFacetInterface.LiquidationState liquidationState,
+      ,
 
     ) = poolPerpTradeFacet.checkLiquidation(
         address(this),
@@ -1619,6 +1624,7 @@ contract PoolDiamond_Farm_LiquidateTest is PoolDiamond_BaseTest {
     // 1. Position's liquidation state should be CANNOT_LIQUIDATE
     (
       PerpTradeFacetInterface.LiquidationState liquidationState,
+      ,
 
     ) = poolPerpTradeFacet.checkLiquidation(
         address(this),
@@ -1860,6 +1866,7 @@ contract PoolDiamond_Farm_LiquidateTest is PoolDiamond_BaseTest {
     // 1. The position should be healthy
     (
       PerpTradeFacetInterface.LiquidationState liquidationState,
+      ,
 
     ) = poolPerpTradeFacet.checkLiquidation(
         address(this),
@@ -1894,7 +1901,7 @@ contract PoolDiamond_Farm_LiquidateTest is PoolDiamond_BaseTest {
 
     // Assert position's liquidation state
     // 1. The position should be healthy
-    (liquidationState, ) = poolPerpTradeFacet.checkLiquidation(
+    (liquidationState, , ) = poolPerpTradeFacet.checkLiquidation(
       address(this),
       address(dai),
       address(wbtc),
@@ -1925,7 +1932,7 @@ contract PoolDiamond_Farm_LiquidateTest is PoolDiamond_BaseTest {
 
     // Assert position's liquidation state
     // 1. The position should be healthy
-    (liquidationState, ) = poolPerpTradeFacet.checkLiquidation(
+    (liquidationState, , ) = poolPerpTradeFacet.checkLiquidation(
       address(this),
       address(dai),
       address(wbtc),
@@ -1956,7 +1963,7 @@ contract PoolDiamond_Farm_LiquidateTest is PoolDiamond_BaseTest {
 
     // Assert position's liquidation state
     // 1. The position should be liquidatable
-    (liquidationState, ) = poolPerpTradeFacet.checkLiquidation(
+    (liquidationState, , ) = poolPerpTradeFacet.checkLiquidation(
       address(this),
       address(dai),
       address(wbtc),
@@ -2163,6 +2170,7 @@ contract PoolDiamond_Farm_LiquidateTest is PoolDiamond_BaseTest {
     // 1. The position should be healthy
     (
       PerpTradeFacetInterface.LiquidationState liquidationState,
+      ,
 
     ) = poolPerpTradeFacet.checkLiquidation(
         address(this),
@@ -2197,7 +2205,7 @@ contract PoolDiamond_Farm_LiquidateTest is PoolDiamond_BaseTest {
 
     // Assert position's liquidation state
     // 1. The position should be healthy
-    (liquidationState, ) = poolPerpTradeFacet.checkLiquidation(
+    (liquidationState, , ) = poolPerpTradeFacet.checkLiquidation(
       address(this),
       address(dai),
       address(wbtc),
@@ -2228,7 +2236,7 @@ contract PoolDiamond_Farm_LiquidateTest is PoolDiamond_BaseTest {
 
     // Assert position's liquidation state
     // 1. The position should be healthy
-    (liquidationState, ) = poolPerpTradeFacet.checkLiquidation(
+    (liquidationState, , ) = poolPerpTradeFacet.checkLiquidation(
       address(this),
       address(dai),
       address(wbtc),
@@ -2259,7 +2267,7 @@ contract PoolDiamond_Farm_LiquidateTest is PoolDiamond_BaseTest {
 
     // Assert position's liquidation state
     // 1. The position should be liquidatable
-    (liquidationState, ) = poolPerpTradeFacet.checkLiquidation(
+    (liquidationState, , ) = poolPerpTradeFacet.checkLiquidation(
       address(this),
       address(dai),
       address(wbtc),
