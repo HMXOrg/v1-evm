@@ -56,7 +56,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
   mapping(address => uint256) public liquidityOf;
   mapping(address => uint256) public reservedOf;
 
-  mapping(address => uint256) public sumBorrowingRateOf;
+  mapping(address => uint256) public sumFundingRateOf;
   mapping(address => uint256) public lastFundingTimeOf;
 
   // Short
@@ -84,7 +84,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
     uint256 size;
     uint256 collateral; // collateral value in USD
     uint256 averagePrice;
-    uint256 entryBorrowingRate;
+    uint256 entryFundingRate;
     uint256 reserveAmount;
     int256 realizedPnl;
     uint256 lastIncreasedTime;
@@ -92,7 +92,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
   mapping(bytes32 => Position) public positions;
   mapping(address => mapping(address => bool)) public approvedPlugins;
 
-  event UpdateBorrowingRate(address token, uint256 sumFundingRate);
+  event UpdateFundingRate(address token, uint256 sumFundingRate);
   event AddLiquidity(
     address account,
     address token,
@@ -107,7 +107,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
     uint256 size,
     uint256 collateral,
     uint256 averagePrice,
-    uint256 entryBorrowingRate,
+    uint256 entryFundingRate,
     uint256 reserveAmount,
     int256 realisedPnL
   );
@@ -201,7 +201,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
     uint256 size,
     uint256 collateral,
     uint256 averagePrice,
-    uint256 entryBorrowingRate,
+    uint256 entryFundingRate,
     uint256 reserveAmount,
     int256 realizedPnl,
     uint256 price
@@ -236,7 +236,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
   function updateFundingRate(address collateralToken, address indexToken)
     public
   {
-    if (!config.shouldUpdateBorrowingRate(collateralToken, indexToken)) return;
+    if (!config.shouldUpdateFundingRate(collateralToken, indexToken)) return;
 
     uint256 fundingInterval = config.fundingInterval();
 
@@ -254,21 +254,18 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
       return;
     }
 
-    uint256 fundingRate = poolMath.getNextBorrowingRate(
+    uint256 fundingRate = poolMath.getNextFundingRate(
       Pool(address(this)),
       collateralToken
     );
     unchecked {
-      sumBorrowingRateOf[collateralToken] += fundingRate;
+      sumFundingRateOf[collateralToken] += fundingRate;
       lastFundingTimeOf[collateralToken] =
         (block.timestamp / fundingInterval) *
         fundingInterval;
     }
 
-    emit UpdateBorrowingRate(
-      collateralToken,
-      sumBorrowingRateOf[collateralToken]
-    );
+    emit UpdateFundingRate(collateralToken, sumFundingRateOf[collateralToken]);
   }
 
   function addLiquidity(
@@ -583,7 +580,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
       exposure,
       sizeDelta,
       position.size,
-      position.entryBorrowingRate
+      position.entryFundingRate
     );
     vars.collateralDelta = _pullTokens(collateralToken);
     vars.collateralDeltaUsd = _convertTokensToUsde30(
@@ -596,7 +593,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
     if (position.collateral < vars.feeUsd) revert Pool_CollateralNotCoverFee();
 
     position.collateral -= vars.feeUsd;
-    position.entryBorrowingRate = poolMath.getEntryBorrowingRate(
+    position.entryFundingRate = poolMath.getEntryFundingRate(
       Pool(address(this)),
       collateralToken,
       indexToken,
@@ -672,7 +669,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
       position.size,
       position.collateral,
       position.averagePrice,
-      position.entryBorrowingRate,
+      position.entryFundingRate,
       position.reserveAmount,
       position.realizedPnl,
       vars.price
@@ -761,7 +758,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
     if (position.size != sizeDelta) {
       // Partially close the position
-      position.entryBorrowingRate = poolMath.getEntryBorrowingRate(
+      position.entryFundingRate = poolMath.getEntryFundingRate(
         Pool(address(this)),
         collateralToken,
         indexToken,
@@ -810,7 +807,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
         position.size,
         position.collateral,
         position.averagePrice,
-        position.entryBorrowingRate,
+        position.entryFundingRate,
         position.reserveAmount,
         position.realizedPnl,
         vars.price
@@ -845,7 +842,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
         position.size,
         position.collateral,
         position.averagePrice,
-        position.entryBorrowingRate,
+        position.entryFundingRate,
         position.reserveAmount,
         position.realizedPnl
       );
@@ -994,7 +991,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
     uint256 size;
     uint256 collateral;
     uint256 averagePrice;
-    uint256 entryBorrowingRate;
+    uint256 entryFundingRate;
     uint256 reserveAmount;
     uint256 realizedPnl;
     bool hasProfit;
@@ -1034,7 +1031,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
       size: position.size,
       collateral: position.collateral,
       averagePrice: position.averagePrice,
-      entryBorrowingRate: position.entryBorrowingRate,
+      entryFundingRate: position.entryFundingRate,
       reserveAmount: position.reserveAmount,
       realizedPnl: realizedPnl,
       hasProfit: position.realizedPnl >= 0,
@@ -1101,7 +1098,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
     Exposure exposure,
     uint256 sizeDelta,
     uint256 size,
-    uint256 entryBorrowingRate
+    uint256 entryFundingRate
   ) internal returns (uint256) {
     uint256 feeUsd = poolMath.getPositionFee(
       Pool(address(this)),
@@ -1112,14 +1109,14 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
       sizeDelta
     );
 
-    uint256 fundingFeeUsd = poolMath.getBorrowingFee(
+    uint256 fundingFeeUsd = poolMath.getFundingFee(
       Pool(address(this)),
       account,
       collateralToken,
       indexToken,
       exposure,
       size,
-      entryBorrowingRate
+      entryFundingRate
     );
 
     feeUsd += fundingFeeUsd;
@@ -1273,7 +1270,7 @@ contract Pool is Constants, ReentrancyGuardUpgradeable, OwnableUpgradeable {
       exposure,
       sizeDelta,
       position.size,
-      position.entryBorrowingRate
+      position.entryFundingRate
     );
 
     // Calculate position's delta.

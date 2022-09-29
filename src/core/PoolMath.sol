@@ -207,28 +207,28 @@ contract PoolMath is Constants {
   // Margin Fee Math
   // ---------------
 
-  function getEntryBorrowingRate(
+  function getEntryFundingRate(
     Pool pool,
     address collateralToken,
     address, /* indexToken */
     Exposure /* exposure */
   ) external view returns (uint256) {
-    return pool.sumBorrowingRateOf(collateralToken);
+    return pool.sumFundingRateOf(collateralToken);
   }
 
-  function getBorrowingFee(
+  function getFundingFee(
     Pool pool,
     address, /* account */
     address collateralToken,
     address, /* indexToken */
     Exposure, /* exposure */
     uint256 size,
-    uint256 entryBorrowingRate
+    uint256 entryFundingRate
   ) public view returns (uint256) {
     if (size == 0) return 0;
 
-    uint256 fundingRate = pool.sumBorrowingRateOf(collateralToken) -
-      entryBorrowingRate;
+    uint256 fundingRate = pool.sumFundingRateOf(collateralToken) -
+      entryFundingRate;
     if (fundingRate == 0) return 0;
 
     return (size * fundingRate) / FUNDING_RATE_PRECISION;
@@ -274,14 +274,14 @@ contract PoolMath is Constants {
       exposure,
       position.lastIncreasedTime
     );
-    uint256 marginFee = getBorrowingFee(
+    uint256 marginFee = getFundingFee(
       pool,
       account,
       collateralToken,
       indexToken,
       exposure,
       position.size,
-      position.entryBorrowingRate
+      position.entryFundingRate
     );
     marginFee += getPositionFee(
       pool,
@@ -489,7 +489,7 @@ contract PoolMath is Constants {
     return (nextPrice * nextSize) / divisor;
   }
 
-  function getNextBorrowingRate(Pool pool, address token)
+  function getNextFundingRate(Pool pool, address token)
     public
     view
     returns (uint256)
@@ -508,12 +508,11 @@ contract PoolMath is Constants {
     uint256 liquidity = pool.liquidityOf(token);
     if (liquidity == 0) return 0;
 
-    uint256 borrowingRateFactor = config.isStableToken(token)
-      ? config.stableBorrowingRateFactor()
-      : config.borrowingRateFactor();
+    uint256 fundingRateFactor = config.isStableToken(token)
+      ? config.stableFundingRateFactor()
+      : config.fundingRateFactor();
 
-    return
-      (borrowingRateFactor * pool.reservedOf(token) * intervals) / liquidity;
+    return (fundingRateFactor * pool.reservedOf(token) * intervals) / liquidity;
   }
 
   function getTargetValue(Pool pool, address token)

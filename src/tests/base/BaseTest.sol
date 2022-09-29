@@ -70,6 +70,15 @@ import { MockWNative } from "src/tests/mocks/MockWNative.sol";
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
 contract BaseTest is DSTest, CoreConstants {
+  struct PoolConfigConstructorParams2 {
+    address treasury;
+    uint64 fundingInterval;
+    uint64 mintBurnFeeBps;
+    uint64 taxBps;
+    uint64 stableFundingRateFactor;
+    uint64 fundingRateFactor;
+    uint256 liquidationFeeUsd;
+  }
   struct PoolConfigConstructorParams {
     address treasury;
     uint64 fundingInterval;
@@ -710,7 +719,7 @@ contract BaseTest is DSTest, CoreConstants {
     return PoolOracle(payable(_proxy));
   }
 
-  function deployPoolConfig(PoolConfigConstructorParams memory params)
+  function deployPoolConfig(PoolConfigConstructorParams2 memory params)
     internal
     returns (PoolConfig)
   {
@@ -727,8 +736,8 @@ contract BaseTest is DSTest, CoreConstants {
       params.fundingInterval,
       params.mintBurnFeeBps,
       params.taxBps,
-      params.stableBorrowingRateFactor,
-      params.borrowingRateFactor,
+      params.stableFundingRateFactor,
+      params.fundingRateFactor,
       params.liquidationFeeUsd
     );
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
@@ -740,7 +749,7 @@ contract BaseTest is DSTest, CoreConstants {
   }
 
   function deployFullPool(
-    PoolConfigConstructorParams memory poolConfigConstructorParams
+    PoolConfigConstructorParams2 memory poolConfigConstructorParams
   )
     internal
     returns (
