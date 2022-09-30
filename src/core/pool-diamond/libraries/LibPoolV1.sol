@@ -437,12 +437,12 @@ library LibPoolV1 {
   function increaseOpenInterest(
     bool isLong,
     address indexToken,
-    uint256 value
+    uint256 amount
   ) internal {
     PoolV1DiamondStorage storage poolV1ds = poolV1DiamondStorage();
 
     if (isLong) {
-      poolV1ds.openInterestLong[indexToken] += value;
+      poolV1ds.openInterestLong[indexToken] += amount;
       uint256 openInterestLongCeiling = LibPoolConfigV1
         .getTokenOpenInterestLongCeilingOf(indexToken);
       if (
@@ -452,24 +452,24 @@ library LibPoolV1 {
         revert LibPoolV1_OverOpenInterestLongCeiling();
       }
     } else {
-      poolV1ds.openInterestShort[indexToken] += value;
+      poolV1ds.openInterestShort[indexToken] += amount;
     }
-    emit IncreaseOpenInterest(isLong, indexToken, value);
+    emit IncreaseOpenInterest(isLong, indexToken, amount);
   }
 
   function decreaseOpenInterest(
     bool isLong,
     address indexToken,
-    uint256 value
+    uint256 amount
   ) internal {
     PoolV1DiamondStorage storage poolV1ds = poolV1DiamondStorage();
 
     if (isLong) {
-      poolV1ds.openInterestLong[indexToken] -= value;
+      poolV1ds.openInterestLong[indexToken] -= amount;
     } else {
-      poolV1ds.openInterestShort[indexToken] -= value;
+      poolV1ds.openInterestShort[indexToken] -= amount;
     }
-    emit DecreaseOpenInterest(isLong, indexToken, value);
+    emit DecreaseOpenInterest(isLong, indexToken, amount);
   }
 
   function updateFundingFeeAccounting(int256 fundingFee) internal {
