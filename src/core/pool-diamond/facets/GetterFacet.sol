@@ -226,8 +226,8 @@ contract GetterFacet is GetterFacetInterface {
 
   struct GetDeltaLocalVars {
     bool isProfit;
-    uint256 delta;
-    int256 signedDelta;
+    int256 delta;
+    uint256 unsignedDelta;
     int256 fundingFee;
     uint256 price;
     uint256 priceDelta;
@@ -270,18 +270,13 @@ contract GetterFacet is GetterFacetInterface {
         ? averagePrice - vars.price
         : vars.price - averagePrice;
     }
-    vars.delta = (size * vars.priceDelta) / averagePrice;
+    vars.delta = int256((size * vars.priceDelta) / averagePrice);
 
     if (isLong) {
-      vars.isProfit = vars.price > averagePrice;
+      vars.delta = vars.price > averagePrice ? vars.delta : -vars.delta;
     } else {
-      vars.isProfit = vars.price < averagePrice;
+      vars.delta = vars.price < averagePrice ? vars.delta : -vars.delta;
     }
-
-    vars.minBps = block.timestamp >
-      lastIncreasedTime + poolConfigDs.minProfitDuration
-      ? 0
-      : poolConfigDs.tokenMetas[indexToken].minProfitBps;
 
     // Negative funding fee means profit to the position
     vars.fundingFee = getFundingFee(
@@ -292,15 +287,19 @@ contract GetterFacet is GetterFacetInterface {
       size,
       entryFundingRate
     );
-    vars.signedDelta = vars.isProfit ? int256(vars.delta) : -int256(vars.delta);
-    vars.signedDelta -= vars.fundingFee;
-    vars.isProfit = vars.signedDelta > 0;
-    vars.delta = vars.signedDelta >= 0
-      ? uint256(vars.signedDelta)
-      : uint256(-vars.signedDelta);
+    vars.delta -= vars.fundingFee;
+    vars.isProfit = vars.delta > 0;
+    vars.unsignedDelta = vars.delta > 0
+      ? uint256(vars.delta)
+      : uint256(-vars.delta);
 
-    if (vars.isProfit && vars.delta * BPS <= size * vars.minBps) vars.delta = 0;
-    return (vars.isProfit, vars.delta, vars.fundingFee);
+    vars.minBps = block.timestamp >
+      lastIncreasedTime + poolConfigDs.minProfitDuration
+      ? 0
+      : poolConfigDs.tokenMetas[indexToken].minProfitBps;
+    if (vars.isProfit && vars.unsignedDelta * BPS <= size * vars.minBps)
+      vars.unsignedDelta = 0;
+    return (vars.isProfit, vars.unsignedDelta, vars.fundingFee);
   }
 
   function getEntryBorrowingRate(
