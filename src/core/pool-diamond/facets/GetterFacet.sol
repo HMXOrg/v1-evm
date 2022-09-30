@@ -896,9 +896,7 @@ contract GetterFacet is GetterFacetInterface {
     }
 
     if (openInterestShortValue > 0) {
-      fundingRateShort =
-        (fundingFeesPaidByLongs * (-1)) /
-        openInterestShortValue;
+      fundingRateShort = -fundingFeesPaidByLongs / openInterestShortValue;
       // Handle the precision loss of 1 wei
       fundingRateShort = fundingRateShort > 0 &&
         fundingRateShort * openInterestShortValue < absFundingFeesPaidByLongs
