@@ -36,7 +36,7 @@ contract FundingRateFacet is FundingRateFacetInterface {
         fundingInterval;
     }
 
-    // If block.timestamp is not passed the next funding interval, do nothing.
+    // If block.timestamp is not passed the next funding interval, skip updating borrowing rate.
     if (
       poolV1ds.lastFundingTimeOf[collateralToken] + fundingInterval <=
       block.timestamp
@@ -53,6 +53,7 @@ contract FundingRateFacet is FundingRateFacetInterface {
       );
     }
 
+    // If block.timestamp is not passed the next funding interval, skip updating funding rate
     if (
       poolV1ds.lastFundingTimeOf[indexToken] + fundingInterval <=
       block.timestamp
