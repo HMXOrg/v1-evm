@@ -123,6 +123,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       LibPoolV1.getPositionId(account, collateralToken, indexToken, isLong)
     ];
 
+    // Negative fundingFee means profits to the position
     (bool isProfit, uint256 delta, int256 fundingFee) = GetterFacetInterface(
       address(this)
     ).getDelta(
