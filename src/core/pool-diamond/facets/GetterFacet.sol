@@ -18,16 +18,6 @@ contract GetterFacet is GetterFacetInterface {
     REMOVE
   }
 
-  struct GetDeltaLocalVars {
-    bool isProfit;
-    uint256 delta;
-    int256 signedDelta;
-    int256 fundingFee;
-    uint256 price;
-    uint256 priceDelta;
-    uint256 minBps;
-  }
-
   address internal constant LINKEDLIST_START = address(1);
   address internal constant LINKEDLIST_END = address(1);
   address internal constant LINKEDLIST_EMPTY = address(0);
@@ -232,6 +222,16 @@ contract GetterFacet is GetterFacetInterface {
 
   function openInterestShort(address token) external view returns (uint256) {
     return LibPoolV1.poolV1DiamondStorage().openInterestShort[token];
+  }
+
+  struct GetDeltaLocalVars {
+    bool isProfit;
+    uint256 delta;
+    int256 signedDelta;
+    int256 fundingFee;
+    uint256 price;
+    uint256 priceDelta;
+    uint256 minBps;
   }
 
   function getDelta(
