@@ -23,12 +23,13 @@ contract FundingRateFacet is FundingRateFacetInterface {
 
     uint256 fundingInterval = LibPoolConfigV1.fundingInterval();
 
+    // If this is the first time that the funding and borrowing rate are accrued,
+    // set the initial funding time here
     if (poolV1ds.lastFundingTimeOf[collateralToken] == 0) {
       poolV1ds.lastFundingTimeOf[collateralToken] =
         (block.timestamp / fundingInterval) *
         fundingInterval;
     }
-
     if (poolV1ds.lastFundingTimeOf[indexToken] == 0) {
       poolV1ds.lastFundingTimeOf[indexToken] =
         (block.timestamp / fundingInterval) *
