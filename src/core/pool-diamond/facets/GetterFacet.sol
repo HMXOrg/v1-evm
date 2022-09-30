@@ -240,7 +240,8 @@ contract GetterFacet is GetterFacetInterface {
     uint256 averagePrice,
     bool isLong,
     uint256 lastIncreasedTime,
-    int256 entryFundingRate
+    int256 entryFundingRate,
+    int256 fundingFeeDebt
   )
     public
     view
@@ -279,14 +280,9 @@ contract GetterFacet is GetterFacetInterface {
     }
 
     // Negative funding fee means profit to the position
-    vars.fundingFee = getFundingFee(
-      address(0),
-      address(0),
-      indexToken,
-      isLong,
-      size,
-      entryFundingRate
-    );
+    vars.fundingFee =
+      getFundingFee(indexToken, isLong, size, entryFundingRate) +
+      fundingFeeDebt;
     vars.delta -= vars.fundingFee;
     vars.isProfit = vars.delta > 0;
     vars.unsignedDelta = vars.delta > 0
@@ -343,8 +339,6 @@ contract GetterFacet is GetterFacetInterface {
   }
 
   function getFundingFee(
-    address, /* account */
-    address, /* collateralToken */
     address indexToken,
     bool isLong,
     uint256 size,
@@ -492,7 +486,8 @@ contract GetterFacet is GetterFacetInterface {
         position.averagePrice,
         isLong,
         position.lastIncreasedTime,
-        position.entryFundingRate
+        position.entryFundingRate,
+        position.fundingFeeDebt
       );
   }
 
@@ -540,7 +535,8 @@ contract GetterFacet is GetterFacetInterface {
     uint256 nextPrice,
     uint256 sizeDelta,
     uint256 lastIncreasedTime,
-    int256 entryFundingRate
+    int256 entryFundingRate,
+    int256 fundingFeeDebt
   ) external view returns (uint256) {
     (bool isProfit, uint256 delta, ) = getDelta(
       indexToken,
@@ -548,7 +544,8 @@ contract GetterFacet is GetterFacetInterface {
       averagePrice,
       isLong,
       lastIncreasedTime,
-      entryFundingRate
+      entryFundingRate,
+      fundingFeeDebt
     );
     uint256 nextSize = size + sizeDelta;
     uint256 divisor;

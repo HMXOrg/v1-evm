@@ -132,18 +132,9 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
         position.averagePrice,
         isLong,
         position.lastIncreasedTime,
-        position.entryFundingRate
+        position.entryFundingRate,
+        position.fundingFeeDebt
       );
-    fundingFee += position.fundingFeeDebt;
-    if (isProfit) {
-      delta = fundingFee > 0
-        ? delta - uint256(fundingFee)
-        : delta + uint256(-fundingFee);
-    } else {
-      delta = fundingFee > 0
-        ? delta + uint256(fundingFee)
-        : delta - uint256(-fundingFee);
-    }
     uint256 marginFee = GetterFacetInterface(address(this)).getBorrowingFee(
       account,
       collateralToken,
@@ -349,7 +340,8 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
           vars.price,
           sizeDelta,
           position.lastIncreasedTime,
-          position.entryFundingRate
+          position.entryFundingRate,
+          position.fundingFeeDebt
         );
     }
 
@@ -879,23 +871,12 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
         position.averagePrice,
         isLong,
         position.lastIncreasedTime,
-        position.entryFundingRate
+        position.entryFundingRate,
+        position.fundingFeeDebt
       );
-
-    // Add the fundingFeeDebt here to be adjusted along with delta
-    if (vars.isProfit) {
-      vars.delta = position.fundingFeeDebt > 0
-        ? vars.delta - uint256(position.fundingFeeDebt)
-        : vars.delta + uint256(-position.fundingFeeDebt);
-    } else {
-      vars.delta = position.fundingFeeDebt > 0
-        ? vars.delta + uint256(position.fundingFeeDebt)
-        : vars.delta - uint256(-position.fundingFeeDebt);
-    }
 
     // Adjusting delta to be proportionally to size delta and position size
     vars.delta = (vars.delta * sizeDelta) / position.size;
-    vars.fundingFee += position.fundingFeeDebt;
     vars.realizedFundingFee =
       (vars.fundingFee * int256(sizeDelta)) /
       int256(position.size);
