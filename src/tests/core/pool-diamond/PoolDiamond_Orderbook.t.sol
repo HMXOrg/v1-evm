@@ -512,6 +512,143 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     );
   }
 
+  function testRevert_SwapOrder_InvalidPathLength() external {
+    address[] memory path = new address[](1);
+    path[0] = address(matic);
+    vm.expectRevert(abi.encodeWithSignature("InvalidPathLength()"));
+    orderbook.createSwapOrder{ value: 0.01 ether }({
+      _path: path,
+      _amountIn: 100 ether,
+      _minOut: 0,
+      _triggerRatio: 250 * 10**30, // tokenB / tokenA
+      _triggerAboveThreshold: true,
+      _executionFee: 0.01 ether,
+      _shouldWrap: false,
+      _shouldUnwrap: false
+    });
+  }
+
+  function testRevert_SwapOrder_InvalidPath() external {
+    address[] memory path = new address[](2);
+    path[0] = address(matic);
+    path[1] = address(matic);
+    vm.expectRevert(abi.encodeWithSignature("InvalidPath()"));
+    orderbook.createSwapOrder{ value: 0.01 ether }({
+      _path: path,
+      _amountIn: 100 ether,
+      _minOut: 0,
+      _triggerRatio: 250 * 10**30, // tokenB / tokenA
+      _triggerAboveThreshold: true,
+      _executionFee: 0.01 ether,
+      _shouldWrap: false,
+      _shouldUnwrap: false
+    });
+  }
+
+  function testRevert_SwapOrder_InvalidAmountIn() external {
+    address[] memory path = new address[](2);
+    path[0] = address(matic);
+    path[1] = address(wbtc);
+    vm.expectRevert(abi.encodeWithSignature("InvalidAmountIn()"));
+    orderbook.createSwapOrder{ value: 0.01 ether }({
+      _path: path,
+      _amountIn: 0 ether,
+      _minOut: 0,
+      _triggerRatio: 250 * 10**30, // tokenB / tokenA
+      _triggerAboveThreshold: true,
+      _executionFee: 0.01 ether,
+      _shouldWrap: false,
+      _shouldUnwrap: false
+    });
+  }
+
+  function testRevert_SwapOrder_InsufficientExecutionFee() external {
+    address[] memory path = new address[](2);
+    path[0] = address(matic);
+    path[1] = address(wbtc);
+    vm.expectRevert(abi.encodeWithSignature("InsufficientExecutionFee()"));
+    orderbook.createSwapOrder{ value: 0.01 ether }({
+      _path: path,
+      _amountIn: 100 ether,
+      _minOut: 0,
+      _triggerRatio: 250 * 10**30, // tokenB / tokenA
+      _triggerAboveThreshold: true,
+      _executionFee: 0 ether,
+      _shouldWrap: false,
+      _shouldUnwrap: false
+    });
+  }
+
+  function testRevert_SwapOrder_OnlyNativeShouldWrap() external {
+    address[] memory path = new address[](2);
+    path[0] = address(wbtc);
+    path[1] = address(matic);
+    vm.expectRevert(abi.encodeWithSignature("OnlyNativeShouldWrap()"));
+    orderbook.createSwapOrder{ value: 0.01 ether }({
+      _path: path,
+      _amountIn: 100 ether,
+      _minOut: 0,
+      _triggerRatio: 250 * 10**30, // tokenB / tokenA
+      _triggerAboveThreshold: true,
+      _executionFee: 0.01 ether,
+      _shouldWrap: true,
+      _shouldUnwrap: false
+    });
+  }
+
+  function testRevert_SwapOrder_IncorrectValueTransfer() external {
+    address[] memory path = new address[](2);
+    path[0] = address(wbtc);
+    path[1] = address(matic);
+    vm.expectRevert(abi.encodeWithSignature("IncorrectValueTransfer()"));
+    orderbook.createSwapOrder{ value: 0.02 ether }({
+      _path: path,
+      _amountIn: 100 ether,
+      _minOut: 0,
+      _triggerRatio: 250 * 10**30, // tokenB / tokenA
+      _triggerAboveThreshold: true,
+      _executionFee: 0.01 ether,
+      _shouldWrap: false,
+      _shouldUnwrap: false
+    });
+  }
+
+  function testRevert_SwapOrder_InvalidPriceForExecution() external {
+    address[] memory path = new address[](2);
+    path[0] = address(wbtc);
+    path[1] = address(matic);
+
+    wbtc.mint(ALICE, 100 ether);
+    vm.deal(ALICE, 100 ether);
+    vm.startPrank(ALICE);
+    wbtc.approve(address(orderbook), 100 ether);
+    orderbook.createSwapOrder{ value: 0.01 ether }({
+      _path: path,
+      _amountIn: 100 ether,
+      _minOut: 0,
+      _triggerRatio: 250 * 10**30, // tokenB / tokenA
+      _triggerAboveThreshold: true,
+      _executionFee: 0.01 ether,
+      _shouldWrap: false,
+      _shouldUnwrap: false
+    });
+
+    vm.stopPrank();
+
+    daiPriceFeed.setLatestAnswer(1 * 10**8);
+
+    maticPriceFeed.setLatestAnswer(400 * 10**8);
+    maticPriceFeed.setLatestAnswer(600 * 10**8);
+    maticPriceFeed.setLatestAnswer(500 * 10**8);
+
+    wbtcPriceFeed.setLatestAnswer(90000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(100000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(80000 * 10**8);
+
+    vm.expectRevert(abi.encodeWithSignature("InvalidPriceForExecution()"));
+    orderbook.executeSwapOrder(ALICE, 0, payable(BOB));
+  }
+
   function testCorrectness_WhenSwap() external {
     daiPriceFeed.setLatestAnswer(1 * 10**8);
     maticPriceFeed.setLatestAnswer(300 * 10**8);
