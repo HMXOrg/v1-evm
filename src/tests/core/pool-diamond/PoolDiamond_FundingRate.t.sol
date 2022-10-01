@@ -1729,6 +1729,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     (
       PerpTradeFacetInterface.LiquidationState liquidationState,
       ,
+      ,
 
     ) = poolPerpTradeFacet.checkLiquidation(
         poolGetterFacet.getSubAccount(address(this), 1),
@@ -1776,7 +1777,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     wbtcPriceFeed.setLatestAnswer(49200 * 10**8);
     wbtcPriceFeed.setLatestAnswer(49200 * 10**8);
 
-    (liquidationState, , ) = poolPerpTradeFacet.checkLiquidation(
+    (liquidationState, , , ) = poolPerpTradeFacet.checkLiquidation(
       poolGetterFacet.getSubAccount(address(this), 0),
       address(dai),
       address(wbtc),

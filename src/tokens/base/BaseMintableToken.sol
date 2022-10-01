@@ -58,7 +58,7 @@ contract BaseMintableToken is Ownable, ERC20, MintableTokenInterface {
     if (newMaxSupply_ > maxSupplyCap)
       revert BaseMintableToken_ExceedMaxSupplyCap();
     uint256 oldMaxSupply = maxSupplyCap;
-    maxSupplyCap = newMaxSupply_;
+    maxSupply = newMaxSupply_;
 
     emit SetMaxSupply(oldMaxSupply, newMaxSupply_);
   }

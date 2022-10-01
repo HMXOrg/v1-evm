@@ -20,6 +20,7 @@ interface PerpTradeFacetInterface {
     returns (
       LiquidationState,
       uint256,
+      uint256,
       int256
     );
 
