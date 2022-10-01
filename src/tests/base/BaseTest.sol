@@ -65,6 +65,7 @@ import { AccessControlInitializer } from "../../core/pool-diamond/initializers/A
 import { PoolDiamond } from "../../core/pool-diamond/PoolDiamond.sol";
 
 import { PoolRouter } from "../../core/pool-diamond/PoolRouter.sol";
+import { Orderbook } from "../../core/pool-diamond/Orderbook.sol";
 import { MockWNative } from "src/tests/mocks/MockWNative.sol";
 
 // solhint-disable const-name-snakecase
@@ -355,7 +356,7 @@ contract BaseTest is DSTest, CoreConstants {
   {
     GetterFacet getterFacet = new GetterFacet();
 
-    bytes4[] memory selectors = new bytes4[](56);
+    bytes4[] memory selectors = new bytes4[](57);
     selectors[0] = GetterFacet.getAddLiquidityFeeBps.selector;
     selectors[1] = GetterFacet.getRemoveLiquidityFeeBps.selector;
     selectors[2] = GetterFacet.getSwapFeeBps.selector;
@@ -412,6 +413,7 @@ contract BaseTest is DSTest, CoreConstants {
     selectors[53] = GetterFacet.strategyDataOf.selector;
     selectors[54] = GetterFacet.getStrategyDeltaOf.selector;
     selectors[55] = GetterFacet.totalOf.selector;
+    selectors[56] = GetterFacet.convertTokensToUsde30.selector;
 
     DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
       address(getterFacet),
@@ -506,7 +508,7 @@ contract BaseTest is DSTest, CoreConstants {
   {
     AdminFacet adminFacet = new AdminFacet();
 
-    bytes4[] memory selectors = new bytes4[](19);
+    bytes4[] memory selectors = new bytes4[](20);
     selectors[0] = AdminFacet.setPoolOracle.selector;
     selectors[1] = AdminFacet.withdrawFeeReserve.selector;
     selectors[2] = AdminFacet.setAllowLiquidators.selector;
@@ -526,6 +528,7 @@ contract BaseTest is DSTest, CoreConstants {
     selectors[16] = AdminFacet.setTaxBps.selector;
     selectors[17] = AdminFacet.setTokenConfigs.selector;
     selectors[18] = AdminFacet.setTreasury.selector;
+    selectors[19] = AdminFacet.setPlugin.selector;
 
     DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
       address(adminFacet),
@@ -565,12 +568,14 @@ contract BaseTest is DSTest, CoreConstants {
     AccessControlFacet accessControlFacet = new AccessControlFacet();
     AccessControlInitializer accessControlInitializer = deployAccessControlInitializer();
 
-    bytes4[] memory selectors = new bytes4[](5);
+    bytes4[] memory selectors = new bytes4[](7);
     selectors[0] = AccessControlFacet.hasRole.selector;
     selectors[1] = AccessControlFacet.getRoleAdmin.selector;
     selectors[2] = AccessControlFacet.grantRole.selector;
     selectors[3] = AccessControlFacet.revokeRole.selector;
     selectors[4] = AccessControlFacet.renounceRole.selector;
+    selectors[5] = AccessControlFacet.allowPlugin.selector;
+    selectors[6] = AccessControlFacet.denyPlugin.selector;
 
     DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
       address(accessControlFacet),
@@ -1093,5 +1098,27 @@ contract BaseTest is DSTest, CoreConstants {
     );
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
     return LockdropCompounder(payable(_proxy));
+  }
+
+  function deployOrderbook(
+    address _pool,
+    address _poolOracle,
+    address _weth,
+    uint256 _minExecutionFee,
+    uint256 _minPurchaseTokenAmountUsd
+  ) internal returns (Orderbook) {
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/Orderbook.sol/Orderbook.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(address,address,address,uint256,uint256)")),
+      _pool,
+      _poolOracle,
+      _weth,
+      _minExecutionFee,
+      _minPurchaseTokenAmountUsd
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return Orderbook(payable(_proxy));
   }
 }
