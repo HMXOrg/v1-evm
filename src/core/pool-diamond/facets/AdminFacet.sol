@@ -104,6 +104,7 @@ contract AdminFacet is AdminFacetInterface {
   );
   event SetTreasury(address prevTreasury, address newTreasury);
   event WithdrawFeeReserve(address token, address to, uint256 amount);
+  event SetPlugin(address plugin, bool oldAllow, bool newAllow);
 
   modifier onlyOwner() {
     LibDiamond.enforceIsContractOwner();
@@ -424,5 +425,15 @@ contract AdminFacet is AdminFacetInterface {
     LibPoolV1.pushTokens(token, to, amount);
 
     emit WithdrawFeeReserve(token, to, amount);
+  }
+
+  function setPlugin(address plugin, bool allow) external onlyOwner {
+    // Load diamond storage
+    LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
+      .poolV1DiamondStorage();
+
+    emit SetPlugin(plugin, ds.plugins[plugin], allow);
+
+    ds.plugins[plugin] = allow;
   }
 }
