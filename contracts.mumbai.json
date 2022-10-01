@@ -1,6 +1,12 @@
 {
   "commit": "5d96538efbb0b605b881f96151a3d04b31ba2d62",
   "Multicall": "0x08411ADd0b5AA8ee47563b146743C13b3556c9Cc",
+  "Dex": {
+    "Curve": {
+      "am3CRV": "0x...",
+      "atricrypto3": "0x..."
+    }
+  },
   "Tokens": {
     "P88": "0xFd9c0E53dD8488Df492167B8Ed37CD90cecDa164",
     "esP88": "0xC90C1d6b6fc0332cC2e80450dc1AbBa9c2964A3A",
@@ -11,7 +17,24 @@
     "WBTC": "0xC4F51bc480154e5B270967C70B64b53d0C189079",
     "DAI": "0x7FeC31e5966C84E8A81C574a0504ff637E3CC569",
     "USDC": "0xFc99D238c7A20895ba3756Ee04FD8BfD442c18fD",
-    "USDT": "0xF21405bA59E79762C306c83298dbD10a8A285f2F"
+    "USDT": "0xF21405bA59E79762C306c83298dbD10a8A285f2F",
+    "aUSDC": "0x...",
+    "aUSDT": "0x...",
+    "aDAI": "0x...",
+    "aWBTC": "0x...",
+    "aWETH": "0x...",
+    "aMATIC": "0x...",
+    "ETH_USDC": "0x...",
+    "ETH_WBTC": "0x...",
+    "ETH_USDT": "0x...",
+    "ETH_DAI": "0x...",
+    "USDC_USDT": "0x...",
+    "USDC_WBTC": "0x...",
+    "MATIC_ETH": "0x...",
+    "MATIC_USDC": "0x...",
+    "MATIC_USDT": "0x...",
+    "AAVE_USD": "0x...",
+    "atricrypto3": "0x..."
   },
   "PoolRouter": "0xe9d7021e221Ce30bAE7C425A3448c9786fEfF491",
   "Pools": {

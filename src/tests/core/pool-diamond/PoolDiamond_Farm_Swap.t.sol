@@ -169,7 +169,7 @@ contract PoolDiamond_Farm_SwapTest is PoolDiamond_BaseTest {
 
     // Bob swap 100 MATIC for WBTC
     matic.transfer(address(poolDiamond), 100 ether);
-    poolLiquidityFacet.swap(address(matic), address(wbtc), 0, BOB);
+    poolLiquidityFacet.swap(BOB, address(matic), address(wbtc), 0, BOB);
 
     // After Bob swap, the following condition is expected:
     // 1. Pool should have ((199.4 + 20) * 400) + ((0.997 + 0.001)  * 80000) + (100 * 400) - ((100 * 400 / 100000) * 80000) = 175600 USD in AUM
@@ -333,7 +333,7 @@ contract PoolDiamond_Farm_SwapTest is PoolDiamond_BaseTest {
 
     // Bob swap 100 MATIC for WBTC
     matic.transfer(address(poolDiamond), 100 ether);
-    poolLiquidityFacet.swap(address(matic), address(wbtc), 0, BOB);
+    poolLiquidityFacet.swap(BOB, address(matic), address(wbtc), 0, BOB);
 
     // After Bob swap, the following condition is expected:
     // 1. Pool should have ((199.4 - 20) * 400) + ((0.997 - 0.0005)  * 80000) + (100 * 400) - ((100 * 400 / 100000) * 80000) = 159480 USD in AUM

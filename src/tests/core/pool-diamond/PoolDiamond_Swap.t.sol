@@ -18,6 +18,7 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
   function testRevert_WhenTokenInIsRandomErc20() external {
     vm.expectRevert(abi.encodeWithSignature("LiquidityFacet_BadTokenIn()"));
     poolLiquidityFacet.swap(
+      address(this),
       address(randomErc20),
       address(dai),
       0,
@@ -28,6 +29,7 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
   function testRevert_WhenTokenOutIsRandomErc20() external {
     vm.expectRevert(abi.encodeWithSignature("LiquidityFacet_BadTokenOut()"));
     poolLiquidityFacet.swap(
+      address(this),
       address(dai),
       address(randomErc20),
       0,
@@ -40,19 +42,37 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
     poolAdminFacet.setIsSwapEnable(false);
 
     vm.expectRevert(abi.encodeWithSignature("LiquidityFacet_SwapDisabled()"));
-    poolLiquidityFacet.swap(address(dai), address(wbtc), 0, address(this));
+    poolLiquidityFacet.swap(
+      address(this),
+      address(dai),
+      address(wbtc),
+      0,
+      address(this)
+    );
   }
 
   function testRevert_WhenTokenInTokenOutSame() external {
     vm.expectRevert(
       abi.encodeWithSignature("LiquidityFacet_SameTokenInTokenOut()")
     );
-    poolLiquidityFacet.swap(address(dai), address(dai), 0, address(this));
+    poolLiquidityFacet.swap(
+      address(this),
+      address(dai),
+      address(dai),
+      0,
+      address(this)
+    );
   }
 
   function testRevert_WhenAmountInZero() external {
     vm.expectRevert(abi.encodeWithSignature("LiquidityFacet_BadAmount()"));
-    poolLiquidityFacet.swap(address(dai), address(wbtc), 0, address(this));
+    poolLiquidityFacet.swap(
+      address(this),
+      address(dai),
+      address(wbtc),
+      0,
+      address(this)
+    );
   }
 
   function testRevert_WhenOverUsdDebtCeiling() external {

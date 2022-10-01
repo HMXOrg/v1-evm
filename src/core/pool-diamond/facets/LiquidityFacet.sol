@@ -33,6 +33,12 @@ contract LiquidityFacet is LiquidityFacetInterface {
   error LiquidityFacet_Slippage();
   error LiquidityFacet_SwapDisabled();
 
+  enum LiquidityAction {
+    ADD_LIQUIDITY,
+    REMOVE_LIQUIDITY,
+    SWAP
+  }
+
   uint256 internal constant PRICE_PRECISION = 10**30;
   uint256 internal constant BPS = 10000;
   uint256 internal constant USD_DECIMALS = 18;
@@ -46,7 +52,24 @@ contract LiquidityFacet is LiquidityFacetInterface {
     uint256 usdDebt,
     uint256 mintAmount
   );
-  event CollectSwapFee(address token, uint256 feeUsd, uint256 fee);
+  event CollectSwapFee(
+    address user,
+    address token,
+    uint256 feeUsd,
+    uint256 fee
+  );
+  event CollectAddLiquidityFee(
+    address user,
+    address token,
+    uint256 feeUsd,
+    uint256 fee
+  );
+  event CollectRemoveLiquidityFee(
+    address user,
+    address token,
+    uint256 feeUsd,
+    uint256 fee
+  );
   event ExitPool(
     address account,
     address token,
@@ -92,7 +115,9 @@ contract LiquidityFacet is LiquidityFacetInterface {
     address token,
     uint256 tokenPriceUsd,
     uint256 amount,
-    uint256 feeBps
+    uint256 feeBps,
+    address account,
+    LiquidityAction action
   ) internal returns (uint256) {
     // Load diamond storage
     LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
@@ -102,11 +127,28 @@ contract LiquidityFacet is LiquidityFacetInterface {
     uint256 fee = amount - amountAfterFee;
 
     poolV1ds.feeReserveOf[token] += fee;
-    emit CollectSwapFee(
-      token,
-      (fee * tokenPriceUsd) / 10**ERC20(token).decimals(),
-      fee
-    );
+    if (action == LiquidityAction.SWAP) {
+      emit CollectSwapFee(
+        account,
+        token,
+        (fee * tokenPriceUsd) / 10**ERC20(token).decimals(),
+        fee
+      );
+    } else if (action == LiquidityAction.ADD_LIQUIDITY) {
+      emit CollectAddLiquidityFee(
+        account,
+        token,
+        (fee * tokenPriceUsd) / 10**ERC20(token).decimals(),
+        fee
+      );
+    } else if (action == LiquidityAction.REMOVE_LIQUIDITY) {
+      emit CollectRemoveLiquidityFee(
+        account,
+        token,
+        (fee * tokenPriceUsd) / 10**ERC20(token).decimals(),
+        fee
+      );
+    }
 
     return amountAfterFee;
   }
@@ -143,7 +185,13 @@ contract LiquidityFacet is LiquidityFacetInterface {
     uint256 aum = GetterFacetInterface(address(this)).getAumE18(true);
     uint256 lpSupply = poolV1ds.plp.totalSupply();
 
-    uint256 usdDebt = _join(token, amount, receiver);
+    uint256 usdDebt = _join(
+      token,
+      amount,
+      receiver,
+      account,
+      LiquidityAction.ADD_LIQUIDITY
+    );
     uint256 mintAmount = aum == 0 ? usdDebt : (usdDebt * lpSupply) / aum;
 
     poolV1ds.plp.mint(receiver, mintAmount);
@@ -164,7 +212,9 @@ contract LiquidityFacet is LiquidityFacetInterface {
   function _join(
     address token,
     uint256 amount,
-    address receiver
+    address receiver,
+    address account,
+    LiquidityAction action
   ) internal returns (uint256) {
     // LOAD diamond storage
     LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
@@ -191,7 +241,9 @@ contract LiquidityFacet is LiquidityFacetInterface {
       token,
       price,
       amount,
-      feeBps
+      feeBps,
+      account,
+      action
     );
     uint256 usdDebt = LibPoolV1.convertTokenDecimals(
       tokenDecimals,
@@ -233,7 +285,13 @@ contract LiquidityFacet is LiquidityFacetInterface {
     // Adjust totalUsdDebt if lpUsdValue > totalUsdDebt.
     if (poolV1ds.totalUsdDebt < lpUsdValue)
       poolV1ds.totalUsdDebt += lpUsdValue - poolV1ds.totalUsdDebt;
-    uint256 amountOut = _exit(tokenOut, lpUsdValue, receiver);
+    uint256 amountOut = _exit(
+      tokenOut,
+      lpUsdValue,
+      receiver,
+      account,
+      LiquidityAction.REMOVE_LIQUIDITY
+    );
 
     poolV1ds.plp.burn(address(this), liquidity);
     LibPoolV1.tokenOut(tokenOut, receiver, amountOut);
@@ -254,7 +312,9 @@ contract LiquidityFacet is LiquidityFacetInterface {
   function _exit(
     address token,
     uint256 usdValue,
-    address receiver
+    address receiver,
+    address account,
+    LiquidityAction action
   ) internal returns (uint256) {
     // LOAD diamond storage
     LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
@@ -281,7 +341,9 @@ contract LiquidityFacet is LiquidityFacetInterface {
       token,
       poolV1ds.oracle.getMinPrice(token),
       amountOut,
-      burnFeeBps
+      burnFeeBps,
+      account,
+      action
     );
     if (amountOut == 0) revert LiquidityFacet_BadAmountOut();
 
@@ -290,12 +352,25 @@ contract LiquidityFacet is LiquidityFacetInterface {
     return amountOut;
   }
 
+  struct SwapLocalVars {
+    uint256 amountIn;
+    uint256 priceIn;
+    uint256 priceOut;
+    uint256 amountOut;
+    uint256 usdDebt;
+    uint256 swapFeeBps;
+    uint256 amountOutAfterFee;
+  }
+
   function swap(
+    address account,
     address tokenIn,
     address tokenOut,
     uint256 minAmountOut,
     address receiver
   ) external nonReentrant returns (uint256) {
+    SwapLocalVars memory vars;
+
     // LOAD diamond storage
     LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
       .poolV1DiamondStorage();
@@ -323,41 +398,43 @@ contract LiquidityFacet is LiquidityFacetInterface {
       tokenOut
     );
 
-    uint256 priceIn = poolV1ds.oracle.getMinPrice(tokenIn);
-    uint256 priceOut = poolV1ds.oracle.getMaxPrice(tokenOut);
+    vars.priceIn = poolV1ds.oracle.getMinPrice(tokenIn);
+    vars.priceOut = poolV1ds.oracle.getMaxPrice(tokenOut);
 
-    uint256 amountOut = (amountIn * priceIn) / priceOut;
-    amountOut = LibPoolV1.convertTokenDecimals(
+    vars.amountOut = (amountIn * vars.priceIn) / vars.priceOut;
+    vars.amountOut = LibPoolV1.convertTokenDecimals(
       LibPoolConfigV1.getTokenDecimalsOf(tokenIn),
       LibPoolConfigV1.getTokenDecimalsOf(tokenOut),
-      amountOut
+      vars.amountOut
     );
 
     // Adjust USD debt as swap shifted the debt between two assets
-    uint256 usdDebt = (amountIn * priceIn) / PRICE_PRECISION;
-    usdDebt = LibPoolV1.convertTokenDecimals(
+    vars.usdDebt = (amountIn * vars.priceIn) / PRICE_PRECISION;
+    vars.usdDebt = LibPoolV1.convertTokenDecimals(
       LibPoolConfigV1.getTokenDecimalsOf(tokenIn),
       USD_DECIMALS,
-      usdDebt
+      vars.usdDebt
     );
 
     uint256 swapFeeBps = GetterFacetInterface(address(this)).getSwapFeeBps(
       tokenIn,
       tokenOut,
-      usdDebt
+      vars.usdDebt
     );
     uint256 amountOutAfterFee = _collectSwapFee(
       tokenOut,
       poolV1ds.oracle.getMinPrice(tokenOut),
-      amountOut,
-      swapFeeBps
+      vars.amountOut,
+      swapFeeBps,
+      account,
+      LiquidityAction.SWAP
     );
 
     LibPoolV1.increasePoolLiquidity(tokenIn, amountIn);
-    LibPoolV1.increaseUsdDebt(tokenIn, usdDebt);
+    LibPoolV1.increaseUsdDebt(tokenIn, vars.usdDebt);
 
-    LibPoolV1.decreasePoolLiquidity(tokenOut, amountOut);
-    LibPoolV1.decreaseUsdDebt(tokenOut, usdDebt);
+    LibPoolV1.decreasePoolLiquidity(tokenOut, vars.amountOut);
+    LibPoolV1.decreaseUsdDebt(tokenOut, vars.usdDebt);
 
     // Buffer check
     if (
@@ -375,7 +452,7 @@ contract LiquidityFacet is LiquidityFacetInterface {
       tokenIn,
       tokenOut,
       amountIn,
-      amountOut,
+      vars.amountOut,
       amountOutAfterFee,
       swapFeeBps
     );
