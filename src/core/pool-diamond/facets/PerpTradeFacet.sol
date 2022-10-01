@@ -51,6 +51,12 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     uint256 feeUsd,
     uint256 feeTokens
   );
+  event CollectFundingFee(
+    address account,
+    address token,
+    int256 feeUsd,
+    uint256 feeTokens
+  );
   event DecreasePosition(
     bytes32 posId,
     address primaryAccount,
@@ -837,6 +843,19 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     LibPoolV1.decreaseOpenInterest(isLong, indexToken, position.openInterest);
     LibPoolV1.updateFundingFeeAccounting(vars.fundingFee);
 
+    emit CollectFundingFee(
+      primaryAccount,
+      collateralToken,
+      vars.fundingFee,
+      LibPoolV1.convertUsde30ToTokens(
+        collateralToken,
+        vars.fundingFee > 0
+          ? uint256(vars.fundingFee)
+          : uint256(-vars.fundingFee),
+        true
+      )
+    );
+
     if (isLong) {
       // If it is long, then decrease guaranteed usd and pool's liquidity
       LibPoolV1.decreaseGuaranteedUsd(
@@ -968,6 +987,19 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       int256(position.size);
     position.fundingFeeDebt = vars.fundingFee - vars.realizedFundingFee;
     LibPoolV1.updateFundingFeeAccounting(vars.realizedFundingFee);
+
+    emit CollectFundingFee(
+      primaryAccount,
+      collateralToken,
+      vars.realizedFundingFee,
+      LibPoolV1.convertUsde30ToTokens(
+        collateralToken,
+        vars.realizedFundingFee > 0
+          ? uint256(vars.realizedFundingFee)
+          : uint256(-vars.realizedFundingFee),
+        true
+      )
+    );
 
     if (vars.isProfit && vars.delta > 0) {
       // Position is profitable. Handle profits here.
