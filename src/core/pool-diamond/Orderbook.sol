@@ -518,7 +518,11 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     return (currentPrice, isPriceValid);
   }
 
-  function getDecreaseOrder(address _account, uint256 _orderIndex)
+  function getDecreaseOrder(
+    address _account,
+    uint256 _subAccountId,
+    uint256 _orderIndex
+  )
     public
     view
     returns (
@@ -531,7 +535,8 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       bool triggerAboveThreshold
     )
   {
-    DecreaseOrder memory order = decreaseOrders[_account][_orderIndex];
+    address subAccount = getSubAccount(_account, _subAccountId);
+    DecreaseOrder memory order = decreaseOrders[subAccount][_orderIndex];
     return (
       order.collateralToken,
       order.collateralDelta,
@@ -543,7 +548,11 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     );
   }
 
-  function getIncreaseOrder(address _account, uint256 _orderIndex)
+  function getIncreaseOrder(
+    address _account,
+    uint256 _subAccountId,
+    uint256 _orderIndex
+  )
     public
     view
     returns (
@@ -557,7 +566,8 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       bool triggerAboveThreshold
     )
   {
-    IncreaseOrder memory order = increaseOrders[_account][_orderIndex];
+    address subAccount = getSubAccount(_account, _subAccountId);
+    IncreaseOrder memory order = increaseOrders[subAccount][_orderIndex];
     return (
       order.purchaseToken,
       order.purchaseTokenAmount,
@@ -760,10 +770,12 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
   function executeIncreaseOrder(
     address _address,
+    uint256 _subAccountId,
     uint256 _orderIndex,
     address payable _feeReceiver
   ) external nonReentrant {
-    IncreaseOrder memory order = increaseOrders[_address][_orderIndex];
+    address subAccount = getSubAccount(_address, _subAccountId);
+    IncreaseOrder memory order = increaseOrders[subAccount][_orderIndex];
     if (order.account == address(0)) revert NonExistentOrder();
 
     // increase long should use max price
@@ -776,7 +788,7 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       true
     );
 
-    delete increaseOrders[_address][_orderIndex];
+    delete increaseOrders[subAccount][_orderIndex];
 
     IERC20Upgradeable(order.purchaseToken).safeTransfer(
       pool,
@@ -893,10 +905,12 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
   function executeDecreaseOrder(
     address _address,
+    uint256 _subAccountId,
     uint256 _orderIndex,
     address payable _feeReceiver
   ) external nonReentrant {
-    DecreaseOrder memory order = decreaseOrders[_address][_orderIndex];
+    address subAccount = getSubAccount(_address, _subAccountId);
+    DecreaseOrder memory order = decreaseOrders[subAccount][_orderIndex];
     if (order.account == address(0)) revert NonExistentOrder();
 
     // decrease long should use min price
@@ -909,7 +923,7 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       true
     );
 
-    delete decreaseOrders[_address][_orderIndex];
+    delete decreaseOrders[subAccount][_orderIndex];
 
     uint256 amountOut = PerpTradeFacetInterface(pool).decreasePosition(
       order.account,

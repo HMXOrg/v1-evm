@@ -149,7 +149,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
       bool isLong,
       uint256 triggerPrice,
       bool triggerAboveThreshold
-    ) = orderbook.getIncreaseOrder(ALICE, 1);
+    ) = orderbook.getIncreaseOrder(ALICE, 0, 1);
     assertEq(purchaseToken, address(wbtc));
     assertEq(purchaseTokenAmount, 22500);
     assertEq(collateralToken, address(wbtc));
@@ -165,7 +165,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
 
     // Execute Alice's order
-    orderbook.executeIncreaseOrder(ALICE, 1, payable(BOB));
+    orderbook.executeIncreaseOrder(ALICE, 0, 1, payable(BOB));
     // Bob should receive 0.01 ether as execution fee
     assertEq(BOB.balance, 0.01 ether);
 
@@ -242,7 +242,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
 
     uint256 aliceWBTCBalanceBefore = wbtc.balanceOf(ALICE);
 
-    orderbook.executeDecreaseOrder(ALICE, 0, payable(BOB));
+    orderbook.executeDecreaseOrder(ALICE, 0, 0, payable(BOB));
     // Bob should receive another 0.01 ether as execution fee
     assertEq(BOB.balance, 0.02 ether);
 
@@ -349,8 +349,6 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
       _triggerAboveThreshold: true
     });
 
-    address subAccount = poolGetterFacet.getSubAccount(ALICE, 1);
-
     (
       address purchaseToken,
       uint256 purchaseTokenAmount,
@@ -360,7 +358,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
       bool isLong,
       uint256 triggerPrice,
       bool triggerAboveThreshold
-    ) = orderbook.getIncreaseOrder(subAccount, 0);
+    ) = orderbook.getIncreaseOrder(ALICE, 1, 0);
     assertEq(purchaseToken, address(dai));
     assertEq(purchaseTokenAmount, 20 * 10**18);
     assertEq(collateralToken, address(dai));
@@ -375,7 +373,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
     wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
 
-    orderbook.executeIncreaseOrder(subAccount, 0, payable(BOB));
+    orderbook.executeIncreaseOrder(ALICE, 1, 0, payable(BOB));
     // Bob should receive 0.01 ether as execution fee
     assertEq(BOB.balance, 0.01 ether);
 
@@ -494,7 +492,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
 
     uint256 aliceDAIBalanceBefore = dai.balanceOf(ALICE);
 
-    orderbook.executeDecreaseOrder(subAccount, 0, payable(BOB));
+    orderbook.executeDecreaseOrder(ALICE, 1, 0, payable(BOB));
     // Bob should receive another 0.01 ether as execution fee
     assertEq(BOB.balance, 0.02 ether);
 
