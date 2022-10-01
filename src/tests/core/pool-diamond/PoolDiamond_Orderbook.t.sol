@@ -511,4 +511,162 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
       "Alice should receive collateral and profit."
     );
   }
+
+  function testCorrectness_WhenSwap() external {
+    daiPriceFeed.setLatestAnswer(1 * 10**8);
+    maticPriceFeed.setLatestAnswer(300 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(60000 * 10**8);
+
+    matic.mint(ALICE, 200 ether);
+    vm.deal(address(matic), 200 ether);
+    wbtc.mint(ALICE, 1 * 10**8);
+
+    // ------- Alice session START -------
+    vm.startPrank(ALICE);
+
+    // Alice add liquidity 200 MATIC (~$60,000)
+    matic.approve(address(poolRouter), 200 ether);
+    poolRouter.addLiquidity(
+      address(poolDiamond),
+      address(matic),
+      200 ether,
+      ALICE,
+      0
+    );
+
+    // Alice add 200 MATIC as liquidity to the pool, the following condition is expected:
+    // 1. Pool should have 200 * (1-0.003) * 300 = 59820 USD in AUM
+    assertEq(poolGetterFacet.getAumE18(false), 59820 ether);
+
+    // Alice add liquidity 1 WBTC (~$60,000)
+    wbtc.approve(address(poolRouter), 1 * 10**8);
+    poolRouter.addLiquidity(
+      address(poolDiamond),
+      address(wbtc),
+      1 * 10**8,
+      ALICE,
+      0
+    );
+
+    // Alice add another 1 WBTC as liquidity to the pool, the following condition is expected:
+    // 1. Pool should have 59,820 + (1 * (1-0.003) * 60000) = 119,640 USD in AUM
+    // 2. Alice should have 119,640 PLP
+    // 3. Pool should make 200 * 0.003 = 0.6 MATIC in fee
+    // 4. Pool should make 1 * 0.003 = 0.003 WBTC in fee
+    // 5. USD debt for MATIC should be 59,820 USD
+    // 6. USD debt for WBTC should be 59,820 USD
+    // 7. Pool's MATIC liquidity should be 200 * (1-0.003) = 199.4 MATIC
+    // 8. Pool's WBTC liquidity should be 1 * (1-0.003) = 0.997 WBTC
+    assertEq(poolGetterFacet.getAumE18(false), 119640 ether);
+    assertEq(poolGetterFacet.plp().balanceOf(ALICE), 119640 ether);
+    assertEq(poolGetterFacet.feeReserveOf(address(matic)), 0.6 ether);
+    assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 300000);
+    assertEq(poolGetterFacet.usdDebtOf(address(matic)), 59820 ether);
+    assertEq(poolGetterFacet.usdDebtOf(address(wbtc)), 59820 ether);
+    assertEq(poolGetterFacet.liquidityOf(address(matic)), 199.4 ether);
+    assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 0.997 * 10**8);
+
+    vm.stopPrank();
+    // ------- Alice session END -------
+
+    maticPriceFeed.setLatestAnswer(400 * 10**8);
+    maticPriceFeed.setLatestAnswer(600 * 10**8);
+    maticPriceFeed.setLatestAnswer(500 * 10**8);
+
+    wbtcPriceFeed.setLatestAnswer(90000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(100000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(80000 * 10**8);
+
+    matic.mint(BOB, 100 ether);
+    vm.deal(address(matic), 100 ether);
+    vm.deal(BOB, 100 ether);
+
+    // ------- Bob session START -------
+    vm.startPrank(BOB);
+
+    // Bob swap 100 MATIC for WBTC
+    matic.approve(address(orderbook), 100 ether);
+    address[] memory path = new address[](2);
+    path[0] = address(matic);
+    path[1] = address(wbtc);
+    orderbook.createSwapOrder{ value: 0.01 ether }({
+      _path: path,
+      _amountIn: 100 ether,
+      _minOut: 0,
+      _triggerRatio: 250 * 10**30, // tokenB / tokenA
+      _triggerAboveThreshold: true,
+      _executionFee: 0.01 ether,
+      _shouldWrap: false,
+      _shouldUnwrap: false
+    });
+
+    (
+      address path0,
+      address path1,
+      address path2,
+      uint256 amountIn,
+      uint256 minOut,
+      uint256 triggerRatio,
+      bool triggerAboveThreshold
+    ) = orderbook.getSwapOrder(BOB, 0);
+
+    assertEq(path0, address(matic));
+    assertEq(path1, address(wbtc));
+    assertEq(path2, address(0));
+    assertEq(amountIn, 100 ether);
+    assertEq(minOut, 0);
+    assertEq(triggerRatio, 250 * 10**30);
+    assertTrue(triggerAboveThreshold);
+
+    orderbook.cancelSwapOrder(0);
+    (
+      path0,
+      path1,
+      path2,
+      amountIn,
+      minOut,
+      triggerRatio,
+      triggerAboveThreshold
+    ) = orderbook.getSwapOrder(BOB, 0);
+    assertEq(triggerRatio, 0);
+
+    matic.approve(address(orderbook), 100 ether);
+    orderbook.createSwapOrder{ value: 100.01 ether }({
+      _path: path,
+      _amountIn: 100 ether,
+      _minOut: 0,
+      _triggerRatio: 250 * 10**30, // tokenB / tokenA
+      _triggerAboveThreshold: true,
+      _executionFee: 0.01 ether,
+      _shouldWrap: true,
+      _shouldUnwrap: false
+    });
+
+    orderbook.updateSwapOrder(1, 0, 240 * 10**30, true);
+
+    vm.stopPrank();
+    // ------- Bob session END -------
+
+    orderbook.executeSwapOrder(BOB, 1, payable(ALICE));
+    // Alice should receive 0.01 ether as execution fee
+    assertEq(ALICE.balance, 0.01 ether);
+
+    // After Bob swap, the following condition is expected:
+    // 1. Pool should have 159520 + (100 * 400) - ((100 * 400 / 100000) * 80000) = 167520 USD in AUM
+    // 2. Bob should get (100 * 400 / 100000) * (1 - 0.003) = 0.3988 WBTC
+    // 3. Pool should make 200 * 0.003 = 0.6 MATIC in fee
+    // 4. Pool should make (1 * 0.003) + ((100 * 400 / 100000) * 0.003) = 0.0042 WBTC in fee
+    // 5. USD debt for MATIC should be 59820 + (100 * 400) = 99820 USD
+    // 6. USD debt for WBTC should be 59820 - (100 * 400) = 19820 USD
+    // 7. Pool's MATIC liquidity should be 199.4 + 100 = 299.4 MATIC
+    // 8. Pool's WBTC liquidity should be 0.997 - ((100 * 400 / 100000)) = 0.597 WBTC
+    assertEq(poolGetterFacet.getAumE18(false), 167520 ether);
+    assertEq(wbtc.balanceOf(BOB), 0.3988 * 10**8);
+    assertEq(poolGetterFacet.feeReserveOf(address(matic)), 0.6 ether);
+    assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 0.0042 * 10**8);
+    assertEq(poolGetterFacet.usdDebtOf(address(matic)), 99820 ether);
+    assertEq(poolGetterFacet.usdDebtOf(address(wbtc)), 19820 ether);
+    assertEq(poolGetterFacet.liquidityOf(address(matic)), 299.4 ether);
+    assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 0.597 * 10**8);
+  }
 }
