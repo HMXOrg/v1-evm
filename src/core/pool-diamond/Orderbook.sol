@@ -13,7 +13,7 @@ import { LiquidityFacetInterface } from "./interfaces/LiquidityFacetInterface.so
 import { PerpTradeFacetInterface } from "./interfaces/PerpTradeFacetInterface.sol";
 import { PoolOracle } from "../PoolOracle.sol";
 
-contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
+contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   using SafeERC20Upgradeable for IERC20Upgradeable;
 
   uint256 public constant PRICE_PRECISION = 1e30;
@@ -69,6 +69,7 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
   event CreateIncreaseOrder(
     address indexed account,
+    uint256 indexed subAccountId,
     uint256 orderIndex,
     address purchaseToken,
     uint256 purchaseTokenAmount,
@@ -81,6 +82,7 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   );
   event CancelIncreaseOrder(
     address indexed account,
+    uint256 indexed subAccountId,
     uint256 orderIndex,
     address purchaseToken,
     uint256 purchaseTokenAmount,
@@ -93,6 +95,7 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   );
   event ExecuteIncreaseOrder(
     address indexed account,
+    uint256 indexed subAccountId,
     uint256 orderIndex,
     address purchaseToken,
     uint256 purchaseTokenAmount,
@@ -106,6 +109,7 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   );
   event UpdateIncreaseOrder(
     address indexed account,
+    uint256 indexed subAccountId,
     uint256 orderIndex,
     uint256 sizeDelta,
     uint256 triggerPrice,
@@ -113,6 +117,7 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   );
   event CreateDecreaseOrder(
     address indexed account,
+    uint256 indexed subAccountId,
     uint256 orderIndex,
     address collateralToken,
     uint256 collateralDelta,
@@ -125,6 +130,7 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   );
   event CancelDecreaseOrder(
     address indexed account,
+    uint256 indexed subAccountId,
     uint256 orderIndex,
     address collateralToken,
     uint256 collateralDelta,
@@ -137,6 +143,7 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   );
   event ExecuteDecreaseOrder(
     address indexed account,
+    uint256 indexed subAccountId,
     uint256 orderIndex,
     address collateralToken,
     uint256 collateralDelta,
@@ -150,6 +157,7 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   );
   event UpdateDecreaseOrder(
     address indexed account,
+    uint256 indexed subAccountId,
     uint256 orderIndex,
     uint256 collateralDelta,
     uint256 sizeDelta,
@@ -205,6 +213,18 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   event UpdateMinExecutionFee(uint256 minExecutionFee);
   event UpdateMinPurchaseTokenAmountUsd(uint256 minPurchaseTokenAmountUsd);
 
+  error InvalidSender();
+  error InvalidPathLength();
+  error InvalidPath();
+  error InvalidAmountIn();
+  error InsufficientExecutionFee();
+  error OnlyNativeShouldWrap();
+  error IncorrectValueTransfer();
+  error NonExistentOrder();
+  error InvalidPriceForExecution();
+  error InsufficientCollateral();
+  error BadSubAccountId();
+
   function initialize(
     address _pool,
     address _poolOracle,
@@ -223,7 +243,7 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   }
 
   receive() external payable {
-    require(msg.sender == weth, "OrderBook: invalid sender");
+    if (msg.sender != weth) revert InvalidSender();
   }
 
   function setMinExecutionFee(uint256 _minExecutionFee) external onlyOwner {
@@ -276,31 +296,20 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     bool _shouldWrap,
     bool _shouldUnwrap
   ) external payable nonReentrant {
-    require(
-      _path.length == 2 || _path.length == 3,
-      "OrderBook: invalid _path.length"
-    );
-    require(_path[0] != _path[_path.length - 1], "OrderBook: invalid _path");
-    require(_amountIn > 0, "OrderBook: invalid _amountIn");
-    require(
-      _executionFee >= minExecutionFee,
-      "OrderBook: insufficient execution fee"
-    );
+    if (_path.length != 2 && _path.length != 3) revert InvalidPathLength();
+    if (_path[0] == _path[_path.length - 1]) revert InvalidPath();
+    if (_amountIn == 0) revert InvalidAmountIn();
+    if (_executionFee < minExecutionFee) revert InsufficientExecutionFee();
 
     // always need this call because of mandatory executionFee user has to transfer in BNB
     _transferInETH();
 
     if (_shouldWrap) {
-      require(_path[0] == weth, "OrderBook: only weth could be wrapped");
-      require(
-        msg.value == _executionFee + _amountIn,
-        "OrderBook: incorrect value transferred"
-      );
+      if (_path[0] != weth) revert OnlyNativeShouldWrap();
+      if (msg.value != _executionFee + _amountIn)
+        revert IncorrectValueTransfer();
     } else {
-      require(
-        msg.value == _executionFee,
-        "OrderBook: incorrect execution fee transferred"
-      );
+      if (msg.value != _executionFee) revert IncorrectValueTransfer();
       IERC20Upgradeable(_path[0]).safeTransferFrom(
         msg.sender,
         address(this),
@@ -359,7 +368,7 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
   function cancelSwapOrder(uint256 _orderIndex) external nonReentrant {
     SwapOrder memory order = swapOrders[msg.sender][_orderIndex];
-    require(order.account != address(0), "OrderBook: non-existent order");
+    if (order.account == address(0)) revert NonExistentOrder();
 
     delete swapOrders[msg.sender][_orderIndex];
 
@@ -387,10 +396,7 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     address[] memory _path,
     uint256 _triggerRatio
   ) public view returns (bool) {
-    require(
-      _path.length == 2 || _path.length == 3,
-      "OrderBook: invalid _path.length"
-    );
+    if (_path.length != 2 && _path.length != 3) revert InvalidPathLength();
 
     // limit orders don't need this validation because minOut is enough
     // so this validation handles scenarios for stop orders only
@@ -416,7 +422,7 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     bool _triggerAboveThreshold
   ) external nonReentrant {
     SwapOrder storage order = swapOrders[msg.sender][_orderIndex];
-    require(order.account != address(0), "OrderBook: non-existent order");
+    if (order.account == address(0)) revert NonExistentOrder();
 
     order.minOut = _minOut;
     order.triggerRatio = _triggerRatio;
@@ -441,18 +447,17 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     address payable _feeReceiver
   ) external nonReentrant {
     SwapOrder memory order = swapOrders[_account][_orderIndex];
-    require(order.account != address(0), "OrderBook: non-existent order");
+    if (order.account == address(0)) revert NonExistentOrder();
 
     if (order.triggerAboveThreshold) {
       // gas optimisation
       // order.minAmount should prevent wrong price execution in case of simple limit order
-      require(
-        validateSwapOrderPriceWithTriggerAboveThreshold(
+      if (
+        !validateSwapOrderPriceWithTriggerAboveThreshold(
           order.path,
           order.triggerRatio
-        ),
-        "OrderBook: invalid price for execution"
-      );
+        )
+      ) revert InvalidPriceForExecution();
     }
 
     delete swapOrders[_account][_orderIndex];
@@ -508,7 +513,7 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       ? currentPrice > _triggerPrice
       : currentPrice < _triggerPrice;
     if (_raise) {
-      require(isPriceValid, "OrderBook: invalid price for execution");
+      if (!isPriceValid) revert InvalidPriceForExecution();
     }
     return (currentPrice, isPriceValid);
   }
@@ -589,21 +594,13 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     // always need this call because of mandatory executionFee user has to transfer in BNB
     _transferInETH();
 
-    require(
-      _executionFee >= minExecutionFee,
-      "OrderBook: insufficient execution fee"
-    );
+    if (_executionFee < minExecutionFee) revert InsufficientExecutionFee();
     if (_shouldWrap) {
-      require(_path[0] == weth, "OrderBook: only weth could be wrapped");
-      require(
-        msg.value == _executionFee + _amountIn,
-        "OrderBook: incorrect value transferred"
-      );
+      if (_path[0] != weth) revert OnlyNativeShouldWrap();
+      if (msg.value != _executionFee + _amountIn)
+        revert IncorrectValueTransfer();
     } else {
-      require(
-        msg.value == _executionFee,
-        "OrderBook: incorrect execution fee transferred"
-      );
+      if (msg.value != _executionFee) revert IncorrectValueTransfer();
       IERC20Upgradeable(_path[0]).safeTransferFrom(
         msg.sender,
         address(this),
@@ -614,7 +611,7 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     vars._purchaseToken = _path[_path.length - 1];
     vars._purchaseTokenAmount;
     if (_path.length > 1) {
-      require(_path[0] != vars._purchaseToken, "OrderBook: invalid _path");
+      if (_path[0] == _path[_path.length - 1]) revert InvalidPath();
       IERC20Upgradeable(_path[0]).safeTransfer(pool, _amountIn);
       vars._purchaseTokenAmount = _swap(
         msg.sender,
@@ -633,10 +630,8 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
           vars._purchaseTokenAmount,
           false
         );
-      require(
-        _purchaseTokenAmountUsd >= minPurchaseTokenAmountUsd,
-        "OrderBook: insufficient collateral"
-      );
+      if (_purchaseTokenAmountUsd < minPurchaseTokenAmountUsd)
+        revert InsufficientCollateral();
     }
 
     _createIncreaseOrder(
@@ -681,11 +676,13 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       _triggerAboveThreshold,
       _executionFee
     );
-    increaseOrdersIndex[_account] = _orderIndex + 1;
-    increaseOrders[_account][_orderIndex] = order;
+    address subAccount = getSubAccount(_account, _subAccountId);
+    increaseOrdersIndex[subAccount] = _orderIndex + 1;
+    increaseOrders[subAccount][_orderIndex] = order;
 
     emit CreateIncreaseOrder(
       _account,
+      _subAccountId,
       _orderIndex,
       _purchaseToken,
       _purchaseTokenAmount,
@@ -699,13 +696,15 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   }
 
   function updateIncreaseOrder(
+    uint256 _subAccountId,
     uint256 _orderIndex,
     uint256 _sizeDelta,
     uint256 _triggerPrice,
     bool _triggerAboveThreshold
   ) external nonReentrant {
-    IncreaseOrder storage order = increaseOrders[msg.sender][_orderIndex];
-    require(order.account != address(0), "OrderBook: non-existent order");
+    address subAccount = getSubAccount(msg.sender, _subAccountId);
+    IncreaseOrder storage order = increaseOrders[subAccount][_orderIndex];
+    if (order.account == address(0)) revert NonExistentOrder();
 
     order.triggerPrice = _triggerPrice;
     order.triggerAboveThreshold = _triggerAboveThreshold;
@@ -713,6 +712,7 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
     emit UpdateIncreaseOrder(
       msg.sender,
+      order.subAccountId,
       _orderIndex,
       _sizeDelta,
       _triggerPrice,
@@ -720,11 +720,15 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     );
   }
 
-  function cancelIncreaseOrder(uint256 _orderIndex) external nonReentrant {
-    IncreaseOrder memory order = increaseOrders[msg.sender][_orderIndex];
-    require(order.account != address(0), "OrderBook: non-existent order");
+  function cancelIncreaseOrder(uint256 _subAccountId, uint256 _orderIndex)
+    external
+    nonReentrant
+  {
+    address subAccount = getSubAccount(msg.sender, _subAccountId);
+    IncreaseOrder memory order = increaseOrders[subAccount][_orderIndex];
+    if (order.account == address(0)) revert NonExistentOrder();
 
-    delete increaseOrders[msg.sender][_orderIndex];
+    delete increaseOrders[subAccount][_orderIndex];
 
     if (order.purchaseToken == weth) {
       _transferOutETH(
@@ -741,6 +745,7 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
     emit CancelIncreaseOrder(
       order.account,
+      order.subAccountId,
       _orderIndex,
       order.purchaseToken,
       order.purchaseTokenAmount,
@@ -759,7 +764,7 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     address payable _feeReceiver
   ) external nonReentrant {
     IncreaseOrder memory order = increaseOrders[_address][_orderIndex];
-    require(order.account != address(0), "OrderBook: non-existent order");
+    if (order.account == address(0)) revert NonExistentOrder();
 
     // increase long should use max price
     // increase short should use min price
@@ -801,6 +806,7 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
     emit ExecuteIncreaseOrder(
       order.account,
+      order.subAccountId,
       _orderIndex,
       order.purchaseToken,
       order.purchaseTokenAmount,
@@ -826,10 +832,7 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   ) external payable nonReentrant {
     _transferInETH();
 
-    require(
-      msg.value > minExecutionFee,
-      "OrderBook: insufficient execution fee"
-    );
+    if (msg.value < minExecutionFee) revert InsufficientExecutionFee();
 
     _createDecreaseOrder(
       msg.sender,
@@ -868,11 +871,13 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       _triggerAboveThreshold,
       msg.value
     );
-    decreaseOrdersIndex[_account] = _orderIndex + 1;
-    decreaseOrders[_account][_orderIndex] = order;
+    address subAccount = getSubAccount(_account, _subAccountId);
+    decreaseOrdersIndex[subAccount] = _orderIndex + 1;
+    decreaseOrders[subAccount][_orderIndex] = order;
 
     emit CreateDecreaseOrder(
       _account,
+      _subAccountId,
       _orderIndex,
       _collateralToken,
       _collateralDelta,
@@ -891,7 +896,7 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     address payable _feeReceiver
   ) external nonReentrant {
     DecreaseOrder memory order = decreaseOrders[_address][_orderIndex];
-    require(order.account != address(0), "OrderBook: non-existent order");
+    if (order.account == address(0)) revert NonExistentOrder();
 
     // decrease long should use min price
     // decrease short should use max price
@@ -931,6 +936,7 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
     emit ExecuteDecreaseOrder(
       order.account,
+      order.subAccountId,
       _orderIndex,
       order.collateralToken,
       order.collateralDelta,
@@ -944,15 +950,20 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     );
   }
 
-  function cancelDecreaseOrder(uint256 _orderIndex) external nonReentrant {
-    DecreaseOrder memory order = decreaseOrders[msg.sender][_orderIndex];
-    require(order.account != address(0), "OrderBook: non-existent order");
+  function cancelDecreaseOrder(uint256 _subAccountId, uint256 _orderIndex)
+    external
+    nonReentrant
+  {
+    address subAccount = getSubAccount(msg.sender, _subAccountId);
+    DecreaseOrder memory order = decreaseOrders[subAccount][_orderIndex];
+    if (order.account == address(0)) revert NonExistentOrder();
 
-    delete decreaseOrders[msg.sender][_orderIndex];
+    delete decreaseOrders[subAccount][_orderIndex];
     _transferOutETH(order.executionFee, msg.sender);
 
     emit CancelDecreaseOrder(
       order.account,
+      order.subAccountId,
       _orderIndex,
       order.collateralToken,
       order.collateralDelta,
@@ -966,14 +977,16 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   }
 
   function updateDecreaseOrder(
+    uint256 _subAccountId,
     uint256 _orderIndex,
     uint256 _collateralDelta,
     uint256 _sizeDelta,
     uint256 _triggerPrice,
     bool _triggerAboveThreshold
   ) external nonReentrant {
-    DecreaseOrder storage order = decreaseOrders[msg.sender][_orderIndex];
-    require(order.account != address(0), "OrderBook: non-existent order");
+    address subAccount = getSubAccount(msg.sender, _subAccountId);
+    DecreaseOrder storage order = decreaseOrders[subAccount][_orderIndex];
+    if (order.account == address(0)) revert NonExistentOrder();
 
     order.triggerPrice = _triggerPrice;
     order.triggerAboveThreshold = _triggerAboveThreshold;
@@ -982,6 +995,7 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
     emit UpdateDecreaseOrder(
       msg.sender,
+      order.subAccountId,
       _orderIndex,
       _collateralDelta,
       _sizeDelta,
@@ -1043,6 +1057,15 @@ contract OrderBook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     );
 
     return amountOut;
+  }
+
+  function getSubAccount(address primary, uint256 subAccountId)
+    internal
+    pure
+    returns (address)
+  {
+    if (subAccountId > 255) revert BadSubAccountId();
+    return address(uint160(primary) ^ uint160(subAccountId));
   }
 
   /// @custom:oz-upgrades-unsafe-allow constructor
