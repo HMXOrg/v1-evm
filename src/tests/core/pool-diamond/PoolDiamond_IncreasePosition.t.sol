@@ -16,7 +16,7 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
   }
 
   function testRevert_WhenMsgSenderNotAllowed() external {
-    vm.expectRevert(abi.encodeWithSignature("LibPoolV1_Forbidden()"));
+    vm.expectRevert(abi.encodeWithSignature("LibPoolV1_ForbiddenPlugin()"));
     poolPerpTradeFacet.increasePosition(
       ALICE,
       0,
