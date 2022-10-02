@@ -15,6 +15,105 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     poolAdminFacet.setTokenConfigs(tokens2, tokenConfigs2);
   }
 
+  function testRevert_IncreaseOrder_InsufficientExecutionFee() external {
+    address[] memory path = new address[](1);
+    path[0] = address(wbtc);
+    vm.expectRevert(abi.encodeWithSignature("InsufficientExecutionFee()"));
+    orderbook.createIncreaseOrder{ value: 0.01 ether }({
+      _subAccountId: 0,
+      _path: path,
+      _amountIn: 22500,
+      _indexToken: address(wbtc),
+      _minOut: 0,
+      _sizeDelta: 47 * 10**30,
+      _collateralToken: address(wbtc),
+      _isLong: true,
+      _triggerPrice: 41_001 * 10**30,
+      _triggerAboveThreshold: false,
+      _executionFee: 0 ether,
+      _shouldWrap: false
+    });
+  }
+
+  function testRevert_IncreaseOrder_OnlyNativeShouldWrap() external {
+    address[] memory path = new address[](1);
+    path[0] = address(wbtc);
+    vm.expectRevert(abi.encodeWithSignature("OnlyNativeShouldWrap()"));
+    orderbook.createIncreaseOrder{ value: 0.01 ether }({
+      _subAccountId: 0,
+      _path: path,
+      _amountIn: 22500,
+      _indexToken: address(wbtc),
+      _minOut: 0,
+      _sizeDelta: 47 * 10**30,
+      _collateralToken: address(wbtc),
+      _isLong: true,
+      _triggerPrice: 41_001 * 10**30,
+      _triggerAboveThreshold: false,
+      _executionFee: 0.01 ether,
+      _shouldWrap: true
+    });
+  }
+
+  function testRevert_IncreaseOrder_IncorrectValueTransfer() external {
+    address[] memory path = new address[](1);
+    path[0] = address(matic);
+    vm.expectRevert(abi.encodeWithSignature("IncorrectValueTransfer()"));
+    orderbook.createIncreaseOrder{ value: 0.01 ether }({
+      _subAccountId: 0,
+      _path: path,
+      _amountIn: 22500,
+      _indexToken: address(wbtc),
+      _minOut: 0,
+      _sizeDelta: 47 * 10**30,
+      _collateralToken: address(wbtc),
+      _isLong: true,
+      _triggerPrice: 41_001 * 10**30,
+      _triggerAboveThreshold: false,
+      _executionFee: 0.01 ether,
+      _shouldWrap: true
+    });
+  }
+
+  function testRevert_IncreaseOrder_InvalidPath() external {
+    address[] memory path = new address[](2);
+    path[0] = address(wbtc);
+    path[1] = address(wbtc);
+    wbtc.approve(address(orderbook), 22500);
+    wbtc.mint(address(this), 22500);
+    vm.expectRevert(abi.encodeWithSignature("InvalidPath()"));
+    orderbook.createIncreaseOrder{ value: 0.01 ether }({
+      _subAccountId: 0,
+      _path: path,
+      _amountIn: 22500,
+      _indexToken: address(wbtc),
+      _minOut: 0,
+      _sizeDelta: 47 * 10**30,
+      _collateralToken: address(wbtc),
+      _isLong: true,
+      _triggerPrice: 41_001 * 10**30,
+      _triggerAboveThreshold: false,
+      _executionFee: 0.01 ether,
+      _shouldWrap: false
+    });
+  }
+
+  function testRevert_DecreaseOrder_InsufficientExecutionFee() external {
+    address[] memory path = new address[](1);
+    path[0] = address(wbtc);
+    vm.expectRevert(abi.encodeWithSignature("InsufficientExecutionFee()"));
+    orderbook.createDecreaseOrder{ value: 0.001 ether }({
+      _subAccountId: 0,
+      _indexToken: address(wbtc),
+      _sizeDelta: 47 * 10**30,
+      _collateralToken: address(wbtc),
+      _collateralDelta: 0,
+      _isLong: true,
+      _triggerPrice: 44_000 * 10**30,
+      _triggerAboveThreshold: true
+    });
+  }
+
   function testCorrectness_WhenLong() external {
     maticPriceFeed.setLatestAnswer(400 * 10**8);
     daiPriceFeed.setLatestAnswer(1 * 10**8);
