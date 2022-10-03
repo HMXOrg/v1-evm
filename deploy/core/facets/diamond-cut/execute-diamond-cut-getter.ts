@@ -25,6 +25,7 @@ const methods = [
   "additionalAum()",
   "approvedPlugins(address,address)",
   "borrowingRateFactor()",
+  "convertTokensToUsde30(address,uint256,bool)",
   "discountedAum()",
   "feeReserveOf(address)",
   "fundingInterval()",

@@ -22,6 +22,7 @@ library LibPoolV1 {
   error LibPoolV1_OverUsdDebtCeiling();
   error LibPoolV1_OverShortCeiling();
   error LibPoolV1_OverOpenInterestLongCeiling();
+  error LibPoolV1_ForbiddenPlugin();
 
   // -------------
   //   Constants
@@ -76,7 +77,6 @@ library LibPoolV1 {
     uint256 discountedAum;
     // Position
     mapping(bytes32 => Position) positions;
-    mapping(address => mapping(address => bool)) approvedPlugins;
     // Open Interests in token amount with that token decimals
     mapping(address => uint256) openInterestLong;
     mapping(address => uint256) openInterestShort;
@@ -86,6 +86,9 @@ library LibPoolV1 {
     // Funding Fee Accounting
     uint256 fundingFeePayable;
     uint256 fundingFeeReceivable;
+    // Plugins
+    mapping(address => mapping(address => bool)) approvedPlugins;
+    mapping(address => bool) plugins;
   }
 
   // -----------
@@ -138,6 +141,9 @@ library LibPoolV1 {
       storage poolConfigds = LibPoolConfigV1.poolConfigV1DiamondStorage();
 
     if (account != msg.sender && poolConfigds.router != msg.sender) {
+      if (!poolV1ds.plugins[msg.sender]) {
+        revert LibPoolV1_ForbiddenPlugin();
+      }
       if (!poolV1ds.approvedPlugins[account][msg.sender])
         revert LibPoolV1_Forbidden();
     }

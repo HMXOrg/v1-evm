@@ -56,4 +56,8 @@ interface AccessControlFacetInterface {
    * - the caller must be `account`.
    */
   function renounceRole(bytes32 role, address account) external;
+
+  function allowPlugin(address plugin) external;
+
+  function denyPlugin(address plugin) external;
 }

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
+import { LibPoolV1 } from "../libraries/LibPoolV1.sol";
 import { LibAccessControl } from "../libraries/LibAccessControl.sol";
 import { AccessControlFacetInterface } from "../interfaces/AccessControlFacetInterface.sol";
 
@@ -13,7 +14,7 @@ contract AccessControlFacet is AccessControlFacetInterface {
   /**
    * @dev Returns `true` if `account` has been granted `role`.
    */
-  function hasRole(bytes32 role, address account) public view returns (bool) {
+  function hasRole(bytes32 role, address account) external view returns (bool) {
     return LibAccessControl._hasRole(role, account);
   }
 
@@ -39,7 +40,7 @@ contract AccessControlFacet is AccessControlFacetInterface {
    *
    * May emit a {RoleGranted} event.
    */
-  function grantRole(bytes32 role, address account) public {
+  function grantRole(bytes32 role, address account) external {
     LibAccessControl._checkRole(getRoleAdmin(role));
     LibAccessControl._grantRole(role, account);
   }
@@ -55,7 +56,7 @@ contract AccessControlFacet is AccessControlFacetInterface {
    *
    * May emit a {RoleRevoked} event.
    */
-  function revokeRole(bytes32 role, address account) public {
+  function revokeRole(bytes32 role, address account) external {
     LibAccessControl._checkRole(getRoleAdmin(role));
     LibAccessControl._revokeRole(role, account);
   }
@@ -76,11 +77,27 @@ contract AccessControlFacet is AccessControlFacetInterface {
    *
    * May emit a {RoleRevoked} event.
    */
-  function renounceRole(bytes32 role, address account) public {
+  function renounceRole(bytes32 role, address account) external {
     if (account != msg.sender) {
       revert LibAccessControl_CanOnlyRenounceSelf();
     }
 
     LibAccessControl._revokeRole(role, account);
+  }
+
+  function allowPlugin(address plugin) external {
+    // Load diamond storage
+    LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
+      .poolV1DiamondStorage();
+
+    ds.approvedPlugins[msg.sender][plugin] = true;
+  }
+
+  function denyPlugin(address plugin) external {
+    // Load diamond storage
+    LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
+      .poolV1DiamondStorage();
+
+    ds.approvedPlugins[msg.sender][plugin] = false;
   }
 }

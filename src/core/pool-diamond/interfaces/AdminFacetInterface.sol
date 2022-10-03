@@ -59,4 +59,6 @@ interface AdminFacetInterface {
     address to,
     uint256 amount
   ) external;
+
+  function setPlugin(address plugin, bool allow) external;
 }

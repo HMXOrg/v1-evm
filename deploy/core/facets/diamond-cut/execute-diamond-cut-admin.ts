@@ -24,6 +24,7 @@ enum FacetCutAction {
 const methods = [
   "deleteTokenConfig(address)",
   "setAllowLiquidators(address[],bool)",
+  "setFlashLoanFeeBps(uint64)",
   "setFundingRate(uint64,uint64,uint64)",
   "setIsAllowAllLiquidators(bool)",
   "setIsDynamicFeeEnable(bool)",
@@ -33,6 +34,7 @@ const methods = [
   "setMaxLeverage(uint64)",
   "setMinProfitDuration(uint64)",
   "setMintBurnFeeBps(uint64)",
+  "setPlugin(address,bool)",
   "setPoolOracle(address)",
   "setPositionFeeBps(uint64)",
   "setRouter(address)",

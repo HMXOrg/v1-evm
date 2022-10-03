@@ -282,4 +282,10 @@ interface GetterFacetInterface {
   function openInterestShort(address token) external view returns (uint256);
 
   function getFundingFeeAccounting() external view returns (uint256, uint256);
+
+  function convertTokensToUsde30(
+    address token,
+    uint256 amountTokens,
+    bool isUseMaxPrice
+  ) external view returns (uint256);
 }
