@@ -6,7 +6,7 @@ import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 
 const config = getConfig();
 
-const NAME = "Dragon Staking esP88 Emission";
+const NAME = "P88 LP Staking esP88 Emission";
 const REWARD_TOKEN_ADDRESS = getRewardTokenAddress(NAME);
 const STAKING_CONTRACT_ADDRESS = getStakingContractAddress(NAME);
 
@@ -49,6 +49,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
           };
         } else return each;
       });
+  } else if (NAME.includes("P88 LP Staking")) {
+    config.Staking.P88LPStaking.rewarders =
+      config.Staking.P88LPStaking.rewarders.map((each: any) => {
+        if (each.name === NAME) {
+          return {
+            ...each,
+            address: rewarder.address,
+            rewardToken: REWARD_TOKEN_ADDRESS,
+          };
+        } else return each;
+      });
   }
   writeConfigFile(config);
 
@@ -74,6 +85,8 @@ function getRewardTokenAddress(rewarderName: string): string {
 function getStakingContractAddress(rewarderName: string): string {
   if (rewarderName.includes("Dragon Staking")) {
     return config.Staking.DragonStaking.address;
+  } else if (rewarderName.includes("P88 LP Staking")) {
+    return config.Staking.P88LPStaking.address;
   } else {
     return config.Staking.PLPStaking.address;
   }
