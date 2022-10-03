@@ -42,6 +42,7 @@
     "PLP": {
       "poolDiamond": "",
       "oracle": "",
+      "orderbook": "",
       "facets": {
         "admin": "",
         "accessControl": "",

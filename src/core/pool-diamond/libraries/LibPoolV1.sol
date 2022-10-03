@@ -21,6 +21,7 @@ library LibPoolV1 {
   error LibPoolV1_InsufficientLiquidity();
   error LibPoolV1_OverUsdDebtCeiling();
   error LibPoolV1_OverShortCeiling();
+  error LibPoolV1_ForbiddenPlugin();
 
   // -------------
   //   Constants
@@ -72,7 +73,9 @@ library LibPoolV1 {
     uint256 discountedAum;
     // Position
     mapping(bytes32 => Position) positions;
+    // Plugins
     mapping(address => mapping(address => bool)) approvedPlugins;
+    mapping(address => bool) plugins;
   }
 
   // -----------
@@ -123,6 +126,9 @@ library LibPoolV1 {
       storage poolConfigds = LibPoolConfigV1.poolConfigV1DiamondStorage();
 
     if (account != msg.sender && poolConfigds.router != msg.sender) {
+      if (!poolV1ds.plugins[msg.sender]) {
+        revert LibPoolV1_ForbiddenPlugin();
+      }
       if (!poolV1ds.approvedPlugins[account][msg.sender])
         revert LibPoolV1_Forbidden();
     }

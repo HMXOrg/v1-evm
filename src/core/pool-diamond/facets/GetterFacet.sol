@@ -753,4 +753,20 @@ contract GetterFacet is GetterFacetInterface {
     return
       (_fundingRateFactor * poolV1ds.reservedOf[token] * intervals) / liquidity;
   }
+
+  function convertTokensToUsde30(
+    address token,
+    uint256 amountTokens,
+    bool isUseMaxPrice
+  ) external view returns (uint256) {
+    if (amountTokens == 0) return 0;
+
+    // Load PoolV1 diamond storage
+    LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
+      .poolV1DiamondStorage();
+
+    return
+      (amountTokens * poolV1ds.oracle.getPrice(token, isUseMaxPrice)) /
+      (10**LibPoolConfigV1.getTokenDecimalsOf(token));
+  }
 }

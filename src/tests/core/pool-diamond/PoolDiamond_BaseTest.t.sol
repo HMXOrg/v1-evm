@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { BaseTest, console, stdError, MockStrategy, MockDonateVault, PLP, MockFlashLoanBorrower, PoolConfig, LibPoolConfigV1, PoolOracle, Pool, PoolRouter, OwnershipFacetInterface, GetterFacetInterface, LiquidityFacetInterface, PerpTradeFacetInterface, AdminFacetInterface, FarmFacetInterface, AccessControlFacetInterface, LibAccessControl } from "../../base/BaseTest.sol";
+import { BaseTest, console, stdError, MockStrategy, MockDonateVault, PLP, MockFlashLoanBorrower, PoolConfig, LibPoolConfigV1, PoolOracle, Pool, PoolRouter, OwnershipFacetInterface, GetterFacetInterface, LiquidityFacetInterface, PerpTradeFacetInterface, AdminFacetInterface, FarmFacetInterface, AccessControlFacetInterface, LibAccessControl, Orderbook } from "../../base/BaseTest.sol";
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -17,6 +17,8 @@ abstract contract PoolDiamond_BaseTest is BaseTest {
   PerpTradeFacetInterface internal poolPerpTradeFacet;
   FarmFacetInterface internal poolFarmFacet;
   AccessControlFacetInterface internal poolAccessControlFacet;
+
+  Orderbook internal orderbook;
 
   function setUp() public virtual {
     BaseTest.PoolConfigConstructorParams memory poolConfigParams = BaseTest
@@ -55,6 +57,15 @@ abstract contract PoolDiamond_BaseTest is BaseTest {
       LibAccessControl.FARM_KEEPER,
       address(this)
     );
+
+    orderbook = deployOrderbook(
+      poolDiamond,
+      address(poolOracle),
+      address(matic),
+      0.01 ether,
+      1 ether
+    );
+    poolAdminFacet.setPlugin(address(orderbook), true);
   }
 
   function checkPoolBalanceWithState(address token, int256 offset) internal {

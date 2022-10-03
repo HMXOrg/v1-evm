@@ -24,6 +24,7 @@ enum FacetCutAction {
 const methods = [
   "additionalAum()",
   "approvedPlugins(address,address)",
+  "convertTokensToUsde30(address,uint256,bool)",
   "discountedAum()",
   "feeReserveOf(address)",
   "fundingInterval()",

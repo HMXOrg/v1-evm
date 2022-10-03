@@ -42,6 +42,7 @@
     "PLP": {
       "poolDiamond": "0x4D9DF83C94c54F75aC2870514C2AD72047f96BB8",
       "oracle": "0x417B34E90990657BF6adC1Ecc2ac4B36069cc927",
+      "orderbook": "",
       "facets": {
         "admin": "0xCB1EaA1E9Fd640c3900a4325440c80FEF4b1b16d",
         "accessControl": "0x029c919Cf951C588819Acb7d95eeC1780E53f89C",

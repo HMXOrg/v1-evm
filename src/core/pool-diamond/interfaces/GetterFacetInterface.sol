@@ -238,4 +238,10 @@ interface GetterFacetInterface {
   ) external view returns (uint256);
 
   function getNextFundingRate(address token) external view returns (uint256);
+
+  function convertTokensToUsde30(
+    address token,
+    uint256 amountTokens,
+    bool isUseMaxPrice
+  ) external view returns (uint256);
 }

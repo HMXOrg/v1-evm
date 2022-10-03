@@ -36,7 +36,7 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
   }
 
   function testRevert_WhenTryToAddLiquidityUnderOtherAccount() external {
-    vm.expectRevert(abi.encodeWithSignature("LibPoolV1_Forbidden()"));
+    vm.expectRevert(abi.encodeWithSignature("LibPoolV1_ForbiddenPlugin()"));
     poolLiquidityFacet.addLiquidity(ALICE, address(dai), address(this));
   }
 
