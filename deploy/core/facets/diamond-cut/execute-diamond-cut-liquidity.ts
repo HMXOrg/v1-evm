@@ -20,21 +20,22 @@ enum FacetCutAction {
   Remove,
 }
 
+const methods = [
+  "addLiquidity(address,address,address)",
+  "flashLoan(address,address[],address[],uint256[],bytes)",
+  "removeLiquidity(address,address,address)",
+  "swap(address,address,address,uint256,address)",
+];
+
 const facetCuts = [
   {
     facetAddress: config.Pools.PLP.facets.liquidity,
     action: FacetCutAction.Add,
-    functionSelectors: [
-      LiquidityFacetInterface__factory.createInterface().getSighash(
-        "addLiquidity(address,address,address)"
-      ),
-      LiquidityFacetInterface__factory.createInterface().getSighash(
-        "removeLiquidity(address,address,address)"
-      ),
-      LiquidityFacetInterface__factory.createInterface().getSighash(
-        "swap(address,address,uint256,address)"
-      ),
-    ],
+    functionSelectors: methods.map((each) => {
+      return LiquidityFacetInterface__factory.createInterface().getSighash(
+        each
+      );
+    }),
   },
 ];
 

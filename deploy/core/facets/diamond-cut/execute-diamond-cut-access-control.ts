@@ -16,6 +16,8 @@ enum FacetCutAction {
 }
 
 const methods = [
+  "allowPlugin(address)",
+  "denyPlugin(address)",
   "getRoleAdmin(bytes32)",
   "grantRole(bytes32,address)",
   "hasRole(bytes32,address)",
