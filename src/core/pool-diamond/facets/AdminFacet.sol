@@ -154,17 +154,17 @@ contract AdminFacet is AdminFacetInterface {
 
   function setFundingRate(
     uint64 newFundingInterval,
-    uint64 newborrowingRateFactor,
-    uint64 newstableBorrowingRateFactor,
+    uint64 newBorrowingRateFactor,
+    uint64 newStableBorrowingRateFactor,
     uint64 newFundingRateFactor
   ) external onlyOwner {
     if (newFundingInterval < MIN_FUNDING_INTERVAL)
       revert AdminFacet_BadNewFundingInterval();
-    if (newborrowingRateFactor > MAX_BORROWING_RATE_FACTOR)
+    if (newBorrowingRateFactor > MAX_BORROWING_RATE_FACTOR)
       revert AdminFacet_BadNewBorrowingRateFactor();
     if (newFundingRateFactor > MAX_FUNDING_RATE_FACTOR)
       revert AdminFacet_BadNewFundingRateFactor();
-    if (newstableBorrowingRateFactor > MAX_FUNDING_RATE_FACTOR)
+    if (newStableBorrowingRateFactor > MAX_FUNDING_RATE_FACTOR)
       revert AdminFacet_BadNewStableBorrowingRateFactor();
 
     // Load PoolConfig Diamond storage
@@ -175,15 +175,15 @@ contract AdminFacet is AdminFacetInterface {
       poolConfigDs.fundingInterval,
       newFundingInterval,
       poolConfigDs.borrowingRateFactor,
-      newborrowingRateFactor,
+      newBorrowingRateFactor,
       poolConfigDs.stableBorrowingRateFactor,
-      newstableBorrowingRateFactor,
+      newStableBorrowingRateFactor,
       poolConfigDs.fundingRateFactor,
       newFundingRateFactor
     );
     poolConfigDs.fundingInterval = newFundingInterval;
-    poolConfigDs.borrowingRateFactor = newborrowingRateFactor;
-    poolConfigDs.stableBorrowingRateFactor = newstableBorrowingRateFactor;
+    poolConfigDs.borrowingRateFactor = newBorrowingRateFactor;
+    poolConfigDs.stableBorrowingRateFactor = newStableBorrowingRateFactor;
     poolConfigDs.fundingRateFactor = newFundingRateFactor;
   }
 

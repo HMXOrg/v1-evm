@@ -15,8 +15,8 @@ interface AdminFacetInterface {
 
   function setFundingRate(
     uint64 newFundingInterval,
-    uint64 newborrowingRateFactor,
-    uint64 newstableBorrowingRateFactor,
+    uint64 newBorrowingRateFactor,
+    uint64 newStableBorrowingRateFactor,
     uint64 newFundingRateFactor
   ) external;
 
