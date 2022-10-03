@@ -63,7 +63,7 @@
   "Staking": {
     "Compounder": "0x3884DDf56562f754253E99177380738597ce3C20",
     "PLPStaking": {
-      "address": "0x6855742e3Df393178461EAF7B36f5E245672C9F1",
+      "address": "0x30C95A96De0cB54d31b600ab228bCd4377001354",
       "rewarders": [
         {
           "name": "PLP Staking Protocol Revenue",
@@ -78,7 +78,7 @@
       ]
     },
     "DragonStaking": {
-      "address": "0x743379752C0fD890FB2bBcE134dD23340Bc3ED9B",
+      "address": "0xA65d0CDAbd01cE2F2370E11Bc154620Ffaf57886",
       "rewarders": [
         {
           "name": "Dragon Staking Protocol Revenue",

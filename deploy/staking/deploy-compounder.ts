@@ -8,8 +8,8 @@ const config = getConfig();
 
 const DRAGON_POINT = config.Tokens.DragonPoint;
 const DESTINATION_COMPUND_POOL = config.Staking.DragonStaking.address;
-const TOKENS = [config.Tokens.esP88, config.Tokens.DragonPoint];
-const IS_COMPOUNDABLE_TOKENS = [true, true];
+const TOKENS = [config.Tokens.USDC, config.Tokens.esP88, config.Tokens.DragonPoint];
+const IS_COMPOUNDABLE_TOKENS = [false, true, true];
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
