@@ -6,11 +6,11 @@ import { getConfig } from "../utils/config";
 
 const config = getConfig();
 
-const STAKING_CONTRACT_ADDRESS = config.Staking.DragonStaking.address;
-const STAKING_TOKEN_ADDRESS = config.Tokens.DragonPoint;
-const REWARDERS = config.Staking.DragonStaking.rewarders
-  .filter((each: any) => each.name === "Dragon Staking Protocol Revenue")
-  .map((each: any) => each.address);
+const STAKING_CONTRACT_ADDRESS = config.Staking.P88LPStaking.address;
+const STAKING_TOKEN_ADDRESS = config.Tokens.P88QSLP;
+const REWARDERS = config.Staking.P88LPStaking.rewarders.map(
+  (each: any) => each.address
+);
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
