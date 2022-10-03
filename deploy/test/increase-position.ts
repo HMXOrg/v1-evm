@@ -11,8 +11,9 @@ import { getConfig } from "../utils/config";
 const config = getConfig();
 
 const POOL_ROUTER = config.PoolRouter;
-const COLLATERAL_TOKEN = config.Tokens.DAI;
-const INDEX_TOKEN = config.Tokens.WETH;
+const COLLATERAL_TOKEN = config.Tokens.WBTC;
+const INDEX_TOKEN = config.Tokens.WBTC;
+const isLong = true;
 
 enum Exposure {
   LONG,
@@ -37,13 +38,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       config.Pools.PLP.poolDiamond,
       0,
       COLLATERAL_TOKEN,
-      config.Tokens.USDC,
-      ethers.utils.parseUnits("10000", decimals),
+      COLLATERAL_TOKEN,
+      ethers.utils.parseUnits("1", decimals),
       0,
       INDEX_TOKEN,
-      ethers.utils.parseUnits("30000", 30),
-      false,
-      ethers.constants.Zero,
+      ethers.utils.parseUnits("40000", 30),
+      isLong,
+      ethers.constants.MaxUint256,
       { gasLimit: 10000000 }
     )
   ).wait();

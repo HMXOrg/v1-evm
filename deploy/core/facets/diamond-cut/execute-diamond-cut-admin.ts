@@ -4,12 +4,6 @@ import { ethers } from "hardhat";
 import {
   AdminFacet__factory,
   DiamondCutFacet__factory,
-  DiamondLoupeFacet__factory,
-  FundingRateFacet__factory,
-  GetterFacet__factory,
-  LiquidityFacetInterface__factory,
-  OwnershipFacet__factory,
-  PerpTradeFacet__factory,
 } from "../../../../typechain";
 import { getConfig } from "../../../utils/config";
 
@@ -25,7 +19,7 @@ const methods = [
   "deleteTokenConfig(address)",
   "setAllowLiquidators(address[],bool)",
   "setFlashLoanFeeBps(uint64)",
-  "setFundingRate(uint64,uint64,uint64)",
+  "setFundingRate(uint64,uint64,uint64,uint64)",
   "setIsAllowAllLiquidators(bool)",
   "setIsDynamicFeeEnable(bool)",
   "setIsLeverageEnable(bool)",
@@ -40,9 +34,9 @@ const methods = [
   "setRouter(address)",
   "setSwapFeeBps(uint64,uint64)",
   "setTaxBps(uint64,uint64)",
-  "setTokenConfigs(address[],(bool,bool,bool,uint8,uint64,uint64,uint256,uint256,uint256)[])",
+  "setTokenConfigs(address[],(bool,bool,bool,uint8,uint64,uint64,uint256,uint256,uint256,uint256)[])",
   "setTreasury(address)",
-  "withdrawFeeReserve(address,address,uint256)",
+  "withdrawFeeReserve(address,address,uint256)"
 ];
 
 const facetCuts = [
