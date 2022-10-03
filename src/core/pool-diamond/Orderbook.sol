@@ -619,7 +619,7 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     }
 
     vars._purchaseToken = _path[_path.length - 1];
-    vars._purchaseTokenAmount;
+
     if (_path.length > 1) {
       if (_path[0] == _path[_path.length - 1]) revert InvalidPath();
       IERC20Upgradeable(_path[0]).safeTransfer(pool, _amountIn);
