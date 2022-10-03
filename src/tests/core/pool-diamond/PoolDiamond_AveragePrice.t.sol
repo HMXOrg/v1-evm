@@ -101,7 +101,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 9.91 * 10**30);
     assertEq(position.averagePrice, 41000 * 10**30);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 0.00225 * 10**8);
 
     // Feeds WBTC prices with ranges
@@ -136,7 +136,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 90 * ((45100 - 41000) / 41000)
     // = 9 USD
     // 2. Position is profitable
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -206,7 +206,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 100 * 10**30);
     assertEq(position.collateral, 9.9 * 10**30);
     assertEq(position.averagePrice, 43211009174311926605504587155963302);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 247172);
 
     // Assert position's leverage
@@ -227,7 +227,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 4.371549893842888 USD
     // 2. Position is profitable
     // Profits decrease a lot due to the price different between price ref and mark price.
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -247,7 +247,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 100 * ((47100 - 43211.00917431193) / 43211.00917431193)
     // = 9 USD
     // 2. Position is profitable
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -341,7 +341,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 9.91 * 10**30);
     assertEq(position.averagePrice, 41000 * 10**30);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 0.00225 * 10**8);
 
     // Feed WBTC@45100 USD 3 times
@@ -376,7 +376,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 90 * ((45100 - 41000) / 41000)
     // = 9 USD
     // 2. Position is profitable
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -446,7 +446,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 100 * 10**30);
     assertEq(position.collateral, 9.9 * 10**30);
     assertEq(position.averagePrice, 41376146788990825688073394495412844);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 247172);
 
     // Assert position's leverage
@@ -466,7 +466,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 100 * ((45100 - 41376.14678899082) / 41376.14678899082)
     // = 9 USD
     // 2. Position is profitable
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -484,7 +484,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 100 * ((41000 - 41376.14678899082) / 41376.14678899082)
     // = -0.9090909090909041 USD
     // 2. Position is unprofitable
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -504,7 +504,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 100 * ((50000 - 41376.14678899082) / 41376.14678899082)
     // = 20.842572062084265 USD
     // 2. Position is profitable
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -598,7 +598,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 9.91 * 10**30);
     assertEq(position.averagePrice, 41000 * 10**30);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 0.00225 * 10**8);
 
     // Feeds WBTC@36900 USD 3 times
@@ -633,7 +633,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 90 * ((36900 - 41000) / 41000)
     // = -9 USD
     // 2. Position is loss
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -705,7 +705,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 100 * 10**30);
     assertEq(position.collateral, 19.125 * 10**30);
     assertEq(position.averagePrice, 40549450549450549450549450549450549);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 252100);
 
     // Assert position's leverage
@@ -725,7 +725,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 100 * ((36900 - 40549.45054945055) / 40549.45054945055)
     // = -9 USD
     // 2. Position is loss
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -745,7 +745,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 100 * ((41000 - 40549.45054945055) / 40549.45054945055)
     // = 1.11 USD
     // 2. Position is profit
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -841,7 +841,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 9.91 * 10**30);
     assertEq(position.averagePrice, 40000 * 10**30);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 0.00225 * 10**8);
 
     // Feed WBTC@40000 3 times
@@ -854,7 +854,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 90 * ((40000 - 40000) / 40000)
     // = 0 USD
     // 2. Position is not profit
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -898,7 +898,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 100 * 10**30);
     assertEq(position.collateral, 19.9 * 10**30);
     assertEq(position.averagePrice, 40000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 250000);
 
     // Assert position's delta
@@ -906,7 +906,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 100 * ((40000 - 40000) / 40000)
     // = 0 USD
     // 2. Position is not profit
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -1004,7 +1004,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 9.91 * 10**30);
     assertEq(position.averagePrice, 40000 * 10**30);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 0.00225 * 10**8);
 
     // Feed WBTC@50000 3 times
@@ -1017,7 +1017,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 90 * ((50000 - 40000) / 40000)
     // = 22.5 USD
     // 2. Position is profitable
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -1061,7 +1061,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 100 * 10**30);
     assertEq(position.collateral, 22.4 * 10**30);
     assertEq(position.averagePrice, 40816326530612244897959183673469387);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 245000);
 
     // Assert position's delta
@@ -1069,7 +1069,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 100 * ((50000 - 40816.32653061225) / 40816.32653061225)
     // = 22.5 USD
     // 2. Position is profit
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -1166,7 +1166,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 49.91 * 10**30);
     assertEq(position.averagePrice, 40000 * 10**30);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 0.00225 * 10**8);
 
     // Feed WBTC@30000 3 times
@@ -1179,7 +1179,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 90 * ((30000 - 40000) / 40000)
     // = -22.5 USD
     // 2. Position is loss
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -1223,7 +1223,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 100 * 10**30);
     assertEq(position.collateral, 57.4 * 10**30);
     assertEq(position.averagePrice, 38709677419354838709677419354838709);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 258333);
 
     // Assert position's delta
@@ -1231,7 +1231,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 100 * ((30000 - 38709.67741935484) / 38709.67741935484)
     // = -22.5 USD
     // 2. Position is loss
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -1298,7 +1298,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 5050322181222357947081599665915068);
     assertEq(position.collateral, 2508775285688777642052918400334084);
     assertEq(position.averagePrice, 2521.45037536 * 10**30);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 2.009018511630791833 * 10**18);
 
     // Feeds MATIC price at 2373.23502539 3 times
@@ -1311,7 +1311,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 5050.322181222357 * ((2373.23502539 - 2521.45037536) / 2521.45037536)
     // = -296.8669448607548 USD
     // 2. Position is loss
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(matic),
@@ -1356,7 +1356,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 9796792232002357947081599665915068);
     assertEq(position.collateral, 4877263841027997642052918400334084);
     assertEq(position.averagePrice, 2447397190894361457116367555285124);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 4009018511630791833);
   }
 
@@ -1444,7 +1444,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 49.91 * 10**30);
     assertEq(position.averagePrice, 40000 * 10**30);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 0.00225 * 10**8);
 
     // Feed WBTC@40300 3 times
@@ -1460,7 +1460,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // 90 * 0.0075 [MinProfitBps] =  0.6749999999999999
     // Hence, delta is 0.
     // 2. Position is neutral
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -1504,7 +1504,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 100 * 10**30);
     assertEq(position.collateral, 59.975 * 10**30);
     assertEq(position.averagePrice, 40_300 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 249813);
 
     // Assert position's delta
@@ -1512,7 +1512,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 100 * ((40300 - 40300) / 40300)
     // = 0 USD
     // 2. Position is neutral
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -1597,7 +1597,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 49.91 * 10**30);
     assertEq(position.averagePrice, 40_000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 90 * 10**18);
 
     // Feed WBTC@40000 3 times
@@ -1610,7 +1610,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 90 * ((40000 - 40000) / 40000)
     // = 0 USD
     // 2. Position is neutral
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -1652,7 +1652,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 100 * 10**30);
     assertEq(position.collateral, 49.9 * 10**30);
     assertEq(position.averagePrice, 40_000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 100 * 10**18);
 
     // Assert position's delta
@@ -1660,7 +1660,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 100 * ((40000 - 40000) / 40000)
     // = 0 USD
     // 2. Position is neutral
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -1745,7 +1745,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 49.91 * 10**30);
     assertEq(position.averagePrice, 40_000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 90 * 10**18);
 
     // Feed WBTC@50000 3 times
@@ -1768,7 +1768,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 90 * ((40000 - 50000) / 40000)
     // = -22.5 USD
     // 2. Position is loss
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -1822,7 +1822,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 100 * 10**30);
     assertEq(position.collateral, 49.9 * 10**30);
     assertEq(position.averagePrice, 40816326530612244897959183673469387);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 100 * 10**18);
 
     // Assert position's delta
@@ -1830,7 +1830,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 100 * ((40816.32653061225 - 50000) / 40816.32653061225)
     // = -22.5 USD
     // 2. Position is loss
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -1915,7 +1915,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 49.91 * 10**30);
     assertEq(position.averagePrice, 40_000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 90 * 10**18);
 
     // Feed WBTC@30000 3 times
@@ -1938,7 +1938,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 90 * ((40000 - 30000) / 40000)
     // = 22.5 USD
     // 2. Position is profit
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -1992,7 +1992,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 100 * 10**30);
     assertEq(position.collateral, 49.9 * 10**30);
     assertEq(position.averagePrice, 38709677419354838709677419354838709);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 100 * 10**18);
 
     // Assert position's delta
@@ -2000,7 +2000,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 100 * ((38709.67741935484 - 30000) / 38709.67741935484)
     // = 22.5 USD
     // 2. Position is profit
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -2085,7 +2085,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 49.91 * 10**30);
     assertEq(position.averagePrice, 40_000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 90 * 10**18);
 
     // Feed WBTC@39700 3 times
@@ -2110,7 +2110,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // Which is <= 90 * 0.0075 = 0.675 USD
     // Hence, delta turns to 0
     // 2. Position is profit
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -2118,7 +2118,9 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
       false
     );
     assertEq(delta, 0);
-    assertTrue(isProfit);
+    console.log("delta", delta);
+    console.log("isProfit", isProfit);
+    assertTrue(isProfit, "isProfit");
 
     // Increase position size by 10 USD
     poolPerpTradeFacet.increasePosition(
@@ -2173,7 +2175,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.size, 100 * 10**30);
     assertEq(position.collateral, 49.9 * 10**30);
     assertEq(position.averagePrice, 39700 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 100 * 10**18);
 
     // Assert position's delta
@@ -2181,7 +2183,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 90 * ((39700 - 39700) / 39700)
     // = 0 USD
     // 2. Position is not profiting
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -2211,7 +2213,7 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     // = 100 * ((39700 - 39000) / 39700)
     // = 1.7632241813602016 USD
     // 2. Position is profiting
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),

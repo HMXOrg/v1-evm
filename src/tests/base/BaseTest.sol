@@ -71,12 +71,22 @@ import { MockWNative } from "src/tests/mocks/MockWNative.sol";
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
 contract BaseTest is DSTest, CoreConstants {
-  struct PoolConfigConstructorParams {
+  struct PoolConfigConstructorParams2 {
     address treasury;
     uint64 fundingInterval;
     uint64 mintBurnFeeBps;
     uint64 taxBps;
     uint64 stableFundingRateFactor;
+    uint64 fundingRateFactor;
+    uint256 liquidationFeeUsd;
+  }
+  struct PoolConfigConstructorParams {
+    address treasury;
+    uint64 fundingInterval;
+    uint64 mintBurnFeeBps;
+    uint64 taxBps;
+    uint64 stableBorrowingRateFactor;
+    uint64 borrowingRateFactor;
     uint64 fundingRateFactor;
     uint256 liquidationFeeUsd;
   }
@@ -256,7 +266,8 @@ contract BaseTest is DSTest, CoreConstants {
       minProfitBps: 75,
       usdDebtCeiling: 0,
       shortCeiling: 0,
-      bufferLiquidity: 0
+      bufferLiquidity: 0,
+      openInterestLongCeiling: 0
     });
     tokenConfigs[1] = LibPoolConfigV1.TokenConfig({
       accept: true,
@@ -267,7 +278,8 @@ contract BaseTest is DSTest, CoreConstants {
       minProfitBps: 75,
       usdDebtCeiling: 0,
       shortCeiling: 0,
-      bufferLiquidity: 0
+      bufferLiquidity: 0,
+      openInterestLongCeiling: 0
     });
     tokenConfigs[2] = LibPoolConfigV1.TokenConfig({
       accept: true,
@@ -278,7 +290,8 @@ contract BaseTest is DSTest, CoreConstants {
       minProfitBps: 75,
       usdDebtCeiling: 0,
       shortCeiling: 0,
-      bufferLiquidity: 0
+      bufferLiquidity: 0,
+      openInterestLongCeiling: 0
     });
 
     return (tokens, tokenConfigs);
@@ -356,13 +369,13 @@ contract BaseTest is DSTest, CoreConstants {
   {
     GetterFacet getterFacet = new GetterFacet();
 
-    bytes4[] memory selectors = new bytes4[](57);
+    bytes4[] memory selectors = new bytes4[](62);
     selectors[0] = GetterFacet.getAddLiquidityFeeBps.selector;
     selectors[1] = GetterFacet.getRemoveLiquidityFeeBps.selector;
     selectors[2] = GetterFacet.getSwapFeeBps.selector;
     selectors[3] = GetterFacet.getAum.selector;
     selectors[4] = GetterFacet.getAumE18.selector;
-    selectors[5] = GetterFacet.getNextFundingRate.selector;
+    selectors[5] = GetterFacet.getNextBorrowingRate.selector;
     selectors[6] = GetterFacet.plp.selector;
     selectors[7] = GetterFacet.totalTokenWeight.selector;
     selectors[8] = GetterFacet.totalUsdDebt.selector;
@@ -370,8 +383,8 @@ contract BaseTest is DSTest, CoreConstants {
     selectors[10] = GetterFacet.feeReserveOf.selector;
     selectors[11] = GetterFacet.usdDebtOf.selector;
     selectors[12] = GetterFacet.getDelta.selector;
-    selectors[13] = GetterFacet.getEntryFundingRate.selector;
-    selectors[14] = GetterFacet.getFundingFee.selector;
+    selectors[13] = GetterFacet.getEntryBorrowingRate.selector;
+    selectors[14] = GetterFacet.getBorrowingFee.selector;
     selectors[15] = GetterFacet.getNextShortAveragePrice.selector;
     selectors[16] = GetterFacet.getPositionFee.selector;
     selectors[17] = GetterFacet.getPositionNextAveragePrice.selector;
@@ -391,7 +404,7 @@ contract BaseTest is DSTest, CoreConstants {
     selectors[31] = GetterFacet.isAllowedLiquidators.selector;
     selectors[32] = GetterFacet.isAllowAllLiquidators.selector;
     selectors[33] = GetterFacet.fundingInterval.selector;
-    selectors[34] = GetterFacet.fundingRateFactor.selector;
+    selectors[34] = GetterFacet.borrowingRateFactor.selector;
     selectors[35] = GetterFacet.isDynamicFeeEnable.selector;
     selectors[36] = GetterFacet.isLeverageEnable.selector;
     selectors[37] = GetterFacet.isSwapEnable.selector;
@@ -402,18 +415,23 @@ contract BaseTest is DSTest, CoreConstants {
     selectors[42] = GetterFacet.mintBurnFeeBps.selector;
     selectors[43] = GetterFacet.positionFeeBps.selector;
     selectors[44] = GetterFacet.router.selector;
-    selectors[45] = GetterFacet.stableFundingRateFactor.selector;
+    selectors[45] = GetterFacet.stableBorrowingRateFactor.selector;
     selectors[46] = GetterFacet.stableTaxBps.selector;
     selectors[47] = GetterFacet.stableSwapFeeBps.selector;
     selectors[48] = GetterFacet.swapFeeBps.selector;
     selectors[49] = GetterFacet.taxBps.selector;
     selectors[50] = GetterFacet.tokenMetas.selector;
-    selectors[51] = GetterFacet.pendingStrategyOf.selector;
-    selectors[52] = GetterFacet.strategyOf.selector;
-    selectors[53] = GetterFacet.strategyDataOf.selector;
-    selectors[54] = GetterFacet.getStrategyDeltaOf.selector;
-    selectors[55] = GetterFacet.totalOf.selector;
-    selectors[56] = GetterFacet.convertTokensToUsde30.selector;
+    selectors[51] = GetterFacet.getEntryFundingRate.selector;
+    selectors[52] = GetterFacet.openInterestLong.selector;
+    selectors[53] = GetterFacet.openInterestShort.selector;
+    selectors[54] = GetterFacet.getNextFundingRate.selector;
+    selectors[55] = GetterFacet.pendingStrategyOf.selector;
+    selectors[56] = GetterFacet.strategyOf.selector;
+    selectors[57] = GetterFacet.strategyDataOf.selector;
+    selectors[58] = GetterFacet.getStrategyDeltaOf.selector;
+    selectors[59] = GetterFacet.totalOf.selector;
+    selectors[60] = GetterFacet.getFundingFeeAccounting.selector;
+    selectors[61] = GetterFacet.convertTokensToUsde30.selector;
 
     DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
       address(getterFacet),
@@ -709,7 +727,7 @@ contract BaseTest is DSTest, CoreConstants {
     return PoolOracle(payable(_proxy));
   }
 
-  function deployPoolConfig(PoolConfigConstructorParams memory params)
+  function deployPoolConfig(PoolConfigConstructorParams2 memory params)
     internal
     returns (PoolConfig)
   {
@@ -739,7 +757,7 @@ contract BaseTest is DSTest, CoreConstants {
   }
 
   function deployFullPool(
-    PoolConfigConstructorParams memory poolConfigConstructorParams
+    PoolConfigConstructorParams2 memory poolConfigConstructorParams
   )
     internal
     returns (
@@ -839,14 +857,15 @@ contract BaseTest is DSTest, CoreConstants {
       abi.encodeWithSelector(
         bytes4(
           keccak256(
-            "initialize(address,uint64,uint64,uint64,uint64,uint64,uint256)"
+            "initialize(address,uint64,uint64,uint64,uint64,uint64,uint64,uint256)"
           )
         ),
         params.treasury,
         params.fundingInterval,
         params.mintBurnFeeBps,
         params.taxBps,
-        params.stableFundingRateFactor,
+        params.stableBorrowingRateFactor,
+        params.borrowingRateFactor,
         params.fundingRateFactor,
         params.liquidationFeeUsd
       )

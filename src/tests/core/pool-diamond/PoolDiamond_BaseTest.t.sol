@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { BaseTest, console, stdError, MockStrategy, MockDonateVault, PLP, MockFlashLoanBorrower, PoolConfig, LibPoolConfigV1, PoolOracle, Pool, PoolRouter, OwnershipFacetInterface, GetterFacetInterface, LiquidityFacetInterface, PerpTradeFacetInterface, AdminFacetInterface, FarmFacetInterface, AccessControlFacetInterface, LibAccessControl, Orderbook } from "../../base/BaseTest.sol";
+import { BaseTest, console, stdError, MockStrategy, MockDonateVault, PLP, MockFlashLoanBorrower, PoolConfig, LibPoolConfigV1, PoolOracle, Pool, PoolRouter, OwnershipFacetInterface, GetterFacetInterface, LiquidityFacetInterface, PerpTradeFacetInterface, AdminFacetInterface, FarmFacetInterface, AccessControlFacetInterface, LibAccessControl, FundingRateFacetInterface, Orderbook } from "../../base/BaseTest.sol";
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -17,6 +17,7 @@ abstract contract PoolDiamond_BaseTest is BaseTest {
   PerpTradeFacetInterface internal poolPerpTradeFacet;
   FarmFacetInterface internal poolFarmFacet;
   AccessControlFacetInterface internal poolAccessControlFacet;
+  FundingRateFacetInterface internal poolFundingRateFacet;
 
   Orderbook internal orderbook;
 
@@ -24,11 +25,12 @@ abstract contract PoolDiamond_BaseTest is BaseTest {
     BaseTest.PoolConfigConstructorParams memory poolConfigParams = BaseTest
       .PoolConfigConstructorParams({
         treasury: TREASURY,
-        fundingInterval: 8 hours,
+        fundingInterval: 1 hours,
         mintBurnFeeBps: 30,
         taxBps: 50,
-        stableFundingRateFactor: 600,
-        fundingRateFactor: 600,
+        stableBorrowingRateFactor: 100,
+        borrowingRateFactor: 100,
+        fundingRateFactor: 25,
         liquidationFeeUsd: 5 * 10**30
       });
 
@@ -46,6 +48,7 @@ abstract contract PoolDiamond_BaseTest is BaseTest {
     poolPerpTradeFacet = PerpTradeFacetInterface(poolDiamond);
     poolFarmFacet = FarmFacetInterface(poolDiamond);
     poolAccessControlFacet = AccessControlFacetInterface(poolDiamond);
+    poolFundingRateFacet = FundingRateFacetInterface(poolDiamond);
 
     plp = poolGetterFacet.plp();
 

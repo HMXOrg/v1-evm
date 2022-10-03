@@ -114,7 +114,7 @@ interface BasePoolInterface {
       uint256 size,
       uint256 collateral,
       uint256 averagePrice,
-      uint256 entryFundingRate,
+      uint256 entryBorrowingRate,
       uint256 reserveAmount,
       int256 realizedPnl,
       uint256 lastIncreasedTime
@@ -140,7 +140,7 @@ interface BasePoolInterface {
 
   function shortSizeOf(address) external view returns (uint256);
 
-  function sumFundingRateOf(address) external view returns (uint256);
+  function sumBorrowingRateOf(address) external view returns (uint256);
 
   function swap(
     address tokenIn,

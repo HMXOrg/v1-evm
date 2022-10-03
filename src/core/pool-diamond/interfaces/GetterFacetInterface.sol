@@ -20,7 +20,7 @@ interface GetterFacetInterface {
 
   function fundingInterval() external view returns (uint64);
 
-  function fundingRateFactor() external view returns (uint64);
+  function borrowingRateFactor() external view returns (uint64);
 
   function getStrategyDeltaOf(address token)
     external
@@ -73,11 +73,13 @@ interface GetterFacetInterface {
 
   function shortAveragePriceOf(address token) external view returns (uint256);
 
-  function stableFundingRateFactor() external view returns (uint64);
+  function stableBorrowingRateFactor() external view returns (uint64);
 
   function stableTaxBps() external view returns (uint64);
 
   function stableSwapFeeBps() external view returns (uint64);
+
+  function sumBorrowingRateOf(address token) external view returns (uint256);
 
   function strategyOf(address token) external view returns (StrategyInterface);
 
@@ -85,8 +87,6 @@ interface GetterFacetInterface {
     external
     view
     returns (LibPoolConfigV1.StrategyData memory);
-
-  function sumFundingRateOf(address token) external view returns (uint256);
 
   function swapFeeBps() external view returns (uint64);
 
@@ -110,23 +110,45 @@ interface GetterFacetInterface {
     uint256 size,
     uint256 averagePrice,
     bool isLong,
-    uint256 lastIncreasedTime
-  ) external view returns (bool, uint256);
+    uint256 lastIncreasedTime,
+    int256 entryFundingRate,
+    int256 fundingFeeDebt
+  )
+    external
+    view
+    returns (
+      bool,
+      uint256,
+      int256
+    );
 
-  function getEntryFundingRate(
+  function getEntryBorrowingRate(
     address collateralToken,
     address indexToken,
     bool isLong
   ) external view returns (uint256);
 
-  function getFundingFee(
+  function getEntryFundingRate(
+    address collateralToken,
+    address indexToken,
+    bool isLong
+  ) external view returns (int256);
+
+  function getBorrowingFee(
     address account,
     address collateralToken,
     address indexToken,
     bool isLong,
     uint256 size,
-    uint256 entryFundingRate
+    uint256 entryBorrowingRate
   ) external view returns (uint256);
+
+  function getFundingFee(
+    address indexToken,
+    bool isLong,
+    uint256 size,
+    int256 entryFundingRate
+  ) external view returns (int256);
 
   function getNextShortAveragePrice(
     address indexToken,
@@ -139,11 +161,13 @@ interface GetterFacetInterface {
     uint256 size;
     uint256 collateral;
     uint256 averagePrice;
-    uint256 entryFundingRate;
+    uint256 entryBorrowingRate;
+    int256 entryFundingRate;
     uint256 reserveAmount;
     uint256 realizedPnl;
     bool hasProfit;
     uint256 lastIncreasedTime;
+    int256 fundingFeeDebt;
   }
 
   function getPoolShortDelta(address token)
@@ -172,7 +196,14 @@ interface GetterFacetInterface {
     address collateralToken,
     address indexToken,
     bool isLong
-  ) external view returns (bool, uint256);
+  )
+    external
+    view
+    returns (
+      bool,
+      uint256,
+      int256
+    );
 
   function getPositionFee(
     address account,
@@ -197,7 +228,9 @@ interface GetterFacetInterface {
     bool isLong,
     uint256 nextPrice,
     uint256 sizeDelta,
-    uint256 lastIncreasedTime
+    uint256 lastIncreasedTime,
+    int256 entryFundingRate,
+    int256 fundingFeeDebt
   ) external view returns (uint256);
 
   function getRedemptionCollateral(address token)
@@ -237,7 +270,18 @@ interface GetterFacetInterface {
     uint256 usdDebt
   ) external view returns (uint256);
 
-  function getNextFundingRate(address token) external view returns (uint256);
+  function getNextBorrowingRate(address token) external view returns (uint256);
+
+  function getNextFundingRate(address token)
+    external
+    view
+    returns (int256, int256);
+
+  function openInterestLong(address token) external view returns (uint256);
+
+  function openInterestShort(address token) external view returns (uint256);
+
+  function getFundingFeeAccounting() external view returns (uint256, uint256);
 
   function convertTokensToUsde30(
     address token,
