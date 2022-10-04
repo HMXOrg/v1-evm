@@ -542,8 +542,9 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       uint256 userAccumReward = ((userShare * _accRewardPerShares) / 1e12);
 
       // calculate pending reward to be received for user
-      uint256 pendingRewardOfThisToken = userAccumReward -
-        lockdropStates[user].userRewardDebts[i];
+      uint256 pendingRewardOfThisToken = lockdropStates[user].lockPeriod > 0
+        ? userAccumReward - lockdropStates[user].userRewardDebts[i]
+        : 0;
       pendingRewards[i] = pendingRewardOfThisToken;
       unchecked {
         ++i;
