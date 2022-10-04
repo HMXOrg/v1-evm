@@ -22,7 +22,7 @@ contract PoolDiamond_RemoveLiquidityTest is PoolDiamond_BaseTest {
   }
 
   function testRevert_WhenTryToAddLiquidityUnderOtherAccount() external {
-    vm.expectRevert(abi.encodeWithSignature("LibPoolV1_Forbidden()"));
+    vm.expectRevert(abi.encodeWithSignature("LibPoolV1_ForbiddenPlugin()"));
     poolLiquidityFacet.removeLiquidity(ALICE, address(dai), address(this));
   }
 

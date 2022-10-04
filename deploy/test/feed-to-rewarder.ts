@@ -9,11 +9,11 @@ const config = getConfig();
 
 const TOKEN_ADDRESS = config.Tokens.esP88;
 const REWARDER_ADDRESS = (
-  config.Staking.DragonStaking.rewarders.find(
-    (each: any) => each.name === "Dragon Staking esP88 Emission"
+  config.Staking.P88LPStaking.rewarders.find(
+    (each: any) => each.name === "P88 LP Staking esP88 Emission"
   ) as any
 ).address;
-const AMOUNT = "100000000";
+const AMOUNT = "1000000";
 const DURATION = "63072000";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {

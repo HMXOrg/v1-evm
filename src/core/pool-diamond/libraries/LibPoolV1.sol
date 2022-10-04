@@ -21,6 +21,8 @@ library LibPoolV1 {
   error LibPoolV1_InsufficientLiquidity();
   error LibPoolV1_OverUsdDebtCeiling();
   error LibPoolV1_OverShortCeiling();
+  error LibPoolV1_OverOpenInterestLongCeiling();
+  error LibPoolV1_ForbiddenPlugin();
 
   // -------------
   //   Constants
@@ -42,10 +44,13 @@ library LibPoolV1 {
     uint256 size;
     uint256 collateral; // collateral value in USD
     uint256 averagePrice;
-    uint256 entryFundingRate;
+    uint256 entryBorrowingRate;
+    int256 entryFundingRate;
     uint256 reserveAmount;
     int256 realizedPnl;
     uint256 lastIncreasedTime;
+    uint256 openInterest;
+    int256 fundingFeeDebt;
   }
 
   struct PoolV1DiamondStorage {
@@ -56,7 +61,7 @@ library LibPoolV1 {
     mapping(address => uint256) totalOf;
     mapping(address => uint256) liquidityOf;
     mapping(address => uint256) reservedOf;
-    mapping(address => uint256) sumFundingRateOf;
+    mapping(address => uint256) sumBorrowingRateOf;
     mapping(address => uint256) lastFundingTimeOf;
     // Short
     mapping(address => uint256) shortSizeOf;
@@ -72,7 +77,18 @@ library LibPoolV1 {
     uint256 discountedAum;
     // Position
     mapping(bytes32 => Position) positions;
+    // Open Interests in token amount with that token decimals
+    mapping(address => uint256) openInterestLong;
+    mapping(address => uint256) openInterestShort;
+    // Funding Rate
+    mapping(address => int256) accumFundingRateLong;
+    mapping(address => int256) accumFundingRateShort;
+    // Funding Fee Accounting
+    uint256 fundingFeePayable;
+    uint256 fundingFeeReceivable;
+    // Plugins
     mapping(address => mapping(address => bool)) approvedPlugins;
+    mapping(address => bool) plugins;
   }
 
   // -----------
@@ -90,6 +106,8 @@ library LibPoolV1 {
   event IncreaseShortSize(address token, uint256 amount);
   event SetPoolConfig(address prevPoolConfig, address newPoolConfig);
   event SetPoolOracle(address prevPoolOracle, address newPoolOracle);
+  event IncreaseOpenInterest(bool isLong, address indexToken, uint256 value);
+  event DecreaseOpenInterest(bool isLong, address indexToken, uint256 value);
   event StrategyDivest(address token, uint256 actualAmountIn);
 
   function poolV1DiamondStorage()
@@ -123,6 +141,9 @@ library LibPoolV1 {
       storage poolConfigds = LibPoolConfigV1.poolConfigV1DiamondStorage();
 
     if (account != msg.sender && poolConfigds.router != msg.sender) {
+      if (!poolV1ds.plugins[msg.sender]) {
+        revert LibPoolV1_ForbiddenPlugin();
+      }
       if (!poolV1ds.approvedPlugins[account][msg.sender])
         revert LibPoolV1_Forbidden();
     }
@@ -389,6 +410,21 @@ library LibPoolV1 {
       poolV1ds.oracle.getPrice(token, isUseMaxPrice);
   }
 
+  function convertUsde30ToTokens(
+    address token,
+    int256 amountUsd,
+    bool isUseMaxPrice
+  ) internal view returns (int256) {
+    if (amountUsd == 0) return 0;
+
+    // Load PoolV1 diamond storage
+    PoolV1DiamondStorage storage poolV1ds = poolV1DiamondStorage();
+
+    return
+      (amountUsd * int256(10**LibPoolConfigV1.getTokenDecimalsOf(token))) /
+      int256(poolV1ds.oracle.getPrice(token, isUseMaxPrice));
+  }
+
   function convertTokensToUsde30(
     address token,
     uint256 amountTokens,
@@ -402,5 +438,63 @@ library LibPoolV1 {
     return
       (amountTokens * poolV1ds.oracle.getPrice(token, isUseMaxPrice)) /
       (10**LibPoolConfigV1.getTokenDecimalsOf(token));
+  }
+
+  function increaseOpenInterest(
+    bool isLong,
+    address indexToken,
+    uint256 amount
+  ) internal {
+    PoolV1DiamondStorage storage poolV1ds = poolV1DiamondStorage();
+
+    if (isLong) {
+      poolV1ds.openInterestLong[indexToken] += amount;
+      uint256 openInterestLongCeiling = LibPoolConfigV1
+        .getTokenOpenInterestLongCeilingOf(indexToken);
+      if (
+        openInterestLongCeiling > 0 &&
+        poolV1ds.openInterestLong[indexToken] > openInterestLongCeiling
+      ) {
+        revert LibPoolV1_OverOpenInterestLongCeiling();
+      }
+    } else {
+      poolV1ds.openInterestShort[indexToken] += amount;
+    }
+    emit IncreaseOpenInterest(isLong, indexToken, amount);
+  }
+
+  function decreaseOpenInterest(
+    bool isLong,
+    address indexToken,
+    uint256 amount
+  ) internal {
+    PoolV1DiamondStorage storage poolV1ds = poolV1DiamondStorage();
+
+    if (isLong) {
+      poolV1ds.openInterestLong[indexToken] -= amount;
+    } else {
+      poolV1ds.openInterestShort[indexToken] -= amount;
+    }
+    emit DecreaseOpenInterest(isLong, indexToken, amount);
+  }
+
+  function updateFundingFeeAccounting(int256 fundingFee) internal {
+    PoolV1DiamondStorage storage poolV1ds = poolV1DiamondStorage();
+
+    if (fundingFee < 0) {
+      poolV1ds.fundingFeeReceivable += uint256(-fundingFee);
+    } else {
+      poolV1ds.fundingFeePayable += uint256(fundingFee);
+    }
+
+    if (poolV1ds.fundingFeeReceivable > 0 && poolV1ds.fundingFeePayable > 0) {
+      if (poolV1ds.fundingFeeReceivable > poolV1ds.fundingFeePayable) {
+        poolV1ds.fundingFeeReceivable -= poolV1ds.fundingFeePayable;
+        poolV1ds.fundingFeePayable = 0;
+      } else {
+        poolV1ds.fundingFeePayable -= poolV1ds.fundingFeeReceivable;
+        poolV1ds.fundingFeeReceivable = 0;
+      }
+    }
   }
 }

@@ -62,7 +62,8 @@ abstract contract Lockdrop_BaseTest is BaseTest {
         fundingInterval: 8 hours,
         mintBurnFeeBps: 30,
         taxBps: 50,
-        stableFundingRateFactor: 600,
+        stableBorrowingRateFactor: 600,
+        borrowingRateFactor: 600,
         fundingRateFactor: 600,
         liquidationFeeUsd: 5 * 10**30
       });
@@ -99,7 +100,8 @@ abstract contract Lockdrop_BaseTest is BaseTest {
       minProfitBps: 75,
       usdDebtCeiling: 0,
       shortCeiling: 0,
-      bufferLiquidity: 0
+      bufferLiquidity: 0,
+      openInterestLongCeiling: 0
     });
 
     poolAdminFacet.setTokenConfigs(poolTokens, poolTokenConfigs);

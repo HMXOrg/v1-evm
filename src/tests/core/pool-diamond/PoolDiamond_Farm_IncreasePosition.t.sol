@@ -567,7 +567,7 @@ contract PoolDiamond_Farm_IncreasePositionTest is PoolDiamond_BaseTest {
     // Assert position's delta
     // 1. Position's delta should be (90 * (40000 - 41000)) / 40000 = -2.25 USD
     // 2. Position's short should be not profitable
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       ALICE,
       0,
       address(dai),
@@ -596,7 +596,7 @@ contract PoolDiamond_Farm_IncreasePositionTest is PoolDiamond_BaseTest {
     // Assert position's delta
     // 1. Position's delta should be (90 * (40000 - 42000)) / 40000 = -4.5 USD
     // 2. Position's short should be not profitable
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       ALICE,
       0,
       address(dai),
@@ -766,7 +766,7 @@ contract PoolDiamond_Farm_IncreasePositionTest is PoolDiamond_BaseTest {
     // Assert position's delta
     // 1. Position's delta should be (90 * (40000 - 41000)) / 40000 = -2.25 USD
     // 2. Position's short should be not profitable
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       ALICE,
       0,
       address(dai),
@@ -795,7 +795,7 @@ contract PoolDiamond_Farm_IncreasePositionTest is PoolDiamond_BaseTest {
     // Assert position's delta
     // 1. Position's delta should be (90 * (40000 - 42000)) / 40000 = -4.5 USD
     // 2. Position's short should be not profitable
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       ALICE,
       0,
       address(dai),

@@ -53,7 +53,9 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     );
 
     (
-      PerpTradeFacetInterface.LiquidationState liquidationState,,
+      PerpTradeFacetInterface.LiquidationState liquidationState,
+      ,
+      ,
 
     ) = poolPerpTradeFacet.checkLiquidation(
         address(this),
@@ -187,11 +189,13 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     assertEq(position.size, 1000 * 10**30);
     assertEq(position.collateral, 99 * 10**30);
     assertEq(position.averagePrice, 41_000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 0.025 * 10**8);
 
     (
-      PerpTradeFacetInterface.LiquidationState liquidationState,,
+      PerpTradeFacetInterface.LiquidationState liquidationState,
+      ,
+      ,
 
     ) = poolPerpTradeFacet.checkLiquidation(
         address(this),
@@ -214,7 +218,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     // = 1000 * ((43500 - 41000) / 41000)
     // = 60.97560975609756 USD
     // 2. Position should be profitable
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -232,7 +236,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     // = 1000 * ((39000 - 41000) / 41000)
     // = -48.78048780487805 USD
     // 2. Position should be loss
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -252,7 +256,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     // = 1000 * ((37760 - 41000) / 41000)
     // = -79.02439024390245 USD
     // 2. Position should be loss
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -264,7 +268,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
 
     // Assert liquidationState
     // 1. LiquidationState should be: SOFT_LIQUIDATE
-    (liquidationState, , ) = poolPerpTradeFacet.checkLiquidation(
+    (liquidationState, , , ) = poolPerpTradeFacet.checkLiquidation(
       address(this),
       address(wbtc),
       address(wbtc),
@@ -331,7 +335,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     assertEq(position.size, 0);
     assertEq(position.collateral, 0);
     assertEq(position.averagePrice, 0);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 0);
 
     // Assert WBTC balance.
@@ -432,13 +436,15 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 9.91 * 10**30);
     assertEq(position.averagePrice, 41000 * 10**30);
-    assertEq(position.entryFundingRate, 0 * 10**30);
+    assertEq(position.entryBorrowingRate, 0 * 10**30);
     assertEq(position.reserveAmount, 0.00225 * 10**8);
 
     // Assert liquidation state of the position
     // 1. Position's liquidation state should be CANNOT_LIQUIDATE
     (
-      PerpTradeFacetInterface.LiquidationState liquidationState,,
+      PerpTradeFacetInterface.LiquidationState liquidationState,
+      ,
+      ,
 
     ) = poolPerpTradeFacet.checkLiquidation(
         address(this),
@@ -460,7 +466,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     // 1. Position's delta should be:
     // = 90 * ((43500 - 41000) / 41000) = 5.48780487804878 USD
     // 2. Position should be profitable
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -477,7 +483,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     // 1. Position's delta should be:
     // = 90 * ((39000 - 41000) / 41000) = -4.390243902439025 USD
     // 2. Position should be losses.
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -494,7 +500,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     // 1. Position's delta should be:
     // = 90 * ((38700 - 41000) / 41000) = -5.048780487804878 USD
     // 2. Position should be losses.
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(wbtc),
@@ -571,7 +577,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     assertEq(position.size, 0);
     assertEq(position.collateral, 0);
     assertEq(position.averagePrice, 0);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 0);
     assertEq(position.realizedPnl, 0);
     assertTrue(position.hasProfit);
@@ -670,13 +676,15 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     assertEq(position.size, 1000 * 10**30);
     assertEq(position.collateral, 99 * 10**30);
     assertEq(position.averagePrice, 40_000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 1000 * 10**18);
 
     // Assert position liquidation state
     // Position's liquidation state should be healthy
     (
-      PerpTradeFacetInterface.LiquidationState liquidationState,,
+      PerpTradeFacetInterface.LiquidationState liquidationState,
+      ,
+      ,
 
     ) = poolPerpTradeFacet.checkLiquidation(
         address(this),
@@ -699,7 +707,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     // = 1000 * ((40000-39000) / 40000)
     // = 25 USD
     // 2. Position should be profitable
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -711,7 +719,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
 
     // Assert position liquidation state
     // Position's liquidation state should be healthy
-    (liquidationState, , ) = poolPerpTradeFacet.checkLiquidation(
+    (liquidationState, , , ) = poolPerpTradeFacet.checkLiquidation(
       address(this),
       address(dai),
       address(wbtc),
@@ -732,7 +740,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     // = 1000 * ((40000-41000) / 40000)
     // = -25 USD
     // 2. Position should be unprofitable
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -744,7 +752,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
 
     // Assert liquidation state
     // Position should still be healthy
-    (liquidationState, , ) = poolPerpTradeFacet.checkLiquidation(
+    (liquidationState, , , ) = poolPerpTradeFacet.checkLiquidation(
       address(this),
       address(dai),
       address(wbtc),
@@ -765,7 +773,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     // = 1000 * ((40000-45000) / 40000)
     // = -125 USD
     // 2. Position should be unprofitable
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -777,7 +785,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
 
     // Assert liquidation state
     // Position should be liquidated
-    (liquidationState, , ) = poolPerpTradeFacet.checkLiquidation(
+    (liquidationState, , , ) = poolPerpTradeFacet.checkLiquidation(
       address(this),
       address(dai),
       address(wbtc),
@@ -798,7 +806,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     // = 1000 * ((40000-43600) / 40000)
     // = -90
     // 2. Position should be unprofitable
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -810,7 +818,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
 
     // Assert liquidation state
     // Position should be soft liquidate
-    (liquidationState, , ) = poolPerpTradeFacet.checkLiquidation(
+    (liquidationState, , , ) = poolPerpTradeFacet.checkLiquidation(
       address(this),
       address(dai),
       address(wbtc),
@@ -997,7 +1005,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     assertEq(position.size, 90 * 10**30);
     assertEq(position.collateral, 9.91 * 10**30);
     assertEq(position.averagePrice, 40000 * 10**30);
-    assertEq(position.entryFundingRate, 0);
+    assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 90 * 10**18);
     assertEq(position.realizedPnl, 0);
     assertTrue(position.hasProfit);
@@ -1005,7 +1013,9 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     // Assert liquidation state of the position
     // 1. The position should be healthy
     (
-      PerpTradeFacetInterface.LiquidationState liquidationState,,
+      PerpTradeFacetInterface.LiquidationState liquidationState,
+      ,
+      ,
 
     ) = poolPerpTradeFacet.checkLiquidation(
         address(this),
@@ -1028,7 +1038,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     // = 90 * ((40000 - 39000) / 40000)
     // = 2.25 USD
     // 2. The position should be profitable
-    (bool isProfit, uint256 delta) = poolGetterFacet.getPositionDelta(
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -1040,7 +1050,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
 
     // Assert position's liquidation state
     // 1. The position should be healthy
-    (liquidationState, , ) = poolPerpTradeFacet.checkLiquidation(
+    (liquidationState, , , ) = poolPerpTradeFacet.checkLiquidation(
       address(this),
       address(dai),
       address(wbtc),
@@ -1059,7 +1069,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     // = 90 * ((40000 - 41000) / 40000)
     // = -2.25 USD
     // 2. The position should be unprofitable
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -1071,7 +1081,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
 
     // Assert position's liquidation state
     // 1. The position should be healthy
-    (liquidationState, , ) = poolPerpTradeFacet.checkLiquidation(
+    (liquidationState, , , ) = poolPerpTradeFacet.checkLiquidation(
       address(this),
       address(dai),
       address(wbtc),
@@ -1090,7 +1100,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     // = 90 * ((40000 - 42500) / 40000)
     // = -5.625 USD
     // 2. The position should be unprofitable
-    (isProfit, delta) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       address(this),
       0,
       address(dai),
@@ -1102,7 +1112,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
 
     // Assert position's liquidation state
     // 1. The position should be liquidatable
-    (liquidationState, , ) = poolPerpTradeFacet.checkLiquidation(
+    (liquidationState, , , ) = poolPerpTradeFacet.checkLiquidation(
       address(this),
       address(dai),
       address(wbtc),

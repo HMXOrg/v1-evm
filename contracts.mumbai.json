@@ -8,10 +8,11 @@
     }
   },
   "Tokens": {
-    "P88": "0xFd9c0E53dD8488Df492167B8Ed37CD90cecDa164",
+    "P88": "0x36C2FA0f401cBED335C85f45B221ad08b1E48034",
     "esP88": "0xC90C1d6b6fc0332cC2e80450dc1AbBa9c2964A3A",
     "PLP": "0x1E0Ebd32b8AF2a73321C65c85597cd971466D281",
     "DragonPoint": "0x398334E8FB96c9e874259f49015bf1d4b5b9963F",
+    "P88QSLP": "0xA962fF080a3157F6d142dB0C6F30feDeA28A4e0C",
     "WMATIC": "0x9c3c9283d3e44854697cd22d3faa240cfb032889",
     "WETH": "0x2859751c033E64b1050f5E9642C4848293D3caE1",
     "WBTC": "0xC4F51bc480154e5B270967C70B64b53d0C189079",
@@ -41,6 +42,7 @@
     "PLP": {
       "poolDiamond": "0x8c84931FD463190F56f62DBc1D995532B932a2Aa",
       "oracle": "0xe48e12E97e1B2B0085c7B2d8C995C469693CfDA9",
+      "orderbook": "0xea7aF4b3D3B0B703B16D1abF13D945798971Ba7c",
       "facets": {
         "admin": "0x2e6e3Cc88dA77409da29DcCbfFE82Fc060658226",
         "accessControl": "0x7CBd1881226bC2C73E4f4efeA8a8f64dCF1aF4a6",
@@ -95,44 +97,54 @@
         }
       ]
     },
+    "P88LPStaking": {
+      "address": "0x93255566f5F40B698C7578B4324937865C80115d",
+      "rewarders": [
+        {
+          "name": "P88 LP Staking esP88 Emission",
+          "address": "0xf43A3bCDB8c9ACa51Dc1f1888252900054e133C7",
+          "rewardToken": "0xC90C1d6b6fc0332cC2e80450dc1AbBa9c2964A3A"
+        }
+      ]
+    },
     "RewardDistributor": {
       "address": "0x901Eb3cEaf23Df3a633bE3f44DEE7DD8D4c1A221"
     }
   },
   "Lockdrop": {
-    "config": "",
-    "compounder": "",
-    "gateway": "",
+    "config": "0x77f6008849DbF57f49b75c8A0DBCbFaEbC9BE142",
+    "compounder": "0xba07bfCBa46834E18F6Eb07e31843d4e2240E524",
+    "gateway": "0x68D8F1246959117C025e2cC29Bbed49B5c3F34B4",
     "lockdrops": [
       {
         "lockdropTokenSymbol": "WMATIC",
         "lockdropToken": "0x9c3c9283d3e44854697cd22d3faa240cfb032889",
-        "address": ""
+        "address": "0xD96dE76BC8c175794dc7BBCA0A4f04148D843046"
       },
       {
         "lockdropTokenSymbol": "WETH",
         "lockdropToken": "0x2859751c033E64b1050f5E9642C4848293D3caE1",
-        "address": ""
+        "address": "0xEb74B390609e5b6C953d73210f3bef090E5a393F"
       },
       {
         "lockdropTokenSymbol": "WBTC",
         "lockdropToken": "0xC4F51bc480154e5B270967C70B64b53d0C189079",
-        "address": ""
+        "address": "0xEf726B51E70D8eD4dBc4A2b12d31Ab4007b27678"
       },
       {
         "lockdropTokenSymbol": "DAI",
         "lockdropToken": "0x7FeC31e5966C84E8A81C574a0504ff637E3CC569",
-        "address": ""
+        "address": "0x831CA66c2Fa7E58c8202e772b443E00E019c18FF"
       },
       {
         "lockdropTokenSymbol": "USDC",
         "lockdropToken": "0xFc99D238c7A20895ba3756Ee04FD8BfD442c18fD",
-        "address": ""
+        "address": "0x88267F2A38eaF84562d6f0eC03E6b9E6BCDc8b73"
       },
       {
         "lockdropTokenSymbol": "USDT",
         "lockdropToken": "0xF21405bA59E79762C306c83298dbD10a8A285f2F",
-        "address": ""
+        "address": "0x2F5d80Ff9772f952c2D1B93454e8c3dB437438ff"
       }
     ]
   }

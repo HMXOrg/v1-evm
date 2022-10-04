@@ -54,8 +54,8 @@ contract GetterFacet is GetterFacetInterface {
     return LibPoolConfigV1.poolConfigV1DiamondStorage().fundingInterval;
   }
 
-  function fundingRateFactor() external view returns (uint64) {
-    return LibPoolConfigV1.poolConfigV1DiamondStorage().fundingRateFactor;
+  function borrowingRateFactor() external view returns (uint64) {
+    return LibPoolConfigV1.poolConfigV1DiamondStorage().borrowingRateFactor;
   }
 
   function getStrategyDeltaOf(address token)
@@ -155,8 +155,9 @@ contract GetterFacet is GetterFacetInterface {
     return LibPoolV1.poolV1DiamondStorage().shortAveragePriceOf[token];
   }
 
-  function stableFundingRateFactor() external view returns (uint64) {
-    return LibPoolConfigV1.poolConfigV1DiamondStorage().stableFundingRateFactor;
+  function stableBorrowingRateFactor() external view returns (uint64) {
+    return
+      LibPoolConfigV1.poolConfigV1DiamondStorage().stableBorrowingRateFactor;
   }
 
   function stableTaxBps() external view returns (uint64) {
@@ -179,8 +180,8 @@ contract GetterFacet is GetterFacetInterface {
     return LibPoolConfigV1.poolConfigV1DiamondStorage().strategyDataOf[token];
   }
 
-  function sumFundingRateOf(address token) external view returns (uint256) {
-    return LibPoolV1.poolV1DiamondStorage().sumFundingRateOf[token];
+  function sumBorrowingRateOf(address token) external view returns (uint256) {
+    return LibPoolV1.poolV1DiamondStorage().sumBorrowingRateOf[token];
   }
 
   function swapFeeBps() external view returns (uint64) {
@@ -215,13 +216,43 @@ contract GetterFacet is GetterFacetInterface {
     return LibPoolV1.poolV1DiamondStorage().usdDebtOf[token];
   }
 
+  function openInterestLong(address token) external view returns (uint256) {
+    return LibPoolV1.poolV1DiamondStorage().openInterestLong[token];
+  }
+
+  function openInterestShort(address token) external view returns (uint256) {
+    return LibPoolV1.poolV1DiamondStorage().openInterestShort[token];
+  }
+
+  struct GetDeltaLocalVars {
+    bool isProfit;
+    int256 delta;
+    uint256 unsignedDelta;
+    int256 fundingFee;
+    uint256 price;
+    uint256 priceDelta;
+    uint256 minBps;
+  }
+
   function getDelta(
     address indexToken,
     uint256 size,
     uint256 averagePrice,
     bool isLong,
-    uint256 lastIncreasedTime
-  ) public view returns (bool, uint256) {
+    uint256 lastIncreasedTime,
+    int256 entryFundingRate,
+    int256 fundingFeeDebt
+  )
+    public
+    view
+    returns (
+      bool,
+      uint256,
+      int256
+    )
+  {
+    GetDeltaLocalVars memory vars;
+
     // Load diamond storage
     LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
       .poolV1DiamondStorage();
@@ -231,49 +262,68 @@ contract GetterFacet is GetterFacetInterface {
       storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
 
     if (averagePrice == 0) revert GetterFacet_InvalidAveragePrice();
-    uint256 price = isLong
+    vars.price = isLong
       ? ds.oracle.getMinPrice(indexToken)
       : ds.oracle.getMaxPrice(indexToken);
-    uint256 priceDelta;
+
     unchecked {
-      priceDelta = averagePrice > price
-        ? averagePrice - price
-        : price - averagePrice;
+      vars.priceDelta = averagePrice > vars.price
+        ? averagePrice - vars.price
+        : vars.price - averagePrice;
     }
-    uint256 delta = (size * priceDelta) / averagePrice;
+    vars.delta = int256((size * vars.priceDelta) / averagePrice);
 
-    bool isProfit;
     if (isLong) {
-      isProfit = price > averagePrice;
+      vars.delta = vars.price > averagePrice ? vars.delta : -vars.delta;
     } else {
-      isProfit = price < averagePrice;
+      vars.delta = vars.price < averagePrice ? vars.delta : -vars.delta;
     }
 
-    uint256 minBps = block.timestamp >
+    // Negative funding fee means profit to the position
+    vars.fundingFee =
+      getFundingFee(indexToken, isLong, size, entryFundingRate) +
+      fundingFeeDebt;
+    vars.delta -= vars.fundingFee;
+    vars.isProfit = vars.delta > 0;
+    vars.unsignedDelta = vars.delta > 0
+      ? uint256(vars.delta)
+      : uint256(-vars.delta);
+
+    vars.minBps = block.timestamp >
       lastIncreasedTime + poolConfigDs.minProfitDuration
       ? 0
       : poolConfigDs.tokenMetas[indexToken].minProfitBps;
-
-    if (isProfit && delta * BPS <= size * minBps) delta = 0;
-
-    return (isProfit, delta);
+    if (vars.isProfit && vars.unsignedDelta * BPS <= size * vars.minBps)
+      vars.unsignedDelta = 0;
+    return (vars.isProfit, vars.unsignedDelta, vars.fundingFee);
   }
 
-  function getEntryFundingRate(
+  function getEntryBorrowingRate(
     address collateralToken,
     address, /* indexToken */
     bool /* isLong */
   ) external view returns (uint256) {
-    return LibPoolV1.poolV1DiamondStorage().sumFundingRateOf[collateralToken];
+    return LibPoolV1.poolV1DiamondStorage().sumBorrowingRateOf[collateralToken];
   }
 
-  function getFundingFee(
+  function getEntryFundingRate(
+    address, /*collateralToken*/
+    address indexToken,
+    bool isLong
+  ) external view returns (int256) {
+    return
+      isLong
+        ? LibPoolV1.poolV1DiamondStorage().accumFundingRateLong[indexToken]
+        : LibPoolV1.poolV1DiamondStorage().accumFundingRateShort[indexToken];
+  }
+
+  function getBorrowingFee(
     address, /* account */
     address collateralToken,
     address, /* indexToken */
     bool, /* isLong */
     uint256 size,
-    uint256 entryFundingRate
+    uint256 entryBorrowingRate
   ) public view returns (uint256) {
     // Load diamond storage
     LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
@@ -281,11 +331,31 @@ contract GetterFacet is GetterFacetInterface {
 
     if (size == 0) return 0;
 
-    uint256 fundingRate = ds.sumFundingRateOf[collateralToken] -
-      entryFundingRate;
+    uint256 borrowingRate = ds.sumBorrowingRateOf[collateralToken] -
+      entryBorrowingRate;
+    if (borrowingRate == 0) return 0;
+
+    return (size * borrowingRate) / FUNDING_RATE_PRECISION;
+  }
+
+  function getFundingFee(
+    address indexToken,
+    bool isLong,
+    uint256 size,
+    int256 entryFundingRate
+  ) public view returns (int256) {
+    // Load diamond storage
+    LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
+      .poolV1DiamondStorage();
+
+    if (size == 0) return 0;
+
+    int256 fundingRate = isLong
+      ? ds.accumFundingRateLong[indexToken] - entryFundingRate
+      : ds.accumFundingRateShort[indexToken] - entryFundingRate;
     if (fundingRate == 0) return 0;
 
-    return (size * fundingRate) / FUNDING_RATE_PRECISION;
+    return (int256(size) * fundingRate) / int256(FUNDING_RATE_PRECISION);
   }
 
   function getNextShortAveragePrice(
@@ -373,11 +443,13 @@ contract GetterFacet is GetterFacetInterface {
       size: position.size,
       collateral: position.collateral,
       averagePrice: position.averagePrice,
+      entryBorrowingRate: position.entryBorrowingRate,
       entryFundingRate: position.entryFundingRate,
       reserveAmount: position.reserveAmount,
       realizedPnl: realizedPnl,
       hasProfit: position.realizedPnl >= 0,
-      lastIncreasedTime: position.lastIncreasedTime
+      lastIncreasedTime: position.lastIncreasedTime,
+      fundingFeeDebt: position.fundingFeeDebt
     });
     return vars;
   }
@@ -388,7 +460,15 @@ contract GetterFacet is GetterFacetInterface {
     address collateralToken,
     address indexToken,
     bool isLong
-  ) external view returns (bool, uint256) {
+  )
+    external
+    view
+    returns (
+      bool,
+      uint256,
+      int256
+    )
+  {
     LibPoolV1.Position memory position = LibPoolV1
       .poolV1DiamondStorage()
       .positions[
@@ -405,7 +485,9 @@ contract GetterFacet is GetterFacetInterface {
         position.size,
         position.averagePrice,
         isLong,
-        position.lastIncreasedTime
+        position.lastIncreasedTime,
+        position.entryFundingRate,
+        position.fundingFeeDebt
       );
   }
 
@@ -452,14 +534,18 @@ contract GetterFacet is GetterFacetInterface {
     bool isLong,
     uint256 nextPrice,
     uint256 sizeDelta,
-    uint256 lastIncreasedTime
+    uint256 lastIncreasedTime,
+    int256 entryFundingRate,
+    int256 fundingFeeDebt
   ) external view returns (uint256) {
-    (bool isProfit, uint256 delta) = getDelta(
+    (bool isProfit, uint256 delta, ) = getDelta(
       indexToken,
       size,
       averagePrice,
       isLong,
-      lastIncreasedTime
+      lastIncreasedTime,
+      entryFundingRate,
+      fundingFeeDebt
     );
     uint256 nextSize = size + sizeDelta;
     uint256 divisor;
@@ -589,9 +675,14 @@ contract GetterFacet is GetterFacetInterface {
 
       token = LibPoolConfigV1.getNextAllowTokenOf(token);
     }
-
     aum = shortProfits > aum ? 0 : aum - shortProfits;
-    return poolV1ds.discountedAum > aum ? 0 : aum - poolV1ds.discountedAum;
+    return
+      poolV1ds.discountedAum > aum
+        ? 0
+        : aum -
+          poolV1ds.discountedAum -
+          poolV1ds.fundingFeePayable +
+          poolV1ds.fundingFeeReceivable;
   }
 
   function getAumE18(bool isUseMaxPrice) external view returns (uint256) {
@@ -723,10 +814,10 @@ contract GetterFacet is GetterFacetInterface {
   }
 
   // ------------
-  // Funding rate
+  // Borrowing rate
   // ------------
 
-  function getNextFundingRate(address token) public view returns (uint256) {
+  function getNextBorrowingRate(address token) public view returns (uint256) {
     // Load diamond storage
     LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
       .poolV1DiamondStorage();
@@ -746,11 +837,89 @@ contract GetterFacet is GetterFacetInterface {
     uint256 liquidity = poolV1ds.liquidityOf[token];
     if (liquidity == 0) return 0;
 
-    uint256 _fundingRateFactor = poolConfigV1ds.tokenMetas[token].isStable
-      ? poolConfigV1ds.stableFundingRateFactor
-      : poolConfigV1ds.fundingRateFactor;
+    uint256 _borrowingRateFactor = poolConfigV1ds.tokenMetas[token].isStable
+      ? poolConfigV1ds.stableBorrowingRateFactor
+      : poolConfigV1ds.borrowingRateFactor;
 
     return
-      (_fundingRateFactor * poolV1ds.reservedOf[token] * intervals) / liquidity;
+      (_borrowingRateFactor * poolV1ds.reservedOf[token] * intervals) /
+      liquidity;
+  }
+
+  // ------------
+  // Funding rate
+  // ------------
+
+  function getNextFundingRate(address token)
+    public
+    view
+    returns (int256 fundingRateLong, int256 fundingRateShort)
+  {
+    // Load diamond storage
+    LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
+      .poolV1DiamondStorage();
+    // Load PoolConfigV1 Diamond Storage
+    LibPoolConfigV1.PoolConfigV1DiamondStorage
+      storage poolConfigV1ds = LibPoolConfigV1.poolConfigV1DiamondStorage();
+
+    uint256 _fundingInterval = poolConfigV1ds.fundingInterval;
+
+    // If block.timestamp not pass the next funding time, return 0.
+    if (poolV1ds.lastFundingTimeOf[token] + _fundingInterval > block.timestamp)
+      return (0, 0);
+
+    uint256 intervals = (block.timestamp - poolV1ds.lastFundingTimeOf[token]) /
+      _fundingInterval;
+
+    int256 openInterestLongValue = int256(poolV1ds.openInterestLong[token]);
+    int256 openInterestShortValue = int256(poolV1ds.openInterestShort[token]);
+    int256 fundingFeesPaidByLongs = (openInterestLongValue -
+      openInterestShortValue) *
+      int256(intervals) *
+      int64(poolConfigV1ds.fundingRateFactor);
+    int256 absFundingFeesPaidByLongs = fundingFeesPaidByLongs < 0
+      ? -fundingFeesPaidByLongs
+      : fundingFeesPaidByLongs;
+
+    if (openInterestLongValue > 0) {
+      fundingRateLong = fundingFeesPaidByLongs / openInterestLongValue;
+
+      // Handle the precision loss of 1 wei
+      fundingRateLong = fundingRateLong > 0 &&
+        fundingRateLong * openInterestLongValue < absFundingFeesPaidByLongs
+        ? fundingRateLong + 1
+        : fundingRateLong;
+    }
+
+    if (openInterestShortValue > 0) {
+      fundingRateShort = -fundingFeesPaidByLongs / openInterestShortValue;
+      // Handle the precision loss of 1 wei
+      fundingRateShort = fundingRateShort > 0 &&
+        fundingRateShort * openInterestShortValue < absFundingFeesPaidByLongs
+        ? fundingRateShort + 1
+        : fundingRateShort;
+    }
+  }
+
+  function getFundingFeeAccounting() external view returns (uint256, uint256) {
+    LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
+      .poolV1DiamondStorage();
+    return (poolV1ds.fundingFeePayable, poolV1ds.fundingFeeReceivable);
+  }
+
+  function convertTokensToUsde30(
+    address token,
+    uint256 amountTokens,
+    bool isUseMaxPrice
+  ) external view returns (uint256) {
+    if (amountTokens == 0) return 0;
+
+    // Load PoolV1 diamond storage
+    LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
+      .poolV1DiamondStorage();
+
+    return
+      (amountTokens * poolV1ds.oracle.getPrice(token, isUseMaxPrice)) /
+      (10**LibPoolConfigV1.getTokenDecimalsOf(token));
   }
 }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { BaseTest, EsP88, MockWNative, console, stdError, MockStrategy, MockDonateVault, PLP, PLPStaking, MockFlashLoanBorrower, PoolConfig, LibPoolConfigV1, PoolOracle, Pool, PoolRouter, OwnershipFacetInterface, GetterFacetInterface, LiquidityFacetInterface, PerpTradeFacetInterface, AdminFacetInterface, FarmFacetInterface, AccessControlFacetInterface, LibAccessControl, FeedableRewarder, WFeedableRewarder } from "../../base/BaseTest.sol";
+import { BaseTest, EsP88, MockWNative, WFeedableRewarder, FeedableRewarder, PLPStaking, console, stdError, MockStrategy, MockDonateVault, PLP, MockFlashLoanBorrower, PoolConfig, LibPoolConfigV1, PoolOracle, Pool, PoolRouter, OwnershipFacetInterface, GetterFacetInterface, LiquidityFacetInterface, PerpTradeFacetInterface, AdminFacetInterface, FarmFacetInterface, AccessControlFacetInterface, LibAccessControl, FundingRateFacetInterface, Orderbook } from "../../base/BaseTest.sol";
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -24,6 +24,9 @@ abstract contract PoolDiamond_BaseTest is BaseTest {
   PerpTradeFacetInterface internal poolPerpTradeFacet;
   FarmFacetInterface internal poolFarmFacet;
   AccessControlFacetInterface internal poolAccessControlFacet;
+  FundingRateFacetInterface internal poolFundingRateFacet;
+
+  Orderbook internal orderbook;
 
   function setUp() public virtual {
     esP88 = BaseTest.deployEsP88();
@@ -34,11 +37,12 @@ abstract contract PoolDiamond_BaseTest is BaseTest {
     BaseTest.PoolConfigConstructorParams memory poolConfigParams = BaseTest
       .PoolConfigConstructorParams({
         treasury: TREASURY,
-        fundingInterval: 8 hours,
+        fundingInterval: 1 hours,
         mintBurnFeeBps: 30,
         taxBps: 50,
-        stableFundingRateFactor: 600,
-        fundingRateFactor: 600,
+        stableBorrowingRateFactor: 100,
+        borrowingRateFactor: 100,
+        fundingRateFactor: 25,
         liquidationFeeUsd: 5 * 10**30
       });
 
@@ -56,6 +60,7 @@ abstract contract PoolDiamond_BaseTest is BaseTest {
     poolPerpTradeFacet = PerpTradeFacetInterface(poolDiamond);
     poolFarmFacet = FarmFacetInterface(poolDiamond);
     poolAccessControlFacet = AccessControlFacetInterface(poolDiamond);
+    poolFundingRateFacet = FundingRateFacetInterface(poolDiamond);
 
     plp = poolGetterFacet.plp();
 
@@ -89,6 +94,15 @@ abstract contract PoolDiamond_BaseTest is BaseTest {
       LibAccessControl.FARM_KEEPER,
       address(this)
     );
+
+    orderbook = deployOrderbook(
+      poolDiamond,
+      address(poolOracle),
+      address(matic),
+      0.01 ether,
+      1 ether
+    );
+    poolAdminFacet.setPlugin(address(orderbook), true);
   }
 
   function checkPoolBalanceWithState(address token, int256 offset) internal {

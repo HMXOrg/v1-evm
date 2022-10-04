@@ -21,7 +21,8 @@ contract PoolDiamond_GetFeeBpsTest is PoolDiamond_BaseTest {
       minProfitBps: 75,
       usdDebtCeiling: 0,
       shortCeiling: 0,
-      bufferLiquidity: 0
+      bufferLiquidity: 0,
+      openInterestLongCeiling: 0
     });
 
     poolAdminFacet.setTokenConfigs(tokens, tokenConfigs);
@@ -108,7 +109,8 @@ contract PoolDiamond_GetFeeBpsTest is PoolDiamond_BaseTest {
       minProfitBps: 75,
       usdDebtCeiling: 0,
       shortCeiling: 0,
-      bufferLiquidity: 0
+      bufferLiquidity: 0,
+      openInterestLongCeiling: 0
     });
     poolAdminFacet.setTokenConfigs(tokens, tokenConfigs);
 
@@ -184,7 +186,8 @@ contract PoolDiamond_GetFeeBpsTest is PoolDiamond_BaseTest {
       minProfitBps: 75,
       usdDebtCeiling: 0,
       shortCeiling: 0,
-      bufferLiquidity: 0
+      bufferLiquidity: 0,
+      openInterestLongCeiling: 0
     });
     poolAdminFacet.setTokenConfigs(tokens, tokenConfigs);
 

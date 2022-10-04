@@ -7,8 +7,8 @@ abstract contract PoolConfig_BaseTest is BaseTest {
   PoolConfig internal poolConfig;
 
   function setUp() public virtual {
-    BaseTest.PoolConfigConstructorParams memory poolConfigParams = BaseTest
-      .PoolConfigConstructorParams({
+    BaseTest.PoolConfigConstructorParams2 memory poolConfigParams = BaseTest
+      .PoolConfigConstructorParams2({
         treasury: TREASURY,
         fundingInterval: 8 hours,
         mintBurnFeeBps: 30,

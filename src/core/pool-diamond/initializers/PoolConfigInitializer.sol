@@ -12,7 +12,8 @@ contract PoolConfigInitializer {
     uint64 fundingInterval,
     uint64 mintBurnFeeBps,
     uint64 taxBps,
-    uint64 stableFundingRateFactor,
+    uint64 stableBorrowingRateFactor,
+    uint64 borrowingRateFactor,
     uint64 fundingRateFactor,
     uint256 liquidationFeeUsd
   ) external {
@@ -26,7 +27,8 @@ contract PoolConfigInitializer {
     poolConfigDs.fundingInterval = fundingInterval;
     poolConfigDs.mintBurnFeeBps = mintBurnFeeBps;
     poolConfigDs.taxBps = taxBps;
-    poolConfigDs.stableFundingRateFactor = stableFundingRateFactor;
+    poolConfigDs.stableBorrowingRateFactor = stableBorrowingRateFactor;
+    poolConfigDs.borrowingRateFactor = borrowingRateFactor;
     poolConfigDs.fundingRateFactor = fundingRateFactor;
     poolConfigDs.liquidationFeeUsd = liquidationFeeUsd;
 

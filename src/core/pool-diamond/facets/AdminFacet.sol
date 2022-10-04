@@ -16,12 +16,13 @@ contract AdminFacet is AdminFacetInterface {
   error AdminFacet_AllowTokensMismatch();
   error AdminFacet_BadFlashLoanFeeBps();
   error AdminFacet_BadNewFundingInterval();
+  error AdminFacet_BadNewBorrowingRateFactor();
   error AdminFacet_BadNewFundingRateFactor();
   error AdminFacet_BadNewLiquidationFeeUsd();
   error AdminFacet_BadNewMaxLeverage();
   error AdminFacet_BadNewMintBurnFeeBps();
   error AdminFacet_BadNewPositionFeeBps();
-  error AdminFacet_BadNewStableFundingRateFactor();
+  error AdminFacet_BadNewStableBorrowingRateFactor();
   error AdminFacet_BadNewStableTaxBps();
   error AdminFacet_BadNewStableSwapFeeBps();
   error AdminFacet_BadNewSwapFeeBps();
@@ -40,6 +41,7 @@ contract AdminFacet is AdminFacetInterface {
   uint256 internal constant MIN_FUNDING_INTERVAL = 1 hours;
   // Max funding rate factor at 1% (10000 / 1000000 * 100 = 1%)
   uint256 internal constant MAX_FUNDING_RATE_FACTOR = 10000;
+  uint256 internal constant MAX_BORROWING_RATE_FACTOR = 10000;
   uint256 internal constant MAX_LIQUIDATION_FEE_USD = 100 * 10**30;
   uint256 internal constant MIN_LEVERAGE = 10000;
 
@@ -76,10 +78,12 @@ contract AdminFacet is AdminFacetInterface {
   event SetFundingRate(
     uint64 prevFundingInterval,
     uint64 newFundingInterval,
+    uint64 prevBorrowingRateFactor,
+    uint64 newBorrowingRateFactor,
+    uint64 prevStableBorrowingRateFactor,
+    uint64 newStableBorrowingRateFactor,
     uint64 prevFundingRateFactor,
-    uint64 newFundingRateFactor,
-    uint64 prevStableFundingRateFactor,
-    uint64 newStableFundingRateFactor
+    uint64 newFundingRateFactor
   );
   event SetLiquidationFeeUsd(
     uint256 prevLiquidationFeeUsd,
@@ -104,6 +108,7 @@ contract AdminFacet is AdminFacetInterface {
   );
   event SetTreasury(address prevTreasury, address newTreasury);
   event WithdrawFeeReserve(address token, address to, uint256 amount);
+  event SetPlugin(address plugin, bool oldAllow, bool newAllow);
 
   modifier onlyOwner() {
     LibDiamond.enforceIsContractOwner();
@@ -150,15 +155,18 @@ contract AdminFacet is AdminFacetInterface {
 
   function setFundingRate(
     uint64 newFundingInterval,
-    uint64 newFundingRateFactor,
-    uint64 newStableFundingRateFactor
+    uint64 newBorrowingRateFactor,
+    uint64 newStableBorrowingRateFactor,
+    uint64 newFundingRateFactor
   ) external onlyOwner {
     if (newFundingInterval < MIN_FUNDING_INTERVAL)
       revert AdminFacet_BadNewFundingInterval();
+    if (newBorrowingRateFactor > MAX_BORROWING_RATE_FACTOR)
+      revert AdminFacet_BadNewBorrowingRateFactor();
     if (newFundingRateFactor > MAX_FUNDING_RATE_FACTOR)
       revert AdminFacet_BadNewFundingRateFactor();
-    if (newStableFundingRateFactor > MAX_FUNDING_RATE_FACTOR)
-      revert AdminFacet_BadNewStableFundingRateFactor();
+    if (newStableBorrowingRateFactor > MAX_FUNDING_RATE_FACTOR)
+      revert AdminFacet_BadNewStableBorrowingRateFactor();
 
     // Load PoolConfig Diamond storage
     LibPoolConfigV1.PoolConfigV1DiamondStorage
@@ -167,14 +175,17 @@ contract AdminFacet is AdminFacetInterface {
     emit SetFundingRate(
       poolConfigDs.fundingInterval,
       newFundingInterval,
+      poolConfigDs.borrowingRateFactor,
+      newBorrowingRateFactor,
+      poolConfigDs.stableBorrowingRateFactor,
+      newStableBorrowingRateFactor,
       poolConfigDs.fundingRateFactor,
-      newFundingRateFactor,
-      poolConfigDs.stableFundingRateFactor,
-      newStableFundingRateFactor
+      newFundingRateFactor
     );
     poolConfigDs.fundingInterval = newFundingInterval;
+    poolConfigDs.borrowingRateFactor = newBorrowingRateFactor;
+    poolConfigDs.stableBorrowingRateFactor = newStableBorrowingRateFactor;
     poolConfigDs.fundingRateFactor = newFundingRateFactor;
-    poolConfigDs.stableFundingRateFactor = newStableFundingRateFactor;
   }
 
   function setIsAllowAllLiquidators(bool _isAllowAllLiquidators)
@@ -424,5 +435,15 @@ contract AdminFacet is AdminFacetInterface {
     LibPoolV1.pushTokens(token, to, amount);
 
     emit WithdrawFeeReserve(token, to, amount);
+  }
+
+  function setPlugin(address plugin, bool allow) external onlyOwner {
+    // Load diamond storage
+    LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
+      .poolV1DiamondStorage();
+
+    emit SetPlugin(plugin, ds.plugins[plugin], allow);
+
+    ds.plugins[plugin] = allow;
   }
 }
