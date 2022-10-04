@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { BaseTest, console, stdError, MockStrategy, MockDonateVault, PLP, MockFlashLoanBorrower, PoolConfig, LibPoolConfigV1, PoolOracle, Pool, PoolRouter, OwnershipFacetInterface, GetterFacetInterface, LiquidityFacetInterface, PerpTradeFacetInterface, AdminFacetInterface, FarmFacetInterface, AccessControlFacetInterface, LibAccessControl } from "../../base/BaseTest.sol";
+import { BaseTest, EsP88, MockWNative, console, stdError, MockStrategy, MockDonateVault, PLP, PLPStaking, MockFlashLoanBorrower, PoolConfig, LibPoolConfigV1, PoolOracle, Pool, PoolRouter, OwnershipFacetInterface, GetterFacetInterface, LiquidityFacetInterface, PerpTradeFacetInterface, AdminFacetInterface, FarmFacetInterface, AccessControlFacetInterface, LibAccessControl, FeedableRewarder, WFeedableRewarder } from "../../base/BaseTest.sol";
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -11,6 +11,13 @@ abstract contract PoolDiamond_BaseTest is BaseTest {
   PoolRouter internal poolRouter;
   PLP internal plp;
 
+  EsP88 internal esP88;
+  MockWNative internal revenueToken;
+
+  WFeedableRewarder internal revenueRewarder;
+  FeedableRewarder internal esP88Rewarder;
+
+  PLPStaking internal plpStaking;
   AdminFacetInterface internal poolAdminFacet;
   GetterFacetInterface internal poolGetterFacet;
   LiquidityFacetInterface internal poolLiquidityFacet;
@@ -19,6 +26,11 @@ abstract contract PoolDiamond_BaseTest is BaseTest {
   AccessControlFacetInterface internal poolAccessControlFacet;
 
   function setUp() public virtual {
+    esP88 = BaseTest.deployEsP88();
+    esP88.setMinter(DAVE, true);
+
+    revenueToken = deployMockWNative();
+
     BaseTest.PoolConfigConstructorParams memory poolConfigParams = BaseTest
       .PoolConfigConstructorParams({
         treasury: TREASURY,
@@ -47,9 +59,31 @@ abstract contract PoolDiamond_BaseTest is BaseTest {
 
     plp = poolGetterFacet.plp();
 
-    poolRouter = deployPoolRouter(address(matic));
+    plpStaking = BaseTest.deployPLPStaking();
+
+    //  setup for staking and rewarder
+    revenueRewarder = BaseTest.deployWFeedableRewarder(
+      "Protocol Revenue Rewarder",
+      address(revenueToken),
+      address(plpStaking)
+    );
+    esP88Rewarder = BaseTest.deployFeedableRewarder(
+      "esP88 Rewarder",
+      address(esP88),
+      address(plpStaking)
+    );
+
+    address[] memory rewarders = new address[](2);
+    rewarders[0] = address(revenueRewarder);
+    rewarders[1] = address(esP88Rewarder);
+
+    plpStaking.addStakingToken(address(plp), rewarders);
+
+    poolRouter = deployPoolRouter(address(matic), address(plpStaking));
     poolAdminFacet.setRouter(address(poolRouter));
 
+    plp.setWhitelist(address(plpStaking), true);
+    plp.setWhitelist(address(poolRouter), true);
     // Grant Farm Keeper Role For This testing contract
     poolAccessControlFacet.grantRole(
       LibAccessControl.FARM_KEEPER,

@@ -233,6 +233,7 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
 
     // Alice add liquidity with 117499 satoshi
     wbtc.approve(address(poolRouter), 117499);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(wbtc),
@@ -243,7 +244,7 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
 
     // After Alice added 117499 satoshi as a liquidity,
     // the following conditions should be met:
-    // 1. Alice should get 46.8584 PLP
+    // 1. PLP Staking should get 46.8584 PLP
     // 2. Pool should make 353 sathoshi
     // 3. Pool's AUM by min price should be:
     // 0.00117499 * (1-0.003) * 40000 = 46.8584 USD
@@ -252,7 +253,10 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
     // 5. WBTC's USD debt should be 48.8584 USD
     // 6. WBTC's liquidity should be 117499 - 353 = 117146 satoshi
     // 7. Redeemable WBTC in USD should be 48.8584 USD
-    assertEq(poolGetterFacet.plp().balanceOf(ALICE), 46.8584 * 10**18);
+    assertEq(
+      poolGetterFacet.plp().balanceOf(address(plpStaking)),
+      46.8584 * 10**18
+    );
     assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 353);
     assertEq(poolGetterFacet.getAumE18(false), 46.8584 * 10**18);
     assertEq(poolGetterFacet.getAumE18(true), 48.02986 * 10**18);
@@ -265,6 +269,7 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
 
     // Alice add liquidity again with 117499 satoshi
     wbtc.approve(address(poolRouter), 117499);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(wbtc),
@@ -284,7 +289,10 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
     // 5. WBTC's USD debt should be 93.7168 USD
     // 6. WBTC's liquidity should be 117146 + 117499 - 353 = 234292 satoshi
     // 7. Redeemable WBTC in USD should be 93.7168 USD
-    assertEq(poolGetterFacet.plp().balanceOf(ALICE), 92573912195121951219);
+    assertEq(
+      poolGetterFacet.plp().balanceOf(address(plpStaking)),
+      92573912195121951219
+    );
     assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 706);
     assertEq(poolGetterFacet.getAumE18(false), 93.7168 * 10**18);
     assertEq(poolGetterFacet.getAumE18(true), 96.05972 * 10**18);
@@ -381,6 +389,7 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
     vm.startPrank(ALICE);
 
     // Alice add liquidity with 1 MATIC
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidityNative{ value: 100 ether }(
       address(poolDiamond),
       address(matic),
@@ -435,6 +444,7 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
 
     // Alice add liquidity with 117499 satoshi
     wbtc.approve(address(poolRouter), 117499);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(wbtc),
@@ -445,7 +455,7 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
 
     // After Alice added 117499 satoshi as a liquidity,
     // the following conditions should be met:
-    // 1. Alice should get 46.8584 PLP
+    // 1. PLP Staking contract should get 46.8584 PLP
     // 2. Pool should make 353 sathoshi
     // 3. Pool's AUM by min price should be:
     // 0.00117499 * (1-0.003) * 40000 = 46.8584 USD
@@ -454,7 +464,10 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
     // 5. WBTC's USD debt should be 48.8584 USD
     // 6. WBTC's liquidity should be 117499 - 353 = 117146 satoshi
     // 7. Redeemable WBTC in USD should be 48.8584 USD
-    assertEq(poolGetterFacet.plp().balanceOf(ALICE), 46.8584 * 10**18);
+    assertEq(
+      poolGetterFacet.plp().balanceOf(address(plpStaking)),
+      46.8584 * 10**18
+    );
     assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 353);
     assertEq(poolGetterFacet.getAumE18(false), 46.8584 * 10**18);
     assertEq(poolGetterFacet.getAumE18(true), 48.02986 * 10**18);
@@ -467,6 +480,7 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
 
     // Alice add liquidity again with 117499 satoshi
     wbtc.approve(address(poolRouter), 117499);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(wbtc),
@@ -477,7 +491,7 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
 
     // After Alice added 117499 satoshi as a liquidity,
     // the following conditions should be met:
-    // 1. Alice should get 46.8584 + (46.8584 * 46.8584 / 48.02986) = 92573912195121951219 PLP
+    // 1. PLP Staking contract should get 46.8584 + (46.8584 * 46.8584 / 48.02986) = 92573912195121951219 PLP
     // 2. Pool should make 706 sathoshi
     // 3. Pool's AUM by min price should be:
     // 46.8584 + (0.00117499 * (1-0.003) * 40000) = 93.7168 USD
@@ -486,7 +500,10 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
     // 5. WBTC's USD debt should be 93.7168 USD
     // 6. WBTC's liquidity should be 117146 + 117499 - 353 = 234292 satoshi
     // 7. Redeemable WBTC in USD should be 93.7168 USD
-    assertEq(poolGetterFacet.plp().balanceOf(ALICE), 92573912195121951219);
+    assertEq(
+      poolGetterFacet.plp().balanceOf(address(plpStaking)),
+      92573912195121951219
+    );
     assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 706);
     assertEq(poolGetterFacet.getAumE18(false), 93.7168 * 10**18);
     assertEq(poolGetterFacet.getAumE18(true), 96.05972 * 10**18);
@@ -587,6 +604,7 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
 
     // Add 1 WBTC as a liquidity for the pool
     wbtc.mint(address(poolDiamond), 1 * 10**8);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(wbtc),
@@ -596,7 +614,7 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
     );
 
     // The following criteria should be met:
-    // 1. address(this) should get 1 * (1-0.003) * 100000 = 99700 PLP
+    // 1. PLP Staking contract should get 1 * (1-0.003) * 100000 = 99700 PLP
     // 2. Pool's WBTC liquidity should be:
     // = 1 * (1-0.003) = 0.997 WBTC
     // 3. Pool should make 0.003 WBTC as fee reserve
@@ -606,7 +624,10 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
     // = 0.997 * 100000 = 99700 USD
     // 6. Pool's AUM with max price should be:
     // = 0.997 * 100000 = 99700 USD
-    assertEq(poolGetterFacet.plp().balanceOf(address(this)), 99700 * 10**18);
+    assertEq(
+      poolGetterFacet.plp().balanceOf(address(plpStaking)),
+      99700 * 10**18
+    );
     assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 0.997 * 10**8);
     assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 0.003 * 10**8);
     assertEq(poolGetterFacet.usdDebtOf(address(wbtc)), 99700 * 10**18);
@@ -737,6 +758,7 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
 
     // Add 117499 sathoshi as liquidity
     wbtc.mint(address(poolDiamond), 117499);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(wbtc),
@@ -766,6 +788,7 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
 
     // Add 117499 sathoshi as liquidity
     wbtc.mint(address(poolDiamond), 117499);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(wbtc),
@@ -1266,6 +1289,7 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
 
     // Alice performs add liquidity by a 500 DAI
     dai.approve(address(poolRouter), 500 * 10**18);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(dai),
@@ -1434,6 +1458,7 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
 
     // Alice performs add liquidity by a 500 DAI
     dai.approve(address(poolRouter), 500 * 10**18);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(dai),
@@ -1530,6 +1555,7 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
 
     // Alice performs add liquidity by a 500 DAI
     dai.approve(address(poolRouter), 500 * 10**18);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(dai),
@@ -1687,6 +1713,7 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
 
     // Add 100 as a liquidity
     dai.mint(address(poolDiamond), 100 * 10**18);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(dai),

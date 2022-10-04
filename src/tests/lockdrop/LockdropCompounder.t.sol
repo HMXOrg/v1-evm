@@ -56,8 +56,6 @@ contract Lockdrop_StakePLP is BaseTest {
 
     plpStaking = deployPLPStaking();
 
-    mockPLPToken.setWhitelist(address(plpStaking), true);
-
     // For PLPStaking
     esP88rewarder1 = deployFeedableRewarder(
       "EsP88rewarder",
@@ -118,6 +116,8 @@ contract Lockdrop_StakePLP is BaseTest {
       address(dragonStaking)
     );
 
+    mockPLPToken.setWhitelist(address(poolRouter), true);
+
     lockdropConfig = deployLockdropConfig(
       1 days,
       address(plpStaking),
@@ -137,6 +137,7 @@ contract Lockdrop_StakePLP is BaseTest {
     );
 
     lockdrops.push(address(lockdrop));
+    mockPLPToken.setWhitelist(address(lockdropConfig.plpStaking()), true);
 
     // --------- Alice ----------
     vm.warp(block.timestamp + 1 days);
@@ -152,10 +153,14 @@ contract Lockdrop_StakePLP is BaseTest {
     vm.stopPrank();
 
     vm.startPrank(address(this));
+
     // Owner mint PLPToken
-    mockPLPToken.mint(address(lockdrop), 100 ether);
-    mockPLPToken.approve(address(lockdropConfig.plpStaking()), 100 ether);
+    mockPLPToken.mint(address(this), 100 ether);
     lockdrop.stakePLP();
+
+    mockPLPToken.approve(address(lockdropConfig.plpStaking()), 32 ether);
+    plpStaking.deposit(address(lockdrop), address(mockPLPToken), 32 ether);
+
     vm.stopPrank();
 
     // Mockpool return tokenLockAmount * 2
@@ -165,7 +170,7 @@ contract Lockdrop_StakePLP is BaseTest {
       32 ether
     );
     // 100 ether - 32 ether
-    assertEq(mockPLPToken.balanceOf(address(lockdrop)), 68 ether);
+    assertEq(mockPLPToken.balanceOf(address(this)), 68 ether);
 
     vm.prank(address(lockdropCompounder));
     mockEsP88Token.approve(address(dragonStaking), 1e12 ether);
@@ -183,6 +188,8 @@ contract Lockdrop_StakePLP is BaseTest {
     assertEq(IERC20(mockEsP88Token).balanceOf(ALICE), 0);
     assertGt(IERC20(mockEsP88Token).balanceOf(address(dragonStaking)), 0);
     assertGt(ALICE.balance, 0);
+
+    vm.stopPrank();
   }
 
   // Compound multiple times with different block timestamp

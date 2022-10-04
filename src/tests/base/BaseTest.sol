@@ -848,8 +848,11 @@ contract BaseTest is DSTest, CoreConstants {
     );
   }
 
-  function deployPoolRouter(address wNative) internal returns (PoolRouter) {
-    return new PoolRouter(wNative);
+  function deployPoolRouter(address wNative, address plpStaking)
+    internal
+    returns (PoolRouter)
+  {
+    return new PoolRouter(wNative, plpStaking);
   }
 
   function deployPLPStaking() internal returns (PLPStaking) {

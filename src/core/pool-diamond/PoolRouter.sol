@@ -8,11 +8,13 @@ import { LiquidityFacetInterface } from "./interfaces/LiquidityFacetInterface.so
 import { GetterFacetInterface } from "./interfaces/GetterFacetInterface.sol";
 import { PerpTradeFacetInterface } from "./interfaces/PerpTradeFacetInterface.sol";
 import { PoolOracle } from "../PoolOracle.sol";
+import { IStaking } from "../../staking/interfaces/IStaking.sol";
 
 contract PoolRouter {
   using SafeERC20 for IERC20;
 
   IWNative public immutable WNATIVE;
+  IStaking public immutable plpStaking;
 
   error PoolRouter_InsufficientOutputAmount(
     uint256 expectedAmount,
@@ -27,8 +29,9 @@ contract PoolRouter {
     uint256 actualPrice
   );
 
-  constructor(address wNative_) {
+  constructor(address wNative_, address plpStaking_) {
     WNATIVE = IWNative(wNative_);
+    plpStaking = IStaking(plpStaking_);
   }
 
   function addLiquidity(
@@ -44,6 +47,23 @@ contract PoolRouter {
       msg.sender,
       token,
       receiver
+    );
+
+    IERC20(address(GetterFacetInterface(pool).plp())).safeTransferFrom(
+      receiver,
+      address(this),
+      receivedAmount
+    );
+
+    GetterFacetInterface(pool).plp().approve(
+      address(plpStaking),
+      receivedAmount
+    );
+
+    plpStaking.deposit(
+      receiver,
+      address(GetterFacetInterface(pool).plp()),
+      receivedAmount
     );
 
     if (receivedAmount < minLiquidity)
@@ -64,6 +84,23 @@ contract PoolRouter {
       msg.sender,
       token,
       receiver
+    );
+
+    IERC20(address(GetterFacetInterface(pool).plp())).safeTransferFrom(
+      receiver,
+      address(this),
+      receivedAmount
+    );
+
+    GetterFacetInterface(pool).plp().approve(
+      address(plpStaking),
+      receivedAmount
+    );
+
+    plpStaking.deposit(
+      receiver,
+      address(GetterFacetInterface(pool).plp()),
+      receivedAmount
     );
 
     if (receivedAmount < minLiquidity)

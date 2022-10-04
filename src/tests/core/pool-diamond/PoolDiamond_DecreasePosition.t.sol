@@ -136,6 +136,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
 
     // Add 0.0025 WBTC as a liquidity of the pool
     wbtc.mint(address(poolDiamond), 0.0025 * 10**8);
+    poolGetterFacet.plp().approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(wbtc),
@@ -423,6 +424,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
 
     // Add 0.0025 WBTC as a liquidity of the pool
     wbtc.mint(address(poolDiamond), 0.0025 * 10**8);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(wbtc),
@@ -595,6 +597,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
 
     // Add 0.0025 WBTC as a liquidity of the pool
     wbtc.mint(address(poolDiamond), 0.0025 * 10**8);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(wbtc),
@@ -790,6 +793,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
 
     // Add 0.0025 WBTC as a liquidity of the pool
     wbtc.mint(address(poolDiamond), 0.0025 * 10**8);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(wbtc),
@@ -959,6 +963,9 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
 
     // Add 10 MATIC as a liquidity
     matic.mint(address(poolDiamond), 10 * 10**18);
+    vm.startPrank(ALICE);
+    plp.approve(address(poolRouter), type(uint256).max);
+    vm.stopPrank();
     poolRouter.addLiquidity(address(poolDiamond), address(matic), 0, ALICE, 0);
 
     // The following conditions must be met:
@@ -1063,6 +1070,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
 
     // Add 0.0025 WBTC as a liquidity
     wbtc.mint(address(poolDiamond), 0.0025 * 10**8);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(wbtc),
@@ -1138,6 +1146,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
 
     // Add Liquidity
     wbtc.mint(address(poolDiamond), 0.0025 * 10**8);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(wbtc),
@@ -1353,6 +1362,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
 
     // Add 100 DAI as a liquidity to the pool
     dai.mint(address(poolDiamond), 100 * 10**18);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(dai),
@@ -1597,6 +1607,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
 
     // Add 100 DAI as a liquidity to the pool
     dai.mint(address(poolDiamond), 100 * 10**18);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(dai),
@@ -1858,6 +1869,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
 
     // Add 100 DAI liquidity to the pool
     dai.mint(address(poolDiamond), 100 * 10**18);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(dai),
@@ -2114,6 +2126,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
 
     // Add 100 DAI as a liquidity to the pool
     dai.mint(address(poolDiamond), 100 * 10**18);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(dai),
@@ -2305,6 +2318,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
 
     // Add 100 DAI as a liquidity to the pool
     dai.mint(address(poolDiamond), 100 * 10**18);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(dai),

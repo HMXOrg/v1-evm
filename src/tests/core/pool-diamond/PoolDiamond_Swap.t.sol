@@ -85,6 +85,7 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
 
     // Perform add liquidity
     dai.approve(address(poolRouter), 200000 ether);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(dai),
@@ -149,6 +150,7 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
 
     // Perform add liquidity
     dai.approve(address(poolRouter), 200000 ether);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(dai),
@@ -212,6 +214,7 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
 
     // Alice add liquidity 200 MATIC (~$60,000)
     matic.approve(address(poolRouter), 200 ether);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(matic),
@@ -226,6 +229,7 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
 
     // Alice add liquidity 1 WBTC (~$60,000)
     wbtc.approve(address(poolRouter), 1 * 10**8);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(wbtc),
@@ -244,7 +248,10 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
     // 7. Pool's MATIC liquidity should be 200 * (1-0.003) = 199.4 MATIC
     // 8. Pool's WBTC liquidity should be 1 * (1-0.003) = 0.997 WBTC
     assertEq(poolGetterFacet.getAumE18(false), 119640 ether);
-    assertEq(poolGetterFacet.plp().balanceOf(ALICE), 119640 ether);
+    assertEq(
+      poolGetterFacet.plp().balanceOf(address(plpStaking)),
+      119640 ether
+    );
     assertEq(poolGetterFacet.feeReserveOf(address(matic)), 0.6 ether);
     assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 300000);
     assertEq(poolGetterFacet.usdDebtOf(address(matic)), 59820 ether);
@@ -319,6 +326,13 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
     vm.warp(block.timestamp + 1 days + 1);
 
     // Alice remove 50000 USD worth of PLP from the pool with MATIC as tokenOut
+
+    plpStaking.withdraw(
+      address(poolGetterFacet.plp()),
+      (50_000 ether * poolGetterFacet.plp().totalSupply()) /
+        poolGetterFacet.getAumE18(false)
+    );
+
     poolGetterFacet.plp().approve(
       address(poolRouter),
       (50_000 ether * poolGetterFacet.plp().totalSupply()) /
@@ -339,6 +353,12 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
     assertEq(matic.balanceOf(ALICE), 99699999999999999999);
 
     // Alice remove 50000 USD worth of PLP from the pool with WBTC as tokenOut
+    plpStaking.withdraw(
+      address(poolGetterFacet.plp()),
+      (50_000 ether * poolGetterFacet.plp().totalSupply()) /
+        poolGetterFacet.getAumE18(false)
+    );
+
     poolGetterFacet.plp().approve(
       address(poolRouter),
       (50_000 ether * poolGetterFacet.plp().totalSupply()) /
@@ -360,6 +380,9 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
     // Pool doesn't has any liquidity left, so this should revert
     uint256 plpNeeded = (10_000 ether * poolGetterFacet.plp().totalSupply()) /
       poolGetterFacet.getAumE18(false);
+
+    plpStaking.withdraw(address(poolGetterFacet.plp()), plpNeeded);
+
     poolGetterFacet.plp().approve(address(poolRouter), plpNeeded);
     vm.expectRevert(stdError.arithmeticError);
     poolRouter.removeLiquidity(
@@ -384,6 +407,7 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
 
     // Alice add liquidity 200 MATIC (~$60,000)
     matic.approve(address(poolRouter), 200 ether);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(matic),
@@ -398,6 +422,7 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
 
     // Alice add liquidity 1 WBTC (~$60,000)
     wbtc.approve(address(poolRouter), 1 * 10**8);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(wbtc),
@@ -416,7 +441,10 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
     // 7. Pool's MATIC liquidity should be 200 * (1-0.003) = 199.4 MATIC
     // 8. Pool's WBTC liquidity should be 1 * (1-0.003) = 0.997 WBTC
     assertEq(poolGetterFacet.getAumE18(false), 119640 ether);
-    assertEq(poolGetterFacet.plp().balanceOf(ALICE), 119640 ether);
+    assertEq(
+      poolGetterFacet.plp().balanceOf(address(plpStaking)),
+      119640 ether
+    );
     assertEq(poolGetterFacet.feeReserveOf(address(matic)), 0.6 ether);
     assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 300000);
     assertEq(poolGetterFacet.usdDebtOf(address(matic)), 59820 ether);
@@ -480,7 +508,7 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
 
     // ------- Alice session START -------
     vm.startPrank(ALICE);
-
+    plp.approve(address(poolRouter), type(uint256).max);
     // Alice add liquidity 200 MATIC (~$60,000)
     poolRouter.addLiquidityNative{ value: 200 ether }(
       address(poolDiamond),
@@ -505,7 +533,7 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
 
     // Alice add another 1 WBTC as liquidity to the pool, the following condition is expected:
     // 1. Pool should have 59,820 + (1 * (1-0.003) * 60000) = 119,640 USD in AUM
-    // 2. Alice should have 119,640 PLP
+    // 2. PLP staking contract should have 119,640 PLP
     // 3. Pool should make 200 * 0.003 = 0.6 MATIC in fee
     // 4. Pool should make 1 * 0.003 = 0.003 WBTC in fee
     // 5. USD debt for MATIC should be 59,820 USD
@@ -513,7 +541,10 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
     // 7. Pool's MATIC liquidity should be 200 * (1-0.003) = 199.4 MATIC
     // 8. Pool's WBTC liquidity should be 1 * (1-0.003) = 0.997 WBTC
     assertEq(poolGetterFacet.getAumE18(false), 119640 ether);
-    assertEq(poolGetterFacet.plp().balanceOf(ALICE), 119640 ether);
+    assertEq(
+      poolGetterFacet.plp().balanceOf(address(plpStaking)),
+      119640 ether
+    );
     assertEq(poolGetterFacet.feeReserveOf(address(matic)), 0.6 ether);
     assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 300000);
     assertEq(poolGetterFacet.usdDebtOf(address(matic)), 59820 ether);
@@ -587,6 +618,19 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
     vm.warp(block.timestamp + 1 days + 1);
 
     // Alice remove 50000 USD worth of PLP from the pool with MATIC as tokenOut
+
+    plpStaking.withdraw(
+      address(poolGetterFacet.plp()),
+      (50_000 ether * poolGetterFacet.plp().totalSupply()) /
+        poolGetterFacet.getAumE18(false)
+    );
+
+    assertEq(
+      poolGetterFacet.plp().balanceOf(address(ALICE)),
+      (50_000 ether * poolGetterFacet.plp().totalSupply()) /
+        poolGetterFacet.getAumE18(false)
+    );
+
     poolGetterFacet.plp().approve(
       address(poolRouter),
       (50_000 ether * poolGetterFacet.plp().totalSupply()) /
@@ -607,6 +651,13 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
     assertEq(address(ALICE).balance, 99699999999999999999);
 
     // Alice remove 50000 USD worth of PLP from the pool with WBTC as tokenOut
+
+    plpStaking.withdraw(
+      address(poolGetterFacet.plp()),
+      (50_000 ether * poolGetterFacet.plp().totalSupply()) /
+        poolGetterFacet.getAumE18(false)
+    );
+
     poolGetterFacet.plp().approve(
       address(poolRouter),
       (50_000 ether * poolGetterFacet.plp().totalSupply()) /
@@ -628,6 +679,9 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
     // Pool doesn't has any liquidity left, so this should revert
     uint256 plpNeeded = (10_000 ether * poolGetterFacet.plp().totalSupply()) /
       poolGetterFacet.getAumE18(false);
+
+    plpStaking.withdraw(address(poolGetterFacet.plp()), plpNeeded);
+
     poolGetterFacet.plp().approve(address(poolRouter), plpNeeded);
     vm.expectRevert(stdError.arithmeticError);
     poolRouter.removeLiquidity(
@@ -649,6 +703,7 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
 
     // ------- Alice session START -------
     vm.startPrank(ALICE);
+    plp.approve(address(poolRouter), type(uint256).max);
 
     // Alice add liquidity 200 MATIC (~$60,000)
     poolRouter.addLiquidityNative{ value: 200 ether }(
@@ -682,7 +737,10 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
     // 7. Pool's MATIC liquidity should be 200 * (1-0.003) = 199.4 MATIC
     // 8. Pool's WBTC liquidity should be 1 * (1-0.003) = 0.997 WBTC
     assertEq(poolGetterFacet.getAumE18(false), 119640 ether);
-    assertEq(poolGetterFacet.plp().balanceOf(ALICE), 119640 ether);
+    assertEq(
+      poolGetterFacet.plp().balanceOf(address(plpStaking)),
+      119640 ether
+    );
     assertEq(poolGetterFacet.feeReserveOf(address(matic)), 0.6 ether);
     assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 300000);
     assertEq(poolGetterFacet.usdDebtOf(address(matic)), 59820 ether);
