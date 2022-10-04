@@ -6,13 +6,15 @@ import { getConfig } from "../utils/config";
 
 const config = getConfig();
 
+const plugin = config.Pools.PLP.orderbook;
+
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
   const pool = AdminFacetInterface__factory.connect(
     config.Pools.PLP.poolDiamond,
     deployer
   );
-  const tx = await pool.setPlugin(config.Pools.PLP.orderbook, true);
+  const tx = await pool.setPlugin(plugin, true);
   const txReceipt = await tx.wait();
   console.log(`Execute setPlugin`);
 };

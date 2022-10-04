@@ -6,7 +6,7 @@ import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 
 const config = getConfig();
 
-const lockdropToken = config.Tokens.USDT;
+const lockdropToken = config.Tokens.USDC;
 const pool = config.Pools.PLP.poolDiamond;
 const poolRouter = config.PoolRouter;
 const lockdropConfig = config.Lockdrop.config;

@@ -10,8 +10,8 @@
   "Tokens": {
     "P88": "0x2fDE86903B987CA4FB3Ccfe9bc97CED9E297D361",
     "esP88": "0xB853c09b6d03098b841300daD57701ABcFA80228",
-    "PLP": "0xFc41505F4e24345E3797b6730a948a2B03a5eC5e",
-    "DragonPoint": "0x7AAF085e43f059105F7e1ECc525E8142fF962159",
+    "PLP": "0x643c83e4b6844c616aEecB77D966742b478c5c62",
+    "DragonPoint": "0x073315910A2B432F2f9482bCEAFe34420718c7Cc",
     "P88QSLP": "0xA2Daf47841F7921e31A361E8eB1b593ee826977f",
     "WMATIC": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
     "WETH": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
@@ -37,114 +37,114 @@
     "AAVE_USD": "0xE7a24EF0C5e95Ffb0f6684b813A78F2a3AD7D171",
     "atricrypto3": "0xdAD97F7713Ae9437fa9249920eC8507e5FbB23d3"
   },
-  "PoolRouter": "0x230764c6c192C0313bea5E5fa7118Fb46268443c",
+  "PoolRouter": "0x4E1e4626eBc890b64dA713c04c245b57B73AcdDE",
   "Pools": {
     "PLP": {
-      "poolDiamond": "0x4D9DF83C94c54F75aC2870514C2AD72047f96BB8",
-      "oracle": "0x417B34E90990657BF6adC1Ecc2ac4B36069cc927",
-      "orderbook": "",
+      "poolDiamond": "0xC4526921f68c6b97A0Ec811A53d58b2ca14fBF4c",
+      "oracle": "0xA5d58d6cA43928dAf4BA19990716dC4Ee28ee1Cf",
+      "orderbook": "0x603297583C261A53c319bBFb59B7e8cb9fb60691",
       "facets": {
-        "admin": "0xCB1EaA1E9Fd640c3900a4325440c80FEF4b1b16d",
-        "accessControl": "0x029c919Cf951C588819Acb7d95eeC1780E53f89C",
-        "farm": "0xfc51C8c673C27e1b3D89688ef46D706A77CA28DB",
-        "diamondCut": "0x28826219ffb76aa41a56a40e875709391795e512",
-        "diamondLoupe": "0xf944690f3B7436161BA27B47799Bd06EA4154C0e",
-        "liquidity": "0x597b571Ee58892C044f4292703C5BF5e4783CA85",
-        "fundingRate": "0x1e4D635cbae9D06CbFdd2fb9a0c47b247E15f60C",
-        "getter": "0x8b0D385b260a2532205CB0012F1550F9310d1d77",
-        "ownership": "0x8a30913D47FeD617778058201846f5326bC9e65D",
-        "perpTrade": "0xA227221350f1D0Ca119be424710aCD9df89151c3",
-        "diamondInitializer": "0x3f78cEc168AdF9242a3d2F04A0ab1E312c26b3Ec",
-        "poolConfigInitializer": "0x68DaEB1C169d16395Bd03C2d0776A3e54015323e"
+        "admin": "0x7cc8Bb27FCE1672eF23dff27df99b2A943943716",
+        "accessControl": "0x355FEf00B39586A5346aDE759EA135bB62fF5DfE",
+        "farm": "0x393E38191a6a12C0F1CE7b14f6AeAA6b61112f5a",
+        "diamondCut": "0xd341A8353d791a9c0d7676150Dc81B66250560D1",
+        "diamondLoupe": "0x9152FC88de20906a9327F8046226c6e7aD1b37FF",
+        "liquidity": "0x70C5B01dab75589D3a298916982e4dF995b94bEC",
+        "fundingRate": "0xf6A7e8E3CbAF999BCC6031d530C6cB036cA16D59",
+        "getter": "0xe608b4a4a58f8c1124Be27278ee22e32d76c1Fe7",
+        "ownership": "0x62D38b795fD1374298767b4814B3036590A58d5C",
+        "perpTrade": "0xDB86e4Cc7C603F7f1c9628F867104C92b74323ce",
+        "diamondInitializer": "0xf0Ce7cDb02B2Cee4ab81770456336d2451A2655F",
+        "poolConfigInitializer": "0x1E28aFC88a74A9717c385B968038246194cC89Dc"
       }
     }
   },
-  "Vester": "0x07bE4AE3E0454D09b3D3cfe63538A9F0970aE32d",
+  "Vester": "0xcd322B00c08Ef6374Be984337d3dd612D306228d",
   "Staking": {
-    "Compounder": "0x1aEb5dC5B28f0C6817189837DFD82fC5b7900d26",
+    "Compounder": "0x75e256cB82d656A86F3351EcB92C7F580D07D6C8",
     "PLPStaking": {
-      "address": "0x7FeC31e5966C84E8A81C574a0504ff637E3CC569",
+      "address": "0x642f8d7c637d21D857a42bE8Dad713D915d5382d",
       "rewarders": [
         {
           "name": "PLP Staking Protocol Revenue",
-          "address": "0x676715779e3bFaa9B1a98De4F1F0745cF4E65bcE",
-          "rewardToken": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270"
+          "address": "0x847d17Ed82c8DcCc57d2f4B9ead5a5FBba228371",
+          "rewardToken": "0x2791bca1f2de4661ed88a30c99a7a9449aa84174"
         },
         {
           "name": "PLP Staking esP88 Emission",
-          "address": "0xffaa17A2c9EEe7D44C46b249085558a513583c36",
+          "address": "0xEB62deE60Cb90a2D40f677b3b1F9bF853Af562b4",
           "rewardToken": "0xB853c09b6d03098b841300daD57701ABcFA80228"
         }
       ]
     },
     "DragonStaking": {
-      "address": "0xF21405bA59E79762C306c83298dbD10a8A285f2F",
+      "address": "0xe821824C8DE790283f86ac8bFddE759009485288",
       "rewarders": [
         {
           "name": "Dragon Staking Protocol Revenue",
-          "address": "0x2f035c75bE06cdDCA5E23649d9635f649Cb279E5",
-          "rewardToken": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270"
+          "address": "0x1C62144c922816Ed9d6DB9F9e6e4e00132030275",
+          "rewardToken": "0x2791bca1f2de4661ed88a30c99a7a9449aa84174"
         },
         {
           "name": "Dragon Staking esP88 Emission",
-          "address": "0x3fADCFbaD794eF3129094A55BEf54e75E0c151Ad",
+          "address": "0x7E6bbd356f3E7852c063FC1A34C4A7bB1119CAD3",
           "rewardToken": "0xB853c09b6d03098b841300daD57701ABcFA80228"
         },
         {
           "name": "Dragon Staking Dragon Point Emission",
-          "address": "0xA9266d63C64633CA1b0bBf843Ee734E03fD3e7FA",
-          "rewardToken": "0x7AAF085e43f059105F7e1ECc525E8142fF962159"
+          "address": "0x42600FD95b96BDFfd85a55664486F1A76CEE58DC",
+          "rewardToken": "0x073315910A2B432F2f9482bCEAFe34420718c7Cc"
         }
       ]
     },
     "P88LPStaking": {
-      "address": "0x802597cEA8DBceEdBfE6741A144f18148Ccc73B9",
+      "address": "0x6B4A737a8d2c5a7694C73FC57C8800de1D1bb3BD",
       "rewarders": [
         {
           "name": "P88 LP Staking esP88 Emission",
-          "address": "0x78CF50D43D377da23FA761D5AE4912f86af5896F",
+          "address": "0x2db58E85b0e235e16584B38b22962085A9DE75B0",
           "rewardToken": "0xB853c09b6d03098b841300daD57701ABcFA80228"
         }
       ]
     },
     "RewardDistributor": {
-      "address": "0x0e6441C3D17c401030F5bea80aDc993a44926b91"
+      "address": "0x28d41D840c9176A042EA994d4fd3a4ba57B99836"
     }
   },
   "Lockdrop": {
-    "config": "0x10C1a9541447c54C46cA103A5F65CdAfa3Aa009c",
-    "compounder": "0x757E230e0157884665442AFe409aD94B8F650E01",
-    "gateway": "0x2176EB2983C4a36570e82B519E7eB19959119a68",
+    "config": "0xe30D06d47b5ce0CeCA80FBbc503B301ca4690eE1",
+    "compounder": "0xf7D13DA2feBCa9Fbe2980d0B45C7b28563C1C16E",
+    "gateway": "0x65a5ee1461A69254b45D27D0CE103dB093e17595",
     "lockdrops": [
       {
         "lockdropTokenSymbol": "WMATIC",
         "lockdropToken": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
-        "address": "0x45d88ed405800BABd3D81135a89388706e0787B6"
+        "address": "0xfeDbe9a43b8Ff95BE30a1aA88Ce297c29CdC20Dc"
       },
       {
         "lockdropTokenSymbol": "WETH",
         "lockdropToken": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
-        "address": "0xe867933245EE30b6326F923fd64777d7E7879e99"
+        "address": "0xD069242295D55D0e613FFfd9722527a0904E908d"
       },
       {
         "lockdropTokenSymbol": "WBTC",
         "lockdropToken": "0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6",
-        "address": "0x0555886918E7862b9D500E35bDE3a3A14CcD29DE"
+        "address": "0x8d43D86AEb9dc0Cd011ACecCc802e2966AEFf39b"
       },
       {
         "lockdropTokenSymbol": "DAI",
         "lockdropToken": "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063",
-        "address": "0x7ac847b6cf0a4417BAEDa68E01798cB91cbaA2ca"
+        "address": "0xec451ea71869Cb3779c3b6C09DC5c2705CB9D02E"
       },
       {
         "lockdropTokenSymbol": "USDC",
         "lockdropToken": "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
-        "address": "0x9CCA17b35c52e38170286bd97C9286E2cd0a8E86"
+        "address": "0x02b1860209cF7482FA9b38D25b5928b4e74470d2"
       },
       {
         "lockdropTokenSymbol": "USDT",
         "lockdropToken": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
-        "address": "0x0B0ECbd29f7F7b190B33183dA45674983B9934A5"
+        "address": "0x2a78c25807D0E869c811575A629C9a07CAe17E17"
       }
     ]
   }
