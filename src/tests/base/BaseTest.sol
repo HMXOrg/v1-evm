@@ -1103,17 +1103,19 @@ contract BaseTest is DSTest, CoreConstants {
     return LockdropGateway(payable(_proxy));
   }
 
-  function deployLockdropCompounder(address esp88Token, address dragonStaking)
-    internal
-    returns (LockdropCompounder)
-  {
+  function deployLockdropCompounder(
+    address esp88Token,
+    address dragonStaking,
+    address revenueToken
+  ) internal returns (LockdropCompounder) {
     bytes memory _logicBytecode = abi.encodePacked(
       vm.getCode("./out/LockdropCompounder.sol/LockdropCompounder.json")
     );
     bytes memory _initializer = abi.encodeWithSelector(
-      bytes4(keccak256("initialize(address,address)")),
+      bytes4(keccak256("initialize(address,address,address)")),
       esp88Token,
-      dragonStaking
+      dragonStaking,
+      revenueToken
     );
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
     return LockdropCompounder(payable(_proxy));

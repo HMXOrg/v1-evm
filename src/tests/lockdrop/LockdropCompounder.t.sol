@@ -24,7 +24,7 @@ contract Lockdrop_StakePLP is BaseTest {
   PLP internal mockPLPToken;
   P88 internal mockP88Token;
   EsP88 internal mockEsP88Token;
-  MockWNative internal mockWMaticToken;
+  MockErc20 internal revenueToken;
   LockdropConfig internal lockdropConfig;
   Lockdrop internal lockdrop;
   MockPool internal pool;
@@ -34,7 +34,7 @@ contract Lockdrop_StakePLP is BaseTest {
   PLPStaking internal plpStaking;
   FeedableRewarder internal esP88rewarder1;
   FeedableRewarder internal esP88rewarder2;
-  WFeedableRewarder internal wMaticRewarder;
+  FeedableRewarder internal revenueRewarder;
   address internal mockGateway;
   address[] internal rewardsTokenList;
   address[] internal lockdrops;
@@ -47,9 +47,8 @@ contract Lockdrop_StakePLP is BaseTest {
     mockPLPToken = deployPLP();
     mockP88Token = new P88(true);
     mockEsP88Token = deployEsP88();
-    mockWMaticToken = deployMockWNative();
+    revenueToken = usdc;
     dragonStaking = deployDragonStaking(address(0x99));
-    mockWMaticToken.deposit{ value: 100 ether }();
 
     mockPLPToken.setMinter(address(this), true);
     mockEsP88Token.setMinter(address(this), true);
@@ -65,9 +64,9 @@ contract Lockdrop_StakePLP is BaseTest {
       address(plpStaking)
     );
 
-    wMaticRewarder = deployWFeedableRewarder(
-      "WMaticRewarder",
-      address(mockWMaticToken),
+    revenueRewarder = deployFeedableRewarder(
+      "RevenueRewarder",
+      address(revenueToken),
       address(plpStaking)
     );
 
@@ -84,16 +83,16 @@ contract Lockdrop_StakePLP is BaseTest {
     mockEsP88Token.mint(address(this), 2 * 1e12 ether);
     mockEsP88Token.approve(address(esP88rewarder2), 2 * 1e12 ether);
 
-    mockWMaticToken.mint(address(this), 2 * 1e12 ether);
-    mockWMaticToken.approve(address(wMaticRewarder), 2 * 1e12 ether);
+    revenueToken.mint(address(this), 2 * 1e12 ether);
+    revenueToken.approve(address(revenueRewarder), 2 * 1e12 ether);
 
     esP88rewarder1.feed(100 ether, 100 days);
     esP88rewarder2.feed(100 ether, 100 days);
-    wMaticRewarder.feed(100 ether, 100 days);
+    revenueRewarder.feed(100 ether, 100 days);
 
     rewardersplpStaking = new address[](2);
     rewardersplpStaking[0] = address(esP88rewarder1);
-    rewardersplpStaking[1] = address(wMaticRewarder);
+    rewardersplpStaking[1] = address(revenueRewarder);
     rewardersdragonStaking = new address[](1);
     rewardersdragonStaking[0] = address(esP88rewarder2);
 
@@ -101,7 +100,7 @@ contract Lockdrop_StakePLP is BaseTest {
     plpStaking.addStakingToken(address(mockPLPToken), rewardersplpStaking);
     // Reward token = WMatic and EsP88
     rewardsTokenList.push(address(mockEsP88Token));
-    rewardsTokenList.push(address(mockWMaticToken));
+    rewardsTokenList.push(address(revenueToken));
 
     // Dragon Staking
     dragonStaking.addStakingToken(
@@ -115,7 +114,8 @@ contract Lockdrop_StakePLP is BaseTest {
 
     lockdropCompounder = deployLockdropCompounder(
       address(mockEsP88Token),
-      address(dragonStaking)
+      address(dragonStaking),
+      address(revenueToken)
     );
 
     lockdropConfig = deployLockdropConfig(
@@ -133,7 +133,7 @@ contract Lockdrop_StakePLP is BaseTest {
       address(poolRouter),
       address(lockdropConfig),
       rewardsTokenList,
-      address(mockWMaticToken)
+      address(matic)
     );
 
     lockdrops.push(address(lockdrop));
@@ -182,7 +182,7 @@ contract Lockdrop_StakePLP is BaseTest {
     // 3. Alice's native token should be greater than 0
     assertEq(IERC20(mockEsP88Token).balanceOf(ALICE), 0);
     assertGt(IERC20(mockEsP88Token).balanceOf(address(dragonStaking)), 0);
-    assertGt(ALICE.balance, 0);
+    assertGt(revenueToken.balanceOf(ALICE), 0);
   }
 
   // Compound multiple times with different block timestamp
@@ -208,7 +208,7 @@ contract Lockdrop_StakePLP is BaseTest {
       IERC20(mockEsP88Token).balanceOf(address(dragonStaking)),
       oldRewardAmount
     );
-    assertGt(ALICE.balance, 0);
+    assertGt(revenueToken.balanceOf(ALICE), 0);
   }
 
   function testCorrectness_LockdropCompound_CompoundMultipleTimes_AfterFeededPeriod()
@@ -237,7 +237,7 @@ contract Lockdrop_StakePLP is BaseTest {
       IERC20(mockEsP88Token).balanceOf(address(dragonStaking)),
       oldRewardAmount
     );
-    assertGt(ALICE.balance, 0);
+    assertGt(revenueToken.balanceOf(ALICE), 0);
   }
 
   function testCorrectness_claimAll() external {
@@ -245,6 +245,6 @@ contract Lockdrop_StakePLP is BaseTest {
     vm.prank(ALICE);
     lockdropCompounder.claimAll(lockdrops, ALICE);
     assertGt(IERC20(mockEsP88Token).balanceOf(ALICE), 0);
-    assertGt(ALICE.balance, 0);
+    assertGt(revenueToken.balanceOf(ALICE), 0);
   }
 }

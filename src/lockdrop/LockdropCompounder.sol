@@ -22,16 +22,19 @@ contract LockdropCompounder is OwnableUpgradeable, ReentrancyGuardUpgradeable {
   // --- States ---
   address public esp88Token;
   address public dragonStaking;
+  address public revenueToken;
 
-  function initialize(address esp88Token_, address dragonStaking_)
-    external
-    initializer
-  {
+  function initialize(
+    address esp88Token_,
+    address dragonStaking_,
+    address revenueToken_
+  ) external initializer {
     OwnableUpgradeable.__Ownable_init();
     ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
 
     esp88Token = esp88Token_;
     dragonStaking = dragonStaking_;
+    revenueToken = revenueToken_;
   }
 
   function _claimAllFor(address[] memory lockdrops, address user) internal {
@@ -60,7 +63,8 @@ contract LockdropCompounder is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     uint256 esp88AmountBefore = IERC20Upgradeable(esp88Token).balanceOf(
       address(this)
     );
-    uint256 nativeAmountBefore = address(this).balance;
+    uint256 revenueTokenAmountBefore = IERC20Upgradeable(revenueToken)
+      .balanceOf(address(this));
     _claimAllFor(lockdrops, msg.sender);
     uint256 esp88AmountAfter = IERC20Upgradeable(esp88Token).balanceOf(
       address(this)
@@ -70,7 +74,11 @@ contract LockdropCompounder is OwnableUpgradeable, ReentrancyGuardUpgradeable {
       esp88Token,
       esp88AmountAfter
     );
-    payable(msg.sender).transfer(address(this).balance - nativeAmountBefore);
+    IERC20Upgradeable(revenueToken).safeTransfer(
+      msg.sender,
+      IERC20Upgradeable(revenueToken).balanceOf(address(this)) -
+        revenueTokenAmountBefore
+    );
     emit LogCompound(msg.sender, esp88AmountAfter);
   }
 

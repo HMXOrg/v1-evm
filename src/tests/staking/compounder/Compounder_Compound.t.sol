@@ -15,8 +15,7 @@ contract Compounder_Compound is Compounder_BaseTest {
     // Mint 1814400 esP88 to Feeder
     esP88.mint(DAVE, 1814400 ether);
     // Mint 907200 revenueToken to Feeder
-    vm.deal(DAVE, 907200 ether);
-    revenueToken.deposit{ value: 907200 ether }();
+    revenueToken.mint(DAVE, 907200 ether);
     // Mint 60480 partnerToken to Feeder
     partnerAToken.mint(DAVE, 60480 ether);
 
@@ -101,7 +100,7 @@ contract Compounder_Compound is Compounder_BaseTest {
       172800 ether
     );
     assertEq(dragonStaking.userTokenAmount(address(dragonPoint), ALICE), 0);
-    assertEq(ALICE.balance, 86400 ether);
+    assertEq(revenueToken.balanceOf(ALICE), 86400 ether);
     assertEq(partnerAToken.balanceOf(ALICE), 0);
 
     // after 2 days
@@ -164,8 +163,8 @@ contract Compounder_Compound is Compounder_BaseTest {
       dragonStaking.userTokenAmount(address(dragonPoint), ALICE),
       946.849315068493150684 ether
     );
-    // 86400 + 172800 = 259200
-    assertEq(ALICE.balance, 259200 ether);
+    // 86400 + 172800 + 129600 = 388800
+    assertEq(revenueToken.balanceOf(ALICE), 388800 ether);
     assertEq(partnerAToken.balanceOf(ALICE), 25920 ether);
   }
 }

@@ -116,8 +116,6 @@ contract Compounder is OwnableUpgradeable {
         ++i;
       }
     }
-
-    payable(msg.sender).transfer(address(this).balance);
   }
 
   function _claimAll(address[] memory pools, address[][] memory rewarders)
