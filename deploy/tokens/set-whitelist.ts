@@ -6,7 +6,10 @@ import { getConfig } from "../utils/config";
 
 const config = getConfig();
 
-const WHITELIST_ADDRESSES = [config.Staking.PLPStaking.address];
+const WHITELIST_ADDRESSES = [
+  config.Staking.PLPStaking.address,
+  config.PoolRouter,
+];
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];

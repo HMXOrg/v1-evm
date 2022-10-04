@@ -121,6 +121,9 @@
     "deploy:polygon:staking:dragon-staking": "npx hardhat --network polygon deploy --no-compile --reset --tags DragonStaking",
     "deploy:mumbai:staking:dragon-staking": "npx hardhat --network mumbai deploy --no-compile --reset --tags DragonStaking",
     "deploy:tenderly:staking:dragon-staking": "npx hardhat --network tenderly deploy --no-compile --reset --tags DragonStaking",
+    "deploy:polygon:staking:p88-lp-staking": "npx hardhat --network polygon deploy --no-compile --reset --tags P88LPStaking",
+    "deploy:mumbai:staking:p88-lp-staking": "npx hardhat --network mumbai deploy --no-compile --reset --tags P88LPStaking",
+    "deploy:tenderly:staking:p88-lp-staking": "npx hardhat --network tenderly deploy --no-compile --reset --tags P88LPStaking",
     "deploy:polygon:staking:feedable-rewarder": "npx hardhat --network polygon deploy --no-compile --reset --tags FeedableRewarder",
     "deploy:mumbai:staking:feedable-rewarder": "npx hardhat --network mumbai deploy --no-compile --reset --tags FeedableRewarder",
     "deploy:tenderly:staking:feedable-rewarder": "npx hardhat --network tenderly deploy --no-compile --reset --tags FeedableRewarder",
@@ -168,7 +171,10 @@
     "deploy:tenderly:lockdrop:lockdrop": "npx hardhat --network tenderly deploy --no-compile --reset --tags Lockdrop",
     "deploy:polygon:lockdrop:set-lockdrop-token": "npx hardhat --network polygon deploy --no-compile --reset --tags SetLockdropToken",
     "deploy:mumbai:lockdrop:set-lockdrop-token": "npx hardhat --network mumbai deploy --no-compile --reset --tags SetLockdropToken",
-    "deploy:tenderly:lockdrop:set-lockdrop-token": "npx hardhat --network tenderly deploy --no-compile --reset --tags SetLockdropToken"
+    "deploy:tenderly:lockdrop:set-lockdrop-token": "npx hardhat --network tenderly deploy --no-compile --reset --tags SetLockdropToken",
+    "deploy:polygon:lockdrop:set-is-allow-all-liquidators": "npx hardhat --network polygon deploy --no-compile --reset --tags SetIsAllowAllLiquidators",
+    "deploy:mumbai:lockdrop:set-is-allow-all-liquidators": "npx hardhat --network mumbai deploy --no-compile --reset --tags SetIsAllowAllLiquidators",
+    "deploy:tenderly:lockdrop:set-is-allow-all-liquidators": "npx hardhat --network tenderly deploy --no-compile --reset --tags SetIsAllowAllLiquidators"
   },
   "devDependencies": {
     "@tenderly/hardhat-tenderly": "^1.1.6",

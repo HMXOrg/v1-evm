@@ -10,6 +10,7 @@ const COMPOUNDER_ADDRESS = config.Staking.Compounder;
 const STAKING_CONTRACT_ADDRESS = [
   config.Staking.PLPStaking.address,
   config.Staking.DragonStaking.address,
+  config.Staking.P88LPStaking.address,
 ];
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
