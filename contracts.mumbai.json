@@ -37,7 +37,7 @@
     "AAVE_USD": "0x...",
     "atricrypto3": "0x..."
   },
-  "PoolRouter": "0x2259B7c0B3e672D08B31562E6467CDDdd29AeF23",
+  "PoolRouter": "0x88014AD782F28Af6aF4F94496e83E673b917C158",
   "Pools": {
     "PLP": {
       "poolDiamond": "0xfEd187dEA135E58f681538CDbf3926899f1611E8",
