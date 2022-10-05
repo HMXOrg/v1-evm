@@ -49,6 +49,9 @@ contract PoolRouter {
       receiver
     );
 
+    if (receivedAmount < minLiquidity)
+      revert PoolRouter_InsufficientOutputAmount(minLiquidity, receivedAmount);
+
     IERC20(address(GetterFacetInterface(pool).plp())).safeTransferFrom(
       receiver,
       address(this),
@@ -66,8 +69,6 @@ contract PoolRouter {
       receivedAmount
     );
 
-    if (receivedAmount < minLiquidity)
-      revert PoolRouter_InsufficientOutputAmount(minLiquidity, receivedAmount);
     return receivedAmount;
   }
 
@@ -86,6 +87,9 @@ contract PoolRouter {
       receiver
     );
 
+    if (receivedAmount < minLiquidity)
+      revert PoolRouter_InsufficientOutputAmount(minLiquidity, receivedAmount);
+
     IERC20(address(GetterFacetInterface(pool).plp())).safeTransferFrom(
       receiver,
       address(this),
@@ -103,8 +107,6 @@ contract PoolRouter {
       receivedAmount
     );
 
-    if (receivedAmount < minLiquidity)
-      revert PoolRouter_InsufficientOutputAmount(minLiquidity, receivedAmount);
     return receivedAmount;
   }
 
