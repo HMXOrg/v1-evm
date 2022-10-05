@@ -10,7 +10,7 @@
   "Tokens": {
     "P88": "0x36C2FA0f401cBED335C85f45B221ad08b1E48034",
     "esP88": "0x35D508569b11cc02fCF02FBee8A154c24742a3bb",
-    "PLP": "0x2a71A878Cc39CCfD8978ec07BF0b510b30e07B09",
+    "PLP": "0x7a90f61849aB819C11745deB0Ec97f8643983cFF",
     "DragonPoint": "0xe33c9D5a046fd2Db8120ed748b0613cc5eD030D6",
     "P88QSLP": "0xA962fF080a3157F6d142dB0C6F30feDeA28A4e0C",
     "WMATIC": "0x9c3c9283d3e44854697cd22d3faa240cfb032889",
@@ -37,25 +37,25 @@
     "AAVE_USD": "0x...",
     "atricrypto3": "0x..."
   },
-  "PoolRouter": "0x88014AD782F28Af6aF4F94496e83E673b917C158",
+  "PoolRouter": "0xa443B8CD630A3566f912f48f1c5E356Cd38F73C1",
   "Pools": {
     "PLP": {
-      "poolDiamond": "0xfEd187dEA135E58f681538CDbf3926899f1611E8",
-      "oracle": "0x85bEd88F4D5859cd771c451d5ac52b7616C4C9B0",
-      "orderbook": "0xD4f61fD08D6eae67F464782BAB73C65d5016587F",
+      "poolDiamond": "0x9aF9Df835d97b9EdacCd26F5335Ffa31255CC7B6",
+      "oracle": "0xed75a22C7E54f98FC760BACF565AbbAAAbDa7A02",
+      "orderbook": "0x339e24637814f28CcC72E1b4211d0adB406CCaEF",
       "facets": {
-        "admin": "0x9dBBC7fb7Bc4480280db2Acf15FF5764218D7698",
-        "accessControl": "0xd5852e3dBDeB36753586af057F1e2CE765680A58",
-        "farm": "0x9980d510Cf6F00c65768C7eCf559bfF2B6d092D9",
-        "diamondCut": "0xc634eDD7bF6b01184629cE39c12f13e33720728d",
-        "diamondLoupe": "0x710B868Dc165f36871FD5D62cE5B793327C4E8d3",
-        "liquidity": "0x91beEb96D36535801E4bC5c203D6094353Ef7182",
-        "fundingRate": "0x58973aA31D785a7984AFd91323c87b099D9B3a0C",
-        "getter": "0x146F272770B6c8cA233a4959debc8E9b53E3071d",
-        "ownership": "0xa26f3A6b3270da9eB10B15F54ac977186D6bF2Ec",
-        "perpTrade": "0x8d66918771d879F24f60BB3fA9CC9081B7cd4aeB",
-        "diamondInitializer": "0xD4A606080a812Ead5C402E4AA022e48527Dffe20",
-        "poolConfigInitializer": "0x7AF819AC01326dD76FE86e6aee28160E724FBaA0"
+        "admin": "0x3C718685c13cB047b75644d1958C3D8CE1E78d0D",
+        "accessControl": "0xaCC38E2123DAE5223440bd4c7f0822c97f37B481",
+        "farm": "0xDd8c2D15aCb46c866591341cE3E81819a88FbDf9",
+        "diamondCut": "0xD51aec7EB16937EDC5F04936241eF8b91086095a",
+        "diamondLoupe": "0x27D6eF4F2C7c8f5c2998e739aC13b017460EeA86",
+        "liquidity": "0x8420E3B27351230bEd9c3fDA827691702583C4d3",
+        "fundingRate": "0x8bc4b320Db6FE510A5F9EA2240749f5AE5EcF4be",
+        "getter": "0xDF6DA74B1F4cE9E87BD434c624CCA3EFa32C320a",
+        "ownership": "0x3d7558727Ea9b1f90c5438bfF533E801997d54f2",
+        "perpTrade": "0x05962D058d7e061EeC7A4dA342A1248d2be21CfB",
+        "diamondInitializer": "0xEE638c28816B9ee2458eBC79E19Fb97b8e9e6571",
+        "poolConfigInitializer": "0xa034192E2f0f4cF2dCc8E0eAf2f836C600569504"
       }
     }
   },
