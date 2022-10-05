@@ -6,7 +6,7 @@ import { getConfig } from "../utils/config";
 
 const config = getConfig();
 
-const TOKEN_ADDRESS = config.Tokens.USDT;
+const TOKEN_ADDRESS = config.Tokens.WBTC;
 const POOL_ROUTER = config.PoolRouter;
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -19,7 +19,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await poolRouter.addLiquidity(
       config.Pools.PLP.poolDiamond,
       TOKEN_ADDRESS,
-      ethers.utils.parseUnits("1000000", decimals),
+      ethers.utils.parseUnits("50", decimals),
       deployer.address,
       0
     )

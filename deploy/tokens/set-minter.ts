@@ -6,8 +6,13 @@ import { getConfig } from "../utils/config";
 
 const config = getConfig();
 
-const TOKEN_ADDRESS = config.Tokens.PLP;
-const MINTER_ADDRESSES = [config.Pools.PLP.poolDiamond];
+const TOKEN_ADDRESS = config.Tokens.DragonPoint;
+const MINTER_ADDRESSES = [
+  config.Staking.DragonStaking.address,
+  config.Staking.DragonStaking.rewarders.find(
+    (each) => each.name === "Dragon Staking Dragon Point Emission"
+  )!.address,
+];
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];

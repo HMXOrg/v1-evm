@@ -136,7 +136,8 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     );
     lockdropCompounder = BaseTest.deployLockdropCompounder(
       address(esP88),
-      address(dragonStaking)
+      address(dragonStaking),
+      address(revenueToken)
     );
 
     // startLockTimestamp = 1 day

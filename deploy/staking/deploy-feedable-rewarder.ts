@@ -76,7 +76,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
 function getRewardTokenAddress(rewarderName: string): string {
   if (rewarderName.includes("Protocol Revenue")) {
-    return config.Tokens.WMATIC;
+    return config.Tokens.USDC;
   } else {
     return config.Tokens.esP88;
   }

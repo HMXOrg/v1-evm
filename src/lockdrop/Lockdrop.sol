@@ -135,6 +135,7 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     pool = pool_;
     poolRouter = PoolRouter(poolRouter_);
     nativeTokenAddress = nativeTokenAddress_;
+    accRewardPerShares = new uint256[](rewardTokens.length);
   }
 
   function _lockTokenFor(
@@ -529,8 +530,10 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     returns (uint256[] memory)
   {
     uint256[] memory harvestedRewards = _allPendingReward();
-    uint256 userShare = (lockdropStates[user].lockdropTokenAmount *
-      totalPLPAmount) / totalAmount;
+    uint256 userShare = totalAmount > 0
+      ? (lockdropStates[user].lockdropTokenAmount * totalPLPAmount) /
+        totalAmount
+      : 0;
 
     uint256 length = rewardTokens.length;
     uint256[] memory pendingRewards = new uint256[](length);
@@ -542,8 +545,9 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       uint256 userAccumReward = ((userShare * _accRewardPerShares) / 1e12);
 
       // calculate pending reward to be received for user
-      uint256 pendingRewardOfThisToken = userAccumReward -
-        lockdropStates[user].userRewardDebts[i];
+      uint256 pendingRewardOfThisToken = lockdropStates[user].lockPeriod > 0
+        ? userAccumReward - lockdropStates[user].userRewardDebts[i]
+        : 0;
       pendingRewards[i] = pendingRewardOfThisToken;
       unchecked {
         ++i;

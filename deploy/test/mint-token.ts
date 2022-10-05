@@ -14,7 +14,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     TOKEN_ADDRESS,
     deployer
   );
-  const tx = await token.mint(MINT_TO, ethers.utils.parseUnits("1000", 18));
+  const tx = await token.mint(MINT_TO, ethers.utils.parseUnits("10000000", 18));
   const txReceipt = await tx.wait();
   console.log(`Execute  mint`);
   console.log(`Token: ${TOKEN_ADDRESS}`);

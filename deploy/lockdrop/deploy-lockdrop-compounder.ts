@@ -8,6 +8,7 @@ const config = getConfig();
 
 const esp88Token = config.Tokens.esP88;
 const dragonStaking = config.Staking.DragonStaking.address;
+const revenueToken = config.Tokens.USDC;
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
@@ -18,6 +19,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const lockdropCompounder = await upgrades.deployProxy(LockdropCompounder, [
     esp88Token,
     dragonStaking,
+    revenueToken,
   ]);
   await lockdropCompounder.deployed();
   console.log(`Deploying LockdropCompounder Contract`);
