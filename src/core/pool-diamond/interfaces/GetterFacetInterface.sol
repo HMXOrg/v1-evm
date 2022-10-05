@@ -298,4 +298,6 @@ interface GetterFacetInterface {
     external
     view
     returns (int256);
+
+  function fundingRateFactor() external view returns (uint64);
 }

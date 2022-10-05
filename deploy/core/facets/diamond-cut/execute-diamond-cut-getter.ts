@@ -21,15 +21,12 @@ enum FacetCutAction {
   Remove,
 }
 
-const methods = [
-  "accumFundingRateLong(address)",
-  "accumFundingRateShort(address)",
-];
+const methods = ["fundingRateFactor()"];
 
 const facetCuts = [
   {
     facetAddress: config.Pools.PLP.facets.getter,
-    action: FacetCutAction.Add,
+    action: FacetCutAction.Replace,
     functionSelectors: methods.map((each) => {
       return GetterFacet__factory.createInterface().getSighash(each);
     }),

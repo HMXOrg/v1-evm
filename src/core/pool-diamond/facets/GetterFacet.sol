@@ -58,6 +58,10 @@ contract GetterFacet is GetterFacetInterface {
     return LibPoolConfigV1.poolConfigV1DiamondStorage().borrowingRateFactor;
   }
 
+  function fundingRateFactor() external view returns (uint64) {
+    return LibPoolConfigV1.poolConfigV1DiamondStorage().fundingRateFactor;
+  }
+
   function getStrategyDeltaOf(address token)
     external
     view
