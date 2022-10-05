@@ -21,6 +21,7 @@ const TOKEN_CONFIGS = [
     usdDebtCeiling: ethers.utils.parseEther("1000000"),
     shortCeiling: ethers.utils.parseUnits("1000000", 30),
     bufferLiquidity: ethers.utils.parseUnits("10", 18),
+    openInterestLongCeiling: ethers.utils.parseUnits("1000000", 18)
   },
   {
     token: config.Tokens.WETH,
@@ -33,6 +34,7 @@ const TOKEN_CONFIGS = [
     usdDebtCeiling: ethers.utils.parseEther("3000000"),
     shortCeiling: ethers.utils.parseUnits("5000000", 30),
     bufferLiquidity: ethers.utils.parseUnits("1000", 18),
+    openInterestLongCeiling: ethers.utils.parseUnits("10000", 18),
   },
   {
     token: config.Tokens.WBTC,
@@ -45,6 +47,7 @@ const TOKEN_CONFIGS = [
     usdDebtCeiling: ethers.utils.parseEther("5000000"),
     shortCeiling: ethers.utils.parseUnits("5000000", 30),
     bufferLiquidity: ethers.utils.parseUnits("200", 8),
+    openInterestLongCeiling: ethers.utils.parseUnits("1000", 8)
   },
   {
     token: config.Tokens.DAI,
@@ -57,6 +60,7 @@ const TOKEN_CONFIGS = [
     usdDebtCeiling: ethers.utils.parseEther("1000000"),
     shortCeiling: 0,
     bufferLiquidity: ethers.utils.parseUnits("10000", 18),
+    openInterestLongCeiling: 0
   },
   {
     token: config.Tokens.USDC,
@@ -69,6 +73,7 @@ const TOKEN_CONFIGS = [
     usdDebtCeiling: ethers.utils.parseEther("8000000"),
     shortCeiling: 0,
     bufferLiquidity: ethers.utils.parseUnits("10000", 6),
+    openInterestLongCeiling: 0
   },
   {
     token: config.Tokens.USDT,
@@ -81,6 +86,7 @@ const TOKEN_CONFIGS = [
     usdDebtCeiling: ethers.utils.parseEther("1000000"),
     shortCeiling: 0,
     bufferLiquidity: ethers.utils.parseUnits("10000", 6),
+    openInterestLongCeiling: 0
   },
 ];
 

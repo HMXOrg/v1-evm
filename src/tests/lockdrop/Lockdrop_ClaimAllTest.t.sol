@@ -32,6 +32,7 @@ contract Lockdrop_ClaimReward is BaseTest {
   address[] internal rewardsTokenList;
   LockdropConfig internal lockdropConfig;
   Lockdrop internal lockdrop;
+  Lockdrop internal lonelyLockdrop;
   MockPool internal pool;
   MockPoolRouter internal poolRouter;
   address internal mockGateway;
@@ -114,6 +115,15 @@ contract Lockdrop_ClaimReward is BaseTest {
       address(revenueToken)
     );
 
+    lonelyLockdrop = deployLockdrop(
+      address(lockdropToken),
+      address(pool),
+      address(poolRouter),
+      address(lockdropConfig),
+      rewardsTokenList,
+      address(revenueToken)
+    );
+
     // Be Alice
     vm.startPrank(ALICE);
     // mint lockdrop token for ALICE
@@ -176,116 +186,122 @@ contract Lockdrop_ClaimReward is BaseTest {
     vm.stopPrank();
   }
 
-  // function testCorrectness_ClaimAllReward_WhenOnlyOneUserWantToClaimTwiceInADay()
-  //   external
-  // {
-  //   assertEq(lockdrop.totalPLPAmount(), 62 ether);
-  //   assertEq(lockdrop.totalAmount(), 31 ether);
+  function testCorrectness_WhenNoOneLockToken() external {
+    uint256[] memory pendingRewards = lonelyLockdrop.pendingReward(ALICE);
+    assertEq(pendingRewards[0], 0);
+    assertEq(pendingRewards[1], 0);
+  }
 
-  //   // Feed Matic and EsP88 to PLPStaking
-  //   vm.startPrank(DAVE);
-  //   esP88.mint(DAVE, 604800 ether);
-  //   esP88.approve(address(esP88Rewarder), type(uint256).max);
-  //   // Feeder feed esP88 to esP88Rewarder
-  //   // 604800 / 7 day rewardPerSec ~= 1 esP88
-  //   esP88Rewarder.feed(604800 ether, 7 days);
-  //   vm.deal(DAVE, 302400 ether);
-  //   revenueToken.deposit{ value: 302400 ether }();
-  //   revenueToken.approve(address(revenueRewarder), type(uint256).max);
-  //   // Feeder feed revenueToken to revenueRewarder
-  //   // 302400 / 7 day rewardPerSec ~= 0.5 revenueToken
-  //   revenueRewarder.feed(302400 ether, 7 days);
-  //   vm.stopPrank();
+  function testCorrectness_ClaimAllReward_WhenOnlyOneUserWantToClaimTwiceInADay()
+    external
+  {
+    assertEq(lockdrop.totalPLPAmount(), 62 ether);
+    assertEq(lockdrop.totalAmount(), 31 ether);
 
-  //   // after stake PLP token for 3 days
-  //   vm.warp(block.timestamp + 3 days);
+    // Feed Matic and EsP88 to PLPStaking
+    vm.startPrank(DAVE);
+    esP88.mint(DAVE, 604800 ether);
+    esP88.approve(address(esP88Rewarder), type(uint256).max);
+    // Feeder feed esP88 to esP88Rewarder
+    // 604800 / 7 day rewardPerSec ~= 1 esP88
+    esP88Rewarder.feed(604800 ether, 7 days);
+    vm.deal(DAVE, 302400 ether);
+    revenueToken.deposit{ value: 302400 ether }();
+    revenueToken.approve(address(revenueRewarder), type(uint256).max);
+    // Feeder feed revenueToken to revenueRewarder
+    // 302400 / 7 day rewardPerSec ~= 0.5 revenueToken
+    revenueRewarder.feed(302400 ether, 7 days);
+    vm.stopPrank();
 
-  //   // First Claim by Alice
-  //   assertEq(ALICE.balance, 0 ether);
-  //   assertEq(IERC20(esP88).balanceOf(ALICE), 0 ether);
-  //   vm.startPrank(ALICE, ALICE);
-  //   uint256[] memory rewardAmounts = lockdrop.pendingReward(ALICE);
-  //   lockdrop.claimAllRewards(ALICE);
-  //   vm.stopPrank();
+    // after stake PLP token for 3 days
+    vm.warp(block.timestamp + 3 days);
 
-  //   assertEq(ALICE.balance, rewardAmounts[0]);
-  //   assertEq(IERC20(esP88).balanceOf(ALICE), rewardAmounts[1]);
+    // First Claim by Alice
+    assertEq(ALICE.balance, 0 ether);
+    assertEq(IERC20(esP88).balanceOf(ALICE), 0 ether);
+    vm.startPrank(ALICE, ALICE);
+    uint256[] memory rewardAmounts = lockdrop.pendingReward(ALICE);
+    lockdrop.claimAllRewards(ALICE);
+    vm.stopPrank();
 
-  //   // after 10 minute
-  //   vm.warp(block.timestamp + 10 minutes);
-  //   vm.startPrank(ALICE);
-  //   uint256 revenueTokenBalanceBefore = ALICE.balance;
-  //   uint256 esP88BalanceBefore = IERC20(esP88).balanceOf(ALICE);
-  //   rewardAmounts = lockdrop.pendingReward(ALICE);
-  //   lockdrop.claimAllRewards(ALICE);
-  //   vm.stopPrank();
-  //   assertEq(ALICE.balance - revenueTokenBalanceBefore, rewardAmounts[0]);
-  //   assertEq(
-  //     IERC20(esP88).balanceOf(ALICE) - esP88BalanceBefore,
-  //     rewardAmounts[1]
-  //   );
-  // }
+    assertEq(ALICE.balance, rewardAmounts[0]);
+    assertEq(IERC20(esP88).balanceOf(ALICE), rewardAmounts[1]);
 
-  // function testCorrectness_ClaimAllReward_WhenMultipleUserWantToClaimInTheSameTime()
-  //   external
-  // {
-  //   assertEq(lockdrop.totalPLPAmount(), 62 ether);
-  //   assertEq(lockdrop.totalAmount(), 31 ether);
+    // after 10 minute
+    vm.warp(block.timestamp + 10 minutes);
+    vm.startPrank(ALICE);
+    uint256 revenueTokenBalanceBefore = ALICE.balance;
+    uint256 esP88BalanceBefore = IERC20(esP88).balanceOf(ALICE);
+    rewardAmounts = lockdrop.pendingReward(ALICE);
+    lockdrop.claimAllRewards(ALICE);
+    vm.stopPrank();
+    assertEq(ALICE.balance - revenueTokenBalanceBefore, rewardAmounts[0]);
+    assertEq(
+      IERC20(esP88).balanceOf(ALICE) - esP88BalanceBefore,
+      rewardAmounts[1]
+    );
+  }
 
-  //   // Feed Matic and EsP88 to PLPStaking
-  //   vm.startPrank(DAVE);
-  //   esP88.mint(DAVE, 604800 ether);
-  //   esP88.approve(address(esP88Rewarder), type(uint256).max);
-  //   // Feeder feed esP88 to esP88Rewarder
-  //   // 604800 / 7 day rewardPerSec ~= 1 esP88
-  //   esP88Rewarder.feed(604800 ether, 7 days);
-  //   vm.deal(DAVE, 302400 ether);
-  //   revenueToken.deposit{ value: 302400 ether }();
-  //   revenueToken.approve(address(revenueRewarder), type(uint256).max);
-  //   // Feeder feed revenueToken to revenueRewarder
-  //   // 302400 / 7 day rewardPerSec ~= 0.5 revenueToken
-  //   revenueRewarder.feed(302400 ether, 7 days);
-  //   vm.stopPrank();
+  function testCorrectness_ClaimAllReward_WhenMultipleUserWantToClaimInTheSameTime()
+    external
+  {
+    assertEq(lockdrop.totalPLPAmount(), 62 ether);
+    assertEq(lockdrop.totalAmount(), 31 ether);
 
-  //   // after stake PLP token for 3 days
-  //   vm.warp(block.timestamp + 3 days);
+    // Feed Matic and EsP88 to PLPStaking
+    vm.startPrank(DAVE);
+    esP88.mint(DAVE, 604800 ether);
+    esP88.approve(address(esP88Rewarder), type(uint256).max);
+    // Feeder feed esP88 to esP88Rewarder
+    // 604800 / 7 day rewardPerSec ~= 1 esP88
+    esP88Rewarder.feed(604800 ether, 7 days);
+    vm.deal(DAVE, 302400 ether);
+    revenueToken.deposit{ value: 302400 ether }();
+    revenueToken.approve(address(revenueRewarder), type(uint256).max);
+    // Feeder feed revenueToken to revenueRewarder
+    // 302400 / 7 day rewardPerSec ~= 0.5 revenueToken
+    revenueRewarder.feed(302400 ether, 7 days);
+    vm.stopPrank();
 
-  //   // First Claim
+    // after stake PLP token for 3 days
+    vm.warp(block.timestamp + 3 days);
 
-  //   // Claim by Alice
-  //   assertEq(ALICE.balance, 0 ether);
-  //   assertEq(IERC20(esP88).balanceOf(ALICE), 0 ether);
-  //   vm.startPrank(ALICE);
-  //   uint256[] memory rewardAmounts = lockdrop.pendingReward(ALICE);
-  //   lockdrop.claimAllRewards(ALICE);
-  //   vm.stopPrank();
+    // First Claim
 
-  //   assertEq(ALICE.balance, rewardAmounts[0]);
-  //   assertEq(IERC20(esP88).balanceOf(ALICE), rewardAmounts[1]);
+    // Claim by Alice
+    assertEq(ALICE.balance, 0 ether);
+    assertEq(IERC20(esP88).balanceOf(ALICE), 0 ether);
+    vm.startPrank(ALICE);
+    uint256[] memory rewardAmounts = lockdrop.pendingReward(ALICE);
+    lockdrop.claimAllRewards(ALICE);
+    vm.stopPrank();
 
-  //   // Claim by BOB
-  //   assertEq(BOB.balance, 0 ether);
-  //   assertEq(IERC20(esP88).balanceOf(BOB), 0 ether);
-  //   vm.startPrank(BOB);
-  //   rewardAmounts = lockdrop.pendingReward(BOB);
-  //   lockdrop.claimAllRewards(BOB);
-  //   vm.stopPrank();
-  //   console.log("revenueToken", address(revenueToken));
-  //   console.log("BOB.balance", BOB.balance);
-  //   console.log("rewardAmounts[0]", rewardAmounts[0]);
-  //   assertEq(BOB.balance, rewardAmounts[0], "bob 1");
-  //   assertEq(IERC20(esP88).balanceOf(BOB), rewardAmounts[1], "bob 2");
+    assertEq(ALICE.balance, rewardAmounts[0]);
+    assertEq(IERC20(esP88).balanceOf(ALICE), rewardAmounts[1]);
 
-  //   // Claim By CAT
-  //   assertEq(CAT.balance, 0 ether);
-  //   assertEq(IERC20(esP88).balanceOf(CAT), 0 ether);
-  //   vm.startPrank(CAT);
-  //   rewardAmounts = lockdrop.pendingReward(CAT);
-  //   lockdrop.claimAllRewards(CAT);
-  //   vm.stopPrank();
-  //   assertEq(CAT.balance, rewardAmounts[0], "cat 1");
-  //   assertEq(IERC20(esP88).balanceOf(CAT), rewardAmounts[1], "cat 2");
-  // }
+    // Claim by BOB
+    assertEq(BOB.balance, 0 ether);
+    assertEq(IERC20(esP88).balanceOf(BOB), 0 ether);
+    vm.startPrank(BOB);
+    rewardAmounts = lockdrop.pendingReward(BOB);
+    lockdrop.claimAllRewards(BOB);
+    vm.stopPrank();
+    console.log("revenueToken", address(revenueToken));
+    console.log("BOB.balance", BOB.balance);
+    console.log("rewardAmounts[0]", rewardAmounts[0]);
+    assertEq(BOB.balance, rewardAmounts[0], "bob 1");
+    assertEq(IERC20(esP88).balanceOf(BOB), rewardAmounts[1], "bob 2");
+
+    // Claim By CAT
+    assertEq(CAT.balance, 0 ether);
+    assertEq(IERC20(esP88).balanceOf(CAT), 0 ether);
+    vm.startPrank(CAT);
+    rewardAmounts = lockdrop.pendingReward(CAT);
+    lockdrop.claimAllRewards(CAT);
+    vm.stopPrank();
+    assertEq(CAT.balance, rewardAmounts[0], "cat 1");
+    assertEq(IERC20(esP88).balanceOf(CAT), rewardAmounts[1], "cat 2");
+  }
 
   function testCorrectness_ClaimAllReward_WhenMultipleUserWantToClaimInTheMultipleTime()
     external
@@ -377,11 +393,11 @@ contract Lockdrop_ClaimReward is BaseTest {
     vm.stopPrank();
   }
 
-  // function testRevert_ClaimAllRewardFor_CallerNotLockdropCompounder() external {
-  //   vm.prank(ALICE);
-  //   vm.expectRevert(
-  //     abi.encodeWithSignature("Lockdrop_NotLockdropCompounder()")
-  //   );
-  //   lockdrop.claimAllRewardsFor(BOB, ALICE);
-  // }
+  function testRevert_ClaimAllRewardFor_CallerNotLockdropCompounder() external {
+    vm.prank(ALICE);
+    vm.expectRevert(
+      abi.encodeWithSignature("Lockdrop_NotLockdropCompounder()")
+    );
+    lockdrop.claimAllRewardsFor(BOB, ALICE);
+  }
 }

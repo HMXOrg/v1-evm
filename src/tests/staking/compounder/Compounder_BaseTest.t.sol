@@ -8,14 +8,14 @@ contract Compounder_BaseTest is BaseTest {
   P88 internal p88;
   EsP88 internal esP88;
   DragonPoint internal dragonPoint;
-  MockWNative internal revenueToken;
+  MockErc20 internal revenueToken;
   MockErc20 internal partnerAToken;
   MockErc20 internal partnerBToken;
 
   PLPStaking internal plpStaking;
   DragonStaking internal dragonStaking;
 
-  WFeedableRewarder internal revenuePLPPoolRewarder;
+  FeedableRewarder internal revenuePLPPoolRewarder;
   FeedableRewarder internal esP88PLPPoolRewarder;
 
   FeedableRewarder internal esP88DragonPoolRewarder;
@@ -42,11 +42,11 @@ contract Compounder_BaseTest is BaseTest {
 
     partnerAToken = BaseTest.deployMockErc20("Partner A", "PA", 18);
 
-    revenueToken = deployMockWNative();
+    revenueToken = usdc;
 
     plpStaking = BaseTest.deployPLPStaking();
 
-    revenuePLPPoolRewarder = BaseTest.deployWFeedableRewarder(
+    revenuePLPPoolRewarder = BaseTest.deployFeedableRewarder(
       "Protocol Revenue PLP Pool Rewarder",
       address(revenueToken),
       address(plpStaking)
@@ -105,14 +105,16 @@ contract Compounder_BaseTest is BaseTest {
     dragonStaking.addStakingToken(address(esP88), rewarders1);
     dragonStaking.addStakingToken(address(dragonPoint), rewarders2);
 
-    address[] memory tokens = new address[](3);
+    address[] memory tokens = new address[](4);
     tokens[0] = address(esP88);
     tokens[1] = address(dragonPoint);
     tokens[2] = address(partnerAToken);
-    bool[] memory isCompoundTokens = new bool[](3);
+    tokens[3] = address(revenueToken);
+    bool[] memory isCompoundTokens = new bool[](4);
     isCompoundTokens[0] = true;
     isCompoundTokens[1] = true;
     isCompoundTokens[2] = false;
+    isCompoundTokens[3] = false;
     compounder = deployCompounder(
       address(dragonPoint),
       address(dragonStaking),

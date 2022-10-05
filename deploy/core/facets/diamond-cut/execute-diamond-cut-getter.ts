@@ -33,10 +33,10 @@ const methods = [
   "getAum(bool)",
   "getAumE18(bool)",
   "getBorrowingFee(address,address,address,bool,uint256,uint256)",
-  "getDelta(address,uint256,uint256,bool,uint256,int256)",
+  "getDelta(address,uint256,uint256,bool,uint256,int256,int256)",
   "getEntryBorrowingRate(address,address,bool)",
   "getEntryFundingRate(address,address,bool)",
-  "getFundingFee(address,address,address,bool,uint256,int256)",
+  "getFundingFee(address,bool,uint256,int256)",
   "getFundingFeeAccounting()",
   "getNextBorrowingRate(address)",
   "getNextFundingRate(address)",
@@ -46,7 +46,7 @@ const methods = [
   "getPositionDelta(address,uint256,address,address,bool)",
   "getPositionFee(address,address,address,bool,uint256)",
   "getPositionLeverage(address,uint256,address,address,bool)",
-  "getPositionNextAveragePrice(address,uint256,uint256,bool,uint256,uint256,uint256,int256)",
+  "getPositionNextAveragePrice(address,uint256,uint256,bool,uint256,uint256,uint256,int256,int256)",
   "getPositionWithSubAccountId(address,uint256,address,address,bool)",
   "getRedemptionCollateral(address)",
   "getRedemptionCollateralUsd(address)",
@@ -89,7 +89,7 @@ const methods = [
   "totalOf(address)",
   "totalTokenWeight()",
   "totalUsdDebt()",
-  "usdDebtOf(address)",
+  "usdDebtOf(address)"
 ];
 
 const facetCuts = [

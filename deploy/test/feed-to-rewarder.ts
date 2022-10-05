@@ -13,7 +13,7 @@ const REWARDER_ADDRESS = (
     (each: any) => each.name === "P88 LP Staking esP88 Emission"
   ) as any
 ).address;
-const AMOUNT = "1000000";
+const AMOUNT = "250000";
 const DURATION = "63072000";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -23,12 +23,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     deployer
   );
   const token = ERC20__factory.connect(TOKEN_ADDRESS, deployer);
+  const decimals = await token.decimals();
   await (
     await token.approve(REWARDER_ADDRESS, ethers.constants.MaxUint256)
   ).wait();
   const tx = await rewarder.feed(
-    ethers.utils.parseEther(AMOUNT),
-    BigNumber.from(DURATION)
+    ethers.utils.parseUnits(AMOUNT, decimals),
+    BigNumber.from(DURATION),
+    { gasLimit: 10000000 }
   );
   const txReceipt = await tx.wait();
   console.log(`Execute feedToRewarder`);
