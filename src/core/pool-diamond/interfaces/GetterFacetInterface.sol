@@ -288,4 +288,14 @@ interface GetterFacetInterface {
     uint256 amountTokens,
     bool isUseMaxPrice
   ) external view returns (uint256);
+
+  function accumFundingRateLong(address indexToken)
+    external
+    view
+    returns (int256);
+
+  function accumFundingRateShort(address indexToken)
+    external
+    view
+    returns (int256);
 }
