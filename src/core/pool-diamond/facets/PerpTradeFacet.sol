@@ -37,7 +37,9 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     uint256 averagePrice,
     uint256 entryBorrowingRate,
     uint256 reserveAmount,
-    int256 realisedPnL
+    int256 realisedPnL,
+    int256 entryFundingRate,
+    uint256 openInterest
   );
   event CollectPositionFee(
     address account,
@@ -103,7 +105,10 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     uint256 entryBorrowingRate,
     uint256 reserveAmount,
     int256 realizedPnl,
-    uint256 price
+    uint256 price,
+    int256 entryFundingRate,
+    int256 fundingFeeDebt,
+    uint256 openInterest
   );
 
   modifier allowed(address account) {
@@ -518,7 +523,10 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       position.entryBorrowingRate,
       position.reserveAmount,
       position.realizedPnl,
-      vars.price
+      vars.price,
+      position.entryFundingRate,
+      position.fundingFeeDebt,
+      position.openInterest
     );
   }
 
@@ -677,7 +685,10 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
         position.entryBorrowingRate,
         position.reserveAmount,
         position.realizedPnl,
-        vars.price
+        vars.price,
+        position.entryFundingRate,
+        position.fundingFeeDebt,
+        position.openInterest
       );
     } else {
       // Close position
@@ -711,7 +722,9 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
         position.averagePrice,
         position.entryBorrowingRate,
         position.reserveAmount,
-        position.realizedPnl
+        position.realizedPnl,
+        position.entryFundingRate,
+        position.openInterest
       );
     }
 
