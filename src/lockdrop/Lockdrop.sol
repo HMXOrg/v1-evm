@@ -590,22 +590,17 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     if (totalPLPAmount > 0) revert Lockdrop_PLPAlreadyStaked();
     // add lockdrop token to liquidity pool.
     lockdropToken.approve(address(poolRouter), totalAmount);
+    lockdropConfig.plpToken().approve(
+      address(lockdropConfig.plpStaking()),
+      type(uint256).max
+    );
+    lockdropConfig.plpToken().approve(address(poolRouter), type(uint256).max);
     totalPLPAmount = poolRouter.addLiquidity(
       pool,
       address(lockdropToken),
       totalAmount,
       address(this),
       0
-    );
-
-    lockdropConfig.plpToken().approve(
-      address(lockdropConfig.plpStaking()),
-      totalPLPAmount
-    );
-    lockdropConfig.plpStaking().deposit(
-      address(this),
-      address(lockdropConfig.plpToken()),
-      totalPLPAmount
     );
     emit LogStakePLP(totalPLPAmount);
   }

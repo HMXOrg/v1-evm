@@ -85,6 +85,7 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     );
 
     mockPLPToken.setWhitelist(address(plpStaking), true);
+    mockPLPToken.setWhitelist(address(poolRouter), true);
   }
 
   function testCorrectness_WhenLockdropIsInit() external {

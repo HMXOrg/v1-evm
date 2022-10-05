@@ -81,9 +81,9 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     poolLiquidityFacet = LiquidityFacetInterface(poolDiamond);
     poolPerpTradeFacet = PerpTradeFacetInterface(poolDiamond);
 
-    poolRouter = deployPoolRouter(address(matic));
-    poolAdminFacet.setRouter(address(poolRouter));
     plp = PLP(address(poolGetterFacet.plp()));
+    poolRouter = deployPoolRouter(address(matic), address(plpStaking));
+    poolAdminFacet.setRouter(address(poolRouter));
 
     address[] memory poolTokens = new address[](1);
     poolTokens[0] = address(usdc);
@@ -162,6 +162,7 @@ abstract contract Lockdrop_BaseTest is BaseTest {
 
     plp.setWhitelist(address(plpStaking), true);
     plp.setWhitelist(address(dragonStaking), true);
+    plp.setWhitelist(address(poolRouter), true);
 
     vm.stopPrank();
   }

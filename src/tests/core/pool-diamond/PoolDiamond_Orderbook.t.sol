@@ -130,6 +130,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
 
     // Alice add liquidity with 117499 satoshi
     wbtc.approve(address(poolRouter), 117499);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(wbtc),
@@ -140,7 +141,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
 
     // After Alice added 117499 satoshi as a liquidity,
     // the following conditions should be met:
-    // 1. Alice should get 46.8584 PLP
+    // 1. PLP Staking contract should get 46.8584 PLP
     // 2. Pool should make 353 sathoshi
     // 3. Pool's AUM by min price should be:
     // 0.00117499 * (1-0.003) * 40000 = 46.8584 USD
@@ -149,7 +150,10 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     // 5. WBTC's USD debt should be 48.8584 USD
     // 6. WBTC's liquidity should be 117499 - 353 = 117146 satoshi
     // 7. Redeemable WBTC in USD should be 48.8584 USD
-    assertEq(poolGetterFacet.plp().balanceOf(ALICE), 46.8584 * 10**18);
+    assertEq(
+      poolGetterFacet.plp().balanceOf(address(plpStaking)),
+      46.8584 * 10**18
+    );
     assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 353);
     assertEq(poolGetterFacet.getAumE18(false), 46.8584 * 10**18);
     assertEq(poolGetterFacet.getAumE18(true), 48.02986 * 10**18);
@@ -172,7 +176,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
 
     // After Alice added 117499 satoshi as a liquidity,
     // the following conditions should be met:
-    // 1. Alice should get 46.8584 + (46.8584 * 46.8584 / 48.02986) = 92573912195121951219 PLP
+    // 1. PLP Staking Contract should get 46.8584 + (46.8584 * 46.8584 / 48.02986) = 92573912195121951219 PLP
     // 2. Pool should make 706 sathoshi
     // 3. Pool's AUM by min price should be:
     // 46.8584 + (0.00117499 * (1-0.003) * 40000) = 93.7168 USD
@@ -181,7 +185,10 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     // 5. WBTC's USD debt should be 93.7168 USD
     // 6. WBTC's liquidity should be 117146 + 117499 - 353 = 234292 satoshi
     // 7. Redeemable WBTC in USD should be 93.7168 USD
-    assertEq(poolGetterFacet.plp().balanceOf(ALICE), 92573912195121951219);
+    assertEq(
+      poolGetterFacet.plp().balanceOf(address(plpStaking)),
+      92573912195121951219
+    );
     assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 706);
     assertEq(poolGetterFacet.getAumE18(false), 93.7168 * 10**18);
     assertEq(poolGetterFacet.getAumE18(true), 96.05972 * 10**18);
@@ -384,6 +391,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
 
     // Alice performs add liquidity by a 500 DAI
     dai.approve(address(poolRouter), 500 * 10**18);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(dai),
@@ -534,7 +542,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     // Assert position's delta
     // 1. Position's delta should be (90 * (40000 - 41000)) / 40000 = -2.25 USD
     // 2. Position's short should be not profitable
-    (isProfit, delta,) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       ALICE,
       1,
       address(dai),
@@ -563,7 +571,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     // Assert position's delta
     // 1. Position's delta should be (90 * (40000 - 42000)) / 40000 = -4.5 USD
     // 2. Position's short should be not profitable
-    (isProfit, delta,) = poolGetterFacet.getPositionDelta(
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
       ALICE,
       1,
       address(dai),
@@ -762,6 +770,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
 
     // Alice add liquidity 200 MATIC (~$60,000)
     matic.approve(address(poolRouter), 200 ether);
+    plp.approve(address(poolRouter), type(uint256).max);
     poolRouter.addLiquidity(
       address(poolDiamond),
       address(matic),
@@ -786,7 +795,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
 
     // Alice add another 1 WBTC as liquidity to the pool, the following condition is expected:
     // 1. Pool should have 59,820 + (1 * (1-0.003) * 60000) = 119,640 USD in AUM
-    // 2. Alice should have 119,640 PLP
+    // 2. PLP Staking Contract should have 119,640 PLP
     // 3. Pool should make 200 * 0.003 = 0.6 MATIC in fee
     // 4. Pool should make 1 * 0.003 = 0.003 WBTC in fee
     // 5. USD debt for MATIC should be 59,820 USD
@@ -794,7 +803,10 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     // 7. Pool's MATIC liquidity should be 200 * (1-0.003) = 199.4 MATIC
     // 8. Pool's WBTC liquidity should be 1 * (1-0.003) = 0.997 WBTC
     assertEq(poolGetterFacet.getAumE18(false), 119640 ether);
-    assertEq(poolGetterFacet.plp().balanceOf(ALICE), 119640 ether);
+    assertEq(
+      poolGetterFacet.plp().balanceOf(address(plpStaking)),
+      119640 ether
+    );
     assertEq(poolGetterFacet.feeReserveOf(address(matic)), 0.6 ether);
     assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 300000);
     assertEq(poolGetterFacet.usdDebtOf(address(matic)), 59820 ether);
