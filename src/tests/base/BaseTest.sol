@@ -67,6 +67,9 @@ import { PoolDiamond } from "../../core/pool-diamond/PoolDiamond.sol";
 import { PoolRouter } from "../../core/pool-diamond/PoolRouter.sol";
 import { Orderbook } from "../../core/pool-diamond/Orderbook.sol";
 import { MockWNative } from "src/tests/mocks/MockWNative.sol";
+import { MerkleAirdrop } from "src/airdrop/MerkleAirdrop.sol";
+import { MerkleAirdropFactory } from "src/airdrop/MerkleAirdropFactory.sol";
+import { MerkleAirdropGateway } from "src/airdrop/MerkleAirdropGateway.sol";
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
@@ -1144,5 +1147,23 @@ contract BaseTest is DSTest, CoreConstants {
     );
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
     return Orderbook(payable(_proxy));
+  }
+
+  function deployMerkleAirdrop() internal returns (MerkleAirdrop) {
+    return new MerkleAirdrop();
+  }
+
+  function deployMerkleAirdropFactory()
+    internal
+    returns (MerkleAirdropFactory)
+  {
+    return new MerkleAirdropFactory();
+  }
+
+  function deployMerkleAirdropGateway()
+    internal
+    returns (MerkleAirdropGateway)
+  {
+    return new MerkleAirdropGateway();
   }
 }

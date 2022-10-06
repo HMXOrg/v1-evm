@@ -10,6 +10,11 @@ import { MerkleProof } from "./MerkleProof.sol";
 contract MerkleAirdrop is IMerkleAirdrop, Ownable {
   using SafeERC20 for IERC20;
 
+  error MerkleAirdrop_Initialized();
+  error MerkleAirdrop_AlreadyClaimed();
+  error MerkleAirdrop_InvalidProof();
+  error MerkleAirdrop_NotExpired();
+
   address public override token;
   bytes32 public override merkleRoot;
   bool public initialized;
@@ -24,7 +29,7 @@ contract MerkleAirdrop is IMerkleAirdrop, Ownable {
     bytes32 merkleRoot_,
     uint256 expireTimestamp_
   ) external {
-    require(!initialized, "MerkleAirdrop: Initialized");
+    if (initialized) revert MerkleAirdrop_Initialized();
     initialized = true;
 
     token = token_;
@@ -56,14 +61,12 @@ contract MerkleAirdrop is IMerkleAirdrop, Ownable {
     uint256 amount,
     bytes32[] calldata merkleProof
   ) external override {
-    require(!isClaimed(index), "MerkleDistributor: Drop already claimed.");
+    if (isClaimed(index)) revert MerkleAirdrop_AlreadyClaimed();
 
     // Verify the merkle proof.
     bytes32 node = keccak256(abi.encodePacked(index, account, amount));
-    require(
-      MerkleProof.verify(merkleProof, merkleRoot, node),
-      "MerkleAirdrop: Invalid proof"
-    );
+    if (!MerkleProof.verify(merkleProof, merkleRoot, node))
+      revert MerkleAirdrop_InvalidProof();
 
     // Mark it claimed and send the token.
     _setClaimed(index);
