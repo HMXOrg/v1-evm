@@ -150,6 +150,7 @@
   },
   "ReferralDistribution": {
     "MerkleAirdropTemplate": "",
-    "MerkleAirdropFactory": ""
+    "MerkleAirdropFactory": "",
+    "MerkleAirdropGateway": ""
   }
 }

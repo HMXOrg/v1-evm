@@ -15,13 +15,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`Deploying MerkleAirdrop Contract`);
   console.log(`Deployed at: ${merkleAirdrop.address}`);
 
+  config.ReferralDistribution.MerkleAirdropTemplate = merkleAirdrop.address;
+  writeConfigFile(config);
+
   await tenderly.verify({
     address: merkleAirdrop.address,
     name: "MerkleAirdrop",
   });
-
-  config.ReferralDistribution.MerkleAirdropTemplate = merkleAirdrop.address;
-  writeConfigFile(config);
 };
 
 export default func;

@@ -12,13 +12,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`Deploying P88 Token Contract`);
   console.log(`Deployed at: ${p88.address}`);
 
+  config.Tokens.P88 = p88.address;
+  writeConfigFile(config);
+
   await tenderly.verify({
     address: p88.address,
     name: "P88",
   });
-
-  config.Tokens.P88 = p88.address;
-  writeConfigFile(config);
 };
 
 export default func;
