@@ -672,7 +672,8 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     bool _triggerAboveThreshold,
     uint256 _executionFee
   ) private {
-    uint256 _orderIndex = increaseOrdersIndex[msg.sender];
+    address subAccount = getSubAccount(_account, _subAccountId);
+    uint256 _orderIndex = increaseOrdersIndex[subAccount];
     IncreaseOrder memory order = IncreaseOrder(
       _account,
       _subAccountId,
@@ -686,7 +687,6 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       _triggerAboveThreshold,
       _executionFee
     );
-    address subAccount = getSubAccount(_account, _subAccountId);
     increaseOrdersIndex[subAccount] = _orderIndex + 1;
     increaseOrders[subAccount][_orderIndex] = order;
 
