@@ -26,32 +26,22 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const collateralToken = ERC20__factory.connect(COLLATERAL_TOKEN, deployer);
   const decimals = await collateralToken.decimals();
 
-  await (
-    await collateralToken.approve(
-      orderbook.address,
-      ethers.constants.MaxUint256
-    )
-  ).wait();
   const minExecutionFee = await orderbook.minExecutionFee();
   await (
-    await orderbook.createIncreaseOrder(
+    await orderbook.createDecreaseOrder(
       2,
-      [COLLATERAL_TOKEN],
-      ethers.utils.parseUnits("1", decimals),
       INDEX_TOKEN,
-      0,
-      ethers.utils.parseUnits("40000", 30),
+      ethers.utils.parseUnits("1000", 30),
       COLLATERAL_TOKEN,
+      ethers.utils.parseUnits("0", 30),
       isLong,
-      ethers.utils.parseUnits("19500", 30),
-      false,
-      minExecutionFee,
-      false,
+      ethers.utils.parseUnits("21000", 30),
+      true,
       { value: minExecutionFee }
     )
   ).wait();
-  console.log(`Execute createIncreaseOrder`);
+  console.log(`Execute createDecreaseOrder`);
 };
 
 export default func;
-func.tags = ["CreateIncreaseOrder"];
+func.tags = ["CreateDecreaseOrder"];

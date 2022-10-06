@@ -37,11 +37,11 @@
     "AAVE_USD": "0x...",
     "atricrypto3": "0x..."
   },
-  "PoolRouter": "0xa443B8CD630A3566f912f48f1c5E356Cd38F73C1",
+  "PoolRouter": "0x06a346eED4092E7e99Db4054318247AfED9CeBF0",
   "Pools": {
     "PLP": {
       "poolDiamond": "0x9aF9Df835d97b9EdacCd26F5335Ffa31255CC7B6",
-      "oracle": "0xed75a22C7E54f98FC760BACF565AbbAAAbDa7A02",
+      "oracle": "0xcD6082BDF1494F0996D556fCeC1DAe0d08280E2e",
       "orderbook": "0x339e24637814f28CcC72E1b4211d0adB406CCaEF",
       "facets": {
         "admin": "0x3C718685c13cB047b75644d1958C3D8CE1E78d0D",
