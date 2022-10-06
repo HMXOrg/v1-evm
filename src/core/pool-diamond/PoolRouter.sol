@@ -402,6 +402,7 @@ contract PoolRouter {
     uint256 minAmountOut,
     address receiver
   ) internal returns (uint256) {
+    if (amountIn == 0) return 0;
     if (sender == address(this)) {
       IERC20(tokenIn).safeTransfer(address(pool), amountIn);
     } else {
