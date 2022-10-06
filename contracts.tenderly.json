@@ -147,5 +147,9 @@
         "address": "0x2a78c25807D0E869c811575A629C9a07CAe17E17"
       }
     ]
+  },
+  "ReferralDistribution": {
+    "MerkleAirdropTemplate": "",
+    "MerkleAirdropFactory": ""
   }
 }

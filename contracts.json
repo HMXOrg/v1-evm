@@ -147,5 +147,9 @@
         "address": ""
       }
     ]
+  },
+  "ReferralDistribution": {
+    "MerkleAirdropTemplate": "",
+    "MerkleAirdropFactory": ""
   }
 }
