@@ -228,9 +228,7 @@ interface GetterFacetInterface {
     bool isLong,
     uint256 nextPrice,
     uint256 sizeDelta,
-    uint256 lastIncreasedTime,
-    int256 entryFundingRate,
-    int256 fundingFeeDebt
+    uint256 lastIncreasedTime
   ) external view returns (uint256);
 
   function getRedemptionCollateral(address token)

@@ -297,6 +297,58 @@ contract BaseTest is DSTest, CoreConstants {
     return (tokens, tokenConfigs);
   }
 
+  function buildDefaultSetTokenConfigInput3()
+    internal
+    view
+    returns (address[] memory, LibPoolConfigV1.TokenConfig[] memory)
+  {
+    address[] memory tokens = new address[](3);
+    tokens[0] = address(dai);
+    tokens[1] = address(wbtc);
+    tokens[2] = address(matic);
+
+    LibPoolConfigV1.TokenConfig[]
+      memory tokenConfigs = new LibPoolConfigV1.TokenConfig[](3);
+    tokenConfigs[0] = LibPoolConfigV1.TokenConfig({
+      accept: true,
+      isStable: true,
+      isShortable: false,
+      decimals: dai.decimals(),
+      weight: 10000,
+      minProfitBps: 0,
+      usdDebtCeiling: 0,
+      shortCeiling: 0,
+      bufferLiquidity: 0,
+      openInterestLongCeiling: 0
+    });
+    tokenConfigs[1] = LibPoolConfigV1.TokenConfig({
+      accept: true,
+      isStable: false,
+      isShortable: true,
+      decimals: wbtc.decimals(),
+      weight: 10000,
+      minProfitBps: 0,
+      usdDebtCeiling: 0,
+      shortCeiling: 0,
+      bufferLiquidity: 0,
+      openInterestLongCeiling: 0
+    });
+    tokenConfigs[2] = LibPoolConfigV1.TokenConfig({
+      accept: true,
+      isStable: false,
+      isShortable: true,
+      decimals: matic.decimals(),
+      weight: 10000,
+      minProfitBps: 0,
+      usdDebtCeiling: 0,
+      shortCeiling: 0,
+      bufferLiquidity: 0,
+      openInterestLongCeiling: 0
+    });
+
+    return (tokens, tokenConfigs);
+  }
+
   function buildFacetCut(
     address facet,
     DiamondCutInterface.FacetCutAction cutAction,
@@ -369,7 +421,7 @@ contract BaseTest is DSTest, CoreConstants {
   {
     GetterFacet getterFacet = new GetterFacet();
 
-    bytes4[] memory selectors = new bytes4[](62);
+    bytes4[] memory selectors = new bytes4[](63);
     selectors[0] = GetterFacet.getAddLiquidityFeeBps.selector;
     selectors[1] = GetterFacet.getRemoveLiquidityFeeBps.selector;
     selectors[2] = GetterFacet.getSwapFeeBps.selector;
@@ -432,6 +484,7 @@ contract BaseTest is DSTest, CoreConstants {
     selectors[59] = GetterFacet.totalOf.selector;
     selectors[60] = GetterFacet.getFundingFeeAccounting.selector;
     selectors[61] = GetterFacet.convertTokensToUsde30.selector;
+    selectors[62] = GetterFacet.getFundingFee.selector;
 
     DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
       address(getterFacet),

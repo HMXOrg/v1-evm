@@ -302,6 +302,50 @@ contract GetterFacet is GetterFacetInterface {
     return (vars.isProfit, vars.unsignedDelta, vars.fundingFee);
   }
 
+  function getDeltaWithoutFundingFee(
+    address indexToken,
+    uint256 size,
+    uint256 averagePrice,
+    bool isLong,
+    uint256 lastIncreasedTime
+  ) public view returns (bool, uint256) {
+    // Load diamond storage
+    LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
+      .poolV1DiamondStorage();
+
+    // Load PoolConfigV1 diamond storage
+    LibPoolConfigV1.PoolConfigV1DiamondStorage
+      storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
+
+    if (averagePrice == 0) revert GetterFacet_InvalidAveragePrice();
+    uint256 price = isLong
+      ? ds.oracle.getMinPrice(indexToken)
+      : ds.oracle.getMaxPrice(indexToken);
+    uint256 priceDelta;
+    unchecked {
+      priceDelta = averagePrice > price
+        ? averagePrice - price
+        : price - averagePrice;
+    }
+    uint256 delta = (size * priceDelta) / averagePrice;
+
+    bool isProfit;
+    if (isLong) {
+      isProfit = price > averagePrice;
+    } else {
+      isProfit = price < averagePrice;
+    }
+
+    uint256 minBps = block.timestamp >
+      lastIncreasedTime + poolConfigDs.minProfitDuration
+      ? 0
+      : poolConfigDs.tokenMetas[indexToken].minProfitBps;
+
+    if (isProfit && delta * BPS <= size * minBps) delta = 0;
+
+    return (isProfit, delta);
+  }
+
   function getEntryBorrowingRate(
     address collateralToken,
     address, /* indexToken */
@@ -538,18 +582,14 @@ contract GetterFacet is GetterFacetInterface {
     bool isLong,
     uint256 nextPrice,
     uint256 sizeDelta,
-    uint256 lastIncreasedTime,
-    int256 entryFundingRate,
-    int256 fundingFeeDebt
+    uint256 lastIncreasedTime
   ) external view returns (uint256) {
-    (bool isProfit, uint256 delta, ) = getDelta(
+    (bool isProfit, uint256 delta) = getDeltaWithoutFundingFee(
       indexToken,
       size,
       averagePrice,
       isLong,
-      lastIncreasedTime,
-      entryFundingRate,
-      fundingFeeDebt
+      lastIncreasedTime
     );
     uint256 nextSize = size + sizeDelta;
     uint256 divisor;
