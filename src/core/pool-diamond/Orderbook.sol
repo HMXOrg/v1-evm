@@ -66,6 +66,8 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   PoolOracle public poolOracle;
   uint256 public minExecutionFee;
   uint256 public minPurchaseTokenAmountUsd;
+  mapping(address => bool) public whitelist;
+  bool public isAllowAllExecutor;
 
   event CreateIncreaseOrder(
     address indexed account,
@@ -212,6 +214,8 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
   event UpdateMinExecutionFee(uint256 minExecutionFee);
   event UpdateMinPurchaseTokenAmountUsd(uint256 minPurchaseTokenAmountUsd);
+  event SetWhitelist(address whitelistAddress, bool oldAllow, bool newAllow);
+  event SetIsAllowAllExecutor(bool isAllow);
 
   error InvalidSender();
   error InvalidPathLength();
@@ -224,6 +228,12 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   error InvalidPriceForExecution();
   error InsufficientCollateral();
   error BadSubAccountId();
+  error NotWhitelisted();
+
+  modifier whitelisted() {
+    if (!isAllowAllExecutor && !whitelist[msg.sender]) revert NotWhitelisted();
+    _;
+  }
 
   function initialize(
     address _pool,
@@ -244,6 +254,19 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
   receive() external payable {
     if (msg.sender != weth) revert InvalidSender();
+  }
+
+  function setWhitelist(address whitelistAddress, bool isAllow)
+    external
+    onlyOwner
+  {
+    emit SetWhitelist(whitelistAddress, whitelist[whitelistAddress], isAllow);
+    whitelist[whitelistAddress] = isAllow;
+  }
+
+  function setIsAllowAllExecutor(bool isAllow) external onlyOwner {
+    isAllowAllExecutor = isAllow;
+    emit SetIsAllowAllExecutor(isAllow);
   }
 
   function setMinExecutionFee(uint256 _minExecutionFee) external onlyOwner {
@@ -445,7 +468,7 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     address _account,
     uint256 _orderIndex,
     address payable _feeReceiver
-  ) external nonReentrant {
+  ) external nonReentrant whitelisted {
     SwapOrder memory order = swapOrders[_account][_orderIndex];
     if (order.account == address(0)) revert NonExistentOrder();
 
@@ -773,7 +796,7 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     uint256 _subAccountId,
     uint256 _orderIndex,
     address payable _feeReceiver
-  ) external nonReentrant {
+  ) external nonReentrant whitelisted {
     address subAccount = getSubAccount(_address, _subAccountId);
     IncreaseOrder memory order = increaseOrders[subAccount][_orderIndex];
     if (order.account == address(0)) revert NonExistentOrder();
@@ -908,7 +931,7 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     uint256 _subAccountId,
     uint256 _orderIndex,
     address payable _feeReceiver
-  ) external nonReentrant {
+  ) external nonReentrant whitelisted {
     address subAccount = getSubAccount(_address, _subAccountId);
     DecreaseOrder memory order = decreaseOrders[subAccount][_orderIndex];
     if (order.account == address(0)) revert NonExistentOrder();

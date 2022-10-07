@@ -13,6 +13,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     ) = buildDefaultSetTokenConfigInput2();
 
     poolAdminFacet.setTokenConfigs(tokens2, tokenConfigs2);
+    orderbook.setWhitelist(address(this), true);
   }
 
   function testRevert_IncreaseOrder_InsufficientExecutionFee() external {
@@ -757,6 +758,9 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
   }
 
   function testCorrectness_WhenSwap() external {
+    orderbook.setWhitelist(address(this), false);
+    orderbook.setIsAllowAllExecutor(true);
+
     daiPriceFeed.setLatestAnswer(1 * 10**8);
     maticPriceFeed.setLatestAnswer(300 * 10**8);
     wbtcPriceFeed.setLatestAnswer(60000 * 10**8);
