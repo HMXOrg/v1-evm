@@ -10,7 +10,7 @@
   "Tokens": {
     "P88": "0x36C2FA0f401cBED335C85f45B221ad08b1E48034",
     "esP88": "0x35D508569b11cc02fCF02FBee8A154c24742a3bb",
-    "PLP": "0x7a90f61849aB819C11745deB0Ec97f8643983cFF",
+    "PLP": "0x27bD9e3a94DfCcCCb83e36Bc09e22dB0fAcDaDD4",
     "DragonPoint": "0xe33c9D5a046fd2Db8120ed748b0613cc5eD030D6",
     "P88QSLP": "0xA962fF080a3157F6d142dB0C6F30feDeA28A4e0C",
     "WMATIC": "0x9c3c9283d3e44854697cd22d3faa240cfb032889",
@@ -40,9 +40,9 @@
   "PoolRouter": "0x06a346eED4092E7e99Db4054318247AfED9CeBF0",
   "Pools": {
     "PLP": {
-      "poolDiamond": "0x9aF9Df835d97b9EdacCd26F5335Ffa31255CC7B6",
+      "poolDiamond": "0x74d841657cDFdFcbDd2A40818F2Bc6cA60283428",
       "oracle": "0xcD6082BDF1494F0996D556fCeC1DAe0d08280E2e",
-      "orderbook": "0x339e24637814f28CcC72E1b4211d0adB406CCaEF",
+      "orderbook": "0x3ad29B0a705CdEF6D936e441dDbbAa85DA61878e",
       "facets": {
         "admin": "0x3C718685c13cB047b75644d1958C3D8CE1E78d0D",
         "accessControl": "0xaCC38E2123DAE5223440bd4c7f0822c97f37B481",
@@ -51,9 +51,9 @@
         "diamondLoupe": "0x27D6eF4F2C7c8f5c2998e739aC13b017460EeA86",
         "liquidity": "0x8420E3B27351230bEd9c3fDA827691702583C4d3",
         "fundingRate": "0x8bc4b320Db6FE510A5F9EA2240749f5AE5EcF4be",
-        "getter": "0xDF6DA74B1F4cE9E87BD434c624CCA3EFa32C320a",
+        "getter": "0xfe6329001806EF9303071Fe2597D2A327f1aF3d9",
         "ownership": "0x3d7558727Ea9b1f90c5438bfF533E801997d54f2",
-        "perpTrade": "0x05962D058d7e061EeC7A4dA342A1248d2be21CfB",
+        "perpTrade": "0xdAE8171754b6792485FD22f4b67b0BB38C7C6113",
         "diamondInitializer": "0xEE638c28816B9ee2458eBC79E19Fb97b8e9e6571",
         "poolConfigInitializer": "0xa034192E2f0f4cF2dCc8E0eAf2f836C600569504"
       }

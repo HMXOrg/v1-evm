@@ -49,7 +49,7 @@ const methods = [
   "getPositionDelta(address,uint256,address,address,bool)",
   "getPositionFee(address,address,address,bool,uint256)",
   "getPositionLeverage(address,uint256,address,address,bool)",
-  "getPositionNextAveragePrice(address,uint256,uint256,bool,uint256,uint256,uint256,int256,int256)",
+  "getPositionNextAveragePrice(address,uint256,uint256,bool,uint256,uint256,uint256)",
   "getPositionWithSubAccountId(address,uint256,address,address,bool)",
   "getRedemptionCollateral(address)",
   "getRedemptionCollateralUsd(address)",
@@ -93,6 +93,7 @@ const methods = [
   "totalTokenWeight()",
   "totalUsdDebt()",
   "usdDebtOf(address)",
+  "getDeltaWithoutFundingFee(address,uint256,uint256,bool,uint256)",
 ];
 
 const facetCuts = [
