@@ -8,11 +8,11 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     super.setUp();
 
     (
-      address[] memory tokens2,
-      LibPoolConfigV1.TokenConfig[] memory tokenConfigs2
-    ) = buildDefaultSetTokenConfigInput2();
+      address[] memory tokens3,
+      LibPoolConfigV1.TokenConfig[] memory tokenConfigs3
+    ) = buildDefaultSetTokenConfigInput3();
 
-    poolAdminFacet.setTokenConfigs(tokens2, tokenConfigs2);
+    poolAdminFacet.setTokenConfigs(tokens3, tokenConfigs3);
   }
 
   function testCorrectness_BorrowingRate() external {
@@ -530,6 +530,214 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
 
     // AUM should stay with in the same value (with a little precision loss)
     // Long Position Funding Fee is -4.5 USD
+    // fundingFeePayable = 4.68 - 4.5 = 0.18
+    // fundingFeeReceivable = 0
+    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.00004 * 10**30);
+    assertEq(fundingFeePayable, 0.18 * 10**30);
+    assertEq(fundingFeeReceivable, 0);
+  }
+
+  function testCorrectness_FundingRate_LongPayShort_InflateSizeDuringInterval()
+    external
+  {
+    // Warp 8 hours so time not start with 0
+    vm.warp(1662100761);
+
+    // Initialized price feeds
+    daiPriceFeed.setLatestAnswer(1 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    maticPriceFeed.setLatestAnswer(400 * 10**8);
+
+    // Assuming WBTC price is at 41,000 USD
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+
+    // Add 10 WBTC as a liquidity of the pool
+    wbtc.mint(address(poolDiamond), 10 * 10**8);
+    poolLiquidityFacet.addLiquidity(
+      address(this),
+      address(wbtc),
+      address(this)
+    );
+
+    dai.mint(address(poolDiamond), 1000000 ether);
+    poolLiquidityFacet.addLiquidity(address(this), address(dai), address(this));
+
+    // Increase WBTC long position with 1 WBTC (=40,000 USD) as a collateral
+    // With 9x leverage; Hence position's size should be 360,000 USD.
+    wbtc.mint(address(poolDiamond), 1 * 10**8);
+    poolPerpTradeFacet.increasePosition(
+      address(this),
+      0,
+      address(wbtc),
+      address(wbtc),
+      360_000 * 10**30,
+      true
+    );
+
+    // Increase WBTC short position with 10,000 DAI (=10,000 USD) as a collateral
+    // With 18x leverage; Hence position's size should be 180,000 USD.
+    dai.mint(address(poolDiamond), 10000 ether);
+    poolPerpTradeFacet.increasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      180_000 * 10**30,
+      false
+    );
+
+    // Open Interest Long
+    // = positionSize / wbtcPrice
+    // = 360000 / 41000 = 8.7804878 WBTC
+    // Open Interest Short
+    // = 180000 / 41000 = 4.3902439 WBTC
+    assertEq(
+      poolGetterFacet.openInterestLong(address(wbtc)),
+      8.7804878 * 10**8
+    );
+    assertEq(
+      poolGetterFacet.openInterestShort(address(wbtc)),
+      4.3902439 * 10**8
+    );
+
+    // Checking the position delta right after opening the position
+    // Position should not have any delta or funding fee
+    (
+      bool isProfitLong,
+      uint256 deltaLong,
+      int256 fundingFeeLong
+    ) = poolGetterFacet.getPositionDelta(
+        address(this),
+        0,
+        address(wbtc),
+        address(wbtc),
+        true
+      );
+    assertFalse(isProfitLong);
+    assertEq(deltaLong, 0);
+    assertEq(fundingFeeLong, 0);
+
+    (
+      bool isProfitShort,
+      uint256 deltaShort,
+      int256 fundingFeeShort
+    ) = poolGetterFacet.getPositionDelta(
+        address(this),
+        0,
+        address(dai),
+        address(wbtc),
+        false
+      );
+    assertFalse(isProfitShort);
+    assertEq(deltaShort, 0);
+    assertEq(fundingFeeShort, 0);
+
+    uint256 aumBefore = poolGetterFacet.getAum(true);
+
+    // warp 1 interval
+    vm.warp(block.timestamp + 1 hours + 1);
+
+    // Long Funding Rate
+    // = (openInterestLong - openInterestShort) * intervals * fundingRateFactor / openInterestLong
+    // = (8.7804878 - 4.3902439) * 1 * 25 / 8.7804878 = 12.5 ~= 13 (round up)
+    // Short Funding Rate
+    // = (openInterestLong - openInterestShort) * intervals * fundingRateFactor * (-1) / openInterestShort
+    // = (8.7804878 - 4.3902439) * 1 * 25 * (-1) / 4.3902439 = -25
+    (int256 fundingRateLong, int256 fundingRateShort) = poolGetterFacet
+      .getNextFundingRate(address(wbtc));
+    assertEq(fundingRateLong, 13);
+    assertEq(fundingRateShort, -25);
+
+    // Force update funding rate to make our position pay funding fee
+    poolFundingRateFacet.updateFundingRate(address(wbtc), address(wbtc));
+
+    (isProfitLong, deltaLong, fundingFeeLong) = poolGetterFacet
+      .getPositionDelta(address(this), 0, address(wbtc), address(wbtc), true);
+    (isProfitShort, deltaShort, fundingFeeShort) = poolGetterFacet
+      .getPositionDelta(address(this), 0, address(dai), address(wbtc), false);
+
+    // Long Position:
+    // No price movement, loss from funding fee
+    // Funding Fee
+    // = positionSize * fundingRateLong / 1000000
+    // = 360000 * 13 / 1000000 = 4.68 USD
+    // (Delta only include funding fee here, cuz there is no delta from zero price movement)
+    assertFalse(isProfitLong);
+    assertEq(deltaLong, 4.68 * 10**30);
+    assertEq(fundingFeeLong, 4.68 * 10**30);
+
+    // Short Position:
+    // No price movement, profit from funding fee
+    // Funding Fee
+    // = positionSize * fundingRateLong / 1000000
+    // = 180000 * (-25) / 1000000 = -4.5 USD
+    // (Delta only include funding fee here, cuz there is no delta from zero price movement)
+    assertTrue(isProfitShort);
+    assertEq(deltaShort, 4.5 * 10**30);
+    assertEq(fundingFeeShort, -4.5 * 10**30);
+
+    // No change in PLP AUM as there is no realized positions
+    assertEq(aumBefore, poolGetterFacet.getAum(true));
+
+    // Close Long position entirely
+    poolPerpTradeFacet.decreasePosition(
+      address(this),
+      0,
+      address(wbtc),
+      address(wbtc),
+      0,
+      360_000 * 10**30,
+      true,
+      address(this)
+    );
+
+    (uint256 fundingFeePayable, uint256 fundingFeeReceivable) = poolGetterFacet
+      .getFundingFeeAccounting();
+
+    // AUM should stay with in the same value (with a little precision loss)
+    // Long Position Funding Fee is 4.68 USD
+    // fundingFeePayable = 0 + 4.68 = 4.68
+    // fundingFeeReceivable = 0
+    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.00004 * 10**30);
+    assertEq(fundingFeePayable, 4.68 * 10**30);
+    assertEq(fundingFeeReceivable, 0);
+    poolPerpTradeFacet.increasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      360_000 * 10**30,
+      false
+    );
+    (isProfitShort, deltaShort, fundingFeeShort) = poolGetterFacet
+      .getPositionDelta(address(this), 0, address(dai), address(wbtc), false);
+    GetterFacetInterface.GetPositionReturnVars memory position = poolGetterFacet
+      .getPosition(address(this), address(dai), address(wbtc), false);
+    // Delta and Funding Fee of Short Position should remain the same
+    // because there is not
+    assertTrue(isProfitShort);
+    assertEq(deltaShort, 4.5 * 10**30, "delta short");
+    assertEq(fundingFeeShort, -4.5 * 10**30);
+
+    // Close Short position entirely
+    poolPerpTradeFacet.decreasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      0,
+      540_000 * 10**30,
+      false,
+      address(this)
+    );
+
+    (fundingFeePayable, fundingFeeReceivable) = poolGetterFacet
+      .getFundingFeeAccounting();
+
+    // AUM should stay with in the same value (with a little precision loss)
+    // Short Position Funding Fee is -4.5 USD
     // fundingFeePayable = 4.68 - 4.5 = 0.18
     // fundingFeeReceivable = 0
     assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.00004 * 10**30);
@@ -1816,5 +2024,191 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     assertEq(fundingFeePayable, 0);
     assertEq(fundingFeeReceivable, 0.5 * 10**30);
     assertEq(position.fundingFeeDebt, 0);
+  }
+
+  function testCorrectness_FundingRate_LongPayShort_HugeDiff() external {
+    // Warp 8 hours so time not start with 0
+    vm.warp(1662100761);
+
+    // Initialized price feeds
+    daiPriceFeed.setLatestAnswer(1 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    maticPriceFeed.setLatestAnswer(400 * 10**8);
+
+    // Assuming WBTC price is at 41,000 USD
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+
+    // Add 10 WBTC as a liquidity of the pool
+    wbtc.mint(address(poolDiamond), 100_000_000 * 10**8);
+    poolLiquidityFacet.addLiquidity(
+      address(this),
+      address(wbtc),
+      address(this)
+    );
+
+    dai.mint(address(poolDiamond), 1_000_000_000_000 ether);
+    poolLiquidityFacet.addLiquidity(address(this), address(dai), address(this));
+
+    // Increase WBTC long position with 1 WBTC (=41,000 USD) as a collateral
+    // With 9x leverage; Hence position's size should be 360,000 USD.
+    wbtc.mint(address(poolDiamond), 1_000 * 10**8);
+    poolPerpTradeFacet.increasePosition(
+      address(this),
+      0,
+      address(wbtc),
+      address(wbtc),
+      3280000000 * 10**30,
+      true
+    );
+
+    // Increase WBTC short position with 10,000 DAI (=10,000 USD) as a collateral
+    // With 18x leverage; Hence position's size should be 180,000 USD.
+    dai.mint(address(poolDiamond), 6 ether);
+    poolPerpTradeFacet.increasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      7 * 10**30,
+      false
+    );
+
+    // Open Interest Long
+    // = positionSize / wbtcPrice
+    // = 3280000000 / 41000 = 80000 WBTC
+    // Open Interest Short
+    // = 7 / 41000 = 0.00017073 WBTC
+    assertEq(poolGetterFacet.openInterestLong(address(wbtc)), 80000 * 10**8);
+    assertEq(
+      poolGetterFacet.openInterestShort(address(wbtc)),
+      0.00017073 * 10**8
+    );
+
+    // Checking the position delta right after opening the position
+    // Position should not have any delta or funding fee
+    (
+      bool isProfitLong,
+      uint256 deltaLong,
+      int256 fundingFeeLong
+    ) = poolGetterFacet.getPositionDelta(
+        address(this),
+        0,
+        address(wbtc),
+        address(wbtc),
+        true
+      );
+    assertFalse(isProfitLong);
+    assertEq(deltaLong, 0);
+    assertEq(fundingFeeLong, 0);
+
+    (
+      bool isProfitShort,
+      uint256 deltaShort,
+      int256 fundingFeeShort
+    ) = poolGetterFacet.getPositionDelta(
+        address(this),
+        0,
+        address(dai),
+        address(wbtc),
+        false
+      );
+    assertFalse(isProfitShort);
+    assertEq(deltaShort, 0);
+    assertEq(fundingFeeShort, 0);
+
+    uint256 aumBefore = poolGetterFacet.getAum(true);
+
+    // warp 1 interval
+    vm.warp(block.timestamp + 1 hours + 1);
+
+    // Long Funding Rate
+    // = (openInterestLong - openInterestShort) * intervals * fundingRateFactor / openInterestLong
+    // = (80000 - 0.00017073) * 1 * 25 / 80000 = 24.99999995 ~= 25 (round up)
+    // Short Funding Rate
+    // = (openInterestLong - openInterestShort) * intervals * fundingRateFactor * (-1) / openInterestShort
+    // = (80000 - 0.00017073) * 1 * 25 * (-1) / 0.00017073 = -11714402833
+    (int256 fundingRateLong, int256 fundingRateShort) = poolGetterFacet
+      .getNextFundingRate(address(wbtc));
+    assertEq(fundingRateLong, 25);
+    assertEq(fundingRateShort, -11714402833);
+
+    // Force update funding rate to make our position pay funding fee
+    poolFundingRateFacet.updateFundingRate(address(wbtc), address(wbtc));
+
+    (isProfitLong, deltaLong, fundingFeeLong) = poolGetterFacet
+      .getPositionDelta(address(this), 0, address(wbtc), address(wbtc), true);
+    (isProfitShort, deltaShort, fundingFeeShort) = poolGetterFacet
+      .getPositionDelta(address(this), 0, address(dai), address(wbtc), false);
+
+    // Long Position:
+    // No price movement, loss from funding fee
+    // Funding Fee
+    // = positionSize * fundingRateLong / 1000000
+    // = 3280000000 * 25 / 1000000 = 82000 USD
+    // (Delta only include funding fee here, cuz there is no delta from zero price movement)
+    assertFalse(isProfitLong);
+    assertEq(deltaLong, 82000 * 10**30);
+    assertEq(fundingFeeLong, 82000 * 10**30);
+
+    // Short Position:
+    // No price movement, profit from funding fee
+    // Funding Fee
+    // = positionSize * fundingRateLong / 1000000
+    // = 7 * (-11714402832) / 1000000 = -82000.819831 USD
+    // (Delta only include funding fee here, cuz there is no delta from zero price movement)
+    assertTrue(isProfitShort);
+    assertEq(deltaShort, 82000.819831 * 10**30);
+    assertEq(fundingFeeShort, -82000.819831 * 10**30);
+
+    // No change in PLP AUM as there is no realized positions
+    assertEq(aumBefore, poolGetterFacet.getAum(true));
+
+    // Close Long position entirely
+    poolPerpTradeFacet.decreasePosition(
+      address(this),
+      0,
+      address(wbtc),
+      address(wbtc),
+      0,
+      3280000000 * 10**30,
+      true,
+      address(this)
+    );
+
+    (uint256 fundingFeePayable, uint256 fundingFeeReceivable) = poolGetterFacet
+      .getFundingFeeAccounting();
+
+    // AUM should stay with in the same value (with a little precision loss)
+    // Long Position Funding Fee is 82000 USD
+    // fundingFeePayable = 0 + 82000 = 82000
+    // fundingFeeReceivable = 0
+    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.00004 * 10**30);
+    assertEq(fundingFeePayable, 82000 * 10**30);
+    assertEq(fundingFeeReceivable, 0);
+
+    // Close Short position entirely
+    poolPerpTradeFacet.decreasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      0,
+      7 * 10**30,
+      false,
+      address(this)
+    );
+
+    (fundingFeePayable, fundingFeeReceivable) = poolGetterFacet
+      .getFundingFeeAccounting();
+
+    // AUM should stay with in the same value (with a little precision loss)
+    // Long Position Funding Fee is -82000 USD
+    // fundingFeePayable = 0
+    // fundingFeeReceivable = 82000.819831 - 82000 = 0.819831
+    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.00004 * 10**30);
+    assertEq(fundingFeePayable, 0);
+    assertEq(fundingFeeReceivable, 0.819831 * 10**30);
   }
 }

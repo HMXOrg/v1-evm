@@ -414,9 +414,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
           isLong,
           vars.price,
           sizeDelta,
-          position.lastIncreasedTime,
-          position.entryFundingRate,
-          position.fundingFeeDebt
+          position.lastIncreasedTime
         );
     }
 
@@ -443,6 +441,15 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     position.collateral -= vars.feeUsd;
     position.entryBorrowingRate = GetterFacetInterface(address(this))
       .getEntryBorrowingRate(collateralToken, indexToken, isLong);
+    position.fundingFeeDebt += GetterFacetInterface(address(this))
+      .getFundingFee(
+        indexToken,
+        isLong,
+        position.size,
+        position.entryFundingRate
+      );
+    position.entryFundingRate = GetterFacetInterface(address(this))
+      .getEntryFundingRate(collateralToken, indexToken, isLong);
     position.size += sizeDelta;
     position.lastIncreasedTime = block.timestamp;
 
