@@ -7,7 +7,6 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { PoolOracle } from "../../PoolOracle.sol";
-import { Constants } from "../../Constants.sol";
 import { FarmFacetInterface } from "../interfaces/FarmFacetInterface.sol";
 import { LibPoolConfigV1 } from "./LibPoolConfigV1.sol";
 

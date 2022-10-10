@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { PoolConfig } from "../PoolConfig.sol";
 import { PoolOracle } from "../PoolOracle.sol";
 import { PLP } from "../../tokens/PLP.sol";
 

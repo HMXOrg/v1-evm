@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { PoolDiamond_BaseTest, LibPoolConfigV1, PoolConfig, Pool, console, GetterFacetInterface, LiquidityFacetInterface, MockFlashLoanBorrower } from "./PoolDiamond_BaseTest.t.sol";
+import { PoolDiamond_BaseTest, LibPoolConfigV1, console, GetterFacetInterface, LiquidityFacetInterface, MockFlashLoanBorrower } from "./PoolDiamond_BaseTest.t.sol";
 
 contract PoolDiamond_FlashLoanTest is PoolDiamond_BaseTest {
   MockFlashLoanBorrower mockFlashLoanBorrower;

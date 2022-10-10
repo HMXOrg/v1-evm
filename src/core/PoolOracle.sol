@@ -4,14 +4,17 @@ pragma solidity 0.8.17;
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { ChainlinkPriceFeedInterface } from "../interfaces/ChainLinkPriceFeedInterface.sol";
-import { Constants } from "./Constants.sol";
 
-contract PoolOracle is Constants, OwnableUpgradeable {
+contract PoolOracle is OwnableUpgradeable {
   using SafeCast for int256;
 
   error PoolOracle_BadArguments();
   error PoolOracle_PriceFeedNotAvailable();
   error PoolOracle_UnableFetchPrice();
+
+  uint256 internal constant PRICE_PRECISION = 10**30;
+  uint256 internal constant ONE_USD = PRICE_PRECISION;
+  uint256 internal constant BPS = 10000;
 
   struct PriceFeedInfo {
     ChainlinkPriceFeedInterface priceFeed;

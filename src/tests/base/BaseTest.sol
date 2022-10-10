@@ -8,7 +8,6 @@ import { console } from "../utils/console.sol";
 import { stdError } from "../utils/stdError.sol";
 import { math } from "../utils/math.sol";
 
-import { Constants as CoreConstants } from "../../core/Constants.sol";
 import { MintableTokenInterface } from "../../interfaces/MintableTokenInterface.sol";
 
 import { MockErc20 } from "../mocks/MockERC20.sol";
@@ -19,13 +18,11 @@ import { MockFlashLoanBorrower } from "../mocks/MockFlashLoanBorrower.sol";
 import { MockStrategy } from "../mocks/MockStrategy.sol";
 
 import { PoolOracle } from "../../core/PoolOracle.sol";
-import { PoolConfig } from "../../core/PoolConfig.sol";
-import { PoolMath } from "../../core/PoolMath.sol";
 import { PLP } from "../../tokens/PLP.sol";
 import { P88 } from "../../tokens/P88.sol";
 import { EsP88 } from "../../tokens/EsP88.sol";
 import { DragonPoint } from "../../tokens/DragonPoint.sol";
-import { Pool } from "../../core/Pool.sol";
+
 import { PLPStaking } from "../../staking/PLPStaking.sol";
 import { DragonStaking } from "../../staking/DragonStaking.sol";
 import { FeedableRewarder } from "../../staking/FeedableRewarder.sol";
@@ -73,7 +70,10 @@ import { MerkleAirdropGateway } from "src/airdrop/MerkleAirdropGateway.sol";
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
-contract BaseTest is DSTest, CoreConstants {
+contract BaseTest is DSTest {
+  uint256 internal constant PRICE_PRECISION = 10**30;
+  uint256 internal constant BPS = 10000;
+
   struct PoolConfigConstructorParams2 {
     address treasury;
     uint64 fundingInterval;
@@ -196,56 +196,6 @@ contract BaseTest is DSTest, CoreConstants {
     });
 
     return (tokens, priceFeedInfo);
-  }
-
-  function buildDefaultSetTokenConfigInput()
-    internal
-    view
-    returns (address[] memory, PoolConfig.TokenConfig[] memory)
-  {
-    address[] memory tokens = new address[](3);
-    tokens[0] = address(dai);
-    tokens[1] = address(wbtc);
-    tokens[2] = address(matic);
-
-    PoolConfig.TokenConfig[] memory tokenConfigs = new PoolConfig.TokenConfig[](
-      3
-    );
-    tokenConfigs[0] = PoolConfig.TokenConfig({
-      accept: true,
-      isStable: true,
-      isShortable: false,
-      decimals: dai.decimals(),
-      weight: 10000,
-      minProfitBps: 75,
-      usdDebtCeiling: 0,
-      shortCeiling: 0,
-      bufferLiquidity: 0
-    });
-    tokenConfigs[1] = PoolConfig.TokenConfig({
-      accept: true,
-      isStable: false,
-      isShortable: true,
-      decimals: wbtc.decimals(),
-      weight: 10000,
-      minProfitBps: 75,
-      usdDebtCeiling: 0,
-      shortCeiling: 0,
-      bufferLiquidity: 0
-    });
-    tokenConfigs[2] = PoolConfig.TokenConfig({
-      accept: true,
-      isStable: false,
-      isShortable: true,
-      decimals: matic.decimals(),
-      weight: 10000,
-      minProfitBps: 75,
-      usdDebtCeiling: 0,
-      shortCeiling: 0,
-      bufferLiquidity: 0
-    });
-
-    return (tokens, tokenConfigs);
   }
 
   function buildDefaultSetTokenConfigInput2()
@@ -781,72 +731,6 @@ contract BaseTest is DSTest, CoreConstants {
     );
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
     return PoolOracle(payable(_proxy));
-  }
-
-  function deployPoolConfig(PoolConfigConstructorParams2 memory params)
-    internal
-    returns (PoolConfig)
-  {
-    bytes memory _logicBytecode = abi.encodePacked(
-      vm.getCode("./out/PoolConfig.sol/PoolConfig.json")
-    );
-    bytes memory _initializer = abi.encodeWithSelector(
-      bytes4(
-        keccak256(
-          "initialize(address,uint64,uint64,uint64,uint64,uint64,uint256)"
-        )
-      ),
-      params.treasury,
-      params.fundingInterval,
-      params.mintBurnFeeBps,
-      params.taxBps,
-      params.stableFundingRateFactor,
-      params.fundingRateFactor,
-      params.liquidationFeeUsd
-    );
-    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
-    return PoolConfig(payable(_proxy));
-  }
-
-  function deployPoolMath() internal returns (PoolMath) {
-    return new PoolMath();
-  }
-
-  function deployFullPool(
-    PoolConfigConstructorParams2 memory poolConfigConstructorParams
-  )
-    internal
-    returns (
-      PoolOracle,
-      PoolConfig,
-      PoolMath,
-      Pool
-    )
-  {
-    // Deploy Pool's dependencies
-    PoolOracle poolOracle = deployPoolOracle(3);
-    PoolConfig poolConfig = deployPoolConfig(poolConfigConstructorParams);
-    PoolMath poolMath = deployPoolMath();
-    PLP plp = deployPLP();
-
-    // Deploy Pool
-    bytes memory _logicBytecode = abi.encodePacked(
-      vm.getCode("./out/Pool.sol/Pool.json")
-    );
-    bytes memory _initializer = abi.encodeWithSelector(
-      bytes4(keccak256("initialize(address,address,address,address)")),
-      address(plp),
-      address(poolConfig),
-      address(poolMath),
-      address(poolOracle)
-    );
-    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
-    Pool pool = Pool(payable(_proxy));
-
-    // Config
-    plp.setMinter(address(pool), true);
-
-    return (poolOracle, poolConfig, poolMath, pool);
   }
 
   function deployPoolDiamond(
