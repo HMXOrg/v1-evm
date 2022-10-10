@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract FeedablePoolOracle is Ownable {
+contract MockPoolOracle is Ownable {
   mapping(address => uint256) public maxPrices;
   mapping(address => uint256) public minPrices;
   uint80 public roundDepth;
