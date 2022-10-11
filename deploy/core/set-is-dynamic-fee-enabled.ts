@@ -1,10 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
-import {
-  AdminFacetInterface__factory,
-  PoolConfig__factory,
-} from "../../typechain";
+import { AdminFacetInterface__factory } from "../../typechain";
 import { getConfig } from "../utils/config";
 
 const config = getConfig();

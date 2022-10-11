@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
-import { LockdropGateway__factory, PoolConfig__factory } from "../../typechain";
+import { LockdropGateway__factory } from "../../typechain";
 import { getConfig } from "../utils/config";
 
 const config = getConfig();
