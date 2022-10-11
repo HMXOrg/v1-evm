@@ -1,15 +1,14 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
-import { ERC20__factory, PoolRouter__factory } from "../../typechain";
 import { getConfig } from "../utils/config";
-import { FeedablePoolOracle__factory } from "../../typechain/factories/src/core/FeedablePoolOracle__factory";
+import { MockPoolOracle__factory } from "../../typechain/factories/src/tests/mocks/MockPoolOracle__factory";
 
 const config = getConfig();
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
-  const oracle = FeedablePoolOracle__factory.connect(
+  const oracle = MockPoolOracle__factory.connect(
     config.Pools.PLP.oracle,
     deployer
   );
@@ -24,11 +23,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   await oracle.feedMinPrice(
     config.Tokens.WBTC,
-    ethers.utils.parseUnits("20000", 30)
+    ethers.utils.parseUnits("21899", 30)
   );
+
   await oracle.feedMaxPrice(
     config.Tokens.WBTC,
-    ethers.utils.parseUnits("20000", 30)
+    ethers.utils.parseUnits("21899", 30)
   );
 
   await oracle.feedMinPrice(
