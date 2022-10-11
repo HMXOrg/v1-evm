@@ -6,23 +6,23 @@ import { getConfig, writeConfigFile } from "../utils/config";
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const config = getConfig();
   const deployer = (await ethers.getSigners())[0];
-  const FeedablePoolOracle = await ethers.getContractFactory(
-    "FeedablePoolOracle",
+  const MockPoolOracle = await ethers.getContractFactory(
+    "MockPoolOracle",
     deployer
   );
-  const feedablePoolOracle = await FeedablePoolOracle.deploy();
-  await feedablePoolOracle.deployed();
-  console.log(`Deploying FeedablePoolOracle Token Contract`);
-  console.log(`Deployed at: ${feedablePoolOracle.address}`);
+  const mockPoolOracle = await MockPoolOracle.deploy();
+  await mockPoolOracle.deployed();
+  console.log(`Deploying MockPoolOracle Token Contract`);
+  console.log(`Deployed at: ${mockPoolOracle.address}`);
 
   await tenderly.verify({
-    address: feedablePoolOracle.address,
+    address: mockPoolOracle.address,
     name: "FeedablePoolOracle",
   });
 
-  config.Pools.PLP.oracle = feedablePoolOracle.address;
+  config.Pools.PLP.oracle = mockPoolOracle.address;
   writeConfigFile(config);
 };
 
 export default func;
-func.tags = ["FeedablePoolOracle"];
+func.tags = ["MockPoolOracle"];
