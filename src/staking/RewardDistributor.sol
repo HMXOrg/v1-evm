@@ -34,13 +34,17 @@ contract RewardDistributor is OwnableUpgradeable {
   MerkleAirdropFactory public merkleAirdropFactory;
   address public merkleAirdropTemplate;
 
+  uint256 public referralRevenueMaxThreshold; // in BPS (10000)
+
   /// @dev Error
   error RewardDistributor_BadParams();
+  error RewardDistributor_BadReferralRevenueMaxThreshold();
   error RewardDistributor_BadMerkleAirdrop(
     bytes32 merkleRoote,
     bytes32 salt,
     address merkleAirdropAddress
   );
+  error RewardDistributor_ReferralRevenueExceedMaxThreshold();
 
   /// @dev Events
   event LogSetParams(
@@ -55,6 +59,10 @@ contract RewardDistributor is OwnableUpgradeable {
     address merkleAirdropFactory,
     address merkleAirdropTemplate
   );
+  event LogSetReferralRevenueMaxThreshold(
+    uint256 oldThreshold,
+    uint256 newThreshold
+  );
 
   function initialize(
     address rewardToken_,
@@ -66,7 +74,8 @@ contract RewardDistributor is OwnableUpgradeable {
     uint256 plpStakingBps_,
     address devFundAddress_,
     MerkleAirdropFactory merkleAirdropFactory_,
-    address merkleAirdropTemplate_
+    address merkleAirdropTemplate_,
+    uint256 referralRevenueMaxThreshold_
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
 
@@ -80,6 +89,8 @@ contract RewardDistributor is OwnableUpgradeable {
     devFundAddress = devFundAddress_;
     merkleAirdropFactory = merkleAirdropFactory_;
     merkleAirdropTemplate = merkleAirdropTemplate_;
+
+    referralRevenueMaxThreshold = referralRevenueMaxThreshold_;
   }
 
   function setParams(
@@ -119,6 +130,20 @@ contract RewardDistributor is OwnableUpgradeable {
       address(merkleAirdropFactory_),
       merkleAirdropTemplate_
     );
+  }
+
+  function setReferralRevenueMaxThreshold(
+    uint256 newReferralRevenueMaxThreshold
+  ) external onlyOwner {
+    if (newReferralRevenueMaxThreshold > 5000) {
+      // should not exceed 50% of total revenue
+      revert RewardDistributor_BadReferralRevenueMaxThreshold();
+    }
+    emit LogSetReferralRevenueMaxThreshold(
+      referralRevenueMaxThreshold,
+      newReferralRevenueMaxThreshold
+    );
+    referralRevenueMaxThreshold = newReferralRevenueMaxThreshold;
   }
 
   function claimAndSwap(address[] memory tokens) external {
@@ -195,6 +220,14 @@ contract RewardDistributor is OwnableUpgradeable {
     }
 
     // 4. Transfer referral revenue to merkle airdrop address for distribution
+    uint256 totalProtocolRevenue = IERC20Upgradeable(rewardToken).balanceOf(
+      address(this)
+    );
+    // totalProtocolRevenue * referralRevenueMaxThreshold / 10000 < referralRevenueAmount
+    if (
+      totalProtocolRevenue * referralRevenueMaxThreshold <
+      referralRevenueAmount * 10000
+    ) revert RewardDistributor_ReferralRevenueExceedMaxThreshold();
     IERC20Upgradeable(rewardToken).safeTransfer(
       merkleAirdropAddress,
       referralRevenueAmount

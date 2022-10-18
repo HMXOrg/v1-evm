@@ -33,7 +33,8 @@ contract RewardDistributorTest is BaseTest {
   bytes32 internal ipfsHash = keccak256("1");
   MerkleAirdrop internal merkleAirdrop;
 
-  uint256 internal totalTokenAmount = 10 ether;
+  uint256 internal referralRevenueTokenAmount = 10 ether;
+  uint256 internal referralRevenueMaxThreshold = 3000; // 30%
 
   function setUp() external {
     wBtc = new MockErc20("WBTC", "WBTC", 18);
@@ -58,7 +59,9 @@ contract RewardDistributorTest is BaseTest {
     merkleAirdropTemplate = deployMerkleAirdrop();
     merkleAirdropFactory = deployMerkleAirdropFactory();
 
-    bytes32 salt = keccak256(abi.encode(block.timestamp, totalTokenAmount));
+    bytes32 salt = keccak256(
+      abi.encode(block.timestamp, referralRevenueTokenAmount)
+    );
     merkleAirdrop = merkleAirdropFactory.createMerkleAirdrop(
       address(merkleAirdropTemplate),
       address(usdc),
@@ -78,7 +81,8 @@ contract RewardDistributorTest is BaseTest {
       7500,
       devFund,
       address(merkleAirdropFactory),
-      address(merkleAirdropTemplate)
+      address(merkleAirdropTemplate),
+      referralRevenueMaxThreshold
     );
   }
 
@@ -92,7 +96,7 @@ contract RewardDistributorTest is BaseTest {
       tokens,
       block.timestamp + 3 days,
       block.timestamp,
-      totalTokenAmount,
+      referralRevenueTokenAmount,
       merkleRoot
     );
 
@@ -117,10 +121,13 @@ contract RewardDistributorTest is BaseTest {
       mockUSDC.balanceOf(address(dragonStakingProtocolRevenueRewarder)),
       (totalReward * 25) / 100
     );
-    assertEq(mockUSDC.balanceOf(address(merkleAirdrop)), totalTokenAmount);
+    assertEq(
+      mockUSDC.balanceOf(address(merkleAirdrop)),
+      referralRevenueTokenAmount
+    );
   }
 
-  function testCorrectness_WhenBadMerkleAirdrop() external {
+  function testRevert_WhenBadMerkleAirdrop() external {
     address[] memory tokens = new address[](3);
     tokens[0] = address(wBtc);
     tokens[1] = address(wEth);
@@ -134,5 +141,46 @@ contract RewardDistributorTest is BaseTest {
       1 ether,
       merkleRoot
     );
+  }
+
+  function testRevert_WhenReferralRevenueExceedThreshold() external {
+    address[] memory tokens = new address[](3);
+    tokens[0] = address(wBtc);
+    tokens[1] = address(wEth);
+    tokens[2] = address(wMatic);
+
+    // Set referralRevenueMaxThreshold to 5%
+    rewardDistributor.setReferralRevenueMaxThreshold(500);
+
+    // After distribution, there is 88 ether left for each token.
+    // Then, each token will be swapped.
+    // 88 ether WBTC => 44 USDC
+    // 88 ether WETH => 44 USDC
+    // 88 ether WMATIC => 44 USDC
+    // Deduct 10 ether for referral: 132 - 10 = 122 ether
+    // Total: 122 ether USDC
+    // 5% of 122 is 6.1 ether which is less than the referral revenue of 10 ether
+    // Therefore, it will revert cuz we are trying to collect more referral revenue than the threshold
+    vm.expectRevert(
+      abi.encodeWithSignature(
+        "RewardDistributor_ReferralRevenueExceedMaxThreshold()"
+      )
+    );
+    rewardDistributor.claimAndFeedProtocolRevenue(
+      tokens,
+      block.timestamp + 3 days,
+      block.timestamp,
+      referralRevenueTokenAmount,
+      merkleRoot
+    );
+  }
+
+  function testRevert_WhenBadReferralRevenueMaxThreshold() external {
+    vm.expectRevert(
+      abi.encodeWithSignature(
+        "RewardDistributor_BadReferralRevenueMaxThreshold()"
+      )
+    );
+    rewardDistributor.setReferralRevenueMaxThreshold(10000);
   }
 }

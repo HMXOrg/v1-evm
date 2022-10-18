@@ -949,7 +949,8 @@ contract BaseTest is DSTest {
     uint256 plpStakingBps_,
     address devFundAddress_,
     address merkleAirdropFactory_,
-    address merkleAirdropTemplate_
+    address merkleAirdropTemplate_,
+    uint256 referralRevenueMaxThreshold_
   ) internal returns (RewardDistributor) {
     bytes memory _logicBytecode = abi.encodePacked(
       vm.getCode("./out/RewardDistributor.sol/RewardDistributor.json")
@@ -957,7 +958,7 @@ contract BaseTest is DSTest {
     bytes memory _initializer = abi.encodeWithSelector(
       bytes4(
         keccak256(
-          "initialize(address,address,address,address,address,uint256,uint256,address,address,address)"
+          "initialize(address,address,address,address,address,uint256,uint256,address,address,address,uint256)"
         )
       ),
       rewardToken_,
@@ -969,7 +970,8 @@ contract BaseTest is DSTest {
       plpStakingBps_,
       devFundAddress_,
       merkleAirdropFactory_,
-      merkleAirdropTemplate_
+      merkleAirdropTemplate_,
+      referralRevenueMaxThreshold_
     );
 
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
