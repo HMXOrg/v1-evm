@@ -153,6 +153,7 @@ contract RewardDistributor is OwnableUpgradeable {
   function _claimAndSwap(address[] memory tokens) internal {
     uint256 length = tokens.length;
     for (uint256 i = 0; i < length; ) {
+      // 1. Withdraw protocol revenue
       _withdrawProtocolRevenue(tokens[i]);
 
       unchecked {
@@ -160,7 +161,11 @@ contract RewardDistributor is OwnableUpgradeable {
       }
     }
 
+    // Note: We need to seprate this loop from another loop, since if we have the input token
+    // the same token as reward token, in our case USDC, we could end up in overcollecting
+    // dev fund.
     for (uint256 i = 0; i < length; ) {
+      // 2. Swap those revenue (along with surplus) to RewardToken Token
       _swapTokenToRewardToken(
         tokens[i],
         IERC20Upgradeable(tokens[i]).balanceOf(address(this))
@@ -189,37 +194,9 @@ contract RewardDistributor is OwnableUpgradeable {
         merkleAirdropAddress
       );
 
-    uint256 length = tokens.length;
-    for (uint256 i = 0; i < length; ) {
-      // 1. Withdraw protocol revenue
-      _withdrawProtocolRevenue(tokens[i]);
+    _claimAndSwap(tokens);
 
-      // 2. Collect dev fund
-      _collectDevFund(tokens[i]);
-
-      unchecked {
-        i++;
-      }
-    }
-
-    // Note: We need to seprate this loop from another loop, since if we have the input token
-    // the same token as reward token, in our case WMatic, we could end up in overcollecting
-    // dev fund.
-    // The reason is that we `_collectDevFund()` as input token and then `_swapTokenToRewardToken`,
-    // on the next loop with reward token as input token, the claimed revenue would get mixed up.
-    for (uint256 i = 0; i < length; ) {
-      // 3. Swap those revenue (along with surplus) to RewardToken Token
-      _swapTokenToRewardToken(
-        tokens[i],
-        IERC20Upgradeable(tokens[i]).balanceOf(address(this))
-      );
-
-      unchecked {
-        i++;
-      }
-    }
-
-    // 4. Transfer referral revenue to merkle airdrop address for distribution
+    // Transfer referral revenue to merkle airdrop address for distribution
     uint256 totalProtocolRevenue = IERC20Upgradeable(rewardToken).balanceOf(
       address(this)
     );
@@ -233,8 +210,11 @@ contract RewardDistributor is OwnableUpgradeable {
       referralRevenueAmount
     );
 
+    // Collect Dev Fund after we have distribute referral revenue
+    _collectDevFund(rewardToken);
+
     // At this point, we got a portion of reward tokens for protocol revenue.
-    // 5. Feed reward to both rewarders
+    // Feed reward to both rewarders
     _feedRewardToRewarders(feedingExpiredAt);
   }
 

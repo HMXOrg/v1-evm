@@ -100,19 +100,18 @@ contract RewardDistributorTest is BaseTest {
       merkleRoot
     );
 
-    assertEq(wBtc.balanceOf(devFund), 12 ether);
-    assertEq(wEth.balanceOf(devFund), 12 ether);
-    assertEq(wMatic.balanceOf(devFund), 12 ether);
-
     // After distribution, there is 88 ether left for each token.
     // Then, each token will be swapped.
-    // 88 ether WBTC => 44 USDC
-    // 88 ether WETH => 44 USDC
-    // 88 ether WMATIC => 44 USDC
-    // Deduct 10 ether for referral: 132 - 10 = 122 ether
-    // Total: 122 ether USDC
-    // 122 ether USDC will be distributed to each rewarder proportionally 75%/25%.
-    uint256 totalReward = 122 ether;
+    // 100 ether WBTC => 50 USDC
+    // 100 ether WETH => 50 USDC
+    // 100 ether WMATIC => 50 USDC
+    // Deduct 10 ether for referral: 150 - 10 = 140 ether
+    // Dev Fund = 140 * 12% = 16.8 ether
+    // Deduct 16.8 ether for Dev Fund: 140 - 16.8 = 123.2 ether
+    // Total: 123.2 ether USDC
+    // 123.2 ether USDC will be distributed to each rewarder proportionally 75%/25%.
+    uint256 totalReward = 123.2 ether;
+    assertEq(mockUSDC.balanceOf(devFund), 16.8 ether);
     assertEq(
       mockUSDC.balanceOf(address(plpStakingProtocolRevenueRewarder)),
       (totalReward * 75) / 100
