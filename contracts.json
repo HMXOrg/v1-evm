@@ -55,7 +55,8 @@
         "ownership": "",
         "perpTrade": "",
         "diamondInitializer": "",
-        "poolConfigInitializer": ""
+        "poolConfigInitializer": "",
+        "accessControlInitializer": ""
       }
     }
   },
