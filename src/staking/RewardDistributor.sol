@@ -8,6 +8,8 @@ import { IFeedableRewarder } from "../staking/interfaces/IFeedableRewarder.sol";
 import { IPoolRouter } from "../interfaces/IPoolRouter.sol";
 import { AdminFacetInterface } from "../core/pool-diamond/interfaces/AdminFacetInterface.sol";
 import { GetterFacetInterface } from "../core/pool-diamond/interfaces/GetterFacetInterface.sol";
+import { MerkleAirdropFactory } from "../airdrop/MerkleAirdropFactory.sol";
+import { MerkleAirdrop } from "../airdrop/MerkleAirdrop.sol";
 
 contract RewardDistributor is OwnableUpgradeable {
   using SafeERC20Upgradeable for IERC20Upgradeable;
@@ -29,8 +31,16 @@ contract RewardDistributor is OwnableUpgradeable {
   /// @dev Fund addresses
   address public devFundAddress;
 
+  MerkleAirdropFactory public merkleAirdropFactory;
+  address public merkleAirdropTemplate;
+
   /// @dev Error
   error RewardDistributor_BadParams();
+  error RewardDistributor_BadMerkleAirdrop(
+    bytes32 merkleRoote,
+    bytes32 salt,
+    address merkleAirdropAddress
+  );
 
   /// @dev Events
   event LogSetParams(
@@ -41,7 +51,9 @@ contract RewardDistributor is OwnableUpgradeable {
     address dragonStakingProtocolRevenueRewarder,
     uint256 devFundBps,
     uint256 plpStakingBps,
-    address devFundAddress
+    address devFundAddress,
+    address merkleAirdropFactory,
+    address merkleAirdropTemplate
   );
 
   function initialize(
@@ -52,7 +64,9 @@ contract RewardDistributor is OwnableUpgradeable {
     address dragonStakingProtocolRevenueRewarder_,
     uint256 devFundBps_,
     uint256 plpStakingBps_,
-    address devFundAddress_
+    address devFundAddress_,
+    MerkleAirdropFactory merkleAirdropFactory_,
+    address merkleAirdropTemplate_
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
 
@@ -64,6 +78,8 @@ contract RewardDistributor is OwnableUpgradeable {
     devFundBps = devFundBps_;
     plpStakingBps = plpStakingBps_;
     devFundAddress = devFundAddress_;
+    merkleAirdropFactory = merkleAirdropFactory_;
+    merkleAirdropTemplate = merkleAirdropTemplate_;
   }
 
   function setParams(
@@ -74,7 +90,9 @@ contract RewardDistributor is OwnableUpgradeable {
     address dragonStakingProtocolRevenueRewarder_,
     uint256 devFundBps_,
     uint256 plpStakingBps_,
-    address devFundAddress_
+    address devFundAddress_,
+    MerkleAirdropFactory merkleAirdropFactory_,
+    address merkleAirdropTemplate_
   ) external onlyOwner {
     if (plpStakingBps_ > 10000) revert RewardDistributor_BadParams();
 
@@ -86,6 +104,8 @@ contract RewardDistributor is OwnableUpgradeable {
     devFundBps = devFundBps_;
     plpStakingBps = plpStakingBps_;
     devFundAddress = devFundAddress_;
+    merkleAirdropFactory = merkleAirdropFactory_;
+    merkleAirdropTemplate = merkleAirdropTemplate_;
 
     emit LogSetParams(
       rewardToken_,
@@ -95,14 +115,55 @@ contract RewardDistributor is OwnableUpgradeable {
       dragonStakingProtocolRevenueRewarder_,
       devFundBps_,
       plpStakingBps_,
-      devFundAddress_
+      devFundAddress_,
+      address(merkleAirdropFactory_),
+      merkleAirdropTemplate_
     );
+  }
+
+  function claimAndSwap(address[] memory tokens) external {
+    _claimAndSwap(tokens);
+  }
+
+  function _claimAndSwap(address[] memory tokens) internal {
+    uint256 length = tokens.length;
+    for (uint256 i = 0; i < length; ) {
+      _withdrawProtocolRevenue(tokens[i]);
+
+      unchecked {
+        i++;
+      }
+    }
+
+    for (uint256 i = 0; i < length; ) {
+      _swapTokenToRewardToken(
+        tokens[i],
+        IERC20Upgradeable(tokens[i]).balanceOf(address(this))
+      );
+
+      unchecked {
+        i++;
+      }
+    }
   }
 
   function claimAndFeedProtocolRevenue(
     address[] memory tokens,
-    uint256 feedingExpiredAt
+    uint256 feedingExpiredAt,
+    uint256 weekTimestamp,
+    uint256 referralRevenueAmount,
+    bytes32 merkleRoot
   ) external {
+    bytes32 salt = keccak256(abi.encode(weekTimestamp, referralRevenueAmount));
+    address merkleAirdropAddress = merkleAirdropFactory
+      .computeMerkleAirdropAddress(merkleAirdropTemplate, salt);
+    if (MerkleAirdrop(merkleAirdropAddress).merkleRoot() != merkleRoot)
+      revert RewardDistributor_BadMerkleAirdrop(
+        merkleRoot,
+        salt,
+        merkleAirdropAddress
+      );
+
     uint256 length = tokens.length;
     for (uint256 i = 0; i < length; ) {
       // 1. Withdraw protocol revenue
@@ -133,8 +194,14 @@ contract RewardDistributor is OwnableUpgradeable {
       }
     }
 
-    // At this point, we got a portion of reward tokens.
-    // 4. Feed reward to both rewarders
+    // 4. Transfer referral revenue to merkle airdrop address for distribution
+    IERC20Upgradeable(rewardToken).safeTransfer(
+      merkleAirdropAddress,
+      referralRevenueAmount
+    );
+
+    // At this point, we got a portion of reward tokens for protocol revenue.
+    // 5. Feed reward to both rewarders
     _feedRewardToRewarders(feedingExpiredAt);
   }
 

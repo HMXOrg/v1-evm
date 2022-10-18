@@ -940,14 +940,16 @@ contract BaseTest is DSTest {
   }
 
   function deployRewardDistributor(
-    address rewardToken,
-    address pool,
-    address poolRouter,
-    address plpStakingProtocolRevenueRewarder,
-    address dragonStakingProtocolRevenueRewarder,
-    uint256 devFundBps,
-    uint256 plpStakingBps,
-    address devFundAddress
+    address rewardToken_,
+    address pool_,
+    address poolRouter_,
+    address plpStakingProtocolRevenueRewarder_,
+    address dragonStakingProtocolRevenueRewarder_,
+    uint256 devFundBps_,
+    uint256 plpStakingBps_,
+    address devFundAddress_,
+    address merkleAirdropFactory_,
+    address merkleAirdropTemplate_
   ) internal returns (RewardDistributor) {
     bytes memory _logicBytecode = abi.encodePacked(
       vm.getCode("./out/RewardDistributor.sol/RewardDistributor.json")
@@ -955,17 +957,19 @@ contract BaseTest is DSTest {
     bytes memory _initializer = abi.encodeWithSelector(
       bytes4(
         keccak256(
-          "initialize(address,address,address,address,address,uint256,uint256,address)"
+          "initialize(address,address,address,address,address,uint256,uint256,address,address,address)"
         )
       ),
-      rewardToken,
-      pool,
-      poolRouter,
-      plpStakingProtocolRevenueRewarder,
-      dragonStakingProtocolRevenueRewarder,
-      devFundBps,
-      plpStakingBps,
-      devFundAddress
+      rewardToken_,
+      pool_,
+      poolRouter_,
+      plpStakingProtocolRevenueRewarder_,
+      dragonStakingProtocolRevenueRewarder_,
+      devFundBps_,
+      plpStakingBps_,
+      devFundAddress_,
+      merkleAirdropFactory_,
+      merkleAirdropTemplate_
     );
 
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
