@@ -36,6 +36,8 @@ contract RewardDistributor is OwnableUpgradeable {
 
   uint256 public referralRevenueMaxThreshold; // in BPS (10000)
 
+  address public feeder;
+
   /// @dev Error
   error RewardDistributor_BadParams();
   error RewardDistributor_BadReferralRevenueMaxThreshold();
@@ -45,6 +47,7 @@ contract RewardDistributor is OwnableUpgradeable {
     address merkleAirdropAddress
   );
   error RewardDistributor_ReferralRevenueExceedMaxThreshold();
+  error RewardDistributor_NotFeeder();
 
   /// @dev Events
   event LogSetParams(
@@ -63,6 +66,12 @@ contract RewardDistributor is OwnableUpgradeable {
     uint256 oldThreshold,
     uint256 newThreshold
   );
+  event LogSetFeeder(address oldFeeder, address newFeeder);
+
+  modifier onlyFeeder() {
+    if (msg.sender != feeder) revert RewardDistributor_NotFeeder();
+    _;
+  }
 
   function initialize(
     address rewardToken_,
@@ -146,7 +155,12 @@ contract RewardDistributor is OwnableUpgradeable {
     referralRevenueMaxThreshold = newReferralRevenueMaxThreshold;
   }
 
-  function claimAndSwap(address[] memory tokens) external {
+  function setFeeder(address newFeeder) external onlyOwner {
+    emit LogSetFeeder(feeder, newFeeder);
+    feeder = newFeeder;
+  }
+
+  function claimAndSwap(address[] memory tokens) external onlyFeeder {
     _claimAndSwap(tokens);
   }
 
@@ -183,7 +197,7 @@ contract RewardDistributor is OwnableUpgradeable {
     uint256 weekTimestamp,
     uint256 referralRevenueAmount,
     bytes32 merkleRoot
-  ) external {
+  ) external onlyFeeder {
     bytes32 salt = keccak256(abi.encode(weekTimestamp, referralRevenueAmount));
     address merkleAirdropAddress = merkleAirdropFactory
       .computeMerkleAirdropAddress(merkleAirdropTemplate, salt);

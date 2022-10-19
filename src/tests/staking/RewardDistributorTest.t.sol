@@ -84,6 +84,8 @@ contract RewardDistributorTest is BaseTest {
       address(merkleAirdropTemplate),
       referralRevenueMaxThreshold
     );
+
+    rewardDistributor.setFeeder(address(this));
   }
 
   function testCorrectness_WhenClaimAndFeedProtocolRevenue() external {
