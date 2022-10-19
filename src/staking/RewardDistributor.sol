@@ -169,16 +169,6 @@ contract RewardDistributor is OwnableUpgradeable {
     for (uint256 i = 0; i < length; ) {
       // 1. Withdraw protocol revenue
       _withdrawProtocolRevenue(tokens[i]);
-
-      unchecked {
-        i++;
-      }
-    }
-
-    // Note: We need to seprate this loop from another loop, since if we have the input token
-    // the same token as reward token, in our case USDC, we could end up in overcollecting
-    // dev fund.
-    for (uint256 i = 0; i < length; ) {
       // 2. Swap those revenue (along with surplus) to RewardToken Token
       _swapTokenToRewardToken(
         tokens[i],
