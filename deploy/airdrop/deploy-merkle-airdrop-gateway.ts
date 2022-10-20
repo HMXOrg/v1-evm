@@ -15,7 +15,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`Deploying MerkleAirdropGateway Contract`);
   console.log(`Deployed at: ${merkleAirdropGateway.address}`);
 
-  config.ReferralDistribution.MerkleAirdropGateway =
+  config.ReferralDistribution.MerkleAirdropGateway.address =
     merkleAirdropGateway.address;
   writeConfigFile(config);
 
