@@ -149,8 +149,17 @@
     ]
   },
   "ReferralDistribution": {
-    "MerkleAirdropTemplate": "",
-    "MerkleAirdropFactory": "",
-    "MerkleAirdropGateway": ""
+    "MerkleAirdropTemplate": {
+      "address": "",
+      "deployedAtBlock": ""
+    },
+    "MerkleAirdropFactory": {
+      "address": "",
+      "deployedAtBlock": ""
+    },
+    "MerkleAirdropGateway": {
+      "address": "",
+      "deployedAtBlock": ""
+    }
   }
 }

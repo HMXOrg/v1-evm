@@ -149,8 +149,17 @@
     ]
   },
   "ReferralDistribution": {
-    "MerkleAirdropTemplate": "0xeF4a3dD28787d6eF0C335c95B64037a412278D66",
-    "MerkleAirdropFactory": "0x7ff0C15dD771f2425A36E1132195946E3c5FB69b",
-    "MerkleAirdropGateway": "0xb402398C494795deB2EF5F88c98e0aA8D37AC69a"
+    "MerkleAirdropTemplate": {
+      "address": "0xeF4a3dD28787d6eF0C335c95B64037a412278D66",
+      "deployedAtBlock": "28474442"
+    },
+    "MerkleAirdropFactory": {
+      "address": "0x7ff0C15dD771f2425A36E1132195946E3c5FB69b",
+      "deployedAtBlock": "28474458"
+    },
+    "MerkleAirdropGateway": {
+      "address": "0xb402398C494795deB2EF5F88c98e0aA8D37AC69a",
+      "deployedAtBlock": "28474556"
+    }
   }
 }
