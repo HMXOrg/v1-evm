@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { BaseBridgeableToken } from "src/tokens/base/BaseBridgeableToken.sol";
+import { BaseBridgeableToken } from "../base/BaseBridgeableToken.sol";
 
 contract LZBridgeReceiver is Ownable {
   address public immutable lzEndpoint;
