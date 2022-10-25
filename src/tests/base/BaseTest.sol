@@ -65,8 +65,6 @@ import { PoolRouter } from "../../core/pool-diamond/PoolRouter.sol";
 import { Orderbook } from "../../core/pool-diamond/Orderbook.sol";
 import { MockWNative } from "src/tests/mocks/MockWNative.sol";
 import { MerkleAirdrop } from "src/airdrop/MerkleAirdrop.sol";
-import { MerkleAirdropFactory } from "src/airdrop/MerkleAirdropFactory.sol";
-import { MerkleAirdropGateway } from "src/airdrop/MerkleAirdropGateway.sol";
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
@@ -948,8 +946,7 @@ contract BaseTest is DSTest {
     uint256 devFundBps_,
     uint256 plpStakingBps_,
     address devFundAddress_,
-    address merkleAirdropFactory_,
-    address merkleAirdropTemplate_,
+    address merkleAirdrop_,
     uint256 referralRevenueMaxThreshold_
   ) internal returns (RewardDistributor) {
     bytes memory _logicBytecode = abi.encodePacked(
@@ -958,7 +955,7 @@ contract BaseTest is DSTest {
     bytes memory _initializer = abi.encodeWithSelector(
       bytes4(
         keccak256(
-          "initialize(address,address,address,address,address,uint256,uint256,address,address,address,uint256)"
+          "initialize(address,address,address,address,address,uint256,uint256,address,address,uint256)"
         )
       ),
       rewardToken_,
@@ -969,8 +966,7 @@ contract BaseTest is DSTest {
       devFundBps_,
       plpStakingBps_,
       devFundAddress_,
-      merkleAirdropFactory_,
-      merkleAirdropTemplate_,
+      merkleAirdrop_,
       referralRevenueMaxThreshold_
     );
 
@@ -1092,21 +1088,10 @@ contract BaseTest is DSTest {
     return Orderbook(payable(_proxy));
   }
 
-  function deployMerkleAirdrop() internal returns (MerkleAirdrop) {
-    return new MerkleAirdrop();
-  }
-
-  function deployMerkleAirdropFactory()
+  function deployMerkleAirdrop(address token, address feeder)
     internal
-    returns (MerkleAirdropFactory)
+    returns (MerkleAirdrop)
   {
-    return new MerkleAirdropFactory();
-  }
-
-  function deployMerkleAirdropGateway()
-    internal
-    returns (MerkleAirdropGateway)
-  {
-    return new MerkleAirdropGateway();
+    return new MerkleAirdrop(token, feeder);
   }
 }

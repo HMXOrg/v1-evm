@@ -8,7 +8,6 @@ import { IFeedableRewarder } from "../staking/interfaces/IFeedableRewarder.sol";
 import { IPoolRouter } from "../interfaces/IPoolRouter.sol";
 import { AdminFacetInterface } from "../core/pool-diamond/interfaces/AdminFacetInterface.sol";
 import { GetterFacetInterface } from "../core/pool-diamond/interfaces/GetterFacetInterface.sol";
-import { MerkleAirdropFactory } from "../airdrop/MerkleAirdropFactory.sol";
 import { MerkleAirdrop } from "../airdrop/MerkleAirdrop.sol";
 
 contract RewardDistributor is OwnableUpgradeable {
@@ -31,8 +30,7 @@ contract RewardDistributor is OwnableUpgradeable {
   /// @dev Fund addresses
   address public devFundAddress;
 
-  MerkleAirdropFactory public merkleAirdropFactory;
-  address public merkleAirdropTemplate;
+  MerkleAirdrop public merkleAirdrop;
 
   uint256 public referralRevenueMaxThreshold; // in BPS (10000)
 
@@ -59,8 +57,7 @@ contract RewardDistributor is OwnableUpgradeable {
     uint256 devFundBps,
     uint256 plpStakingBps,
     address devFundAddress,
-    address merkleAirdropFactory,
-    address merkleAirdropTemplate
+    address merkleAirdrop
   );
   event LogSetReferralRevenueMaxThreshold(
     uint256 oldThreshold,
@@ -82,8 +79,7 @@ contract RewardDistributor is OwnableUpgradeable {
     uint256 devFundBps_,
     uint256 plpStakingBps_,
     address devFundAddress_,
-    MerkleAirdropFactory merkleAirdropFactory_,
-    address merkleAirdropTemplate_,
+    MerkleAirdrop merkleAirdrop_,
     uint256 referralRevenueMaxThreshold_
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
@@ -96,8 +92,7 @@ contract RewardDistributor is OwnableUpgradeable {
     devFundBps = devFundBps_;
     plpStakingBps = plpStakingBps_;
     devFundAddress = devFundAddress_;
-    merkleAirdropFactory = merkleAirdropFactory_;
-    merkleAirdropTemplate = merkleAirdropTemplate_;
+    merkleAirdrop = merkleAirdrop_;
 
     referralRevenueMaxThreshold = referralRevenueMaxThreshold_;
   }
@@ -111,8 +106,7 @@ contract RewardDistributor is OwnableUpgradeable {
     uint256 devFundBps_,
     uint256 plpStakingBps_,
     address devFundAddress_,
-    MerkleAirdropFactory merkleAirdropFactory_,
-    address merkleAirdropTemplate_
+    MerkleAirdrop merkleAirdrop_
   ) external onlyOwner {
     if (plpStakingBps_ > 10000) revert RewardDistributor_BadParams();
 
@@ -124,8 +118,7 @@ contract RewardDistributor is OwnableUpgradeable {
     devFundBps = devFundBps_;
     plpStakingBps = plpStakingBps_;
     devFundAddress = devFundAddress_;
-    merkleAirdropFactory = merkleAirdropFactory_;
-    merkleAirdropTemplate = merkleAirdropTemplate_;
+    merkleAirdrop = merkleAirdrop_;
 
     emit LogSetParams(
       rewardToken_,
@@ -136,8 +129,7 @@ contract RewardDistributor is OwnableUpgradeable {
       devFundBps_,
       plpStakingBps_,
       devFundAddress_,
-      address(merkleAirdropFactory_),
-      merkleAirdropTemplate_
+      address(merkleAirdrop_)
     );
   }
 
@@ -188,18 +180,7 @@ contract RewardDistributor is OwnableUpgradeable {
     uint256 referralRevenueAmount,
     bytes32 merkleRoot
   ) external onlyFeeder {
-    bytes32 salt = keccak256(abi.encode(weekTimestamp, referralRevenueAmount));
-    address merkleAirdropAddress = merkleAirdropFactory
-      .computeMerkleAirdropAddress(merkleAirdropTemplate, salt);
-    if (MerkleAirdrop(merkleAirdropAddress).merkleRoot() != merkleRoot)
-      revert RewardDistributor_BadMerkleAirdrop(
-        merkleRoot,
-        salt,
-        merkleAirdropAddress
-      );
-
     _claimAndSwap(tokens);
-
     // Transfer referral revenue to merkle airdrop address for distribution
     uint256 totalProtocolRevenue = IERC20Upgradeable(rewardToken).balanceOf(
       address(this)
@@ -209,8 +190,9 @@ contract RewardDistributor is OwnableUpgradeable {
       totalProtocolRevenue * referralRevenueMaxThreshold <
       referralRevenueAmount * 10000
     ) revert RewardDistributor_ReferralRevenueExceedMaxThreshold();
+    merkleAirdrop.init(weekTimestamp, merkleRoot);
     IERC20Upgradeable(rewardToken).safeTransfer(
-      merkleAirdropAddress,
+      address(merkleAirdrop),
       referralRevenueAmount
     );
 

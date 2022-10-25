@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
-import { BaseTest, MerkleAirdrop, MerkleAirdropFactory, MerkleAirdropGateway } from "../base/BaseTest.sol";
+import { BaseTest, MerkleAirdrop } from "../base/BaseTest.sol";
 import { MockErc20 } from "../mocks/MockERC20.sol";
 import { RewardDistributor } from "../../staking/RewardDistributor.sol";
 import { MockFeedableRewarder } from "../mocks/MockFeedableRewarder.sol";
@@ -26,12 +26,10 @@ contract RewardDistributorTest is BaseTest {
 
   RewardDistributor internal rewardDistributor;
 
-  MerkleAirdrop internal merkleAirdropTemplate;
-  MerkleAirdropFactory internal merkleAirdropFactory;
+  MerkleAirdrop internal merkleAirdrop;
   bytes32 internal merkleRoot =
     0xe8265d62c006291e55af5cc6cde08360d1362af700d61a06087c7ce21b2c31b8;
   bytes32 internal ipfsHash = keccak256("1");
-  MerkleAirdrop internal merkleAirdrop;
 
   uint256 internal referralRevenueTokenAmount = 10 ether;
   uint256 internal referralRevenueMaxThreshold = 3000; // 30%
@@ -56,20 +54,7 @@ contract RewardDistributorTest is BaseTest {
       address(mockUSDC)
     );
 
-    merkleAirdropTemplate = deployMerkleAirdrop();
-    merkleAirdropFactory = deployMerkleAirdropFactory();
-
-    bytes32 salt = keccak256(
-      abi.encode(block.timestamp, referralRevenueTokenAmount)
-    );
-    merkleAirdrop = merkleAirdropFactory.createMerkleAirdrop(
-      address(merkleAirdropTemplate),
-      address(usdc),
-      merkleRoot,
-      block.timestamp + 7 days,
-      salt,
-      ipfsHash
-    );
+    merkleAirdrop = deployMerkleAirdrop(address(mockUSDC), address(this));
 
     rewardDistributor = deployRewardDistributor(
       address(mockUSDC),
@@ -80,12 +65,12 @@ contract RewardDistributorTest is BaseTest {
       1200, // 12%
       7500,
       devFund,
-      address(merkleAirdropFactory),
-      address(merkleAirdropTemplate),
+      address(merkleAirdrop),
       referralRevenueMaxThreshold
     );
 
     rewardDistributor.setFeeder(address(this));
+    merkleAirdrop.setFeeder(address(rewardDistributor));
   }
 
   function testCorrectness_WhenClaimAndFeedProtocolRevenue() external {
@@ -94,10 +79,11 @@ contract RewardDistributorTest is BaseTest {
     tokens[1] = address(wEth);
     tokens[2] = address(wMatic);
 
+    vm.warp(2 weeks);
     rewardDistributor.claimAndFeedProtocolRevenue(
       tokens,
       block.timestamp + 3 days,
-      block.timestamp,
+      0,
       referralRevenueTokenAmount,
       merkleRoot
     );
