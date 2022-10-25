@@ -299,6 +299,11 @@
       "address": "0x29bF035bfAC6EFEd874B1f48633640a21f740B42",
       "txHash": "0x063f645e9cbe372f481510eb89680d5c6765414d5c53147dbd853bfab92ba3bf",
       "kind": "transparent"
+    },
+    {
+      "address": "0x8802Db4B3cE237C8EFd874dcbC1BF2d0529627B1",
+      "txHash": "0x4998e1c8b333aa1a8c9c939021f31b37662f185d2697925e1d4a41c5fdcd3f73",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -4022,9 +4027,9 @@
             "label": "increaseOrders",
             "offset": 0,
             "slot": "151",
-            "type": "t_mapping(t_address,t_mapping(t_uint256,t_struct(IncreaseOrder)15180_storage))",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_struct(IncreaseOrder)8629_storage))",
             "contract": "Orderbook",
-            "src": "src/core/pool-diamond/Orderbook.sol:57"
+            "src": "solidity/contracts/core/pool-diamond/Orderbook.sol:57"
           },
           {
             "label": "increaseOrdersIndex",
@@ -4032,15 +4037,15 @@
             "slot": "152",
             "type": "t_mapping(t_address,t_uint256)",
             "contract": "Orderbook",
-            "src": "src/core/pool-diamond/Orderbook.sol:58"
+            "src": "solidity/contracts/core/pool-diamond/Orderbook.sol:58"
           },
           {
             "label": "decreaseOrders",
             "offset": 0,
             "slot": "153",
-            "type": "t_mapping(t_address,t_mapping(t_uint256,t_struct(DecreaseOrder)15201_storage))",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_struct(DecreaseOrder)8650_storage))",
             "contract": "Orderbook",
-            "src": "src/core/pool-diamond/Orderbook.sol:59"
+            "src": "solidity/contracts/core/pool-diamond/Orderbook.sol:59"
           },
           {
             "label": "decreaseOrdersIndex",
@@ -4048,15 +4053,15 @@
             "slot": "154",
             "type": "t_mapping(t_address,t_uint256)",
             "contract": "Orderbook",
-            "src": "src/core/pool-diamond/Orderbook.sol:60"
+            "src": "solidity/contracts/core/pool-diamond/Orderbook.sol:60"
           },
           {
             "label": "swapOrders",
             "offset": 0,
             "slot": "155",
-            "type": "t_mapping(t_address,t_mapping(t_uint256,t_struct(SwapOrder)15219_storage))",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_struct(SwapOrder)8668_storage))",
             "contract": "Orderbook",
-            "src": "src/core/pool-diamond/Orderbook.sol:61"
+            "src": "solidity/contracts/core/pool-diamond/Orderbook.sol:61"
           },
           {
             "label": "swapOrdersIndex",
@@ -4064,7 +4069,7 @@
             "slot": "156",
             "type": "t_mapping(t_address,t_uint256)",
             "contract": "Orderbook",
-            "src": "src/core/pool-diamond/Orderbook.sol:62"
+            "src": "solidity/contracts/core/pool-diamond/Orderbook.sol:62"
           },
           {
             "label": "weth",
@@ -4072,7 +4077,7 @@
             "slot": "157",
             "type": "t_address",
             "contract": "Orderbook",
-            "src": "src/core/pool-diamond/Orderbook.sol:64"
+            "src": "solidity/contracts/core/pool-diamond/Orderbook.sol:64"
           },
           {
             "label": "pool",
@@ -4080,15 +4085,15 @@
             "slot": "158",
             "type": "t_address",
             "contract": "Orderbook",
-            "src": "src/core/pool-diamond/Orderbook.sol:65"
+            "src": "solidity/contracts/core/pool-diamond/Orderbook.sol:65"
           },
           {
             "label": "poolOracle",
             "offset": 0,
             "slot": "159",
-            "type": "t_contract(PoolOracle)15124",
+            "type": "t_contract(PoolOracle)8573",
             "contract": "Orderbook",
-            "src": "src/core/pool-diamond/Orderbook.sol:66"
+            "src": "solidity/contracts/core/pool-diamond/Orderbook.sol:66"
           },
           {
             "label": "minExecutionFee",
@@ -4096,7 +4101,7 @@
             "slot": "160",
             "type": "t_uint256",
             "contract": "Orderbook",
-            "src": "src/core/pool-diamond/Orderbook.sol:67"
+            "src": "solidity/contracts/core/pool-diamond/Orderbook.sol:67"
           },
           {
             "label": "minPurchaseTokenAmountUsd",
@@ -4104,7 +4109,7 @@
             "slot": "161",
             "type": "t_uint256",
             "contract": "Orderbook",
-            "src": "src/core/pool-diamond/Orderbook.sol:68"
+            "src": "solidity/contracts/core/pool-diamond/Orderbook.sol:68"
           },
           {
             "label": "whitelist",
@@ -4112,7 +4117,7 @@
             "slot": "162",
             "type": "t_mapping(t_address,t_bool)",
             "contract": "Orderbook",
-            "src": "src/core/pool-diamond/Orderbook.sol:69"
+            "src": "solidity/contracts/core/pool-diamond/Orderbook.sol:69"
           },
           {
             "label": "isAllowAllExecutor",
@@ -4120,7 +4125,7 @@
             "slot": "163",
             "type": "t_bool",
             "contract": "Orderbook",
-            "src": "src/core/pool-diamond/Orderbook.sol:70"
+            "src": "solidity/contracts/core/pool-diamond/Orderbook.sol:70"
           }
         ],
         "types": {
@@ -4144,7 +4149,7 @@
             "label": "bool",
             "numberOfBytes": "1"
           },
-          "t_contract(PoolOracle)15124": {
+          "t_contract(PoolOracle)8573": {
             "label": "contract PoolOracle",
             "numberOfBytes": "20"
           },
@@ -4152,15 +4157,15 @@
             "label": "mapping(address => bool)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_address,t_mapping(t_uint256,t_struct(DecreaseOrder)15201_storage))": {
+          "t_mapping(t_address,t_mapping(t_uint256,t_struct(DecreaseOrder)8650_storage))": {
             "label": "mapping(address => mapping(uint256 => struct Orderbook.DecreaseOrder))",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_address,t_mapping(t_uint256,t_struct(IncreaseOrder)15180_storage))": {
+          "t_mapping(t_address,t_mapping(t_uint256,t_struct(IncreaseOrder)8629_storage))": {
             "label": "mapping(address => mapping(uint256 => struct Orderbook.IncreaseOrder))",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_address,t_mapping(t_uint256,t_struct(SwapOrder)15219_storage))": {
+          "t_mapping(t_address,t_mapping(t_uint256,t_struct(SwapOrder)8668_storage))": {
             "label": "mapping(address => mapping(uint256 => struct Orderbook.SwapOrder))",
             "numberOfBytes": "32"
           },
@@ -4168,19 +4173,19 @@
             "label": "mapping(address => uint256)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_uint256,t_struct(DecreaseOrder)15201_storage)": {
+          "t_mapping(t_uint256,t_struct(DecreaseOrder)8650_storage)": {
             "label": "mapping(uint256 => struct Orderbook.DecreaseOrder)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_uint256,t_struct(IncreaseOrder)15180_storage)": {
+          "t_mapping(t_uint256,t_struct(IncreaseOrder)8629_storage)": {
             "label": "mapping(uint256 => struct Orderbook.IncreaseOrder)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_uint256,t_struct(SwapOrder)15219_storage)": {
+          "t_mapping(t_uint256,t_struct(SwapOrder)8668_storage)": {
             "label": "mapping(uint256 => struct Orderbook.SwapOrder)",
             "numberOfBytes": "32"
           },
-          "t_struct(DecreaseOrder)15201_storage": {
+          "t_struct(DecreaseOrder)8650_storage": {
             "label": "struct Orderbook.DecreaseOrder",
             "members": [
               {
@@ -4246,7 +4251,7 @@
             ],
             "numberOfBytes": "320"
           },
-          "t_struct(IncreaseOrder)15180_storage": {
+          "t_struct(IncreaseOrder)8629_storage": {
             "label": "struct Orderbook.IncreaseOrder",
             "members": [
               {
@@ -4318,7 +4323,7 @@
             ],
             "numberOfBytes": "352"
           },
-          "t_struct(SwapOrder)15219_storage": {
+          "t_struct(SwapOrder)8668_storage": {
             "label": "struct Orderbook.SwapOrder",
             "members": [
               {
@@ -4536,6 +4541,173 @@
             "numberOfBytes": "1"
           },
           "t_contract(MerkleAirdrop)7919": {
+            "label": "contract MerkleAirdrop",
+            "numberOfBytes": "20"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "8c7f83702e228d0089f843a729bc7d246b357433e420dd9c9d53962b98e4a0c1": {
+      "address": "0xc1F4Aa50c5aD2DA0e725714edA7B88Fa5B6393E6",
+      "txHash": "0xbfe030696a0f7604c10781f3b8a1c13d0021004a5158f184477ef8b59d7cc5b5",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "rewardToken",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_address",
+            "contract": "RewardDistributor",
+            "src": "solidity/contracts/staking/RewardDistributor.sol:17"
+          },
+          {
+            "label": "pool",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_address",
+            "contract": "RewardDistributor",
+            "src": "solidity/contracts/staking/RewardDistributor.sol:20"
+          },
+          {
+            "label": "poolRouter",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_address",
+            "contract": "RewardDistributor",
+            "src": "solidity/contracts/staking/RewardDistributor.sol:21"
+          },
+          {
+            "label": "plpStakingProtocolRevenueRewarder",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_address",
+            "contract": "RewardDistributor",
+            "src": "solidity/contracts/staking/RewardDistributor.sol:22"
+          },
+          {
+            "label": "dragonStakingProtocolRevenueRewarder",
+            "offset": 0,
+            "slot": "105",
+            "type": "t_address",
+            "contract": "RewardDistributor",
+            "src": "solidity/contracts/staking/RewardDistributor.sol:23"
+          },
+          {
+            "label": "devFundBps",
+            "offset": 0,
+            "slot": "106",
+            "type": "t_uint256",
+            "contract": "RewardDistributor",
+            "src": "solidity/contracts/staking/RewardDistributor.sol:27"
+          },
+          {
+            "label": "plpStakingBps",
+            "offset": 0,
+            "slot": "107",
+            "type": "t_uint256",
+            "contract": "RewardDistributor",
+            "src": "solidity/contracts/staking/RewardDistributor.sol:28"
+          },
+          {
+            "label": "devFundAddress",
+            "offset": 0,
+            "slot": "108",
+            "type": "t_address",
+            "contract": "RewardDistributor",
+            "src": "solidity/contracts/staking/RewardDistributor.sol:31"
+          },
+          {
+            "label": "merkleAirdrop",
+            "offset": 0,
+            "slot": "109",
+            "type": "t_contract(MerkleAirdrop)7937",
+            "contract": "RewardDistributor",
+            "src": "solidity/contracts/staking/RewardDistributor.sol:33"
+          },
+          {
+            "label": "referralRevenueMaxThreshold",
+            "offset": 0,
+            "slot": "110",
+            "type": "t_uint256",
+            "contract": "RewardDistributor",
+            "src": "solidity/contracts/staking/RewardDistributor.sol:35"
+          },
+          {
+            "label": "feeder",
+            "offset": 0,
+            "slot": "111",
+            "type": "t_address",
+            "contract": "RewardDistributor",
+            "src": "solidity/contracts/staking/RewardDistributor.sol:37"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(MerkleAirdrop)7937": {
             "label": "contract MerkleAirdrop",
             "numberOfBytes": "20"
           },

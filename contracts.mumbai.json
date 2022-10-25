@@ -109,7 +109,7 @@
       ]
     },
     "RewardDistributor": {
-      "address": "0x29bF035bfAC6EFEd874B1f48633640a21f740B42",
+      "address": "0x8802Db4B3cE237C8EFd874dcbC1BF2d0529627B1",
       "deployedAtBlock": "28800035"
     }
   },
@@ -151,7 +151,7 @@
     ]
   },
   "MerkleAirdrop": {
-    "address": "0x3AA80Ce48D4E176fe2c7854801054EC0c33167a5",
+    "address": "0xA2b13862F5585660779DEAeb156336B99f46EcB4",
     "deployedAtBlock": "28800030"
   }
 }
