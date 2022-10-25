@@ -55,7 +55,8 @@
         "ownership": "0x3d7558727Ea9b1f90c5438bfF533E801997d54f2",
         "perpTrade": "0xdAE8171754b6792485FD22f4b67b0BB38C7C6113",
         "diamondInitializer": "0xEE638c28816B9ee2458eBC79E19Fb97b8e9e6571",
-        "poolConfigInitializer": "0xa034192E2f0f4cF2dCc8E0eAf2f836C600569504"
+        "poolConfigInitializer": "0xa034192E2f0f4cF2dCc8E0eAf2f836C600569504",
+        "accessControlInitializer": "0x0182cB3A2Ea022e33ad6BB7f34f3a529c84292d6"
       }
     }
   },
