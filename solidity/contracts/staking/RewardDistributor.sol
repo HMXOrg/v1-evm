@@ -64,6 +64,12 @@ contract RewardDistributor is OwnableUpgradeable {
     uint256 newThreshold
   );
   event LogSetFeeder(address oldFeeder, address newFeeder);
+  event LogProtocolFee(
+    uint256 weekTimestamp,
+    uint256 referralAmount,
+    uint256 devFundAmount,
+    uint256 stakingAmount
+  );
 
   modifier onlyFeeder() {
     if (msg.sender != feeder) revert RewardDistributor_NotFeeder();
@@ -197,11 +203,18 @@ contract RewardDistributor is OwnableUpgradeable {
     );
 
     // Collect Dev Fund after we have distribute referral revenue
-    _collectDevFund(rewardToken);
+    uint256 devFundAmount = _collectDevFund(rewardToken);
 
     // At this point, we got a portion of reward tokens for protocol revenue.
     // Feed reward to both rewarders
-    _feedRewardToRewarders(feedingExpiredAt);
+    uint256 stakingAmount = _feedRewardToRewarders(feedingExpiredAt);
+
+    emit LogProtocolFee(
+      weekTimestamp,
+      referralRevenueAmount,
+      devFundAmount,
+      stakingAmount
+    );
   }
 
   function _withdrawProtocolRevenue(address token) internal {
@@ -213,15 +226,16 @@ contract RewardDistributor is OwnableUpgradeable {
     );
   }
 
-  function _collectDevFund(address token) internal {
+  function _collectDevFund(address token) internal returns (uint256) {
     uint256 collectingAmount = (IERC20Upgradeable(token).balanceOf(
       address(this)
     ) * devFundBps) / 10000;
 
     // If no token, no need transfer
-    if (collectingAmount == 0) return;
+    if (collectingAmount == 0) return 0;
 
     IERC20Upgradeable(token).transfer(devFundAddress, collectingAmount);
+    return collectingAmount;
   }
 
   function _swapTokenToRewardToken(address token, uint256 amount) internal {
@@ -245,7 +259,10 @@ contract RewardDistributor is OwnableUpgradeable {
     );
   }
 
-  function _feedRewardToRewarders(uint256 feedingExpiredAt) internal {
+  function _feedRewardToRewarders(uint256 feedingExpiredAt)
+    internal
+    returns (uint256)
+  {
     uint256 totalRewardAmount = IERC20Upgradeable(rewardToken).balanceOf(
       address(this)
     );
@@ -276,6 +293,8 @@ contract RewardDistributor is OwnableUpgradeable {
           feedingExpiredAt
         );
     }
+
+    return totalRewardAmount;
   }
 
   /// @custom:oz-upgrades-unsafe-allow constructor

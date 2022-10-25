@@ -6,7 +6,7 @@ import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 
 const config = getConfig();
 
-const REWARD_TOKEN: string = config.Tokens.WMATIC;
+const REWARD_TOKEN: string = config.Tokens.USDC;
 const POOL: string = config.Pools.PLP.poolDiamond;
 const POOL_ROUTER: string = config.PoolRouter;
 const PLP_STAKING_PROTOCOL_REVENUE_REWARDER: string = (
@@ -14,11 +14,8 @@ const PLP_STAKING_PROTOCOL_REVENUE_REWARDER: string = (
     (o) => o.name === "PLP Staking Protocol Revenue"
   ) as any
 ).address;
-const DRAGON_STAKING_PROTOCOL_REVENUE_REWARDER: string = (
-  config.Staking.DragonStaking.rewarders.find(
-    (o) => o.name === "Dragon Staking Protocol Revenue"
-  ) as any
-).address;
+const DRAGON_STAKING_PROTOCOL_REVENUE_REWARDER: string =
+  ethers.constants.AddressZero;
 const DEV_FUND_BPS: number = 1500; // 15%
 const PLP_STAKING_BPS: number = 10000; // PLP -> 100%, Dragon -> 0%
 const DEV_FUND_ADDRESS: string = "0x6629eC35c8Aa279BA45Dbfb575c728d3812aE31a";

@@ -24,6 +24,7 @@ contract MerkleAirdrop is Ownable {
     uint256 amount
   );
   event SetFeeder(address oldFeeder, address newFeeder);
+  event Init(uint256 weekTimestamp, bytes32 merkleRoot);
 
   address public token;
   address public feeder;
@@ -56,9 +57,12 @@ contract MerkleAirdrop is Ownable {
     uint256 currentWeekTimestamp = block.timestamp / (60 * 60 * 24 * 7);
     if (currentWeekTimestamp <= weekTimestamp)
       revert MerkleAirdrop_CannotInitFutureWeek();
+    if (initialized[weekTimestamp]) revert MerkleAirdrop_Initialized();
 
     merkleRoot[weekTimestamp] = merkleRoot_;
     initialized[weekTimestamp] = true;
+
+    emit Init(weekTimestamp, merkleRoot_);
   }
 
   function isClaimed(uint256 weekTimestamp, uint256 index)
