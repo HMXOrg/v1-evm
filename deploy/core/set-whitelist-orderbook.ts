@@ -9,7 +9,7 @@ import { getConfig } from "../utils/config";
 
 const config = getConfig();
 
-const plugin = config.Pools.PLP.orderbook;
+const WHITELIST_ADDRESS = "0x6629eC35c8Aa279BA45Dbfb575c728d3812aE31a";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
@@ -17,10 +17,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     config.Pools.PLP.orderbook,
     deployer
   );
-  const tx = await orderbook.setWhitelist(
-    "0x6629eC35c8Aa279BA45Dbfb575c728d3812aE31a",
-    true
-  );
+  const tx = await orderbook.setWhitelist(WHITELIST_ADDRESS, true);
   const txReceipt = await tx.wait();
   console.log(`Execute setWhitelist`);
 };
