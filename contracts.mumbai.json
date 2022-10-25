@@ -109,7 +109,7 @@
       ]
     },
     "RewardDistributor": {
-      "address": "0x5a288C0113451126B0244aeA8415d11E43A9827A"
+      "address": "0xc82D187E01C7383f4EE39Ec20A7922C45B0ec950"
     }
   },
   "Lockdrop": {
@@ -150,7 +150,7 @@
     ]
   },
   "MerkleAirdrop": {
-    "address": "",
+    "address": "0x3AA80Ce48D4E176fe2c7854801054EC0c33167a5",
     "deployedAtBlock": ""
   }
 }

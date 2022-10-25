@@ -2,7 +2,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { getConfig } from "../utils/config";
-import { MockPoolOracle__factory } from "../../typechain/factories/src/tests/mocks/MockPoolOracle__factory";
+import { MockPoolOracle__factory } from "../../typechain";
 
 const config = getConfig();
 

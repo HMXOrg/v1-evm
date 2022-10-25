@@ -266,14 +266,16 @@ contract RewardDistributor is OwnableUpgradeable {
     );
 
     // Approve and feed to DragonStaking
-    IERC20Upgradeable(rewardToken).approve(
-      dragonStakingProtocolRevenueRewarder,
-      dragonStakingRewardAmount
-    );
-    IFeedableRewarder(dragonStakingProtocolRevenueRewarder).feedWithExpiredAt(
-      dragonStakingRewardAmount,
-      feedingExpiredAt
-    );
+    if (dragonStakingProtocolRevenueRewarder != address(0)) {
+      IERC20Upgradeable(rewardToken).approve(
+        dragonStakingProtocolRevenueRewarder,
+        dragonStakingRewardAmount
+      );
+      IFeedableRewarder(dragonStakingProtocolRevenueRewarder).feedWithExpiredAt(
+          dragonStakingRewardAmount,
+          feedingExpiredAt
+        );
+    }
   }
 
   /// @custom:oz-upgrades-unsafe-allow constructor
