@@ -17,6 +17,11 @@ contract MerkleAirdrop_Claim is MerkleAirdrop_BaseTest {
     );
   }
 
+  function testRevert_AlreadyInit() external {
+    vm.expectRevert(abi.encodeWithSignature("MerkleAirdrop_Initialized()"));
+    merkleAirdrop.init(weekTimestamp1, merkleRoot1);
+  }
+
   function testRevert_AlreadyClaimed() external {
     bytes32[] memory merkleProof = new bytes32[](1);
     merkleProof[
