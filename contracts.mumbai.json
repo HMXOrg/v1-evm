@@ -109,7 +109,8 @@
       ]
     },
     "RewardDistributor": {
-      "address": "0x5a288C0113451126B0244aeA8415d11E43A9827A"
+      "address": "0x8802Db4B3cE237C8EFd874dcbC1BF2d0529627B1",
+      "deployedAtBlock": "28800035"
     }
   },
   "Lockdrop": {
@@ -149,9 +150,8 @@
       }
     ]
   },
-  "ReferralDistribution": {
-    "MerkleAirdropTemplate": "0xeF4a3dD28787d6eF0C335c95B64037a412278D66",
-    "MerkleAirdropFactory": "0x7ff0C15dD771f2425A36E1132195946E3c5FB69b",
-    "MerkleAirdropGateway": "0xb402398C494795deB2EF5F88c98e0aA8D37AC69a"
+  "MerkleAirdrop": {
+    "address": "0xA2b13862F5585660779DEAeb156336B99f46EcB4",
+    "deployedAtBlock": "28800030"
   }
 }

@@ -3,6 +3,8 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, tenderly } from "hardhat";
 import { getConfig, writeConfigFile } from "../utils/config";
 
+const feeder = "0x6629eC35c8Aa279BA45Dbfb575c728d3812aE31a";
+
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const config = getConfig();
   const deployer = (await ethers.getSigners())[0];
@@ -10,12 +12,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "MerkleAirdrop",
     deployer
   );
-  const merkleAirdrop = await MerkleAirdrop.deploy();
+  const merkleAirdrop = await MerkleAirdrop.deploy(config.Tokens.USDC, feeder);
   await merkleAirdrop.deployed();
   console.log(`Deploying MerkleAirdrop Contract`);
   console.log(`Deployed at: ${merkleAirdrop.address}`);
 
-  config.ReferralDistribution.MerkleAirdropTemplate = merkleAirdrop.address;
+  config.MerkleAirdrop.address = merkleAirdrop.address;
   writeConfigFile(config);
 
   await tenderly.verify({
