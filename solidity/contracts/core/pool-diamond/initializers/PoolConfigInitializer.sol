@@ -32,7 +32,7 @@ contract PoolConfigInitializer {
     poolConfigDs.fundingRateFactor = fundingRateFactor;
     poolConfigDs.liquidationFeeUsd = liquidationFeeUsd;
 
-    poolConfigDs.maxLeverage = 88 * 10000;
+    poolConfigDs.maxLeverage = 100 * 10000;
 
     poolConfigDs.isDynamicFeeEnable = false;
     poolConfigDs.isSwapEnable = true;
