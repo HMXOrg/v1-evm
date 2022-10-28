@@ -38,7 +38,8 @@ contract DSTest {
   bool public IS_TEST = true;
   bool private _failed;
 
-  address constant HEVM_ADDRESS = address(bytes20(uint160(uint256(keccak256("hevm cheat code")))));
+  address constant HEVM_ADDRESS =
+    address(bytes20(uint160(uint256(keccak256("hevm cheat code")))));
 
   modifier mayRevert() {
     _;
@@ -54,7 +55,10 @@ contract DSTest {
       bool globalFailed = false;
       if (hasHEVMContext()) {
         (, bytes memory retdata) = HEVM_ADDRESS.call(
-          abi.encodePacked(bytes4(keccak256("load(address,bytes32)")), abi.encode(HEVM_ADDRESS, bytes32("failed")))
+          abi.encodePacked(
+            bytes4(keccak256("load(address,bytes32)")),
+            abi.encode(HEVM_ADDRESS, bytes32("failed"))
+          )
         );
         globalFailed = abi.decode(retdata, (bool));
       }
@@ -640,7 +644,11 @@ contract DSTest {
     }
   }
 
-  function checkEq0(bytes memory a, bytes memory b) internal pure returns (bool ok) {
+  function checkEq0(bytes memory a, bytes memory b)
+    internal
+    pure
+    returns (bool ok)
+  {
     ok = true;
     if (a.length == b.length) {
       for (uint256 i = 0; i < a.length; i++) {
@@ -683,6 +691,20 @@ contract DSTest {
       emit log_named_uint("  Expected", expected);
       emit log_named_uint("    Actual", actual);
       emit log_named_uint("  Variance", variance);
+      fail();
+    }
+  }
+
+  function assertCloseWei(
+    int256 actual,
+    int256 expected,
+    int256 variance
+  ) internal {
+    if (actual < expected - variance || actual > expected + variance) {
+      emit log("Error: a not close to b");
+      emit log_named_int("  Expected", expected);
+      emit log_named_int("    Actual", actual);
+      emit log_named_int("  Variance", variance);
       fail();
     }
   }

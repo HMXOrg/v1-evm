@@ -50,6 +50,10 @@ contract WFeedableRewarderTest is BaseTest {
     assertEq(ALICE.balance, 0);
     mockStaking.harvest(address(rewarder), ALICE);
     assertEq(rewardToken.balanceOf(ALICE), 0); // shouldn't get any reward token
-    assertEq(ALICE.balance, 29.999999999990000000 ether); // but should get native token instead
+    assertCloseWei(
+      ALICE.balance,
+      29.999999999990000000 ether,
+      0.00000001 ether
+    ); // but should get native token instead
   }
 }

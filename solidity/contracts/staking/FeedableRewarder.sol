@@ -26,7 +26,7 @@ contract FeedableRewarder is IRewarder, OwnableUpgradeable {
   uint128 public accRewardPerShare;
   uint256 public rewardRate;
   uint256 public rewardRateExpiredAt;
-  uint256 private constant ACC_REWARD_PRECISION = 1e12;
+  uint256 private constant ACC_REWARD_PRECISION = 1e20;
 
   // Events
   event LogOnDeposit(address indexed user, uint256 shareAmount);

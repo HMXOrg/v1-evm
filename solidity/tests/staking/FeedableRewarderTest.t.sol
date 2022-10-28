@@ -23,8 +23,8 @@ contract FeedableRewarderTest is BaseTest {
       address(mockStaking)
     );
 
-    rewardToken.mint(address(this), 2 * 1e12 ether);
-    rewardToken.approve(address(rewarder), 2 * 1e12 ether);
+    rewardToken.mint(address(this), 2 * 1e20 ether);
+    rewardToken.approve(address(rewarder), 2 * 1e20 ether);
   }
 
   function testCorrectness_WhenRewarderIsInit() external {
@@ -87,18 +87,34 @@ contract FeedableRewarderTest is BaseTest {
     // after 1 hour, acc reward should be calculated correctly
     vm.warp(block.timestamp + 1 hours);
     mockStaking.deposit(address(rewarder), ALICE, 188 ether);
-    // 3600 * 0.033068783068783068 * 1e-6 / 88 = 0.000001352813852813
-    assertEq(rewarder.accRewardPerShare(), 0.000001352813852813 ether);
-    // 188 * 0.000001352813852813
-    assertEq(rewarder.userRewardDebts(ALICE), 254.329004328844 ether);
+    // 3600 * 0.033068783068783068 * 1e20 / (88 * 1e18) = 135.28138528
+    assertCloseWei(
+      rewarder.accRewardPerShare(),
+      135.28138528 ether,
+      0.00000001 ether
+    );
+    // 188 * 135.28138528 * 1e18 / 1e20 = 254.32900433
+    assertCloseWei(
+      rewarder.userRewardDebts(ALICE),
+      254.32900433 ether,
+      0.00000001 ether
+    );
 
     // // after 3 hours, acc reward should be calculated correctly
     vm.warp(block.timestamp + 3 hours);
     mockStaking.deposit(address(rewarder), ALICE, 23 ether);
-    // 0.000001352813852813 + [(3600 * 3) * 0.033068783068783068 * 1e-6 / 276] = 0.000002646809712026
-    assertEq(rewarder.accRewardPerShare(), 0.000002646809712026 ether);
+    // 135.28138528 + ((3600 * 3) * 0.033068783068783068 * 1e20 / (276 * 1e18)) = 264.6809712
+    assertCloseWei(
+      rewarder.accRewardPerShare(),
+      264.6809712 ether,
+      0.00000001 ether
+    );
     // 254.329004328844 + (23 * 2.646809712026) = 315.205627705442
-    assertEq(rewarder.userRewardDebts(ALICE), 315.205627705442 ether);
+    assertCloseWei(
+      rewarder.userRewardDebts(ALICE),
+      315.205627705442 ether,
+      0.00000001 ether
+    );
   }
 
   function testCorrectness_WhenAliceAndBobDeposit() external {
@@ -120,8 +136,16 @@ contract FeedableRewarderTest is BaseTest {
     assertEq(rewardToken.balanceOf(BOB), 0);
     mockStaking.harvest(address(rewarder), ALICE);
     mockStaking.harvest(address(rewarder), BOB);
-    assertEq(rewardToken.balanceOf(ALICE), 14999.999999999980000000 ether);
-    assertEq(rewardToken.balanceOf(BOB), 4999.999999999990000000 ether);
+    assertCloseWei(
+      rewardToken.balanceOf(ALICE),
+      14999.999999999980000000 ether,
+      0.00000001 ether
+    );
+    assertCloseWei(
+      rewardToken.balanceOf(BOB),
+      4999.999999999990000000 ether,
+      0.00000001 ether
+    );
   }
 
   function testCorrectness_WhenAliceAndBobDeposit_ThenAliceWithdraw() external {
@@ -147,8 +171,16 @@ contract FeedableRewarderTest is BaseTest {
     assertEq(rewardToken.balanceOf(BOB), 0);
     mockStaking.harvest(address(rewarder), ALICE);
     mockStaking.harvest(address(rewarder), BOB);
-    assertEq(rewardToken.balanceOf(ALICE), 9999.999999999980000000 ether);
-    assertEq(rewardToken.balanceOf(BOB), 9999.999999999980000000 ether);
+    assertCloseWei(
+      rewardToken.balanceOf(ALICE),
+      9999.999999999980000000 ether,
+      0.00000001 ether
+    );
+    assertCloseWei(
+      rewardToken.balanceOf(BOB),
+      9999.999999999980000000 ether,
+      0.00000001 ether
+    );
   }
 
   function testCorrectness_WhenAliceAndBobDepositSimpultaneously_ThenBothWithdrawSimpultaneously()
@@ -191,7 +223,11 @@ contract FeedableRewarderTest is BaseTest {
     vm.warp(block.timestamp + 5 days);
     assertEq(rewardToken.balanceOf(ALICE), 0);
     mockStaking.harvest(address(rewarder), ALICE);
-    assertEq(rewardToken.balanceOf(ALICE), 19999.999999999980000000 ether);
+    assertCloseWei(
+      rewardToken.balanceOf(ALICE),
+      19999.999999999980000000 ether,
+      0.00000001 ether
+    );
   }
 
   function test_WhenFeedTokenMultipleTimes() external {
@@ -215,7 +251,7 @@ contract FeedableRewarderTest is BaseTest {
     vm.warp(block.timestamp + 7 days);
     assertEq(rewardToken.balanceOf(ALICE), 0);
     mockStaking.harvest(address(rewarder), ALICE);
-    assertEq(rewardToken.balanceOf(ALICE), 24679.999999999980000000 ether);
+    assertEq(rewardToken.balanceOf(ALICE), 24679.999999999999382400 ether);
   }
 
   function testCorrectness_WhenFeedTokenMultipleTimes_WithAliceAndBobDeposit_ThenAliceWithdraw(
@@ -224,8 +260,8 @@ contract FeedableRewarderTest is BaseTest {
   ) external {
     vm.assume(feedAmount1 > 0.01 ether);
     vm.assume(feedAmount2 > 0.01 ether);
-    vm.assume(feedAmount1 < 1e12 ether);
-    vm.assume(feedAmount2 < 1e12 ether);
+    vm.assume(feedAmount1 < 1e20 ether);
+    vm.assume(feedAmount2 < 1e20 ether);
 
     // the comment on this test case assumes, the following params
     // uint256 feedAmount1 = 20000 ether;

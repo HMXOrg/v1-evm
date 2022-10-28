@@ -105,16 +105,16 @@ contract PLPStaking_Harvest is PLPStaking_BaseTest {
 
     assertEq(plp.balanceOf(ALICE), 900 ether);
     assertEq(plpStaking.userTokenAmount(address(plp), ALICE), 100 ether);
-    // 3 days * 1 / 300 * 1e-6 = 0.000864
-    assertEq(esP88Rewarder.accRewardPerShare(), 0.000864 ether);
+    // 3 days * 1 / 300 * 1e2 = 86400
+    assertEq(esP88Rewarder.accRewardPerShare(), 86400 ether);
     // 100 * 0.000864 * 1e6 = 86400
     assertEq(esP88Rewarder.userRewardDebts(ALICE), 86400 ether);
-    // 3 days * 0.5 / 300 * 1e-6 = 0.000432
-    assertEq(revenueRewarder.accRewardPerShare(), 0.000432 ether);
+    // 3 days * 0.5 / 300 * 1e2 = 43200
+    assertEq(revenueRewarder.accRewardPerShare(), 43200 ether);
     // 100 * 0.000432 * 1e6 = 43200
     assertEq(revenueRewarder.userRewardDebts(ALICE), 43200 ether);
-    // 3 days * 0.1 / 300 * 1e-6 = 0.0000864
-    assertEq(partnerARewarder.accRewardPerShare(), 0.0000864 ether);
+    // 3 days * 0.1 / 300 * 1e2 = 8640
+    assertEq(partnerARewarder.accRewardPerShare(), 8640 ether);
     // 100 * 0.0000864 * 1e6 = 8640
     assertEq(partnerARewarder.userRewardDebts(ALICE), 8640 ether);
 

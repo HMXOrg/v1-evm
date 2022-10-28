@@ -94,8 +94,8 @@ contract PLPStaking_Withdraw is PLPStaking_BaseTest {
     plpStaking.withdraw(address(plp), 100 ether);
     vm.stopPrank();
 
-    // 604800 * 1 / 100 * 1e-6 = 0.006048
-    assertEq(esP88Rewarder.accRewardPerShare(), 0.006048 ether);
+    // 604800 * 1 / 100 * 1e2 = 604800
+    assertEq(esP88Rewarder.accRewardPerShare(), 604800 ether);
     // 100 * 0.006048 * 1e6 = 604800
     assertEq(esP88Rewarder.userRewardDebts(ALICE), -604800 ether);
     // 8 days
@@ -126,7 +126,7 @@ contract PLPStaking_Withdraw is PLPStaking_BaseTest {
     plpStaking.deposit(ALICE, address(plp), 100 ether);
     vm.stopPrank();
 
-    // 4 days * 1 / 100 * 1e-6 = 0.003456
+    // 4 days * 1 / 100 * 1e2 = 0.003456
     assertEq(esP88Rewarder.accRewardPerShare(), 0);
     // 100 * 0.003456 * 1e6 = 345600
     assertEq(esP88Rewarder.userRewardDebts(ALICE), 0);
@@ -141,11 +141,12 @@ contract PLPStaking_Withdraw is PLPStaking_BaseTest {
     plpStaking.withdraw(address(plp), 30 ether);
     vm.stopPrank();
 
-    // 4 days * 1 / 100 * 1e-6 = 0.003456
-    assertEq(esP88Rewarder.accRewardPerShare(), 0.003456 ether);
+    // 4 days = 345600
+    // 345600 * 1 / 100 * 1e2 = 345600
+    assertEq(esP88Rewarder.accRewardPerShare(), 345600 ether);
     // 30 * 0.003456 * 1e6 = 103680
     assertEq(esP88Rewarder.userRewardDebts(ALICE), -103680 ether);
-    // 4 days
+    // 345600
     assertEq(esP88Rewarder.lastRewardTime(), 345601);
 
     // after 4 days
@@ -159,10 +160,19 @@ contract PLPStaking_Withdraw is PLPStaking_BaseTest {
     plpStaking.withdraw(address(plp), 70 ether);
     vm.stopPrank();
 
-    // 0.003456 + 3 days * 1 / 70 * 1e-6 = 0.007158857142857142
-    assertEq(esP88Rewarder.accRewardPerShare(), 0.007158857142857142 ether);
+    // 4 days = 259200
+    // 345600 + (259200 * 1 / 70 * 1e2) = 715885.71428571
+    assertCloseWei(
+      esP88Rewarder.accRewardPerShare(),
+      715885.71428571 ether,
+      0.00000001 ether
+    );
     // 103680 + 70 * 0.007158857142857142 * 1e6 = 604799.99999999994
-    assertEq(esP88Rewarder.userRewardDebts(ALICE), -604799.99999999994 ether);
+    assertCloseWei(
+      esP88Rewarder.userRewardDebts(ALICE),
+      -604799.99999999994 ether,
+      0.00000001 ether
+    );
     // 8 days
     assertEq(esP88Rewarder.lastRewardTime(), 691201);
   }
@@ -243,37 +253,37 @@ contract PLPStaking_Withdraw is PLPStaking_BaseTest {
 
     assertEq(plp.balanceOf(ALICE), 900 ether);
     assertEq(plpStaking.userTokenAmount(address(plp), ALICE), 100 ether);
-    // 259200
-    // 3 days * 1 / 300 * 1e-6 = 0.000864
-    assertEq(esP88Rewarder.accRewardPerShare(), 0.000864 ether);
+    // 3 days = 259200
+    // 259200 * 1 / 300 * 1e2 = 0.000864
+    assertEq(esP88Rewarder.accRewardPerShare(), 86400 ether);
     // 100 * 0.000864 * 1e6 = 86400
     assertEq(esP88Rewarder.userRewardDebts(ALICE), -86400 ether);
-    // 3 days 3 hours
+    // 259200 3 hours
     assertEq(esP88Rewarder.lastRewardTime(), 270001);
-    // 3 days * 0.5 / 300 * 1e-6 = 0.000432
-    assertEq(revenueRewarder.accRewardPerShare(), 0.000432 ether);
+    // 259200 * 0.5 / 300 * 1e2 = 43200
+    assertEq(revenueRewarder.accRewardPerShare(), 43200 ether);
     // 100 * 0.000432 * 1e6 = 43200
     assertEq(revenueRewarder.userRewardDebts(ALICE), -43200 ether);
-    // 3 days 3 hours
+    // 259200 3 hours
     assertEq(revenueRewarder.lastRewardTime(), 270001);
-    // 3 days * 0.1 / 300 * 1e-6 = 0.0000864
-    assertEq(partnerARewarder.accRewardPerShare(), 0.0000864 ether);
+    // 259200 * 0.1 / 300 * 1e2 = 0.0000864
+    assertEq(partnerARewarder.accRewardPerShare(), 8640 ether);
     // 100 * 0.0000864 * 1e6 = 8640
     assertEq(partnerARewarder.userRewardDebts(ALICE), -8640 ether);
-    // 3 days 3 hours
+    // 259200 3 hours
     assertEq(partnerARewarder.lastRewardTime(), 270001);
 
-    // 3 days * 1 * 100 / 300 = 172800
+    // 259200 * 1 * 100 / 300 = 172800
     assertEq(esP88Rewarder.pendingReward(ALICE), 172800 ether);
-    // 3 days * 0.5 * 100 / 150 = 86400
+    // 259200 * 0.5 * 100 / 150 = 86400
     assertEq(revenueRewarder.pendingReward(ALICE), 86400 ether);
-    // 3 days * 0.1 * 100 / 150 = 17280
+    // 259200 * 0.1 * 100 / 150 = 17280
     assertEq(partnerARewarder.pendingReward(ALICE), 17280 ether);
-    // 3 days * 1 * 50 / 150 = 86400
+    // 259200 * 1 * 50 / 150 = 86400
     assertEq(esP88Rewarder.pendingReward(BOB), 86400 ether);
-    // 3 days * 0.5 * 50 / 150 = 43200
+    // 259200 * 0.5 * 50 / 150 = 43200
     assertEq(revenueRewarder.pendingReward(BOB), 43200 ether);
-    // 3 days * 0.1 * 50 / 150 = 8640
+    // 259200 * 0.1 * 50 / 150 = 8640
     assertEq(partnerARewarder.pendingReward(BOB), 8640 ether);
 
     // after 5 days
