@@ -162,9 +162,9 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
 
     wbtc.mint(address(poolDiamond), 22500);
 
-    // Max leverage is 88x
+    // Max leverage is 100x
     // We use 22500 sathoshi = 22500 / 1e8 * 40000 = 9 USD as a collateral
-    // Long position size at 9 * 88 = 792 USD should be reverted as max leverage is exceeded
+    // Long position size at 9 * 100 = 900 USD should be reverted as max leverage is exceeded
     vm.expectRevert(
       abi.encodeWithSignature("PerpTradeFacet_MaxLeverageExceed()")
     );
@@ -173,7 +173,7 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
       0,
       address(wbtc),
       address(wbtc),
-      792 * 10**30,
+      900 * 10**30,
       true
     );
   }
@@ -1292,7 +1292,7 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
 
     // Max leverage is 88x
     // We use 10.9 DAI = 10.9 USD as a collateral
-    // Short position size at 10.9 * 88 = 959.2 USD should be reverted as max leverage is exceeded
+    // Short position size at 10.9 * 100 = 1090 USD should be reverted as max leverage is exceeded
     vm.expectRevert(
       abi.encodeWithSignature("PerpTradeFacet_MaxLeverageExceed()")
     );
@@ -1301,7 +1301,7 @@ contract PoolDiamond_IncreasePositionTest is PoolDiamond_BaseTest {
       0,
       address(dai),
       address(wbtc),
-      959.2 * 10**30,
+      1090 * 10**30,
       false
     );
   }
