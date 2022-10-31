@@ -309,6 +309,21 @@
       "address": "0x0C9AcFA6d7eD77770bEE2a2d105921321d9EA262",
       "txHash": "0xe13c8ecb4d86d9236126b2549f99f77d9b87d406e175ba29ea9efa59a806dc5b",
       "kind": "transparent"
+    },
+    {
+      "address": "0x6dF75f1420Ac68363B6d1152070E4033A9A66B87",
+      "txHash": "0xfa68aa506297ae2ee88f06824889b515bb6445b31539af68848f45810e6c2a9a",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x97949aa1349EAc8D8aa5E88b80d7326831bEB2d2",
+      "txHash": "0xc4aaedcd524c180fb65cf65678715f277e7ceda028fbfdaf2ea2aaf86b3c43ae",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x3aF4f2B5C9e689d03080fe08ac2fa125A194Ac31",
+      "txHash": "0x2202aa0f4440bcdee8bdc98fff4abdb7f496315dd9c3e925482bb2fba51d4599",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -4719,6 +4734,173 @@
           "t_uint256": {
             "label": "uint256",
             "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "f4193346b9088b9295c2e92183fe93b937ba382c4759a128f85d7d822c7bac43": {
+      "address": "0xf59E7b49Cfa85dB50E27AD51b5EBC04B5CF0FF06",
+      "txHash": "0x47b49a47e274e19a9754dfd389878c84d3bd77fdc088ef84844834833a89b1a5",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "name",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_string_storage",
+            "contract": "FeedableRewarder",
+            "src": "solidity/contracts/staking/FeedableRewarder.sol:16"
+          },
+          {
+            "label": "rewardToken",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_address",
+            "contract": "FeedableRewarder",
+            "src": "solidity/contracts/staking/FeedableRewarder.sol:17"
+          },
+          {
+            "label": "staking",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_address",
+            "contract": "FeedableRewarder",
+            "src": "solidity/contracts/staking/FeedableRewarder.sol:18"
+          },
+          {
+            "label": "feeder",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_address",
+            "contract": "FeedableRewarder",
+            "src": "solidity/contracts/staking/FeedableRewarder.sol:19"
+          },
+          {
+            "label": "userRewardDebts",
+            "offset": 0,
+            "slot": "105",
+            "type": "t_mapping(t_address,t_int256)",
+            "contract": "FeedableRewarder",
+            "src": "solidity/contracts/staking/FeedableRewarder.sol:22"
+          },
+          {
+            "label": "lastRewardTime",
+            "offset": 0,
+            "slot": "106",
+            "type": "t_uint64",
+            "contract": "FeedableRewarder",
+            "src": "solidity/contracts/staking/FeedableRewarder.sol:25"
+          },
+          {
+            "label": "accRewardPerShare",
+            "offset": 8,
+            "slot": "106",
+            "type": "t_uint128",
+            "contract": "FeedableRewarder",
+            "src": "solidity/contracts/staking/FeedableRewarder.sol:26"
+          },
+          {
+            "label": "rewardRate",
+            "offset": 0,
+            "slot": "107",
+            "type": "t_uint256",
+            "contract": "FeedableRewarder",
+            "src": "solidity/contracts/staking/FeedableRewarder.sol:27"
+          },
+          {
+            "label": "rewardRateExpiredAt",
+            "offset": 0,
+            "slot": "108",
+            "type": "t_uint256",
+            "contract": "FeedableRewarder",
+            "src": "solidity/contracts/staking/FeedableRewarder.sol:28"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_int256": {
+            "label": "int256",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_int256)": {
+            "label": "mapping(address => int256)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_uint128": {
+            "label": "uint128",
+            "numberOfBytes": "16"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
           },
           "t_uint8": {
             "label": "uint8",

@@ -7,11 +7,7 @@ import { getConfig } from "../utils/config";
 const config = getConfig();
 
 const COMPOUNDER_ADDRESS = config.Staking.Compounder;
-const STAKING_CONTRACT_ADDRESS = [
-  config.Staking.PLPStaking.address,
-  config.Staking.DragonStaking.address,
-  config.Staking.P88LPStaking.address,
-];
+const STAKING_CONTRACT_ADDRESS = [config.Staking.PLPStaking.address];
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];

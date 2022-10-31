@@ -6,7 +6,7 @@ import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 
 const config = getConfig();
 
-const NAME = "P88 LP Staking esP88 Emission";
+const NAME = "PLP Staking Protocol Revenue";
 const REWARD_TOKEN_ADDRESS = getRewardTokenAddress(NAME);
 const STAKING_CONTRACT_ADDRESS = getStakingContractAddress(NAME);
 

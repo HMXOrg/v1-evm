@@ -11,7 +11,7 @@ import { PerpTradeFacetInterface } from "./interfaces/PerpTradeFacetInterface.so
 import { PoolOracle } from "../PoolOracle.sol";
 import { IStaking } from "../../staking/interfaces/IStaking.sol";
 
-contract PoolRouter {
+contract PoolRouter02 {
   using SafeERC20 for IERC20;
 
   IWNative public immutable WNATIVE;

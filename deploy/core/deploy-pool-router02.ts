@@ -23,7 +23,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   await tenderly.verify({
     address: poolRouter.address,
-    name: "PoolRouter",
+    name: "PoolRouter02",
   });
 };
 

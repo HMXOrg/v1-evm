@@ -13,7 +13,7 @@
     "PLP": "0x27bD9e3a94DfCcCCb83e36Bc09e22dB0fAcDaDD4",
     "DragonPoint": "0xe33c9D5a046fd2Db8120ed748b0613cc5eD030D6",
     "P88QSLP": "0xA962fF080a3157F6d142dB0C6F30feDeA28A4e0C",
-    "WMATIC": "0x9c3c9283d3e44854697cd22d3faa240cfb032889",
+    "WMATIC": "0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889",
     "WETH": "0x2859751c033E64b1050f5E9642C4848293D3caE1",
     "WBTC": "0xC4F51bc480154e5B270967C70B64b53d0C189079",
     "DAI": "0x7FeC31e5966C84E8A81C574a0504ff637E3CC569",
@@ -37,7 +37,7 @@
     "AAVE_USD": "0x...",
     "atricrypto3": "0x..."
   },
-  "PoolRouter": "0x06a346eED4092E7e99Db4054318247AfED9CeBF0",
+  "PoolRouter": "0xa735F3903b90Dd5f879053753B6D875C064e69CD",
   "Pools": {
     "PLP": {
       "poolDiamond": "0x74d841657cDFdFcbDd2A40818F2Bc6cA60283428",
@@ -60,51 +60,51 @@
       }
     }
   },
-  "Vester": "0xEC7Dd24aaA7d822ACd69f8289FDC616c4d9f5cd8",
+  "Vester": "0x0000000000000000000000000000000000000000",
   "Staking": {
-    "Compounder": "0x5Db94C1045853C93e45c0525928B903C1E535047",
+    "Compounder": "0x3aF4f2B5C9e689d03080fe08ac2fa125A194Ac31",
     "PLPStaking": {
-      "address": "0x30C95A96De0cB54d31b600ab228bCd4377001354",
+      "address": "0x6dF75f1420Ac68363B6d1152070E4033A9A66B87",
       "rewarders": [
         {
           "name": "PLP Staking Protocol Revenue",
-          "address": "0x7Def401610cFCAaF147bD3198e1f7Ed7cF36C715",
+          "address": "0x97949aa1349EAc8D8aa5E88b80d7326831bEB2d2",
           "rewardToken": "0xFc99D238c7A20895ba3756Ee04FD8BfD442c18fD"
         },
         {
           "name": "PLP Staking esP88 Emission",
-          "address": "0x252da8d08F59a2E277fef16b2F129C5267002513",
-          "rewardToken": "0x35D508569b11cc02fCF02FBee8A154c24742a3bb"
+          "address": "0x0000000000000000000000000000000000000000",
+          "rewardToken": "0x0000000000000000000000000000000000000000"
         }
       ]
     },
     "DragonStaking": {
-      "address": "0xA65d0CDAbd01cE2F2370E11Bc154620Ffaf57886",
+      "address": "0x0000000000000000000000000000000000000000",
       "rewarders": [
         {
           "name": "Dragon Staking Protocol Revenue",
-          "address": "0xAcA79ba49b10F8aF64943206FC569D9A579f9A7e",
-          "rewardToken": "0xFc99D238c7A20895ba3756Ee04FD8BfD442c18fD"
+          "address": "0x0000000000000000000000000000000000000000",
+          "rewardToken": "0x0000000000000000000000000000000000000000"
         },
         {
           "name": "Dragon Staking esP88 Emission",
-          "address": "0x123776a50A2a024Cbd04f3E0a3a21dE41CD2E42B",
-          "rewardToken": "0x35D508569b11cc02fCF02FBee8A154c24742a3bb"
+          "address": "0x0000000000000000000000000000000000000000",
+          "rewardToken": "0x0000000000000000000000000000000000000000"
         },
         {
           "name": "Dragon Staking Dragon Point Emission",
-          "address": "0xA9DA5349D49EC1820365efEF823208EcFba0271A",
-          "rewardToken": "0xe33c9D5a046fd2Db8120ed748b0613cc5eD030D6"
+          "address": "0x0000000000000000000000000000000000000000",
+          "rewardToken": "0x0000000000000000000000000000000000000000"
         }
       ]
     },
     "P88LPStaking": {
-      "address": "0xF8974139e3c9c413bA76498668df1D2263cC999B",
+      "address": "0x0000000000000000000000000000000000000000",
       "rewarders": [
         {
           "name": "P88 LP Staking esP88 Emission",
-          "address": "0xe97776B947C60b83FeDeF69B945001c09BB01A2d",
-          "rewardToken": "0x35D508569b11cc02fCF02FBee8A154c24742a3bb"
+          "address": "0x0000000000000000000000000000000000000000",
+          "rewardToken": "0x0000000000000000000000000000000000000000"
         }
       ]
     },
@@ -114,39 +114,39 @@
     }
   },
   "Lockdrop": {
-    "config": "0x9Ec0F3192B483ED1Fe921f6fFE7011dA75CE229C",
-    "compounder": "0x7d43368A1D4a134d00463BfCe1ebb98209B16573",
-    "gateway": "0x4a11f341d64c7cdE66d4DD467d8BE0645517A9E4",
+    "config": "0x0000000000000000000000000000000000000000",
+    "compounder": "0x0000000000000000000000000000000000000000",
+    "gateway": "0x0000000000000000000000000000000000000000",
     "lockdrops": [
       {
         "lockdropTokenSymbol": "WMATIC",
-        "lockdropToken": "0x9c3c9283d3e44854697cd22d3faa240cfb032889",
-        "address": "0x76c2aC7FC53602fB6dD44304439E2d1eF8dcc418"
+        "lockdropToken": "0x0000000000000000000000000000000000000000",
+        "address": "0x0000000000000000000000000000000000000000"
       },
       {
         "lockdropTokenSymbol": "WETH",
-        "lockdropToken": "0x2859751c033E64b1050f5E9642C4848293D3caE1",
-        "address": "0xAfCCD3D6F603A57eb63cae057784D319fA7C3993"
+        "lockdropToken": "0x0000000000000000000000000000000000000000",
+        "address": "0x0000000000000000000000000000000000000000"
       },
       {
         "lockdropTokenSymbol": "WBTC",
-        "lockdropToken": "0xC4F51bc480154e5B270967C70B64b53d0C189079",
-        "address": "0x0e5c9E68684075e064052cF5e23B869a3170E168"
+        "lockdropToken": "0x0000000000000000000000000000000000000000",
+        "address": "0x0000000000000000000000000000000000000000"
       },
       {
         "lockdropTokenSymbol": "DAI",
-        "lockdropToken": "0x7FeC31e5966C84E8A81C574a0504ff637E3CC569",
-        "address": "0xdB9926820184a6af6f3E5ebA94ADc9a58dcB41Fe"
+        "lockdropToken": "0x0000000000000000000000000000000000000000",
+        "address": "0x0000000000000000000000000000000000000000"
       },
       {
         "lockdropTokenSymbol": "USDC",
-        "lockdropToken": "0xFc99D238c7A20895ba3756Ee04FD8BfD442c18fD",
-        "address": "0xBFFb1844C9c3eb40988C5C4BD03E92D52f4F7070"
+        "lockdropToken": "0x0000000000000000000000000000000000000000",
+        "address": "0x0000000000000000000000000000000000000000"
       },
       {
         "lockdropTokenSymbol": "USDT",
-        "lockdropToken": "0xF21405bA59E79762C306c83298dbD10a8A285f2F",
-        "address": "0xe8Ae03C982330d1Ef8a912697654633708c7905a"
+        "lockdropToken": "0x0000000000000000000000000000000000000000",
+        "address": "0x0000000000000000000000000000000000000000"
       }
     ]
   },

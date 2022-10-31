@@ -6,11 +6,11 @@ import { getConfig } from "../utils/config";
 
 const config = getConfig();
 
-const STAKING_CONTRACT_ADDRESS = config.Staking.P88LPStaking.address;
-const STAKING_TOKEN_ADDRESS = config.Tokens.P88QSLP;
-const REWARDERS = config.Staking.P88LPStaking.rewarders.map(
-  (each: any) => each.address
-);
+const STAKING_CONTRACT_ADDRESS = config.Staking.PLPStaking.address;
+const STAKING_TOKEN_ADDRESS = config.Tokens.PLP;
+const REWARDERS = config.Staking.PLPStaking.rewarders
+  .map((each: any) => each.address)
+  .filter((each) => each !== ethers.constants.AddressZero);
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
