@@ -11,7 +11,6 @@ const TOKENS = [
   config.Tokens.WMATIC, // WMATIC
   config.Tokens.WETH, // WETH
   config.Tokens.WBTC, // WBTC
-  config.Tokens.DAI, // DAI
   config.Tokens.USDC, // USDC
   config.Tokens.USDT, // USDT
 ];
@@ -30,12 +29,6 @@ const FEED_INFOS = [
   },
   {
     priceFeed: "0xDE31F8bFBD8c84b5360CFACCa3539B938dd78ae6", // WBTC
-    decimals: 8,
-    spreadBps: 10,
-    isStrictStable: false,
-  },
-  {
-    priceFeed: "0x4746DeC9e833A82EC7C2C1356372CcF2cfcD2F3D", // DAI
     decimals: 8,
     spreadBps: 10,
     isStrictStable: false,

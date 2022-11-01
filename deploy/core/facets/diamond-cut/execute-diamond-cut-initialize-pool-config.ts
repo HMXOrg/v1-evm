@@ -11,8 +11,8 @@ const config = getConfig();
 
 const treasury = "0x6629ec35c8aa279ba45dbfb575c728d3812ae31a";
 const fundingInterval = 60 * 60; // 1 hour
-const mintBurnFeeBps = 30;
-const taxBps = 50;
+const mintBurnFeeBps = 0; // 0% at launch
+const taxBps = 0; // 0% at launch
 const stableBorrowingRateFactor = 100; // 0.01% / 1 hour
 const fundingRateFactor = 25; // 0.0025% / 1 hour
 const borrowingRateFactor = 100; // 0.01% / 1 hour

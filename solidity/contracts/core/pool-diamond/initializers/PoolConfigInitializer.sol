@@ -38,10 +38,9 @@ contract PoolConfigInitializer {
     poolConfigDs.isSwapEnable = true;
     poolConfigDs.isLeverageEnable = true;
 
-    poolConfigDs.liquidationFeeUsd = liquidationFeeUsd;
     poolConfigDs.stableSwapFeeBps = 4;
     poolConfigDs.swapFeeBps = 30;
-    poolConfigDs.positionFeeBps = 10;
-    poolConfigDs.flashLoanFeeBps = 5;
+    poolConfigDs.positionFeeBps = 9;
+    poolConfigDs.flashLoanFeeBps = 8;
   }
 }
