@@ -8,10 +8,10 @@ const config = getConfig();
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
   const PoolConfigInitializer = await ethers.getContractFactory(
-    "PoolConfigInitializer",
+    "PoolConfigInitializer02",
     deployer
   );
-  console.log(`Deploying PoolConfigInitializer Contract`);
+  console.log(`Deploying PoolConfigInitializer02 Contract`);
   const poolConfigInitializer = await PoolConfigInitializer.deploy();
   await poolConfigInitializer.deployed();
   console.log(`Deployed at: ${poolConfigInitializer.address}`);
@@ -21,7 +21,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   await tenderly.verify({
     address: poolConfigInitializer.address,
-    name: "PoolConfigInitializer",
+    name: "PoolConfigInitializer02",
   });
 };
 

@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
 import { LinkedList } from "../../../libraries/LinkedList.sol";
 
-contract PoolConfigInitializer {
+contract PoolConfigInitializer02 {
   using LinkedList for LinkedList.List;
 
   function initialize(
@@ -38,10 +38,9 @@ contract PoolConfigInitializer {
     poolConfigDs.isSwapEnable = true;
     poolConfigDs.isLeverageEnable = true;
 
-    poolConfigDs.liquidationFeeUsd = liquidationFeeUsd;
     poolConfigDs.stableSwapFeeBps = 4;
     poolConfigDs.swapFeeBps = 30;
-    poolConfigDs.positionFeeBps = 10;
-    poolConfigDs.flashLoanFeeBps = 5;
+    poolConfigDs.positionFeeBps = 9;
+    poolConfigDs.flashLoanFeeBps = 8;
   }
 }
