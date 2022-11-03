@@ -86,22 +86,10 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
     // Perform add liquidity
     dai.approve(address(poolRouter), 200000 ether);
     plp.approve(address(poolRouter), type(uint256).max);
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(dai),
-      200000 ether,
-      address(this),
-      0
-    );
+    poolRouter.addLiquidity(address(dai), 200000 ether, address(this), 0);
 
     wbtc.approve(address(poolRouter), 10 ether);
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(wbtc),
-      10 ether,
-      address(this),
-      0
-    );
+    poolRouter.addLiquidity(address(wbtc), 10 ether, address(this), 0);
 
     // Set DAI's debt ceiling to be 200100 USD
     address[] memory tokens = new address[](1);
@@ -128,14 +116,7 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
 
     // Try to swap that will exceed the debt ceiling
     vm.expectRevert(abi.encodeWithSignature("LibPoolV1_OverUsdDebtCeiling()"));
-    poolRouter.swap(
-      address(poolDiamond),
-      address(dai),
-      address(wbtc),
-      701 ether,
-      0,
-      address(this)
-    );
+    poolRouter.swap(address(dai), address(wbtc), 701 ether, 0, address(this));
   }
 
   function testRevert_WhenLiquidityLessThanBuffer() external {
@@ -152,21 +133,9 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
     // Perform add liquidity
     dai.approve(address(poolRouter), 200000 ether);
     plp.approve(address(poolRouter), type(uint256).max);
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(dai),
-      200000 ether,
-      address(this),
-      0
-    );
+    poolRouter.addLiquidity(address(dai), 200000 ether, address(this), 0);
     wbtc.approve(address(poolRouter), 10 * 10**8);
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(wbtc),
-      10 * 10**8,
-      address(this),
-      0
-    );
+    poolRouter.addLiquidity(address(wbtc), 10 * 10**8, address(this), 0);
 
     // Set WBTC's liquidity buffer to be 9.97 WBTC
     address[] memory tokens = new address[](1);
@@ -193,14 +162,7 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
     vm.expectRevert(
       abi.encodeWithSignature("LiquidityFacet_LiquidityBuffer()")
     );
-    poolRouter.swap(
-      address(poolDiamond),
-      address(dai),
-      address(wbtc),
-      1 ether,
-      0,
-      address(this)
-    );
+    poolRouter.swap(address(dai), address(wbtc), 1 ether, 0, address(this));
   }
 
   function testCorrectness_WhenSwapSuccess() external {
@@ -217,13 +179,7 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
     // Alice add liquidity 200 MATIC (~$60,000)
     matic.approve(address(poolRouter), 200 ether);
     plp.approve(address(poolRouter), type(uint256).max);
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(matic),
-      200 ether,
-      ALICE,
-      0
-    );
+    poolRouter.addLiquidity(address(matic), 200 ether, ALICE, 0);
 
     // Alice add 200 MATIC as liquidity to the pool, the following condition is expected:
     // 1. Pool should have 200 * (1-0.003) * 300 = 59820 USD in AUM
@@ -232,13 +188,7 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
     // Alice add liquidity 1 WBTC (~$60,000)
     wbtc.approve(address(poolRouter), 1 * 10**8);
     plp.approve(address(poolRouter), type(uint256).max);
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(wbtc),
-      1 * 10**8,
-      ALICE,
-      0
-    );
+    poolRouter.addLiquidity(address(wbtc), 1 * 10**8, ALICE, 0);
 
     // Alice add another 1 WBTC as liquidity to the pool, the following condition is expected:
     // 1. Pool should have 59,820 + (1 * (1-0.003) * 60000) = 119,640 USD in AUM
@@ -287,14 +237,7 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
 
     // Bob swap 100 MATIC for WBTC
     matic.approve(address(poolRouter), 100 ether);
-    poolRouter.swap(
-      address(poolDiamond),
-      address(matic),
-      address(wbtc),
-      100 ether,
-      0,
-      BOB
-    );
+    poolRouter.swap(address(matic), address(wbtc), 100 ether, 0, BOB);
 
     // After Bob swap, the following condition is expected:
     // 1. Pool should have 159520 + (100 * 400) - ((100 * 400 / 100000) * 80000) = 167520 USD in AUM
@@ -341,7 +284,6 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
         poolGetterFacet.getAumE18(false)
     );
     poolRouter.removeLiquidity(
-      address(poolDiamond),
       address(matic),
       (50_000 ether * poolGetterFacet.plp().totalSupply()) /
         poolGetterFacet.getAumE18(false),
@@ -367,7 +309,6 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
         poolGetterFacet.getAumE18(false)
     );
     poolRouter.removeLiquidity(
-      address(poolDiamond),
       address(wbtc),
       (50_000 ether * poolGetterFacet.plp().totalSupply()) /
         poolGetterFacet.getAumE18(false),
@@ -387,13 +328,7 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
 
     poolGetterFacet.plp().approve(address(poolRouter), plpNeeded);
     vm.expectRevert(stdError.arithmeticError);
-    poolRouter.removeLiquidity(
-      address(poolDiamond),
-      address(wbtc),
-      plpNeeded,
-      ALICE,
-      0
-    );
+    poolRouter.removeLiquidity(address(wbtc), plpNeeded, ALICE, 0);
   }
 
   function testRevert_Slippage() external {
@@ -410,13 +345,7 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
     // Alice add liquidity 200 MATIC (~$60,000)
     matic.approve(address(poolRouter), 200 ether);
     plp.approve(address(poolRouter), type(uint256).max);
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(matic),
-      200 ether,
-      ALICE,
-      0
-    );
+    poolRouter.addLiquidity(address(matic), 200 ether, ALICE, 0);
 
     // Alice add 200 MATIC as liquidity to the pool, the following condition is expected:
     // 1. Pool should have 200 * (1-0.003) * 300 = 59820 USD in AUM
@@ -425,13 +354,7 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
     // Alice add liquidity 1 WBTC (~$60,000)
     wbtc.approve(address(poolRouter), 1 * 10**8);
     plp.approve(address(poolRouter), type(uint256).max);
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(wbtc),
-      1 * 10**8,
-      ALICE,
-      0
-    );
+    poolRouter.addLiquidity(address(wbtc), 1 * 10**8, ALICE, 0);
 
     // Alice add another 1 WBTC as liquidity to the pool, the following condition is expected:
     // 1. Pool should have 59,820 + (1 * (1-0.003) * 60000) = 119,640 USD in AUM
@@ -490,14 +413,7 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
     // 8. Pool's WBTC liquidity should be 0.997 - ((100 * 400 / 100000)) = 0.597 WBTC
     matic.approve(address(poolRouter), 100 ether);
     vm.expectRevert(abi.encodeWithSignature("LiquidityFacet_Slippage()"));
-    poolRouter.swap(
-      address(poolDiamond),
-      address(matic),
-      address(wbtc),
-      100 ether,
-      40000000,
-      BOB
-    );
+    poolRouter.swap(address(matic), address(wbtc), 100 ether, 40000000, BOB);
   }
 
   function testCorrectness_WhenSwapSuccess_NativeIn() external {
@@ -512,12 +428,7 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
     vm.startPrank(ALICE);
     plp.approve(address(poolRouter), type(uint256).max);
     // Alice add liquidity 200 MATIC (~$60,000)
-    poolRouter.addLiquidityNative{ value: 200 ether }(
-      address(poolDiamond),
-      address(matic),
-      ALICE,
-      0
-    );
+    poolRouter.addLiquidityNative{ value: 200 ether }(address(matic), ALICE, 0);
 
     // Alice add 200 MATIC as liquidity to the pool, the following condition is expected:
     // 1. Pool should have 200 * (1-0.003) * 300 = 59820 USD in AUM
@@ -525,13 +436,7 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
 
     // Alice add liquidity 1 WBTC (~$60,000)
     wbtc.approve(address(poolRouter), 1 * 10**8);
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(wbtc),
-      1 * 10**8,
-      ALICE,
-      0
-    );
+    poolRouter.addLiquidity(address(wbtc), 1 * 10**8, ALICE, 0);
 
     // Alice add another 1 WBTC as liquidity to the pool, the following condition is expected:
     // 1. Pool should have 59,820 + (1 * (1-0.003) * 60000) = 119,640 USD in AUM
@@ -580,7 +485,6 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
 
     // Bob swap 100 MATIC for WBTC
     poolRouter.swapNative{ value: 100 ether }(
-      address(poolDiamond),
       address(matic),
       address(wbtc),
       100 ether,
@@ -639,7 +543,6 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
         poolGetterFacet.getAumE18(false)
     );
     poolRouter.removeLiquidityNative(
-      address(poolDiamond),
       address(matic),
       (50_000 ether * poolGetterFacet.plp().totalSupply()) /
         poolGetterFacet.getAumE18(false),
@@ -666,7 +569,6 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
         poolGetterFacet.getAumE18(false)
     );
     poolRouter.removeLiquidity(
-      address(poolDiamond),
       address(wbtc),
       (50_000 ether * poolGetterFacet.plp().totalSupply()) /
         poolGetterFacet.getAumE18(false),
@@ -686,13 +588,7 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
 
     poolGetterFacet.plp().approve(address(poolRouter), plpNeeded);
     vm.expectRevert(stdError.arithmeticError);
-    poolRouter.removeLiquidity(
-      address(poolDiamond),
-      address(wbtc),
-      plpNeeded,
-      ALICE,
-      0
-    );
+    poolRouter.removeLiquidity(address(wbtc), plpNeeded, ALICE, 0);
   }
 
   function testCorrectness_WhenSwapSuccess_NativeOut() external {
@@ -708,12 +604,7 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
     plp.approve(address(poolRouter), type(uint256).max);
 
     // Alice add liquidity 200 MATIC (~$60,000)
-    poolRouter.addLiquidityNative{ value: 200 ether }(
-      address(poolDiamond),
-      address(matic),
-      ALICE,
-      0
-    );
+    poolRouter.addLiquidityNative{ value: 200 ether }(address(matic), ALICE, 0);
 
     // Alice add 200 MATIC as liquidity to the pool, the following condition is expected:
     // 1. Pool should have 200 * (1-0.003) * 300 = 59820 USD in AUM
@@ -721,13 +612,7 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
 
     // Alice add liquidity 1 WBTC (~$60,000)
     wbtc.approve(address(poolRouter), 1 * 10**8);
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(wbtc),
-      1 * 10**8,
-      ALICE,
-      0
-    );
+    poolRouter.addLiquidity(address(wbtc), 1 * 10**8, ALICE, 0);
 
     // Alice add another 1 WBTC as liquidity to the pool, the following condition is expected:
     // 1. Pool should have 59,820 + (1 * (1-0.003) * 60000) = 119,640 USD in AUM
@@ -777,7 +662,6 @@ contract PoolDiamond_SwapTest is PoolDiamond_BaseTest {
     // Bob swap 0.0075 WBTC for MATIC
     wbtc.approve(address(poolRouter), 0.0075 * 10**8);
     poolRouter.swapNative{ value: 0 ether }(
-      address(poolDiamond),
       address(wbtc),
       address(matic),
       0.0075 * 10**8,

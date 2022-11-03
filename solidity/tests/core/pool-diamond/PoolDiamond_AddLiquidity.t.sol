@@ -52,13 +52,7 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     dai.approve(address(poolRouter), 100 ether);
     poolGetterFacet.plp().approve(address(poolRouter), 99.7 ether);
 
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(dai),
-      100 ether,
-      ALICE,
-      99 ether
-    );
+    poolRouter.addLiquidity(address(dai), 100 ether, ALICE, 99 ether);
 
     // After Alice added DAI liquidity, the following criteria needs to satisfy:
     // 1. DAI balance of Alice should be 0
@@ -95,13 +89,7 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     // Perform add liquidity
     matic.approve(address(poolRouter), 1 ether);
     poolGetterFacet.plp().approve(address(poolRouter), 299.1 ether);
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(matic),
-      1 ether,
-      BOB,
-      0
-    );
+    poolRouter.addLiquidity(address(matic), 1 ether, BOB, 0);
 
     // After Bob added MATIC liquidity, the following criteria needs to satisfy:
     // 1. MATIC balance of Bob should be 0
@@ -144,7 +132,7 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     // Perform add liquidity
     wbtc.approve(address(poolRouter), 1000000);
     poolGetterFacet.plp().approve(address(poolRouter), 398.8 ether);
-    poolRouter.addLiquidity(poolDiamond, address(wbtc), 1000000, CAT, 0);
+    poolRouter.addLiquidity(address(wbtc), 1000000, CAT, 0);
 
     // After Cat added WBTC liquidity, the following criteria needs to satisfy:
     // 1. WBTC balance of Cat should be 0
@@ -179,13 +167,7 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     // Perform add liquidity
     dai.approve(address(poolRouter), 100 ether);
     poolGetterFacet.plp().approve(address(poolRouter), 99.7 ether);
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(dai),
-      100 ether,
-      ALICE,
-      0
-    );
+    poolRouter.addLiquidity(address(dai), 100 ether, ALICE, 0);
 
     // After Alice added DAI liquidity, the following criteria needs to satisfy:
     // 1. DAI balance of Alice should be 0
@@ -222,13 +204,7 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     // Perform add liquidity
     matic.approve(address(poolRouter), 1 ether);
     poolGetterFacet.plp().approve(address(poolRouter), 297.6 ether);
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(matic),
-      1 ether,
-      BOB,
-      0
-    );
+    poolRouter.addLiquidity(address(matic), 1 ether, BOB, 0);
 
     // After Bob added MATIC liquidity, the following criteria needs to satisfy:
     // 1. MATIC balance of Bob should be 0
@@ -272,13 +248,7 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     // Perform add liquidity
     wbtc.approve(address(poolRouter), 1000000);
     poolGetterFacet.plp().approve(address(poolRouter), 400 ether);
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(wbtc),
-      1000000,
-      CAT,
-      0
-    );
+    poolRouter.addLiquidity(address(wbtc), 1000000, CAT, 0);
 
     // After Cat added WBTC liquidity, the following criteria needs to satisfy:
     // 1. WBTC balance of Cat should be 0
@@ -327,13 +297,7 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
       )
     );
 
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(dai),
-      100 ether,
-      ALICE,
-      100 ether
-    );
+    poolRouter.addLiquidity(address(dai), 100 ether, ALICE, 100 ether);
     vm.stopPrank();
   }
 
@@ -348,13 +312,7 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     // Perform add liquidity
     dai.approve(address(poolRouter), 100 ether);
     poolGetterFacet.plp().approve(address(poolRouter), type(uint256).max);
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(dai),
-      100 ether,
-      ALICE,
-      99 ether
-    );
+    poolRouter.addLiquidity(address(dai), 100 ether, ALICE, 99 ether);
 
     address plp = address(GetterFacetInterface(poolDiamond).plp());
     plpStaking.withdraw(plp, 1 ether);

@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-// This version of PoolRouter does not allow atomic perpetual trading
 pragma solidity 0.8.17;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -16,19 +15,32 @@ contract PoolRouter02 {
 
   IWNative public immutable WNATIVE;
   IStaking public immutable plpStaking;
+  address public immutable pool;
 
   error PoolRouter_InsufficientOutputAmount(
     uint256 expectedAmount,
     uint256 actualAmount
   );
+  error PoolRouter_MarkPriceTooHigh(
+    uint256 acceptablePrice,
+    uint256 actualPrice
+  );
+  error PoolRouter_MarkPriceTooLow(
+    uint256 acceptablePrice,
+    uint256 actualPrice
+  );
 
-  constructor(address wNative_, address plpStaking_) {
+  constructor(
+    address wNative_,
+    address plpStaking_,
+    address pool_
+  ) {
     WNATIVE = IWNative(wNative_);
     plpStaking = IStaking(plpStaking_);
+    pool = pool_;
   }
 
   function addLiquidity(
-    address pool,
     address token,
     uint256 amount,
     address receiver,
@@ -66,7 +78,6 @@ contract PoolRouter02 {
   }
 
   function addLiquidityNative(
-    address pool,
     address token,
     address receiver,
     uint256 minLiquidity
@@ -104,7 +115,6 @@ contract PoolRouter02 {
   }
 
   function removeLiquidity(
-    address pool,
     address tokenOut,
     uint256 liquidity,
     address receiver,
@@ -128,7 +138,6 @@ contract PoolRouter02 {
   }
 
   function removeLiquidityNative(
-    address pool,
     address tokenOut,
     uint256 liquidity,
     address receiver,
@@ -155,7 +164,6 @@ contract PoolRouter02 {
   }
 
   function swap(
-    address pool,
     address tokenIn,
     address tokenOut,
     uint256 amountIn,
@@ -163,19 +171,10 @@ contract PoolRouter02 {
     address receiver
   ) external returns (uint256) {
     return
-      _swap(
-        pool,
-        msg.sender,
-        tokenIn,
-        tokenOut,
-        amountIn,
-        minAmountOut,
-        receiver
-      );
+      _swap(msg.sender, tokenIn, tokenOut, amountIn, minAmountOut, receiver);
   }
 
   function _swap(
-    address pool,
     address sender,
     address tokenIn,
     address tokenOut,
@@ -201,7 +200,6 @@ contract PoolRouter02 {
   }
 
   function swapNative(
-    address pool,
     address tokenIn,
     address tokenOut,
     uint256 amountIn,
