@@ -6,8 +6,6 @@ import { getConfig } from "../utils/config";
 
 const config = getConfig();
 
-const PoolRouter = config.PoolRouter;
-
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
   const pool = AdminFacetInterface__factory.connect(
