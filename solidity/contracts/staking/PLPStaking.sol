@@ -32,6 +32,8 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
   );
   event LogWithdraw(address indexed caller, address token, uint256 amount);
   event LogAddStakingToken(address newToken, address[] newRewarders);
+  event LogAddRewarder(address newRewarder, address[] newTokens);
+  event LogSetCompounder(address oldCompounder, address newCompounder);
 
   function initialize() external initializer {
     OwnableUpgradeable.__Ownable_init();
@@ -45,6 +47,7 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
     for (uint256 i = 0; i < length; ) {
       _updatePool(newToken, newRewarders[i]);
 
+      emit LogAddStakingToken(newToken, newRewarders);
       unchecked {
         ++i;
       }
@@ -59,6 +62,7 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
     for (uint256 i = 0; i < length; ) {
       _updatePool(newTokens[i], newRewarder);
 
+      emit LogAddRewarder(newRewarder, newTokens);
       unchecked {
         ++i;
       }
@@ -75,6 +79,7 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
   }
 
   function setCompounder(address compounder_) external onlyOwner {
+    emit LogSetCompounder(compounder, compounder_);
     compounder = compounder_;
   }
 
