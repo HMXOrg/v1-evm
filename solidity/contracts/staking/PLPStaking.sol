@@ -31,6 +31,7 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
     uint256 amount
   );
   event LogWithdraw(address indexed caller, address token, uint256 amount);
+  event LogAddStakingToken(address newToken, address[] newRewarders);
 
   function initialize() external initializer {
     OwnableUpgradeable.__Ownable_init();
