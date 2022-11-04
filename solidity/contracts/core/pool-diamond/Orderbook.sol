@@ -425,16 +425,35 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     // limit orders don't need this validation because minOut is enough
     // so this validation handles scenarios for stop orders only
     // when a user wants to swap when a price of tokenB increases relative to tokenA
-    address tokenA = _path[0];
-    address tokenB = _path[_path.length - 1];
-    uint256 tokenAPrice;
-    uint256 tokenBPrice;
+    uint256 currentRatio;
+    if (_path.length == 2) {
+      address tokenA = _path[0];
+      address tokenB = _path[_path.length - 1];
+      uint256 tokenAPrice;
+      uint256 tokenBPrice;
 
-    tokenAPrice = poolOracle.getMinPrice(tokenA);
-    tokenBPrice = poolOracle.getMaxPrice(tokenB);
+      tokenAPrice = poolOracle.getMinPrice(tokenA);
+      tokenBPrice = poolOracle.getMaxPrice(tokenB);
 
-    uint256 currentRatio = (tokenBPrice * PRICE_PRECISION) / tokenAPrice;
+      currentRatio = (tokenBPrice * PRICE_PRECISION) / tokenAPrice;
+    } else {
+      address tokenA = _path[0];
+      address tokenB = _path[1];
+      address tokenC = _path[2];
+      uint256 tokenAPrice;
+      uint256 tokenBMinPrice;
+      uint256 tokenBMaxPrice;
+      uint256 tokenCPrice;
 
+      tokenAPrice = poolOracle.getMinPrice(tokenA);
+      tokenBMinPrice = poolOracle.getMinPrice(tokenB);
+      tokenBMaxPrice = poolOracle.getMaxPrice(tokenB);
+      tokenCPrice = poolOracle.getMaxPrice(tokenC);
+
+      currentRatio =
+        (tokenCPrice * tokenBMaxPrice * PRICE_PRECISION) /
+        (tokenAPrice * tokenBMinPrice);
+    }
     bool isValid = currentRatio > _triggerRatio;
     return isValid;
   }
