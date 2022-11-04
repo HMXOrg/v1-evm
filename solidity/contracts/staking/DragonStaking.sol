@@ -38,6 +38,9 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
     uint256 amount
   );
   event LogWithdraw(address indexed caller, address token, uint256 amount);
+  event LogAddStakingToken(address newToken, address[] newRewarders);
+  event LogAddRewarder(address newRewarder, address[] newTokens);
+  event LogSetCompounder(address oldCompounder, address newCompounder);
 
   function initialize(address dp_) external initializer {
     OwnableUpgradeable.__Ownable_init();
@@ -56,6 +59,7 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
     for (uint256 i = 0; i < length; ) {
       _updatePool(newToken, newRewarders[i]);
 
+      emit LogAddStakingToken(newToken, newRewarders);
       unchecked {
         ++i;
       }
@@ -73,6 +77,7 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
 
       _updatePool(newTokens[i], newRewarder);
 
+      emit LogAddRewarder(newRewarder, newTokens);
       unchecked {
         ++i;
       }
@@ -89,6 +94,7 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
   }
 
   function setCompounder(address compounder_) external onlyOwner {
+    emit LogSetCompounder(compounder, compounder_);
     compounder = compounder_;
   }
 

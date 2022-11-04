@@ -27,6 +27,7 @@ contract FarmFacet is FarmFacetInterface {
   uint256 internal constant MAX_TARGET_BPS = 9500; // 95%
 
   event SetStrategy(address token, StrategyInterface strategy);
+  event SetPendingStrategy(address token, StrategyInterface strategy);
   event SetStrategyTargetBps(address token, uint256 targetBps);
   event StrategyDivest(address token, uint256 amount);
   event StrategyInvest(address token, uint256 amount);
@@ -65,6 +66,7 @@ contract FarmFacet is FarmFacetInterface {
     if (strategyData.startTimestamp == 0 || pendingStrategy != newStrategy) {
       // When adding new strategy or changing strategy
       poolConfigDs.pendingStrategyOf[token] = newStrategy;
+      emit SetPendingStrategy(token, newStrategy);
       strategyData.startTimestamp = uint64(block.timestamp + STRATEGY_DELAY);
     } else {
       // When committing a new strategy
