@@ -148,6 +148,8 @@ contract FarmFacet is FarmFacetInterface {
       uint256 profits = uint256(balanceChange);
       LibPoolV1.increasePoolLiquidity(token, profits);
 
+      LibPoolV1.updateTotalOf(token);
+
       emit StrategyRealizedProfit(token, profits);
     } else if (balanceChange < 0) {
       // If there is a loss, then decrease pool liquidity
@@ -187,6 +189,8 @@ contract FarmFacet is FarmFacetInterface {
 
         // Update how much pool put in the strategy
         strategyData.principle -= actualAmountIn.toUint128();
+
+        LibPoolV1.updateTotalOf(token);
 
         emit StrategyDivest(token, actualAmountIn);
       }
