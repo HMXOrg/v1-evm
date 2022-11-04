@@ -17,6 +17,7 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
   error PLPStaking_NotRewarder();
   error PLPStaking_NotCompounder();
   error PLPStaking_BadDecimals();
+  error PLPStaking_DuplicateStakingToken();
 
   mapping(address => mapping(address => uint256)) public userTokenAmount;
   mapping(address => bool) public isRewarder;
@@ -78,12 +79,49 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
   }
 
   function _updatePool(address newToken, address newRewarder) internal {
-    stakingTokenRewarders[newToken].push(newRewarder);
-    rewarderStakingTokens[newRewarder].push(newToken);
+    if (!isDuplicatedRewarder(newToken, newRewarder))
+      stakingTokenRewarders[newToken].push(newRewarder);
+    if (!isDuplicatedStakingToken(newToken, newRewarder))
+      rewarderStakingTokens[newRewarder].push(newToken);
+
     isStakingToken[newToken] = true;
     if (!isRewarder[newRewarder]) {
       isRewarder[newRewarder] = true;
     }
+  }
+
+  function isDuplicatedRewarder(address stakingToken, address rewarder)
+    internal
+    view
+    returns (bool)
+  {
+    uint256 length = stakingTokenRewarders[stakingToken].length;
+    for (uint256 i = 0; i < length; ) {
+      if (stakingTokenRewarders[stakingToken][i] == rewarder) {
+        return true;
+      }
+      unchecked {
+        ++i;
+      }
+    }
+    return false;
+  }
+
+  function isDuplicatedStakingToken(address stakingToken, address rewarder)
+    internal
+    view
+    returns (bool)
+  {
+    uint256 length = rewarderStakingTokens[rewarder].length;
+    for (uint256 i = 0; i < length; ) {
+      if (rewarderStakingTokens[rewarder][i] == stakingToken) {
+        return true;
+      }
+      unchecked {
+        ++i;
+      }
+    }
+    return false;
   }
 
   function setCompounder(address compounder_) external onlyOwner {
