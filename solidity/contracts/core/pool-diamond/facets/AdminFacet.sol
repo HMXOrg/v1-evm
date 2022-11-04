@@ -121,7 +121,7 @@ contract AdminFacet is AdminFacetInterface {
       .poolV1DiamondStorage();
 
     // Sanity check
-    ds.oracle.roundDepth();
+    newPoolOracle.roundDepth();
 
     emit SetPoolOracle(ds.oracle, newPoolOracle);
     ds.oracle = newPoolOracle;
