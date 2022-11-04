@@ -7,10 +7,7 @@ interface StrategyInterface {
 
   /// @notice Realized any profits/losses and send them to the caller.
   /// @param principle The amount of tokens that Pool thinks the strategy has
-  /// @param sender The caller of a function. Can be used for gas reimbusement.
-  function realized(uint256 principle, address sender)
-    external
-    returns (int256 amountDelta);
+  function realized(uint256 principle) external returns (int256 amountDelta);
 
   /// @notice Withdraw tokens from the strategy.
   function withdraw(uint256 amount) external returns (uint256 actualAmount);

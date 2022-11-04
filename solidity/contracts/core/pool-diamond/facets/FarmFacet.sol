@@ -136,10 +136,7 @@ contract FarmFacet is FarmFacetInterface {
     StrategyInterface strategy = poolConfigDs.strategyOf[token];
 
     // Realized profits or losses from strategy
-    int256 balanceChange = strategy.realized(
-      strategyData.principle,
-      msg.sender
-    );
+    int256 balanceChange = strategy.realized(strategyData.principle);
     // If there is no change in balance, and does not need to rebalance, then stop it here.
     if (balanceChange == 0 && !isRebalanceNeeded) return;
 
