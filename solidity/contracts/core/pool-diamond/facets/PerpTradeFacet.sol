@@ -27,6 +27,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
   error PerpTradeFacet_MaxLeverageExceed();
   error PerpTradeFacet_SizeSmallerThanCollateral();
   error PerpTradeFacet_TokenMisMatch();
+  error PerpTradeFacet_BadPositionState();
 
   uint256 internal constant BPS = 10000;
 
@@ -823,6 +824,8 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       isLong,
       false
     );
+    if (vars.liquidationState == LiquidationState.HEALTHY)
+      revert PerpTradeFacet_BadPositionState();
     vars.marginFee = vars.borrowingFee + vars.positionFee;
     if (vars.liquidationState == LiquidationState.SOFT_LIQUIDATE) {
       // Position's leverage is exceeded, but there is enough collateral to soft-liquidate.
