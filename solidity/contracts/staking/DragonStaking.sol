@@ -18,6 +18,7 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
   error DragonStaking_NotRewarder();
   error DragonStaking_NotCompounder();
   error DragonStaking_DragonPointWithdrawForbid();
+  error DragonStaking_BadDecimals();
 
   mapping(address => mapping(address => uint256)) public userTokenAmount;
   mapping(address => bool) public isRewarder;
@@ -48,6 +49,9 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
     external
     onlyOwner
   {
+    if (ERC20Upgradeable(newToken).decimals() != 18)
+      revert DragonStaking_BadDecimals();
+
     uint256 length = newRewarders.length;
     for (uint256 i = 0; i < length; ) {
       _updatePool(newToken, newRewarders[i]);
@@ -64,6 +68,9 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
   {
     uint256 length = newTokens.length;
     for (uint256 i = 0; i < length; ) {
+      if (ERC20Upgradeable(newTokens[i]).decimals() != 18)
+        revert DragonStaking_BadDecimals();
+
       _updatePool(newTokens[i], newRewarder);
 
       unchecked {

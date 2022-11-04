@@ -3,6 +3,7 @@ pragma solidity 0.8.17;
 
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import { ERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import { SafeERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
 import { IRewarder } from "./interfaces/IRewarder.sol";
@@ -15,6 +16,7 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
   error PLPStaking_InsufficientTokenAmount();
   error PLPStaking_NotRewarder();
   error PLPStaking_NotCompounder();
+  error PLPStaking_BadDecimals();
 
   mapping(address => mapping(address => uint256)) public userTokenAmount;
   mapping(address => bool) public isRewarder;
@@ -40,6 +42,9 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
     external
     onlyOwner
   {
+    if (ERC20Upgradeable(newToken).decimals() != 18)
+      revert PLPStaking_BadDecimals();
+
     uint256 length = newRewarders.length;
     for (uint256 i = 0; i < length; ) {
       _updatePool(newToken, newRewarders[i]);
@@ -56,6 +61,9 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
   {
     uint256 length = newTokens.length;
     for (uint256 i = 0; i < length; ) {
+      if (ERC20Upgradeable(newTokens[i]).decimals() != 18)
+        revert PLPStaking_BadDecimals();
+
       _updatePool(newTokens[i], newRewarder);
 
       unchecked {
