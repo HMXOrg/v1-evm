@@ -45,6 +45,9 @@ contract FundingRateFacet is FundingRateFacetInterface {
         .getNextBorrowingRate(collateralToken);
       unchecked {
         poolV1ds.sumBorrowingRateOf[collateralToken] += borrowingRate;
+        poolV1ds.lastFundingTimeOf[collateralToken] =
+          (block.timestamp / fundingInterval) *
+          fundingInterval;
       }
 
       emit UpdateBorrowingRate(
