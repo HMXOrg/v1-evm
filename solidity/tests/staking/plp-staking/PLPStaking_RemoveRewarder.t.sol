@@ -12,7 +12,7 @@ contract PLPStaking_Deposit is PLPStaking_BaseTest {
   function testCorrectness_RemoveRewarder() external {
     vm.startPrank(DAVE);
 
-    plpStaking.removeRewarder(1, address(plp));
+    plpStaking.removeRewarderForTokenByIndex(1, address(plp));
 
     assertEq(
       address(revenueRewarder),
