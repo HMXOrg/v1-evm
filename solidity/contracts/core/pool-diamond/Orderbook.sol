@@ -12,9 +12,12 @@ import { GetterFacetInterface } from "./interfaces/GetterFacetInterface.sol";
 import { LiquidityFacetInterface } from "./interfaces/LiquidityFacetInterface.sol";
 import { PerpTradeFacetInterface } from "./interfaces/PerpTradeFacetInterface.sol";
 import { PoolOracle } from "../PoolOracle.sol";
+import { IterableMapping, Orders, OrderType, itmap } from "./libraries/IterableMapping.sol";
+import { console } from "solidity/tests/utils/console.sol";
 
 contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   using SafeERC20Upgradeable for IERC20Upgradeable;
+  using IterableMapping for itmap;
 
   uint256 public constant PRICE_PRECISION = 1e30;
 
@@ -68,6 +71,7 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   uint256 public minPurchaseTokenAmountUsd;
   mapping(address => bool) public whitelist;
   bool public isAllowAllExecutor;
+  itmap public orderList;
 
   event CreateIncreaseOrder(
     address indexed account,
@@ -376,6 +380,7 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     );
     swapOrdersIndex[_account] = _orderIndex + 1;
     swapOrders[_account][_orderIndex] = order;
+    _addToOpenOrders(_account, 0, _orderIndex, OrderType.SWAP);
 
     emit CreateSwapOrder(
       _account,
@@ -395,6 +400,7 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     if (order.account == address(0)) revert NonExistentOrder();
 
     delete swapOrders[msg.sender][_orderIndex];
+    _removeFromOpenOrders(msg.sender, 0, _orderIndex, OrderType.SWAP);
 
     if (order.path[0] == weth) {
       _transferOutETH(order.executionFee + order.amountIn, msg.sender);
@@ -485,6 +491,7 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     }
 
     delete swapOrders[_account][_orderIndex];
+    _removeFromOpenOrders(_account, 0, _orderIndex, OrderType.SWAP);
 
     IERC20Upgradeable(order.path[0]).safeTransfer(pool, order.amountIn);
 
@@ -713,6 +720,7 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     );
     increaseOrdersIndex[subAccount] = _orderIndex + 1;
     increaseOrders[subAccount][_orderIndex] = order;
+    _addToOpenOrders(_account, _subAccountId, _orderIndex, OrderType.INCREASE);
 
     emit CreateIncreaseOrder(
       _account,
@@ -764,6 +772,12 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     if (order.account == address(0)) revert NonExistentOrder();
 
     delete increaseOrders[subAccount][_orderIndex];
+    _removeFromOpenOrders(
+      msg.sender,
+      _subAccountId,
+      _orderIndex,
+      OrderType.INCREASE
+    );
 
     if (order.purchaseToken == weth) {
       _transferOutETH(
@@ -794,6 +808,12 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   }
 
   function executeIncreaseOrder(
+    address _subAccount,
+    uint256 _orderIndex,
+    address payable _feeReceiver
+  ) external nonReentrant whitelisted {}
+
+  function executeIncreaseOrder(
     address _address,
     uint256 _subAccountId,
     uint256 _orderIndex,
@@ -814,6 +834,12 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     );
 
     delete increaseOrders[subAccount][_orderIndex];
+    _removeFromOpenOrders(
+      _address,
+      _subAccountId,
+      _orderIndex,
+      OrderType.INCREASE
+    );
 
     IERC20Upgradeable(order.purchaseToken).safeTransfer(
       pool,
@@ -912,6 +938,7 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
     decreaseOrdersIndex[subAccount] = _orderIndex + 1;
     decreaseOrders[subAccount][_orderIndex] = order;
+    _addToOpenOrders(_account, _subAccountId, _orderIndex, OrderType.DECREASE);
 
     emit CreateDecreaseOrder(
       _account,
@@ -949,6 +976,12 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     );
 
     delete decreaseOrders[subAccount][_orderIndex];
+    _removeFromOpenOrders(
+      _address,
+      _subAccountId,
+      _orderIndex,
+      OrderType.DECREASE
+    );
 
     uint256 amountOut = PerpTradeFacetInterface(pool).decreasePosition(
       order.account,
@@ -999,6 +1032,12 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     if (order.account == address(0)) revert NonExistentOrder();
 
     delete decreaseOrders[subAccount][_orderIndex];
+    _removeFromOpenOrders(
+      msg.sender,
+      _subAccountId,
+      _orderIndex,
+      OrderType.DECREASE
+    );
     _transferOutETH(order.executionFee, msg.sender);
 
     emit CancelDecreaseOrder(
@@ -1106,6 +1145,142 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   {
     if (subAccountId > 255) revert BadSubAccountId();
     return address(uint160(primary) ^ uint160(subAccountId));
+  }
+
+  function getShouldExecuteOrderList(bool _returnFirst)
+    external
+    view
+    returns (bool, uint160[] memory)
+  {
+    // if(!chainlinkOrderExecutionActive){
+    //     return(false,new uint160[](0));
+    // }
+
+    uint256 orderListSize = orderList.size;
+    uint160[] memory shouldExecuteOrders = new uint160[](orderListSize * 4);
+    uint256 shouldExecuteIndex = 0;
+    console.log("orderList.iterate_start()", orderList.iterate_start());
+    console.log("orderListSize", orderListSize);
+    if (orderListSize > 0) {
+      for (
+        uint256 i = orderList.iterate_start();
+        orderList.iterate_valid(i);
+        i = orderList.iterate_next(i + 1)
+      ) {
+        console.log("i", i);
+        (, Orders memory order) = orderList.iterate_get(i);
+        console.log("order.account", order.account);
+        bool shouldExecute = false;
+
+        if (order.orderType == OrderType.SWAP) {
+          SwapOrder memory swapOrder = swapOrders[order.account][
+            order.orderIndex
+          ];
+          if (!swapOrder.triggerAboveThreshold) {
+            shouldExecute = true;
+          } else {
+            shouldExecute = !validateSwapOrderPriceWithTriggerAboveThreshold(
+              swapOrder.path,
+              swapOrder.triggerRatio
+            );
+          }
+        } else if (order.orderType == OrderType.INCREASE) {
+          IncreaseOrder memory increaseOrder = increaseOrders[order.account][
+            order.orderIndex
+          ];
+          (, shouldExecute) = validatePositionOrderPrice(
+            increaseOrder.triggerAboveThreshold,
+            increaseOrder.triggerPrice,
+            increaseOrder.indexToken,
+            increaseOrder.isLong,
+            false
+          );
+        } else if (order.orderType == OrderType.DECREASE) {
+          DecreaseOrder memory decreaseOrder = decreaseOrders[order.account][
+            order.orderIndex
+          ];
+          GetterFacetInterface.GetPositionReturnVars
+            memory position = GetterFacetInterface(pool).getPosition(
+              decreaseOrder.account,
+              decreaseOrder.collateralToken,
+              decreaseOrder.indexToken,
+              decreaseOrder.isLong
+            );
+          if (position.size > 0) {
+            (, shouldExecute) = validatePositionOrderPrice(
+              decreaseOrder.triggerAboveThreshold,
+              decreaseOrder.triggerPrice,
+              decreaseOrder.indexToken,
+              !decreaseOrder.isLong,
+              false
+            );
+          }
+        }
+        if (shouldExecute) {
+          if (_returnFirst) {
+            return (true, new uint160[](0));
+          }
+          shouldExecuteOrders[shouldExecuteIndex * 4] = uint160(order.account);
+          shouldExecuteOrders[shouldExecuteIndex * 4 + 1] = uint160(
+            order.subAccountId
+          );
+          shouldExecuteOrders[shouldExecuteIndex * 4 + 2] = uint160(
+            order.orderIndex
+          );
+          shouldExecuteOrders[shouldExecuteIndex * 4 + 3] = uint160(
+            order.orderType
+          );
+          shouldExecuteIndex++;
+        }
+      }
+    }
+
+    uint160[] memory returnList = new uint160[](shouldExecuteIndex * 4);
+
+    for (uint256 i = 0; i < shouldExecuteIndex * 4; i++) {
+      returnList[i] = shouldExecuteOrders[i];
+    }
+
+    return (shouldExecuteIndex > 0, returnList);
+  }
+
+  function _addToOpenOrders(
+    address _account,
+    uint256 _subAccountId,
+    uint256 _index,
+    OrderType _type
+  ) internal {
+    uint256 orderKey = getOrderKey(_account, _subAccountId, _index, _type);
+    Orders memory order = Orders(_account, _subAccountId, _index, _type);
+    orderList.insert(orderKey, order);
+  }
+
+  function _removeFromOpenOrders(
+    address _account,
+    uint256 _subAccountId,
+    uint256 _index,
+    OrderType _type
+  ) internal {
+    uint256 orderKey = getOrderKey(_account, _subAccountId, _index, _type);
+    orderList.remove(orderKey);
+  }
+
+  function getOrderKey(
+    address _account,
+    uint256 _subAccountId,
+    uint256 _index,
+    OrderType _type
+  ) public pure returns (uint256) {
+    return
+      uint256(
+        keccak256(
+          abi.encodePacked(
+            getSubAccount(_account, _subAccountId),
+            _index,
+            _type
+          )
+        )
+      );
   }
 
   /// @custom:oz-upgrades-unsafe-allow constructor

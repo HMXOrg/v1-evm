@@ -898,8 +898,11 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
 
     vm.stopPrank();
     // ------- Bob session END -------
-
-    orderbook.executeSwapOrder(BOB, 1, payable(ALICE));
+    (bool shouldExecute, uint160[] memory orderList) = orderbook
+      .getShouldExecuteOrderList(false);
+    assertTrue(shouldExecute);
+    executeOrders(orderList, payable(ALICE));
+    // orderbook.executeSwapOrder(BOB, 1, payable(ALICE));
     // Alice should receive 0.01 ether as execution fee
     assertEq(ALICE.balance, 0.01 ether);
 
@@ -920,5 +923,43 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     assertEq(poolGetterFacet.usdDebtOf(address(wbtc)), 19820 ether);
     assertEq(poolGetterFacet.liquidityOf(address(matic)), 299.4 ether);
     assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 0.597 * 10**8);
+  }
+
+  function executeOrders(
+    uint160[] memory orderList,
+    address payable _executionFeeReceiver
+  ) internal {
+    uint256 orderLength = orderList.length / 4;
+
+    uint256 curIndex = 0;
+
+    while (curIndex < orderLength) {
+      address account = address(orderList[curIndex * 4]);
+      uint256 subAccountId = uint256(orderList[curIndex * 4 + 1]);
+      uint256 orderIndex = uint256(orderList[curIndex * 4 + 2]);
+      uint256 orderType = uint256(orderList[curIndex * 4 + 3]);
+
+      if (orderType == 0) {
+        //SWAP
+        orderbook.executeSwapOrder(account, orderIndex, _executionFeeReceiver);
+      } else if (orderType == 1) {
+        //INCREASE
+        orderbook.executeIncreaseOrder(
+          account,
+          subAccountId,
+          orderIndex,
+          _executionFeeReceiver
+        );
+      } else if (orderType == 2) {
+        //DECREASE
+        orderbook.executeDecreaseOrder(
+          account,
+          subAccountId,
+          orderIndex,
+          _executionFeeReceiver
+        );
+      }
+      curIndex++;
+    }
   }
 }
