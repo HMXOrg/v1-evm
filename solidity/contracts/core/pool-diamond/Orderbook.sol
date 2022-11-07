@@ -13,7 +13,6 @@ import { LiquidityFacetInterface } from "./interfaces/LiquidityFacetInterface.so
 import { PerpTradeFacetInterface } from "./interfaces/PerpTradeFacetInterface.sol";
 import { PoolOracle } from "../PoolOracle.sol";
 import { IterableMapping, Orders, OrderType, itmap } from "./libraries/IterableMapping.sol";
-import { console } from "solidity/tests/utils/console.sol";
 
 contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   using SafeERC20Upgradeable for IERC20Upgradeable;
@@ -1159,33 +1158,28 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     uint256 orderListSize = orderList.size;
     uint160[] memory shouldExecuteOrders = new uint160[](orderListSize * 4);
     uint256 shouldExecuteIndex = 0;
-    console.log("orderList.iterate_start()", orderList.iterate_start());
-    console.log("orderListSize", orderListSize);
     if (orderListSize > 0) {
       for (
         uint256 i = orderList.iterate_start();
         orderList.iterate_valid(i);
         i = orderList.iterate_next(i + 1)
       ) {
-        console.log("i", i);
         (, Orders memory order) = orderList.iterate_get(i);
-        console.log("order.account", order.account);
         bool shouldExecute = false;
+        address subAccount = getSubAccount(order.account, order.subAccountId);
 
         if (order.orderType == OrderType.SWAP) {
-          SwapOrder memory swapOrder = swapOrders[order.account][
-            order.orderIndex
-          ];
+          SwapOrder memory swapOrder = swapOrders[subAccount][order.orderIndex];
           if (!swapOrder.triggerAboveThreshold) {
             shouldExecute = true;
           } else {
-            shouldExecute = !validateSwapOrderPriceWithTriggerAboveThreshold(
+            shouldExecute = validateSwapOrderPriceWithTriggerAboveThreshold(
               swapOrder.path,
               swapOrder.triggerRatio
             );
           }
         } else if (order.orderType == OrderType.INCREASE) {
-          IncreaseOrder memory increaseOrder = increaseOrders[order.account][
+          IncreaseOrder memory increaseOrder = increaseOrders[subAccount][
             order.orderIndex
           ];
           (, shouldExecute) = validatePositionOrderPrice(
@@ -1196,12 +1190,12 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
             false
           );
         } else if (order.orderType == OrderType.DECREASE) {
-          DecreaseOrder memory decreaseOrder = decreaseOrders[order.account][
+          DecreaseOrder memory decreaseOrder = decreaseOrders[subAccount][
             order.orderIndex
           ];
           GetterFacetInterface.GetPositionReturnVars
             memory position = GetterFacetInterface(pool).getPosition(
-              decreaseOrder.account,
+              subAccount,
               decreaseOrder.collateralToken,
               decreaseOrder.indexToken,
               decreaseOrder.isLong

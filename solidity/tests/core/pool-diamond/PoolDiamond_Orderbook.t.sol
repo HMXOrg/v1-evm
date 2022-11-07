@@ -272,7 +272,11 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
 
     // Execute Alice's order
-    orderbook.executeIncreaseOrder(ALICE, 0, 1, payable(BOB));
+    (bool shouldExecute, uint160[] memory orderList) = orderbook
+      .getShouldExecuteOrderList(false);
+    assertTrue(shouldExecute);
+    executeOrders(orderList, payable(BOB));
+    // orderbook.executeIncreaseOrder(ALICE, 0, 1, payable(BOB));
     // Bob should receive 0.01 ether as execution fee
     assertEq(BOB.balance, 0.01 ether);
 
@@ -349,7 +353,10 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
 
     uint256 aliceWBTCBalanceBefore = wbtc.balanceOf(ALICE);
 
-    orderbook.executeDecreaseOrder(ALICE, 0, 0, payable(BOB));
+    (shouldExecute, orderList) = orderbook.getShouldExecuteOrderList(false);
+    assertTrue(shouldExecute);
+    executeOrders(orderList, payable(BOB));
+    // orderbook.executeDecreaseOrder(ALICE, 0, 0, payable(BOB));
     // Bob should receive another 0.01 ether as execution fee
     assertEq(BOB.balance, 0.02 ether);
 
@@ -481,7 +488,11 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
     wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
 
-    orderbook.executeIncreaseOrder(ALICE, 1, 0, payable(BOB));
+    (bool shouldExecute, uint160[] memory orderList) = orderbook
+      .getShouldExecuteOrderList(false);
+    assertTrue(shouldExecute);
+    executeOrders(orderList, payable(BOB));
+    // orderbook.executeIncreaseOrder(ALICE, 1, 0, payable(BOB));
     // Bob should receive 0.01 ether as execution fee
     assertEq(BOB.balance, 0.01 ether);
 
@@ -600,7 +611,10 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
 
     uint256 aliceDAIBalanceBefore = dai.balanceOf(ALICE);
 
-    orderbook.executeDecreaseOrder(ALICE, 1, 0, payable(BOB));
+    (shouldExecute, orderList) = orderbook.getShouldExecuteOrderList(false);
+    assertTrue(shouldExecute);
+    executeOrders(orderList, payable(BOB));
+    // orderbook.executeDecreaseOrder(ALICE, 1, 0, payable(BOB));
     // Bob should receive another 0.01 ether as execution fee
     assertEq(BOB.balance, 0.02 ether);
 
