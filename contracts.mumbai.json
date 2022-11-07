@@ -1,5 +1,6 @@
 {
   "commit": "cca54d20dab7cc4dcf7343869e302321f4817102",
+  "TimelockController": "0x98c70792494057CeFe46A4c79b16837cEB4E5961",
   "Multicall": "0x08411ADd0b5AA8ee47563b146743C13b3556c9Cc",
   "Dex": {
     "Curve": {
