@@ -18,6 +18,12 @@ contract FundingRateFacet is FundingRateFacetInterface {
   function updateFundingRate(address collateralToken, address indexToken)
     external
   {
+    updateBorrowingRateAndFundingRate(collateralToken);
+    if (collateralToken != indexToken)
+      updateBorrowingRateAndFundingRate(indexToken);
+  }
+
+  function updateBorrowingRateAndFundingRate(address token) internal {
     LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
       .poolV1DiamondStorage();
 
@@ -25,57 +31,42 @@ contract FundingRateFacet is FundingRateFacetInterface {
 
     // If this is the first time that the funding and borrowing rate are accrued,
     // set the initial funding time here
-    if (poolV1ds.lastFundingTimeOf[collateralToken] == 0) {
-      poolV1ds.lastFundingTimeOf[collateralToken] =
+    if (poolV1ds.lastFundingTimeOf[token] == 0) {
+      poolV1ds.lastFundingTimeOf[token] =
         (block.timestamp / fundingInterval) *
         fundingInterval;
-    }
-    if (poolV1ds.lastFundingTimeOf[indexToken] == 0) {
-      poolV1ds.lastFundingTimeOf[indexToken] =
-        (block.timestamp / fundingInterval) *
-        fundingInterval;
+      return;
     }
 
-    // If block.timestamp is not passed the next funding interval, skip updating borrowing rate.
+    // If block.timestamp is not passed the next funding interval, skip updating
     if (
-      poolV1ds.lastFundingTimeOf[collateralToken] + fundingInterval <=
-      block.timestamp
+      poolV1ds.lastFundingTimeOf[token] + fundingInterval <= block.timestamp
     ) {
+      //update borrowing rate
       uint256 borrowingRate = GetterFacetInterface(address(this))
-        .getNextBorrowingRate(collateralToken);
+        .getNextBorrowingRate(token);
       unchecked {
-        poolV1ds.sumBorrowingRateOf[collateralToken] += borrowingRate;
-        poolV1ds.lastFundingTimeOf[collateralToken] =
-          (block.timestamp / fundingInterval) *
-          fundingInterval;
+        poolV1ds.sumBorrowingRateOf[token] += borrowingRate;
       }
 
-      emit UpdateBorrowingRate(
-        collateralToken,
-        poolV1ds.sumBorrowingRateOf[collateralToken]
-      );
-    }
+      emit UpdateBorrowingRate(token, poolV1ds.sumBorrowingRateOf[token]);
 
-    // If block.timestamp is not passed the next funding interval, skip updating funding rate
-    if (
-      poolV1ds.lastFundingTimeOf[indexToken] + fundingInterval <=
-      block.timestamp
-    ) {
+      // update funding rate
       (int256 fundingRateLong, int256 fundingRateShort) = GetterFacetInterface(
         address(this)
-      ).getNextFundingRate(indexToken);
+      ).getNextFundingRate(token);
       unchecked {
-        poolV1ds.accumFundingRateLong[indexToken] += fundingRateLong;
-        poolV1ds.accumFundingRateShort[indexToken] += fundingRateShort;
-        poolV1ds.lastFundingTimeOf[indexToken] =
+        poolV1ds.accumFundingRateLong[token] += fundingRateLong;
+        poolV1ds.accumFundingRateShort[token] += fundingRateShort;
+        poolV1ds.lastFundingTimeOf[token] =
           (block.timestamp / fundingInterval) *
           fundingInterval;
       }
 
       emit UpdateFundingRate(
-        indexToken,
-        poolV1ds.accumFundingRateLong[indexToken],
-        poolV1ds.accumFundingRateShort[indexToken]
+        token,
+        poolV1ds.accumFundingRateLong[token],
+        poolV1ds.accumFundingRateShort[token]
       );
     }
   }
