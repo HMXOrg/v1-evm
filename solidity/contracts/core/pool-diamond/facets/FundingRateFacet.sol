@@ -23,7 +23,7 @@ contract FundingRateFacet is FundingRateFacetInterface {
       updateBorrowingRateAndFundingRate(indexToken);
   }
 
-  function updateBorrowingRateAndFundingRate(address token) internal {
+  function _updateBorrowingRateAndFundingRate(address token) internal {
     LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
       .poolV1DiamondStorage();
 
