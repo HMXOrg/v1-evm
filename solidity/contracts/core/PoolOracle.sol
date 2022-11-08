@@ -40,7 +40,7 @@ contract PoolOracle is OwnableUpgradeable {
   function initialize(uint80 _roundDepth) external initializer {
     OwnableUpgradeable.__Ownable_init();
 
-    if (_roundDepth == 0) revert PoolOracle_BadArguments();
+    if (_roundDepth < 2) revert PoolOracle_BadArguments();
     roundDepth = _roundDepth;
   }
 
@@ -160,7 +160,7 @@ contract PoolOracle is OwnableUpgradeable {
   }
 
   function setRoundDepth(uint80 _roundDepth) external onlyOwner {
-    if (_roundDepth == 0) revert PoolOracle_BadArguments();
+    if (_roundDepth < 2) revert PoolOracle_BadArguments();
 
     emit SetRoundDepth(roundDepth, _roundDepth);
     roundDepth = _roundDepth;
