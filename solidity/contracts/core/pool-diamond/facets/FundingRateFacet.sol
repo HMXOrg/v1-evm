@@ -18,9 +18,9 @@ contract FundingRateFacet is FundingRateFacetInterface {
   function updateFundingRate(address collateralToken, address indexToken)
     external
   {
-    updateBorrowingRateAndFundingRate(collateralToken);
+    _updateBorrowingRateAndFundingRate(collateralToken);
     if (collateralToken != indexToken)
-      updateBorrowingRateAndFundingRate(indexToken);
+      _updateBorrowingRateAndFundingRate(indexToken);
   }
 
   function _updateBorrowingRateAndFundingRate(address token) internal {
