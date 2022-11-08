@@ -57,13 +57,15 @@ contract PoolOracle is OwnableUpgradeable {
     uint256 price = 0;
     int256 _priceCursor = 0;
     uint256 priceCursor = 0;
-    uint80 latestRoundId = priceFeed.priceFeed.latestRound();
+    (uint80 latestRoundId, int256 latestAnswer, , , ) = priceFeed
+      .priceFeed
+      .latestRoundData();
 
     for (uint80 i = 0; i < roundDepth; i++) {
       if (i >= latestRoundId) break;
 
       if (i == 0) {
-        priceCursor = priceFeed.priceFeed.latestAnswer().toUint256();
+        priceCursor = latestAnswer.toUint256();
       } else {
         (, _priceCursor, , , ) = priceFeed.priceFeed.getRoundData(
           latestRoundId - i
@@ -149,7 +151,7 @@ contract PoolOracle is OwnableUpgradeable {
       emit SetPriceFeed(token[i], priceFeedInfo[token[i]], feedInfo[i]);
 
       // Sanity check
-      feedInfo[i].priceFeed.latestAnswer();
+      feedInfo[i].priceFeed.latestRoundData();
 
       priceFeedInfo[token[i]] = feedInfo[i];
 
