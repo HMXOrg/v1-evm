@@ -17,6 +17,10 @@ contract Compounder is OwnableUpgradeable {
   address[] public tokens;
   mapping(address => bool) public isCompoundableTokens;
 
+  event LogAddToken(address token, bool isCompoundToken);
+  event LogRemoveToken(address token);
+  event LogSetCompoundToken(address token, bool isCompoundToken);
+
   function initialize(
     address dp_,
     address destinationCompundPool_,
@@ -42,6 +46,7 @@ contract Compounder is OwnableUpgradeable {
       tokens.push(newTokens[i]);
       setCompoundToken(tokens[i], newIsCompoundTokens[i]);
 
+      emit LogAddToken(tokens[i], newIsCompoundTokens[i]);
       unchecked {
         ++i;
       }
@@ -57,6 +62,7 @@ contract Compounder is OwnableUpgradeable {
         tokens.pop();
 
         setCompoundToken(token, false);
+        emit LogRemoveToken(token);
         break;
       }
 
@@ -77,6 +83,8 @@ contract Compounder is OwnableUpgradeable {
         destinationCompundPool,
         type(uint256).max
       );
+
+    emit LogSetCompoundToken(token, isCompoundToken);
   }
 
   function claimAll(address[] memory pools, address[][] memory rewarders)

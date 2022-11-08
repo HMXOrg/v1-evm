@@ -18,6 +18,7 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
   error DragonStaking_NotRewarder();
   error DragonStaking_NotCompounder();
   error DragonStaking_DragonPointWithdrawForbid();
+  error DragonStaking_BadDecimals();
 
   mapping(address => mapping(address => uint256)) public userTokenAmount;
   mapping(address => bool) public isRewarder;
@@ -37,6 +38,9 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
     uint256 amount
   );
   event LogWithdraw(address indexed caller, address token, uint256 amount);
+  event LogAddStakingToken(address newToken, address[] newRewarders);
+  event LogAddRewarder(address newRewarder, address[] newTokens);
+  event LogSetCompounder(address oldCompounder, address newCompounder);
 
   function initialize(address dp_) external initializer {
     OwnableUpgradeable.__Ownable_init();
@@ -48,10 +52,14 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
     external
     onlyOwner
   {
+    if (ERC20Upgradeable(newToken).decimals() != 18)
+      revert DragonStaking_BadDecimals();
+
     uint256 length = newRewarders.length;
     for (uint256 i = 0; i < length; ) {
       _updatePool(newToken, newRewarders[i]);
 
+      emit LogAddStakingToken(newToken, newRewarders);
       unchecked {
         ++i;
       }
@@ -64,8 +72,12 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
   {
     uint256 length = newTokens.length;
     for (uint256 i = 0; i < length; ) {
+      if (ERC20Upgradeable(newTokens[i]).decimals() != 18)
+        revert DragonStaking_BadDecimals();
+
       _updatePool(newTokens[i], newRewarder);
 
+      emit LogAddRewarder(newRewarder, newTokens);
       unchecked {
         ++i;
       }
@@ -89,15 +101,53 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
   }
 
   function _updatePool(address newToken, address newRewarder) internal {
-    stakingTokenRewarders[newToken].push(newRewarder);
-    rewarderStakingTokens[newRewarder].push(newToken);
+    if (!isDuplicatedRewarder(newToken, newRewarder))
+      stakingTokenRewarders[newToken].push(newRewarder);
+    if (!isDuplicatedStakingToken(newToken, newRewarder))
+      rewarderStakingTokens[newRewarder].push(newToken);
+
     isStakingToken[newToken] = true;
     if (!isRewarder[newRewarder]) {
       isRewarder[newRewarder] = true;
     }
   }
 
+  function isDuplicatedRewarder(address stakingToken, address rewarder)
+    internal
+    view
+    returns (bool)
+  {
+    uint256 length = stakingTokenRewarders[stakingToken].length;
+    for (uint256 i = 0; i < length; ) {
+      if (stakingTokenRewarders[stakingToken][i] == rewarder) {
+        return true;
+      }
+      unchecked {
+        ++i;
+      }
+    }
+    return false;
+  }
+
+  function isDuplicatedStakingToken(address stakingToken, address rewarder)
+    internal
+    view
+    returns (bool)
+  {
+    uint256 length = rewarderStakingTokens[rewarder].length;
+    for (uint256 i = 0; i < length; ) {
+      if (rewarderStakingTokens[rewarder][i] == stakingToken) {
+        return true;
+      }
+      unchecked {
+        ++i;
+      }
+    }
+    return false;
+  }
+
   function setCompounder(address compounder_) external onlyOwner {
+    emit LogSetCompounder(compounder, compounder_);
     compounder = compounder_;
   }
 

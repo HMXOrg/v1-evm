@@ -41,6 +41,7 @@ contract FeedableRewarder is IRewarder, OwnableUpgradeable {
     uint256 rewardRate,
     uint256 rewardRateExpiredAt
   );
+  event LogSetFeeder(address oldFeeder, address newFeeder);
 
   // Error
   error FeedableRewarderError_FeedAmountDecayed();
@@ -146,6 +147,7 @@ contract FeedableRewarder is IRewarder, OwnableUpgradeable {
   }
 
   function setFeeder(address feeder_) external onlyOwner {
+    emit LogSetFeeder(feeder, feeder_);
     feeder = feeder_;
   }
 
