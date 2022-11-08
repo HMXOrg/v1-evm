@@ -460,6 +460,11 @@ contract LiquidityFacet is LiquidityFacetInterface {
     return amountOutAfterFee;
   }
 
+  struct FlashLoanLocalVars {
+    uint256[] totalOfBefore;
+    uint256[] fees;
+  }
+
   function flashLoan(
     FlashLoanBorrowerInterface borrower,
     address[] calldata receivers,
@@ -470,12 +475,17 @@ contract LiquidityFacet is LiquidityFacetInterface {
     if (receivers.length != tokens.length || receivers.length != amounts.length)
       revert LiquidityFacet_BadLength();
 
+    FlashLoanLocalVars memory vars;
+
     LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
       .poolV1DiamondStorage();
 
-    uint256[] memory fees = new uint256[](tokens.length);
+    vars.totalOfBefore = new uint256[](tokens.length);
+    vars.fees = new uint256[](tokens.length);
     for (uint256 i = 0; i < tokens.length; ) {
-      fees[i] = (amounts[i] * LibPoolConfigV1.flashLoanFeeBps()) / BPS;
+      LibPoolV1.updateTotalOf(tokens[i]);
+      vars.totalOfBefore[i] = poolV1ds.totalOf[tokens[i]];
+      vars.fees[i] = (amounts[i] * LibPoolConfigV1.flashLoanFeeBps()) / BPS;
 
       ERC20(tokens[i]).safeTransfer(receivers[i], amounts[i]);
 
@@ -484,22 +494,21 @@ contract LiquidityFacet is LiquidityFacetInterface {
       }
     }
 
-    borrower.onFlashLoan(msg.sender, tokens, amounts, fees, data);
+    borrower.onFlashLoan(msg.sender, tokens, amounts, vars.fees, data);
 
     for (uint256 i = 0; i < tokens.length; ) {
-      if (
-        ERC20(tokens[i]).balanceOf(address(this)) <
-        poolV1ds.totalOf[tokens[i]] + fees[i]
-      ) revert LiquidityFacet_BadFlashLoan();
+      LibPoolV1.updateTotalOf(tokens[i]); // must update for make sure that the TotalOf state is not abused
+      if (poolV1ds.totalOf[tokens[i]] < vars.totalOfBefore[i] + vars.fees[i])
+        revert LiquidityFacet_BadFlashLoan();
 
       // Collect fee
-      poolV1ds.feeReserveOf[tokens[i]] += fees[i];
+      poolV1ds.feeReserveOf[tokens[i]] += vars.fees[i];
 
       emit FlashLoan(
         address(borrower),
         tokens[i],
         amounts[i],
-        fees[i],
+        vars.fees[i],
         receivers[i]
       );
 

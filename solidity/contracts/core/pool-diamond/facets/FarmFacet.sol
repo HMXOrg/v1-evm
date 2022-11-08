@@ -5,6 +5,7 @@ import { LibDiamond } from "../libraries/LibDiamond.sol";
 import { LibPoolV1 } from "../libraries/LibPoolV1.sol";
 import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
 import { LibAccessControl } from "../libraries/LibAccessControl.sol";
+import { LibReentrancyGuard } from "../libraries/LibReentrancyGuard.sol";
 import { AccessControlFacetInterface } from "../interfaces/AccessControlFacetInterface.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -38,6 +39,12 @@ contract FarmFacet is FarmFacetInterface {
     _;
   }
 
+  modifier nonReentrant() {
+    LibReentrancyGuard.lock();
+    _;
+    LibReentrancyGuard.unlock();
+  }
+
   modifier onlyPoolDiamondOrFarmKeeper() {
     if (
       msg.sender != address(this) &&
@@ -54,6 +61,7 @@ contract FarmFacet is FarmFacetInterface {
   function setStrategyOf(address token, StrategyInterface newStrategy)
     external
     onlyOwner
+    nonReentrant
   {
     // Load PoolConfig Diamond storage
     LibPoolConfigV1.PoolConfigV1DiamondStorage
