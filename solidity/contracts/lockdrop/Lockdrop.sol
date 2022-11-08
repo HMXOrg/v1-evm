@@ -596,7 +596,6 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     );
     lockdropConfig.plpToken().approve(address(poolRouter), type(uint256).max);
     totalPLPAmount = poolRouter.addLiquidity(
-      pool,
       address(lockdropToken),
       totalAmount,
       address(this),

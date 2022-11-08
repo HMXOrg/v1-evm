@@ -72,6 +72,22 @@ contract DragonStaking is IStaking, OwnableUpgradeable {
     }
   }
 
+  function removeRewarder(uint256 removeRewarderIndex, address token)
+    external
+    onlyOwner
+  {
+    address removedRewarder = stakingTokenRewarders[token][removeRewarderIndex];
+    uint256 length = stakingTokenRewarders[token].length;
+    stakingTokenRewarders[token][removeRewarderIndex] = stakingTokenRewarders[
+      token
+    ][length - 1];
+    stakingTokenRewarders[token].pop();
+
+    delete rewarderStakingTokens[removedRewarder];
+
+    isRewarder[removedRewarder] = false;
+  }
+
   function _updatePool(address newToken, address newRewarder) internal {
     stakingTokenRewarders[newToken].push(newRewarder);
     rewarderStakingTokens[newRewarder].push(newToken);

@@ -31,22 +31,10 @@ contract PoolDiamond_RemoveLiquidityTest is PoolDiamond_BaseTest {
 
     dai.approve(address(poolRouter), 100 ether);
     plp.approve(address(poolRouter), type(uint256).max);
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(dai),
-      100 ether,
-      address(this),
-      0
-    );
+    poolRouter.addLiquidity(address(dai), 100 ether, address(this), 0);
 
     vm.expectRevert(abi.encodeWithSignature("LiquidityFacet_BadAmount()"));
-    poolRouter.removeLiquidity(
-      address(poolDiamond),
-      address(dai),
-      0,
-      address(this),
-      0
-    );
+    poolRouter.removeLiquidity(address(dai), 0, address(this), 0);
   }
 
   function testRevert_WhenCoolDownNotPassed() external {
@@ -54,24 +42,12 @@ contract PoolDiamond_RemoveLiquidityTest is PoolDiamond_BaseTest {
 
     dai.approve(address(poolRouter), 100 ether);
     plp.approve(address(poolRouter), type(uint256).max);
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(dai),
-      100 ether,
-      address(this),
-      0
-    );
+    poolRouter.addLiquidity(address(dai), 100 ether, address(this), 0);
 
     poolGetterFacet.plp().approve(address(poolRouter), 1);
 
     vm.expectRevert(abi.encodeWithSelector(PLP.PLP_Cooldown.selector, 86401));
-    poolRouter.removeLiquidity(
-      address(poolDiamond),
-      address(dai),
-      1,
-      address(this),
-      0
-    );
+    poolRouter.removeLiquidity(address(dai), 1, address(this), 0);
   }
 
   function testCorrectness_WhenDynamicFeeOff() external {
@@ -85,13 +61,7 @@ contract PoolDiamond_RemoveLiquidityTest is PoolDiamond_BaseTest {
     // Perform add liquidity
     dai.approve(address(poolRouter), 100 ether);
     plp.approve(address(poolRouter), type(uint256).max);
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(dai),
-      100 ether,
-      ALICE,
-      0
-    );
+    poolRouter.addLiquidity(address(dai), 100 ether, ALICE, 0);
 
     vm.stopPrank();
     // ------- Finish Alice session -------
@@ -110,13 +80,7 @@ contract PoolDiamond_RemoveLiquidityTest is PoolDiamond_BaseTest {
     // Perform add liquidity
     matic.approve(address(poolRouter), 1 ether);
     plp.approve(address(poolRouter), type(uint256).max);
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(matic),
-      1 ether,
-      BOB,
-      0
-    );
+    poolRouter.addLiquidity(address(matic), 1 ether, BOB, 0);
 
     vm.stopPrank();
     // ------- Finish Bob session -------
@@ -143,13 +107,7 @@ contract PoolDiamond_RemoveLiquidityTest is PoolDiamond_BaseTest {
     // Perform add liquidity
     wbtc.approve(address(poolRouter), 1000000);
     plp.approve(address(poolRouter), type(uint256).max);
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(wbtc),
-      1000000,
-      CAT,
-      0
-    );
+    poolRouter.addLiquidity(address(wbtc), 1000000, CAT, 0);
 
     vm.stopPrank();
     // ------- Finish Cat session -------
@@ -165,13 +123,7 @@ contract PoolDiamond_RemoveLiquidityTest is PoolDiamond_BaseTest {
     // Perform remove liquidity
     poolGetterFacet.plp().approve(address(poolRouter), 72 ether);
     plpStaking.withdraw(address(poolGetterFacet.plp()), 99.7 ether);
-    poolRouter.removeLiquidity(
-      address(poolDiamond),
-      address(dai),
-      72 ether,
-      ALICE,
-      0
-    );
+    poolRouter.removeLiquidity(address(dai), 72 ether, ALICE, 0);
 
     // Alice remove 72 PLP, the following criteria needs to statisfy:
     // 1. Alice should get ((72 * 1096.7) / 797.6) * (1-0.003) / 1 ~= 98.703 DAI
@@ -181,13 +133,7 @@ contract PoolDiamond_RemoveLiquidityTest is PoolDiamond_BaseTest {
 
     // Alice remove 27.7 PLP to MATIC
     poolGetterFacet.plp().approve(address(poolRouter), 27.7 ether);
-    poolRouter.removeLiquidity(
-      address(poolDiamond),
-      address(matic),
-      27.7 ether,
-      ALICE,
-      0
-    );
+    poolRouter.removeLiquidity(address(matic), 27.7 ether, ALICE, 0);
 
     // Alice remove 27.7 PLP, the following criteria needs to statisfy:
     // 1. Alice should get ((27.7 * 997.7) / 725.6) * (1-0.003) / 500 ~= 0.0759 MATIC
@@ -214,13 +160,7 @@ contract PoolDiamond_RemoveLiquidityTest is PoolDiamond_BaseTest {
     // Bob remove 299.1 PLP to MATIC
     poolGetterFacet.plp().approve(address(poolRouter), 299.1 ether);
     plpStaking.withdraw(address(poolGetterFacet.plp()), 299.1 ether);
-    poolRouter.removeLiquidity(
-      address(poolDiamond),
-      address(matic),
-      299.1 ether,
-      BOB,
-      0
-    );
+    poolRouter.removeLiquidity(address(matic), 299.1 ether, BOB, 0);
 
     // Bob remove 299.1 PLP, the following criteria needs to statisfy:
     // 1. Bob should get ((299.1 * 967.23) / 697.9) * (1-0.003) / 500 ~= 0.826567122857143 MATIC
@@ -252,13 +192,7 @@ contract PoolDiamond_RemoveLiquidityTest is PoolDiamond_BaseTest {
     // Cat remove 375 PLP to WBTC
     poolGetterFacet.plp().approve(address(poolRouter), 375 ether);
     plpStaking.withdraw(address(poolGetterFacet.plp()), 375 ether);
-    poolRouter.removeLiquidity(
-      address(poolDiamond),
-      address(wbtc),
-      375 ether,
-      CAT,
-      0
-    );
+    poolRouter.removeLiquidity(address(wbtc), 375 ether, CAT, 0);
 
     // Cat removed 375 PLP, the following criteria needs to statisfy:
     // 1. Cat should get ((375 * 635.6082857142857) / 398.8) * (1-0.003) / 60000 ~= 0.009931379464285715 WBTC
@@ -293,13 +227,7 @@ contract PoolDiamond_RemoveLiquidityTest is PoolDiamond_BaseTest {
     // Perform add liquidity
     dai.approve(address(poolRouter), 100 ether);
     plp.approve(address(poolRouter), type(uint256).max);
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(dai),
-      100 ether,
-      ALICE,
-      0
-    );
+    poolRouter.addLiquidity(address(dai), 100 ether, ALICE, 0);
 
     vm.stopPrank();
     // ------- Finish Alice session -------
@@ -318,13 +246,7 @@ contract PoolDiamond_RemoveLiquidityTest is PoolDiamond_BaseTest {
     // Perform add liquidity
     matic.approve(address(poolRouter), 1 ether);
     plp.approve(address(poolRouter), type(uint256).max);
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(matic),
-      1 ether,
-      BOB,
-      0
-    );
+    poolRouter.addLiquidity(address(matic), 1 ether, BOB, 0);
 
     vm.stopPrank();
     // ------- Finish Bob session -------
@@ -351,13 +273,7 @@ contract PoolDiamond_RemoveLiquidityTest is PoolDiamond_BaseTest {
     // Perform add liquidity
     wbtc.approve(address(poolRouter), 1000000);
     plp.approve(address(poolRouter), type(uint256).max);
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(wbtc),
-      1000000,
-      CAT,
-      0
-    );
+    poolRouter.addLiquidity(address(wbtc), 1000000, CAT, 0);
 
     vm.stopPrank();
     // ------- Finish Cat session -------
@@ -384,13 +300,7 @@ contract PoolDiamond_RemoveLiquidityTest is PoolDiamond_BaseTest {
       )
     );
 
-    poolRouter.removeLiquidity(
-      address(poolDiamond),
-      address(dai),
-      72 ether,
-      ALICE,
-      100 ether
-    );
+    poolRouter.removeLiquidity(address(dai), 72 ether, ALICE, 100 ether);
     vm.stopPrank();
   }
 }

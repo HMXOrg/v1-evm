@@ -810,11 +810,12 @@ contract BaseTest is DSTest {
     );
   }
 
-  function deployPoolRouter(address wNative, address plpStaking)
-    internal
-    returns (PoolRouter)
-  {
-    return new PoolRouter(wNative, plpStaking);
+  function deployPoolRouter(
+    address wNative,
+    address plpStaking,
+    address pool
+  ) internal returns (PoolRouter) {
+    return new PoolRouter(wNative, plpStaking, pool);
   }
 
   function deployPLPStaking() internal returns (PLPStaking) {
