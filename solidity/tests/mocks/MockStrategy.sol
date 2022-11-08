@@ -49,7 +49,7 @@ contract MockStrategy is StrategyInterface {
     return share;
   }
 
-  function realized(uint256 principle, address sender)
+  function realized(uint256 principle)
     external
     onlyPool
     returns (int256 amountDelta)
@@ -58,7 +58,7 @@ contract MockStrategy is StrategyInterface {
     if (isProfit) {
       vault.withdraw(_roundedValueToShare(amount));
       uint256 balance = IERC20(token).balanceOf(address(this));
-      IERC20(token).transfer(sender, balance);
+      IERC20(token).transfer(msg.sender, balance);
       return int256(balance);
     } else {
       return -int256(amount);
