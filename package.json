@@ -211,10 +211,13 @@
     "deploy:tenderly:airdrop:merkle-airdrop": "npx hardhat --network tenderly deploy --no-compile --reset --tags MerkleAirdrop",
     "deploy:polygon:airdrop:set-merkle-airdrop-feeder": "npx hardhat --network polygon deploy --no-compile --reset --tags SetMerkleAirdropFeeder",
     "deploy:mumbai:airdrop:set-merkle-airdrop-feeder": "npx hardhat --network mumbai deploy --no-compile --reset --tags SetMerkleAirdropFeeder",
-    "deploy:tenderly:airdrop:set-merkle-airdrop-feeder": "npx hardhat --network tenderly deploy --no-compile --reset --tags SetMerkleAirdropFeeder"
+    "deploy:tenderly:airdrop:set-merkle-airdrop-feeder": "npx hardhat --network tenderly deploy --no-compile --reset --tags SetMerkleAirdropFeeder",
+    "deploy:polygon:timelock:deploy-timelock": "npx hardhat --network polygon deploy --no-compile --reset --tags TimelockController",
+    "deploy:mumbai:timelock:deploy-timelock": "npx hardhat --network mumbai deploy --no-compile --reset --tags TimelockController",
+    "deploy:tenderly:timelock:deploy-timelock": "npx hardhat --network tenderly deploy --no-compile --reset --tags TimelockController"
   },
   "devDependencies": {
-    "@tenderly/hardhat-tenderly": "^1.1.6",
+    "@tenderly/hardhat-tenderly": "^1.3.2",
     "@typechain/ethers-v5": "^10.0.0",
     "@typechain/hardhat": "^5.0.0",
     "@types/mocha": "^9.1.0",
@@ -234,7 +237,7 @@
     "@nomiclabs/hardhat-ethers": "^2.0.5",
     "@openzeppelin/contracts": "^4.7.3",
     "@openzeppelin/contracts-upgradeable": "^4.7.3",
-    "@openzeppelin/hardhat-upgrades": "^1.16.1",
+    "@openzeppelin/hardhat-upgrades": "^1.21.0",
     "dotenv": "^16.0.0",
     "hardhat": "^2.9.1",
     "hardhat-deploy": "^0.11.10"

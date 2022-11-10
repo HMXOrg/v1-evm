@@ -12,7 +12,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const PoolRouter = await ethers.getContractFactory("PoolRouter02", deployer);
   const poolRouter = await PoolRouter.deploy(
     WNATIVE,
-    config.Staking.PLPStaking.address
+    config.Staking.PLPStaking.address,
+    config.Pools.PLP.poolDiamond
   );
   await poolRouter.deployed();
   console.log(`Deploying PoolRouter02 Contract`);

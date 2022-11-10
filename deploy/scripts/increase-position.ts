@@ -35,7 +35,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   await (
     await poolRouter.increasePosition(
-      config.Pools.PLP.poolDiamond,
       0,
       COLLATERAL_TOKEN,
       COLLATERAL_TOKEN,
