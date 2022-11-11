@@ -26,10 +26,10 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
       _amountIn: 22500,
       _indexToken: address(wbtc),
       _minOut: 0,
-      _sizeDelta: 47 * 10**30,
+      _sizeDelta: 47 * 10 ** 30,
       _collateralToken: address(wbtc),
       _isLong: true,
-      _triggerPrice: 41_001 * 10**30,
+      _triggerPrice: 41_001 * 10 ** 30,
       _triggerAboveThreshold: false,
       _executionFee: 0 ether,
       _shouldWrap: false
@@ -46,10 +46,10 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
       _amountIn: 22500,
       _indexToken: address(wbtc),
       _minOut: 0,
-      _sizeDelta: 47 * 10**30,
+      _sizeDelta: 47 * 10 ** 30,
       _collateralToken: address(wbtc),
       _isLong: true,
-      _triggerPrice: 41_001 * 10**30,
+      _triggerPrice: 41_001 * 10 ** 30,
       _triggerAboveThreshold: false,
       _executionFee: 0.01 ether,
       _shouldWrap: true
@@ -66,10 +66,10 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
       _amountIn: 22500,
       _indexToken: address(wbtc),
       _minOut: 0,
-      _sizeDelta: 47 * 10**30,
+      _sizeDelta: 47 * 10 ** 30,
       _collateralToken: address(wbtc),
       _isLong: true,
-      _triggerPrice: 41_001 * 10**30,
+      _triggerPrice: 41_001 * 10 ** 30,
       _triggerAboveThreshold: false,
       _executionFee: 0.01 ether,
       _shouldWrap: true
@@ -89,10 +89,10 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
       _amountIn: 22500,
       _indexToken: address(wbtc),
       _minOut: 0,
-      _sizeDelta: 47 * 10**30,
+      _sizeDelta: 47 * 10 ** 30,
       _collateralToken: address(wbtc),
       _isLong: true,
-      _triggerPrice: 41_001 * 10**30,
+      _triggerPrice: 41_001 * 10 ** 30,
       _triggerAboveThreshold: false,
       _executionFee: 0.01 ether,
       _shouldWrap: false
@@ -106,24 +106,24 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     orderbook.createDecreaseOrder{ value: 0.001 ether }({
       _subAccountId: 0,
       _indexToken: address(wbtc),
-      _sizeDelta: 47 * 10**30,
+      _sizeDelta: 47 * 10 ** 30,
       _collateralToken: address(wbtc),
       _collateralDelta: 0,
       _isLong: true,
-      _triggerPrice: 44_000 * 10**30,
+      _triggerPrice: 44_000 * 10 ** 30,
       _triggerAboveThreshold: true
     });
   }
 
   function testCorrectness_WhenLong() external {
-    maticPriceFeed.setLatestAnswer(400 * 10**8);
-    daiPriceFeed.setLatestAnswer(1 * 10**8);
+    maticPriceFeed.setLatestAnswer(400 * 10 ** 8);
+    daiPriceFeed.setLatestAnswer(1 * 10 ** 8);
 
-    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
 
-    wbtc.mint(ALICE, 1 * 10**8);
+    wbtc.mint(ALICE, 1 * 10 ** 8);
 
     // ----- Start Alice session -----
     vm.deal(ALICE, 100 ether);
@@ -147,16 +147,16 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     // 7. Redeemable WBTC in USD should be 48.8584 USD
     assertEq(
       poolGetterFacet.plp().balanceOf(address(plpStaking)),
-      46.8584 * 10**18
+      46.8584 * 10 ** 18
     );
     assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 353);
-    assertEq(poolGetterFacet.getAumE18(false), 46.8584 * 10**18);
-    assertEq(poolGetterFacet.getAumE18(true), 48.02986 * 10**18);
-    assertEq(poolGetterFacet.usdDebtOf(address(wbtc)), 46.8584 * 10**18);
+    assertEq(poolGetterFacet.getAumE18(false), 46.8584 * 10 ** 18);
+    assertEq(poolGetterFacet.getAumE18(true), 48.02986 * 10 ** 18);
+    assertEq(poolGetterFacet.usdDebtOf(address(wbtc)), 46.8584 * 10 ** 18);
     assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 117146);
     assertEq(
       poolGetterFacet.getRedemptionCollateralUsd(address(wbtc)),
-      46.8584 * 10**30
+      46.8584 * 10 ** 30
     );
 
     // Alice add liquidity again with 117499 satoshi
@@ -179,20 +179,20 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
       92573912195121951219
     );
     assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 706);
-    assertEq(poolGetterFacet.getAumE18(false), 93.7168 * 10**18);
-    assertEq(poolGetterFacet.getAumE18(true), 96.05972 * 10**18);
-    assertEq(poolGetterFacet.usdDebtOf(address(wbtc)), 93.7168 * 10**18);
+    assertEq(poolGetterFacet.getAumE18(false), 93.7168 * 10 ** 18);
+    assertEq(poolGetterFacet.getAumE18(true), 96.05972 * 10 ** 18);
+    assertEq(poolGetterFacet.usdDebtOf(address(wbtc)), 93.7168 * 10 ** 18);
     assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 234292);
     assertEq(
       poolGetterFacet.getRedemptionCollateralUsd(address(wbtc)),
-      93.7168 * 10**30
+      93.7168 * 10 ** 30
     );
 
     vm.stopPrank();
 
-    wbtcPriceFeed.setLatestAnswer(45_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(45_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(45_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(45_000 * 10 ** 8);
 
     // Alice increase long position with sub account id = 0
     vm.startPrank(ALICE);
@@ -206,10 +206,10 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
       _amountIn: 22500,
       _indexToken: address(wbtc),
       _minOut: 0,
-      _sizeDelta: 47 * 10**30,
+      _sizeDelta: 47 * 10 ** 30,
       _collateralToken: address(wbtc),
       _isLong: true,
-      _triggerPrice: 41_001 * 10**30,
+      _triggerPrice: 41_001 * 10 ** 30,
       _triggerAboveThreshold: false,
       _executionFee: 0.01 ether,
       _shouldWrap: false
@@ -226,10 +226,10 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
       _amountIn: 22500,
       _indexToken: address(wbtc),
       _minOut: 0,
-      _sizeDelta: 47 * 10**30,
+      _sizeDelta: 47 * 10 ** 30,
       _collateralToken: address(wbtc),
       _isLong: true,
-      _triggerPrice: 41_001 * 10**30,
+      _triggerPrice: 41_001 * 10 ** 30,
       _triggerAboveThreshold: false,
       _executionFee: 0.01 ether,
       _shouldWrap: false
@@ -249,18 +249,22 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     assertEq(purchaseTokenAmount, 22500);
     assertEq(collateralToken, address(wbtc));
     assertEq(indexToken, address(wbtc));
-    assertEq(sizeDelta, 47 * 10**30);
+    assertEq(sizeDelta, 47 * 10 ** 30);
     assertTrue(isLong);
-    assertEq(triggerPrice, 41_001 * 10**30);
+    assertEq(triggerPrice, 41_001 * 10 ** 30);
     assertFalse(triggerAboveThreshold);
     vm.stopPrank();
 
-    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
 
     // Execute Alice's order
-    orderbook.executeIncreaseOrder(ALICE, 0, 1, payable(BOB));
+    (bool shouldExecute, uint160[] memory orderList) = orderbook
+      .getShouldExecuteOrderList(false, 10);
+    assertTrue(shouldExecute);
+    executeOrders(orderList, payable(BOB));
+    // orderbook.executeIncreaseOrder(ALICE, 0, 1, payable(BOB));
     // Bob should receive 0.01 ether as execution fee
     assertEq(BOB.balance, 0.01 ether);
 
@@ -284,15 +288,15 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     // = 256678 + 820 = 257498 sathoshi
     assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 256678);
     assertEq(poolGetterFacet.reservedOf(address(wbtc)), 117500);
-    assertEq(poolGetterFacet.guaranteedUsdOf(address(wbtc)), 38.047 * 10**30);
+    assertEq(poolGetterFacet.guaranteedUsdOf(address(wbtc)), 38.047 * 10 ** 30);
     assertEq(
       poolGetterFacet.getRedemptionCollateralUsd(address(wbtc)),
-      92.79 * 10**30
+      92.79 * 10 ** 30
     );
-    assertEq(poolGetterFacet.getAumE18(false), 93.7182 * 10**18);
-    assertEq(poolGetterFacet.getAumE18(true), 95.10998 * 10**18);
+    assertEq(poolGetterFacet.getAumE18(false), 93.7182 * 10 ** 18);
+    assertEq(poolGetterFacet.getAumE18(true), 95.10998 * 10 ** 18);
     assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 820);
-    assertEq(poolGetterFacet.usdDebtOf(address(wbtc)), 93.7168 * 10**18);
+    assertEq(poolGetterFacet.usdDebtOf(address(wbtc)), 93.7168 * 10 ** 18);
     assertEq(wbtc.balanceOf(address(poolDiamond)), 257498);
 
     // Assert a postion
@@ -308,9 +312,9 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
         address(wbtc),
         true
       );
-    assertEq(position.size, 47 * 10**30);
-    assertEq(position.collateral, 8.953 * 10**30);
-    assertEq(position.averagePrice, 41000 * 10**30);
+    assertEq(position.size, 47 * 10 ** 30);
+    assertEq(position.collateral, 8.953 * 10 ** 30);
+    assertEq(position.averagePrice, 41000 * 10 ** 30);
     assertEq(position.entryFundingRate, 0);
     assertEq(position.reserveAmount, 117500);
     assertEq(position.realizedPnl, 0);
@@ -321,23 +325,26 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     orderbook.createDecreaseOrder{ value: 0.01 ether }({
       _subAccountId: 0,
       _indexToken: address(wbtc),
-      _sizeDelta: 47 * 10**30,
+      _sizeDelta: 47 * 10 ** 30,
       _collateralToken: address(wbtc),
       _collateralDelta: position.collateral,
       _isLong: true,
-      _triggerPrice: 44_000 * 10**30,
+      _triggerPrice: 44_000 * 10 ** 30,
       _triggerAboveThreshold: true
     });
     vm.stopPrank();
     // ----- Stop Alice session ------
 
-    wbtcPriceFeed.setLatestAnswer(45_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(46_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(45_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(45_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(46_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(45_000 * 10 ** 8);
 
     uint256 aliceWBTCBalanceBefore = wbtc.balanceOf(ALICE);
 
-    orderbook.executeDecreaseOrder(ALICE, 0, 0, payable(BOB));
+    (shouldExecute, orderList) = orderbook.getShouldExecuteOrderList(false, 10);
+    assertTrue(shouldExecute);
+    executeOrders(orderList, payable(BOB));
+    // orderbook.executeDecreaseOrder(ALICE, 0, 0, payable(BOB));
     // Bob should receive another 0.01 ether as execution fee
     assertEq(BOB.balance, 0.02 ether);
 
@@ -359,29 +366,29 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
 
   function testCorrectness_WhenShort() external {
     // Initialized price feeds
-    daiPriceFeed.setLatestAnswer(1 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(60_000 * 10**8);
-    maticPriceFeed.setLatestAnswer(1000 * 10**8);
+    daiPriceFeed.setLatestAnswer(1 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(60_000 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(1000 * 10 ** 8);
 
     // Set mintBurnFeeBps to 4 BPS
     poolAdminFacet.setMintBurnFeeBps(4);
 
     // Feed WBTC price to be 40,000 USD
-    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
 
     // Mint 1,000 DAI to Alice
-    dai.mint(ALICE, 1000 * 10**18);
+    dai.mint(ALICE, 1000 * 10 ** 18);
 
     // --- Start Alice session --- //
     vm.deal(ALICE, 100 ether);
     vm.startPrank(ALICE);
 
     // Alice performs add liquidity by a 500 DAI
-    dai.approve(address(poolRouter), 500 * 10**18);
+    dai.approve(address(poolRouter), 500 * 10 ** 18);
     plp.approve(address(poolRouter), type(uint256).max);
-    poolRouter.addLiquidity(address(dai), 500 * 10**18, ALICE, 0);
+    poolRouter.addLiquidity(address(dai), 500 * 10 ** 18, ALICE, 0);
 
     // The following conditions need to be met:
     // 1. Pool's DAI liquidity should be 500 * (1-0.0004) = 499.8 DAI
@@ -390,41 +397,41 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     // 4. Redemptable DAI collateral should be 499.8 USD
     // 5. Pool's AUM by min price should be 499.8 USD
     // 6. Pool's AUM by max price should be 499.8 USD
-    assertEq(poolGetterFacet.liquidityOf(address(dai)), 499.8 * 10**18);
-    assertEq(poolGetterFacet.feeReserveOf(address(dai)), 0.2 * 10**18);
-    assertEq(poolGetterFacet.usdDebtOf(address(dai)), 499.8 * 10**18);
+    assertEq(poolGetterFacet.liquidityOf(address(dai)), 499.8 * 10 ** 18);
+    assertEq(poolGetterFacet.feeReserveOf(address(dai)), 0.2 * 10 ** 18);
+    assertEq(poolGetterFacet.usdDebtOf(address(dai)), 499.8 * 10 ** 18);
     assertEq(
       poolGetterFacet.getRedemptionCollateralUsd(address(dai)),
-      499.8 * 10**30
+      499.8 * 10 ** 30
     );
-    assertEq(poolGetterFacet.getAumE18(false), 499.8 * 10**18);
-    assertEq(poolGetterFacet.getAumE18(true), 499.8 * 10**18);
+    assertEq(poolGetterFacet.getAumE18(false), 499.8 * 10 ** 18);
+    assertEq(poolGetterFacet.getAumE18(true), 499.8 * 10 ** 18);
 
     vm.stopPrank();
     // ---- Stop Alice session ---- //
 
-    wbtcPriceFeed.setLatestAnswer(39_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(39_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(39_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(39_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(39_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(39_000 * 10 ** 8);
 
     // ---- Start Alice session ---- //
     vm.startPrank(ALICE);
 
     // Alice opens a 90 USD WBTC short position with 20 DAI as a collateral
-    dai.approve(address(orderbook), 20 * 10**18);
+    dai.approve(address(orderbook), 20 * 10 ** 18);
     poolAccessControlFacet.allowPlugin(address(orderbook));
     address[] memory path = new address[](1);
     path[0] = address(dai);
     orderbook.createIncreaseOrder{ value: 0.01 ether }({
       _subAccountId: 1,
       _path: path,
-      _amountIn: 20 * 10**18,
+      _amountIn: 20 * 10 ** 18,
       _indexToken: address(wbtc),
       _minOut: 0,
-      _sizeDelta: 90 * 10**30,
+      _sizeDelta: 90 * 10 ** 30,
       _collateralToken: address(dai),
       _isLong: false,
-      _triggerPrice: 49_999 * 10**30,
+      _triggerPrice: 49_999 * 10 ** 30,
       _triggerAboveThreshold: true,
       _executionFee: 0.01 ether,
       _shouldWrap: false
@@ -434,8 +441,8 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     orderbook.updateIncreaseOrder({
       _subAccountId: 1,
       _orderIndex: 0,
-      _sizeDelta: 90 * 10**30,
-      _triggerPrice: 39_999 * 10**30,
+      _sizeDelta: 90 * 10 ** 30,
+      _triggerPrice: 39_999 * 10 ** 30,
       _triggerAboveThreshold: true
     });
 
@@ -450,20 +457,24 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
       bool triggerAboveThreshold
     ) = orderbook.getIncreaseOrder(ALICE, 1, 0);
     assertEq(purchaseToken, address(dai));
-    assertEq(purchaseTokenAmount, 20 * 10**18);
+    assertEq(purchaseTokenAmount, 20 * 10 ** 18);
     assertEq(collateralToken, address(dai));
     assertEq(indexToken, address(wbtc));
-    assertEq(sizeDelta, 90 * 10**30);
+    assertEq(sizeDelta, 90 * 10 ** 30);
     assertFalse(isLong);
-    assertEq(triggerPrice, 39_999 * 10**30);
+    assertEq(triggerPrice, 39_999 * 10 ** 30);
     assertTrue(triggerAboveThreshold);
     vm.stopPrank();
 
-    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
 
-    orderbook.executeIncreaseOrder(ALICE, 1, 0, payable(BOB));
+    (bool shouldExecute, uint160[] memory orderList) = orderbook
+      .getShouldExecuteOrderList(false, 1);
+    assertTrue(shouldExecute);
+    executeOrders(orderList, payable(BOB));
+    // orderbook.executeIncreaseOrder(ALICE, 1, 0, payable(BOB));
     // Bob should receive 0.01 ether as execution fee
     assertEq(BOB.balance, 0.01 ether);
 
@@ -474,19 +485,19 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     // 3. Pool's guaranteed USD should be 0
     // 4. Redemptable DAI collateral should be 499.8 USD (same as liquidity)
     // 5. Pool should makes 0.2 + ((90 * 0.001)) = 0.29 DAI
-    assertEq(poolGetterFacet.liquidityOf(address(dai)), 499.8 * 10**18);
-    assertEq(poolGetterFacet.usdDebtOf(address(dai)), 499.8 * 10**18);
-    assertEq(poolGetterFacet.reservedOf(address(dai)), 90 * 10**18);
-    assertEq(poolGetterFacet.guaranteedUsdOf(address(dai)), 0 * 10**18);
+    assertEq(poolGetterFacet.liquidityOf(address(dai)), 499.8 * 10 ** 18);
+    assertEq(poolGetterFacet.usdDebtOf(address(dai)), 499.8 * 10 ** 18);
+    assertEq(poolGetterFacet.reservedOf(address(dai)), 90 * 10 ** 18);
+    assertEq(poolGetterFacet.guaranteedUsdOf(address(dai)), 0 * 10 ** 18);
     assertEq(
       poolGetterFacet.getRedemptionCollateralUsd(address(dai)),
-      499.8 * 10**30
+      499.8 * 10 ** 30
     );
-    assertEq(poolGetterFacet.feeReserveOf(address(dai)), 0.29 * 10**18);
-    assertEq(poolGetterFacet.shortSizeOf(address(wbtc)), 90 * 10**30);
+    assertEq(poolGetterFacet.feeReserveOf(address(dai)), 0.29 * 10 ** 18);
+    assertEq(poolGetterFacet.shortSizeOf(address(wbtc)), 90 * 10 ** 30);
     assertEq(
       poolGetterFacet.shortAveragePriceOf(address(wbtc)),
-      40_000 * 10**30
+      40_000 * 10 ** 30
     );
 
     // Assert a position:
@@ -505,11 +516,11 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
         address(wbtc),
         false
       );
-    assertEq(position.size, 90 * 10**30);
-    assertEq(position.collateral, 19.91 * 10**30);
-    assertEq(position.averagePrice, 40_000 * 10**30);
+    assertEq(position.size, 90 * 10 ** 30);
+    assertEq(position.collateral, 19.91 * 10 ** 30);
+    assertEq(position.averagePrice, 40_000 * 10 ** 30);
     assertEq(position.entryFundingRate, 0);
-    assertEq(position.reserveAmount, 90 * 10**18);
+    assertEq(position.reserveAmount, 90 * 10 ** 18);
     assertTrue(position.hasProfit);
     assertEq(position.lastIncreasedTime, block.timestamp);
 
@@ -520,7 +531,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
       address(wbtc)
     );
     assertFalse(isProfit);
-    assertEq(delta, 2.25 * 10**30);
+    assertEq(delta, 2.25 * 10 ** 30);
 
     // Assert position's delta
     // 1. Position's delta should be (90 * (40000 - 41000)) / 40000 = -2.25 USD
@@ -533,14 +544,14 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
       false
     );
     assertFalse(isProfit);
-    assertEq(delta, 2.25 * 10**30);
+    assertEq(delta, 2.25 * 10 ** 30);
 
     vm.stopPrank();
 
     // Make WBTC price pump to 42,000 USD
-    wbtcPriceFeed.setLatestAnswer(42_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(42_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(42_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(42_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(42_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(42_000 * 10 ** 8);
 
     vm.startPrank(ALICE);
 
@@ -549,7 +560,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     // 2. Pool's short should be not profitable
     (isProfit, delta) = poolGetterFacet.getPoolShortDelta(address(wbtc));
     assertFalse(isProfit);
-    assertEq(delta, 4.5 * 10**30);
+    assertEq(delta, 4.5 * 10 ** 30);
 
     // Assert position's delta
     // 1. Position's delta should be (90 * (40000 - 42000)) / 40000 = -4.5 USD
@@ -562,27 +573,30 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
       false
     );
     assertFalse(isProfit);
-    assertEq(delta, 4.5 * 10**30);
+    assertEq(delta, 4.5 * 10 ** 30);
 
     orderbook.createDecreaseOrder{ value: 0.01 ether }({
       _subAccountId: 1,
       _indexToken: address(wbtc),
-      _sizeDelta: 90 * 10**30,
+      _sizeDelta: 90 * 10 ** 30,
       _collateralToken: address(dai),
       _collateralDelta: position.collateral,
       _isLong: false,
-      _triggerPrice: 40_000 * 10**30,
+      _triggerPrice: 40_000 * 10 ** 30,
       _triggerAboveThreshold: false
     });
     vm.stopPrank();
 
-    wbtcPriceFeed.setLatestAnswer(39_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(39_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(38_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(39_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(39_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(38_000 * 10 ** 8);
 
     uint256 aliceDAIBalanceBefore = dai.balanceOf(ALICE);
 
-    orderbook.executeDecreaseOrder(ALICE, 1, 0, payable(BOB));
+    (shouldExecute, orderList) = orderbook.getShouldExecuteOrderList(false, 10);
+    assertTrue(shouldExecute);
+    executeOrders(orderList, payable(BOB));
+    // orderbook.executeDecreaseOrder(ALICE, 1, 0, payable(BOB));
     // Bob should receive another 0.01 ether as execution fee
     assertEq(BOB.balance, 0.02 ether);
 
@@ -597,7 +611,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     assertEq(position.collateral, 0, "Alice position should be closed");
     assertGt(
       dai.balanceOf(ALICE) - aliceDAIBalanceBefore,
-      20 * 10**18,
+      20 * 10 ** 18,
       "Alice should receive collateral and profit."
     );
   }
@@ -610,7 +624,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
       _path: path,
       _amountIn: 100 ether,
       _minOut: 0,
-      _triggerRatio: 250 * 10**30, // tokenB / tokenA
+      _triggerRatio: 250 * 10 ** 30, // tokenB / tokenA
       _triggerAboveThreshold: true,
       _executionFee: 0.01 ether,
       _shouldWrap: false,
@@ -627,7 +641,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
       _path: path,
       _amountIn: 100 ether,
       _minOut: 0,
-      _triggerRatio: 250 * 10**30, // tokenB / tokenA
+      _triggerRatio: 250 * 10 ** 30, // tokenB / tokenA
       _triggerAboveThreshold: true,
       _executionFee: 0.01 ether,
       _shouldWrap: false,
@@ -644,7 +658,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
       _path: path,
       _amountIn: 0 ether,
       _minOut: 0,
-      _triggerRatio: 250 * 10**30, // tokenB / tokenA
+      _triggerRatio: 250 * 10 ** 30, // tokenB / tokenA
       _triggerAboveThreshold: true,
       _executionFee: 0.01 ether,
       _shouldWrap: false,
@@ -661,7 +675,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
       _path: path,
       _amountIn: 100 ether,
       _minOut: 0,
-      _triggerRatio: 250 * 10**30, // tokenB / tokenA
+      _triggerRatio: 250 * 10 ** 30, // tokenB / tokenA
       _triggerAboveThreshold: true,
       _executionFee: 0 ether,
       _shouldWrap: false,
@@ -678,7 +692,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
       _path: path,
       _amountIn: 100 ether,
       _minOut: 0,
-      _triggerRatio: 250 * 10**30, // tokenB / tokenA
+      _triggerRatio: 250 * 10 ** 30, // tokenB / tokenA
       _triggerAboveThreshold: true,
       _executionFee: 0.01 ether,
       _shouldWrap: true,
@@ -695,7 +709,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
       _path: path,
       _amountIn: 100 ether,
       _minOut: 0,
-      _triggerRatio: 250 * 10**30, // tokenB / tokenA
+      _triggerRatio: 250 * 10 ** 30, // tokenB / tokenA
       _triggerAboveThreshold: true,
       _executionFee: 0.01 ether,
       _shouldWrap: false,
@@ -716,7 +730,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
       _path: path,
       _amountIn: 100 ether,
       _minOut: 0,
-      _triggerRatio: 250 * 10**30, // tokenB / tokenA
+      _triggerRatio: 250 * 10 ** 30, // tokenB / tokenA
       _triggerAboveThreshold: true,
       _executionFee: 0.01 ether,
       _shouldWrap: false,
@@ -725,15 +739,15 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
 
     vm.stopPrank();
 
-    daiPriceFeed.setLatestAnswer(1 * 10**8);
+    daiPriceFeed.setLatestAnswer(1 * 10 ** 8);
 
-    maticPriceFeed.setLatestAnswer(400 * 10**8);
-    maticPriceFeed.setLatestAnswer(600 * 10**8);
-    maticPriceFeed.setLatestAnswer(500 * 10**8);
+    maticPriceFeed.setLatestAnswer(400 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(600 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(500 * 10 ** 8);
 
-    wbtcPriceFeed.setLatestAnswer(90000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(100000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(80000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(90000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(100000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(80000 * 10 ** 8);
 
     vm.expectRevert(abi.encodeWithSignature("InvalidPriceForExecution()"));
     orderbook.executeSwapOrder(ALICE, 0, payable(BOB));
@@ -743,13 +757,13 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     orderbook.setWhitelist(address(this), false);
     orderbook.setIsAllowAllExecutor(true);
 
-    daiPriceFeed.setLatestAnswer(1 * 10**8);
-    maticPriceFeed.setLatestAnswer(300 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(60000 * 10**8);
+    daiPriceFeed.setLatestAnswer(1 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(300 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(60000 * 10 ** 8);
 
     matic.mint(ALICE, 200 ether);
     vm.deal(address(matic), 200 ether);
-    wbtc.mint(ALICE, 1 * 10**8);
+    wbtc.mint(ALICE, 1 * 10 ** 8);
 
     // ------- Alice session START -------
     vm.startPrank(ALICE);
@@ -764,8 +778,8 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     assertEq(poolGetterFacet.getAumE18(false), 59820 ether);
 
     // Alice add liquidity 1 WBTC (~$60,000)
-    wbtc.approve(address(poolRouter), 1 * 10**8);
-    poolRouter.addLiquidity(address(wbtc), 1 * 10**8, ALICE, 0);
+    wbtc.approve(address(poolRouter), 1 * 10 ** 8);
+    poolRouter.addLiquidity(address(wbtc), 1 * 10 ** 8, ALICE, 0);
 
     // Alice add another 1 WBTC as liquidity to the pool, the following condition is expected:
     // 1. Pool should have 59,820 + (1 * (1-0.003) * 60000) = 119,640 USD in AUM
@@ -786,18 +800,18 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     assertEq(poolGetterFacet.usdDebtOf(address(matic)), 59820 ether);
     assertEq(poolGetterFacet.usdDebtOf(address(wbtc)), 59820 ether);
     assertEq(poolGetterFacet.liquidityOf(address(matic)), 199.4 ether);
-    assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 0.997 * 10**8);
+    assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 0.997 * 10 ** 8);
 
     vm.stopPrank();
     // ------- Alice session END -------
 
-    maticPriceFeed.setLatestAnswer(400 * 10**8);
-    maticPriceFeed.setLatestAnswer(600 * 10**8);
-    maticPriceFeed.setLatestAnswer(500 * 10**8);
+    maticPriceFeed.setLatestAnswer(400 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(600 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(500 * 10 ** 8);
 
-    wbtcPriceFeed.setLatestAnswer(90000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(100000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(80000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(90000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(100000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(80000 * 10 ** 8);
 
     matic.mint(BOB, 100 ether);
     vm.deal(address(matic), 100 ether);
@@ -815,7 +829,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
       _path: path,
       _amountIn: 100 ether,
       _minOut: 0,
-      _triggerRatio: 250 * 10**30, // tokenB / tokenA
+      _triggerRatio: 250 * 10 ** 30, // tokenB / tokenA
       _triggerAboveThreshold: true,
       _executionFee: 0.01 ether,
       _shouldWrap: false,
@@ -837,7 +851,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     assertEq(path2, address(0));
     assertEq(amountIn, 100 ether);
     assertEq(minOut, 0);
-    assertEq(triggerRatio, 250 * 10**30);
+    assertEq(triggerRatio, 250 * 10 ** 30);
     assertTrue(triggerAboveThreshold);
 
     orderbook.cancelSwapOrder(0);
@@ -857,19 +871,22 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
       _path: path,
       _amountIn: 100 ether,
       _minOut: 0,
-      _triggerRatio: 250 * 10**30, // tokenB / tokenA
+      _triggerRatio: 250 * 10 ** 30, // tokenB / tokenA
       _triggerAboveThreshold: true,
       _executionFee: 0.01 ether,
       _shouldWrap: true,
       _shouldUnwrap: false
     });
 
-    orderbook.updateSwapOrder(1, 0, 240 * 10**30, true);
+    orderbook.updateSwapOrder(1, 0, 240 * 10 ** 30, true);
 
     vm.stopPrank();
     // ------- Bob session END -------
-
-    orderbook.executeSwapOrder(BOB, 1, payable(ALICE));
+    (bool shouldExecute, uint160[] memory orderList) = orderbook
+      .getShouldExecuteOrderList(false, 10);
+    assertTrue(shouldExecute);
+    executeOrders(orderList, payable(ALICE));
+    // orderbook.executeSwapOrder(BOB, 1, payable(ALICE));
     // Alice should receive 0.01 ether as execution fee
     assertEq(ALICE.balance, 0.01 ether);
 
@@ -883,12 +900,50 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     // 7. Pool's MATIC liquidity should be 199.4 + 100 = 299.4 MATIC
     // 8. Pool's WBTC liquidity should be 0.997 - ((100 * 400 / 100000)) = 0.597 WBTC
     assertEq(poolGetterFacet.getAumE18(false), 167520 ether);
-    assertEq(wbtc.balanceOf(BOB), 0.3988 * 10**8);
+    assertEq(wbtc.balanceOf(BOB), 0.3988 * 10 ** 8);
     assertEq(poolGetterFacet.feeReserveOf(address(matic)), 0.6 ether);
-    assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 0.0042 * 10**8);
+    assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 0.0042 * 10 ** 8);
     assertEq(poolGetterFacet.usdDebtOf(address(matic)), 99820 ether);
     assertEq(poolGetterFacet.usdDebtOf(address(wbtc)), 19820 ether);
     assertEq(poolGetterFacet.liquidityOf(address(matic)), 299.4 ether);
-    assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 0.597 * 10**8);
+    assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 0.597 * 10 ** 8);
+  }
+
+  function executeOrders(
+    uint160[] memory orderList,
+    address payable _executionFeeReceiver
+  ) internal {
+    uint256 orderLength = orderList.length / 4;
+
+    uint256 curIndex = 0;
+
+    while (curIndex < orderLength) {
+      address account = address(orderList[curIndex * 4]);
+      uint256 subAccountId = uint256(orderList[curIndex * 4 + 1]);
+      uint256 orderIndex = uint256(orderList[curIndex * 4 + 2]);
+      uint256 orderType = uint256(orderList[curIndex * 4 + 3]);
+
+      if (orderType == 0) {
+        //SWAP
+        orderbook.executeSwapOrder(account, orderIndex, _executionFeeReceiver);
+      } else if (orderType == 1) {
+        //INCREASE
+        orderbook.executeIncreaseOrder(
+          account,
+          subAccountId,
+          orderIndex,
+          _executionFeeReceiver
+        );
+      } else if (orderType == 2) {
+        //DECREASE
+        orderbook.executeDecreaseOrder(
+          account,
+          subAccountId,
+          orderIndex,
+          _executionFeeReceiver
+        );
+      }
+      curIndex++;
+    }
   }
 }

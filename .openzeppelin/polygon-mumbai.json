@@ -324,6 +324,11 @@
       "address": "0x3aF4f2B5C9e689d03080fe08ac2fa125A194Ac31",
       "txHash": "0x2202aa0f4440bcdee8bdc98fff4abdb7f496315dd9c3e925482bb2fba51d4599",
       "kind": "transparent"
+    },
+    {
+      "address": "0x1B6ccB3A5B3eB918211424c0624b1f874500aa3E",
+      "txHash": "0xfe8321c55c016e9cef37e3ba01934a0329e6e190ad224b20ce8c38076a1b7b72",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -5324,6 +5329,549 @@
               }
             ],
             "numberOfBytes": "224"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "5b3a24447595d4f1191a3822b7d327e78a447321532680f19a395ae8230026ea": {
+      "address": "0xa7ef07f698A888b297fA67Cc1556bCEf03689b76",
+      "txHash": "0x1d5c5674267aae27b7b4422928d6682fe2effddf9f15639825bb1ad4e0210ae2",
+      "layout": {
+        "solcVersion": "0.8.17",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "_status",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:80"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "increaseOrders",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_struct(IncreaseOrder)9425_storage))",
+            "contract": "Orderbook",
+            "src": "solidity/contracts/core/pool-diamond/Orderbook.sol:59"
+          },
+          {
+            "label": "increaseOrdersIndex",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "Orderbook",
+            "src": "solidity/contracts/core/pool-diamond/Orderbook.sol:60"
+          },
+          {
+            "label": "decreaseOrders",
+            "offset": 0,
+            "slot": "153",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_struct(DecreaseOrder)9446_storage))",
+            "contract": "Orderbook",
+            "src": "solidity/contracts/core/pool-diamond/Orderbook.sol:61"
+          },
+          {
+            "label": "decreaseOrdersIndex",
+            "offset": 0,
+            "slot": "154",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "Orderbook",
+            "src": "solidity/contracts/core/pool-diamond/Orderbook.sol:62"
+          },
+          {
+            "label": "swapOrders",
+            "offset": 0,
+            "slot": "155",
+            "type": "t_mapping(t_address,t_mapping(t_uint256,t_struct(SwapOrder)9464_storage))",
+            "contract": "Orderbook",
+            "src": "solidity/contracts/core/pool-diamond/Orderbook.sol:63"
+          },
+          {
+            "label": "swapOrdersIndex",
+            "offset": 0,
+            "slot": "156",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "Orderbook",
+            "src": "solidity/contracts/core/pool-diamond/Orderbook.sol:64"
+          },
+          {
+            "label": "weth",
+            "offset": 0,
+            "slot": "157",
+            "type": "t_address",
+            "contract": "Orderbook",
+            "src": "solidity/contracts/core/pool-diamond/Orderbook.sol:66"
+          },
+          {
+            "label": "pool",
+            "offset": 0,
+            "slot": "158",
+            "type": "t_address",
+            "contract": "Orderbook",
+            "src": "solidity/contracts/core/pool-diamond/Orderbook.sol:67"
+          },
+          {
+            "label": "poolOracle",
+            "offset": 0,
+            "slot": "159",
+            "type": "t_contract(PoolOracle)9360",
+            "contract": "Orderbook",
+            "src": "solidity/contracts/core/pool-diamond/Orderbook.sol:68"
+          },
+          {
+            "label": "minExecutionFee",
+            "offset": 0,
+            "slot": "160",
+            "type": "t_uint256",
+            "contract": "Orderbook",
+            "src": "solidity/contracts/core/pool-diamond/Orderbook.sol:69"
+          },
+          {
+            "label": "minPurchaseTokenAmountUsd",
+            "offset": 0,
+            "slot": "161",
+            "type": "t_uint256",
+            "contract": "Orderbook",
+            "src": "solidity/contracts/core/pool-diamond/Orderbook.sol:70"
+          },
+          {
+            "label": "whitelist",
+            "offset": 0,
+            "slot": "162",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "Orderbook",
+            "src": "solidity/contracts/core/pool-diamond/Orderbook.sol:71"
+          },
+          {
+            "label": "isAllowAllExecutor",
+            "offset": 0,
+            "slot": "163",
+            "type": "t_bool",
+            "contract": "Orderbook",
+            "src": "solidity/contracts/core/pool-diamond/Orderbook.sol:72"
+          },
+          {
+            "label": "orderList",
+            "offset": 0,
+            "slot": "164",
+            "type": "t_struct(itmap)25462_storage",
+            "contract": "Orderbook",
+            "src": "solidity/contracts/core/pool-diamond/Orderbook.sol:73"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_struct(KeyFlag)25450_storage)dyn_storage": {
+            "label": "struct KeyFlag[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(PoolOracle)9360": {
+            "label": "contract PoolOracle",
+            "numberOfBytes": "20"
+          },
+          "t_enum(OrderType)25429": {
+            "label": "enum OrderType",
+            "members": [
+              "SWAP",
+              "INCREASE",
+              "DECREASE"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_uint256,t_struct(DecreaseOrder)9446_storage))": {
+            "label": "mapping(address => mapping(uint256 => struct Orderbook.DecreaseOrder))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_uint256,t_struct(IncreaseOrder)9425_storage))": {
+            "label": "mapping(address => mapping(uint256 => struct Orderbook.IncreaseOrder))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_uint256,t_struct(SwapOrder)9464_storage))": {
+            "label": "mapping(address => mapping(uint256 => struct Orderbook.SwapOrder))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(DecreaseOrder)9446_storage)": {
+            "label": "mapping(uint256 => struct Orderbook.DecreaseOrder)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(IncreaseOrder)9425_storage)": {
+            "label": "mapping(uint256 => struct Orderbook.IncreaseOrder)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(IndexValue)25445_storage)": {
+            "label": "mapping(uint256 => struct IndexValue)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(SwapOrder)9464_storage)": {
+            "label": "mapping(uint256 => struct Orderbook.SwapOrder)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(DecreaseOrder)9446_storage": {
+            "label": "struct Orderbook.DecreaseOrder",
+            "members": [
+              {
+                "label": "account",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "subAccountId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "collateralToken",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "collateralDelta",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "indexToken",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "sizeDelta",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "isLong",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "triggerPrice",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "7"
+              },
+              {
+                "label": "triggerAboveThreshold",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "8"
+              },
+              {
+                "label": "executionFee",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "9"
+              }
+            ],
+            "numberOfBytes": "320"
+          },
+          "t_struct(IncreaseOrder)9425_storage": {
+            "label": "struct Orderbook.IncreaseOrder",
+            "members": [
+              {
+                "label": "account",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "subAccountId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "purchaseToken",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "purchaseTokenAmount",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "collateralToken",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "indexToken",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "sizeDelta",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "isLong",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "7"
+              },
+              {
+                "label": "triggerPrice",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "8"
+              },
+              {
+                "label": "triggerAboveThreshold",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "9"
+              },
+              {
+                "label": "executionFee",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "10"
+              }
+            ],
+            "numberOfBytes": "352"
+          },
+          "t_struct(IndexValue)25445_storage": {
+            "label": "struct IndexValue",
+            "members": [
+              {
+                "label": "keyIndex",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "value",
+                "type": "t_struct(Orders)25439_storage",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(KeyFlag)25450_storage": {
+            "label": "struct KeyFlag",
+            "members": [
+              {
+                "label": "key",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "deleted",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_struct(Orders)25439_storage": {
+            "label": "struct Orders",
+            "members": [
+              {
+                "label": "account",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "subAccountId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "orderIndex",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "orderType",
+                "type": "t_enum(OrderType)25429",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_struct(SwapOrder)9464_storage": {
+            "label": "struct Orderbook.SwapOrder",
+            "members": [
+              {
+                "label": "account",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "path",
+                "type": "t_array(t_address)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "amountIn",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "minOut",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "triggerRatio",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "triggerAboveThreshold",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "shouldUnwrap",
+                "type": "t_bool",
+                "offset": 1,
+                "slot": "5"
+              },
+              {
+                "label": "executionFee",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "6"
+              }
+            ],
+            "numberOfBytes": "224"
+          },
+          "t_struct(itmap)25462_storage": {
+            "label": "struct itmap",
+            "members": [
+              {
+                "label": "data",
+                "type": "t_mapping(t_uint256,t_struct(IndexValue)25445_storage)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "keys",
+                "type": "t_array(t_struct(KeyFlag)25450_storage)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "size",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
           },
           "t_uint256": {
             "label": "uint256",
