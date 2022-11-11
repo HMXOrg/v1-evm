@@ -329,6 +329,11 @@
       "address": "0x1B6ccB3A5B3eB918211424c0624b1f874500aa3E",
       "txHash": "0xfe8321c55c016e9cef37e3ba01934a0329e6e190ad224b20ce8c38076a1b7b72",
       "kind": "transparent"
+    },
+    {
+      "address": "0xBbEa76a9Dd340e93Ae0DF3dcA64272FF18EB7E29",
+      "txHash": "0xac48600df017ccd6d007bf22ed8953ad539ce9328c144b0013df4f79824cbc2d",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -5757,6 +5762,174 @@
               }
             ],
             "numberOfBytes": "224"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "a7a75b10b68906b93347d37647caa3419a481e81d1b869d086b51ec875d0ee3d": {
+      "address": "0xA2CA37809eaF67854aB5F6c227a63c7D60346c30",
+      "txHash": "0x9799aa1352e988a29259872b53996b7afba2fdc70adfcb45af2f3ba93d98b84b",
+      "layout": {
+        "solcVersion": "0.8.17",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "rewardToken",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_address",
+            "contract": "RewardDistributor",
+            "src": "solidity/contracts/staking/RewardDistributor.sol:17"
+          },
+          {
+            "label": "pool",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_address",
+            "contract": "RewardDistributor",
+            "src": "solidity/contracts/staking/RewardDistributor.sol:20"
+          },
+          {
+            "label": "poolRouter",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_address",
+            "contract": "RewardDistributor",
+            "src": "solidity/contracts/staking/RewardDistributor.sol:21"
+          },
+          {
+            "label": "plpStakingProtocolRevenueRewarder",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_address",
+            "contract": "RewardDistributor",
+            "src": "solidity/contracts/staking/RewardDistributor.sol:22"
+          },
+          {
+            "label": "dragonStakingProtocolRevenueRewarder",
+            "offset": 0,
+            "slot": "105",
+            "type": "t_address",
+            "contract": "RewardDistributor",
+            "src": "solidity/contracts/staking/RewardDistributor.sol:23"
+          },
+          {
+            "label": "devFundBps",
+            "offset": 0,
+            "slot": "106",
+            "type": "t_uint256",
+            "contract": "RewardDistributor",
+            "src": "solidity/contracts/staking/RewardDistributor.sol:27"
+          },
+          {
+            "label": "plpStakingBps",
+            "offset": 0,
+            "slot": "107",
+            "type": "t_uint256",
+            "contract": "RewardDistributor",
+            "src": "solidity/contracts/staking/RewardDistributor.sol:28"
+          },
+          {
+            "label": "devFundAddress",
+            "offset": 0,
+            "slot": "108",
+            "type": "t_address",
+            "contract": "RewardDistributor",
+            "src": "solidity/contracts/staking/RewardDistributor.sol:31"
+          },
+          {
+            "label": "merkleAirdrop",
+            "offset": 0,
+            "slot": "109",
+            "type": "t_contract(MerkleAirdrop)8725",
+            "contract": "RewardDistributor",
+            "src": "solidity/contracts/staking/RewardDistributor.sol:33"
+          },
+          {
+            "label": "referralRevenueMaxThreshold",
+            "offset": 0,
+            "slot": "110",
+            "type": "t_uint256",
+            "contract": "RewardDistributor",
+            "src": "solidity/contracts/staking/RewardDistributor.sol:35"
+          },
+          {
+            "label": "feeder",
+            "offset": 0,
+            "slot": "111",
+            "type": "t_address",
+            "contract": "RewardDistributor",
+            "src": "solidity/contracts/staking/RewardDistributor.sol:37"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(MerkleAirdrop)8725": {
+            "label": "contract MerkleAirdrop",
+            "numberOfBytes": "20"
           },
           "t_uint256": {
             "label": "uint256",
