@@ -3,7 +3,6 @@ pragma solidity 0.8.17;
 
 interface IPoolRouter {
   function swap(
-    address pool,
     address tokenIn,
     address tokenOut,
     uint256 amountIn,

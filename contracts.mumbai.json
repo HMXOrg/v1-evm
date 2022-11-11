@@ -110,8 +110,8 @@
       ]
     },
     "RewardDistributor": {
-      "address": "0xBbEa76a9Dd340e93Ae0DF3dcA64272FF18EB7E29",
-      "deployedAtBlock": "29091036"
+      "address": "0x5f1aDA7349861bc23EC2C87a0101035A3c809ddF",
+      "deployedAtBlock": "29092372"
     }
   },
   "Lockdrop": {
