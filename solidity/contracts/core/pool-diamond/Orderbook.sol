@@ -260,10 +260,10 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     if (msg.sender != weth) revert InvalidSender();
   }
 
-  function setWhitelist(address whitelistAddress, bool isAllow)
-    external
-    onlyOwner
-  {
+  function setWhitelist(
+    address whitelistAddress,
+    bool isAllow
+  ) external onlyOwner {
     emit SetWhitelist(whitelistAddress, whitelist[whitelistAddress], isAllow);
     whitelist[whitelistAddress] = isAllow;
   }
@@ -279,16 +279,18 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     emit UpdateMinExecutionFee(_minExecutionFee);
   }
 
-  function setMinPurchaseTokenAmountUsd(uint256 _minPurchaseTokenAmountUsd)
-    external
-    onlyOwner
-  {
+  function setMinPurchaseTokenAmountUsd(
+    uint256 _minPurchaseTokenAmountUsd
+  ) external onlyOwner {
     minPurchaseTokenAmountUsd = _minPurchaseTokenAmountUsd;
 
     emit UpdateMinPurchaseTokenAmountUsd(_minPurchaseTokenAmountUsd);
   }
 
-  function getSwapOrder(address _account, uint256 _orderIndex)
+  function getSwapOrder(
+    address _account,
+    uint256 _orderIndex
+  )
     public
     view
     returns (
@@ -781,10 +783,10 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     );
   }
 
-  function cancelIncreaseOrder(uint256 _subAccountId, uint256 _orderIndex)
-    external
-    nonReentrant
-  {
+  function cancelIncreaseOrder(
+    uint256 _subAccountId,
+    uint256 _orderIndex
+  ) external nonReentrant {
     address subAccount = getSubAccount(msg.sender, _subAccountId);
     IncreaseOrder memory order = increaseOrders[subAccount][_orderIndex];
     if (order.account == address(0)) revert NonExistentOrder();
@@ -1041,10 +1043,10 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     );
   }
 
-  function cancelDecreaseOrder(uint256 _subAccountId, uint256 _orderIndex)
-    external
-    nonReentrant
-  {
+  function cancelDecreaseOrder(
+    uint256 _subAccountId,
+    uint256 _orderIndex
+  ) external nonReentrant {
     address subAccount = getSubAccount(msg.sender, _subAccountId);
     DecreaseOrder memory order = decreaseOrders[subAccount][_orderIndex];
     if (order.account == address(0)) revert NonExistentOrder();
@@ -1156,25 +1158,21 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     return amountOut;
   }
 
-  function getSubAccount(address primary, uint256 subAccountId)
-    internal
-    pure
-    returns (address)
-  {
+  function getSubAccount(
+    address primary,
+    uint256 subAccountId
+  ) internal pure returns (address) {
     if (subAccountId > 255) revert BadSubAccountId();
     return address(uint160(primary) ^ uint160(subAccountId));
   }
 
-  function getShouldExecuteOrderList(bool _returnFirst)
-    external
-    view
-    returns (bool, uint160[] memory)
-  {
-    // if(!chainlinkOrderExecutionActive){
-    //     return(false,new uint160[](0));
-    // }
-
-    uint256 orderListSize = orderList.size;
+  function getShouldExecuteOrderList(
+    bool _returnFirst,
+    uint256 maxOrderSize
+  ) external view returns (bool, uint160[] memory) {
+    uint256 orderListSize = orderList.size > maxOrderSize
+      ? maxOrderSize
+      : orderList.size;
     uint160[] memory shouldExecuteOrders = new uint160[](orderListSize * 4);
     uint256 shouldExecuteIndex = 0;
     if (orderListSize > 0) {
