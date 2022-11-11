@@ -17,7 +17,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const poolRouter = PoolRouter__factory.connect(POOL_ROUTER, deployer);
   await (
     await poolRouter.addLiquidity(
-      config.Pools.PLP.poolDiamond,
       TOKEN_ADDRESS,
       ethers.utils.parseUnits("50", decimals),
       deployer.address,

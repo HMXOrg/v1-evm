@@ -80,7 +80,11 @@ abstract contract Lockdrop_BaseTest is BaseTest {
     poolPerpTradeFacet = PerpTradeFacetInterface(poolDiamond);
 
     plp = PLP(address(poolGetterFacet.plp()));
-    poolRouter = deployPoolRouter(address(matic), address(plpStaking));
+    poolRouter = deployPoolRouter(
+      address(matic),
+      address(plpStaking),
+      poolDiamond
+    );
     poolAdminFacet.setRouter(address(poolRouter));
 
     address[] memory poolTokens = new address[](1);

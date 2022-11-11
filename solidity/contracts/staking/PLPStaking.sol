@@ -3,6 +3,7 @@ pragma solidity 0.8.17;
 
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import { ERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import { SafeERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
 import { IRewarder } from "./interfaces/IRewarder.sol";
@@ -15,6 +16,8 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
   error PLPStaking_InsufficientTokenAmount();
   error PLPStaking_NotRewarder();
   error PLPStaking_NotCompounder();
+  error PLPStaking_BadDecimals();
+  error PLPStaking_DuplicateStakingToken();
 
   mapping(address => mapping(address => uint256)) public userTokenAmount;
   mapping(address => bool) public isRewarder;
@@ -31,6 +34,9 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
     uint256 amount
   );
   event LogWithdraw(address indexed caller, address token, uint256 amount);
+  event LogAddStakingToken(address newToken, address[] newRewarders);
+  event LogAddRewarder(address newRewarder, address[] newTokens);
+  event LogSetCompounder(address oldCompounder, address newCompounder);
 
   function initialize() external initializer {
     OwnableUpgradeable.__Ownable_init();
@@ -40,10 +46,14 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
     external
     onlyOwner
   {
+    if (ERC20Upgradeable(newToken).decimals() != 18)
+      revert PLPStaking_BadDecimals();
+
     uint256 length = newRewarders.length;
     for (uint256 i = 0; i < length; ) {
       _updatePool(newToken, newRewarders[i]);
 
+      emit LogAddStakingToken(newToken, newRewarders);
       unchecked {
         ++i;
       }
@@ -56,8 +66,40 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
   {
     uint256 length = newTokens.length;
     for (uint256 i = 0; i < length; ) {
+      if (ERC20Upgradeable(newTokens[i]).decimals() != 18)
+        revert PLPStaking_BadDecimals();
+
       _updatePool(newTokens[i], newRewarder);
 
+      emit LogAddRewarder(newRewarder, newTokens);
+      unchecked {
+        ++i;
+      }
+    }
+  }
+
+  function removeRewarderForTokenByIndex(
+    uint256 removeRewarderIndex,
+    address token
+  ) external onlyOwner {
+    uint256 tokenLength = stakingTokenRewarders[token].length;
+    address removedRewarder = stakingTokenRewarders[token][removeRewarderIndex];
+    stakingTokenRewarders[token][removeRewarderIndex] = stakingTokenRewarders[
+      token
+    ][tokenLength - 1];
+    stakingTokenRewarders[token].pop();
+
+    uint256 rewarderLength = rewarderStakingTokens[removedRewarder].length;
+    for (uint256 i = 0; i < rewarderLength; ) {
+      if (rewarderStakingTokens[removedRewarder][i] == token) {
+        rewarderStakingTokens[removedRewarder][i] = rewarderStakingTokens[
+          removedRewarder
+        ][rewarderLength - 1];
+        rewarderStakingTokens[removedRewarder].pop();
+        if (rewarderLength == 1) isRewarder[removedRewarder] = false;
+
+        break;
+      }
       unchecked {
         ++i;
       }
@@ -65,15 +107,53 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
   }
 
   function _updatePool(address newToken, address newRewarder) internal {
-    stakingTokenRewarders[newToken].push(newRewarder);
-    rewarderStakingTokens[newRewarder].push(newToken);
+    if (!isDuplicatedRewarder(newToken, newRewarder))
+      stakingTokenRewarders[newToken].push(newRewarder);
+    if (!isDuplicatedStakingToken(newToken, newRewarder))
+      rewarderStakingTokens[newRewarder].push(newToken);
+
     isStakingToken[newToken] = true;
     if (!isRewarder[newRewarder]) {
       isRewarder[newRewarder] = true;
     }
   }
 
+  function isDuplicatedRewarder(address stakingToken, address rewarder)
+    internal
+    view
+    returns (bool)
+  {
+    uint256 length = stakingTokenRewarders[stakingToken].length;
+    for (uint256 i = 0; i < length; ) {
+      if (stakingTokenRewarders[stakingToken][i] == rewarder) {
+        return true;
+      }
+      unchecked {
+        ++i;
+      }
+    }
+    return false;
+  }
+
+  function isDuplicatedStakingToken(address stakingToken, address rewarder)
+    internal
+    view
+    returns (bool)
+  {
+    uint256 length = rewarderStakingTokens[rewarder].length;
+    for (uint256 i = 0; i < length; ) {
+      if (rewarderStakingTokens[rewarder][i] == stakingToken) {
+        return true;
+      }
+      unchecked {
+        ++i;
+      }
+    }
+    return false;
+  }
+
   function setCompounder(address compounder_) external onlyOwner {
+    emit LogSetCompounder(compounder, compounder_);
     compounder = compounder_;
   }
 

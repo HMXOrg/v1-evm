@@ -37,13 +37,13 @@ const FEED_INFOS = [
     priceFeed: "0xfE4A8cc5b5B2366C1B58Bea3858e81843581b2F7", // USDC
     decimals: 8,
     spreadBps: 10,
-    isStrictStable: false,
+    isStrictStable: true,
   },
   {
     priceFeed: "0x0A6513e40db6EB1b165753AD52E80663aeA50545", // USDT
     decimals: 8,
     spreadBps: 10,
-    isStrictStable: false,
+    isStrictStable: true,
   },
 ];
 

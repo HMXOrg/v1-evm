@@ -5,6 +5,7 @@ import { LibDiamond } from "../libraries/LibDiamond.sol";
 import { LibPoolV1 } from "../libraries/LibPoolV1.sol";
 import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
 import { LibAccessControl } from "../libraries/LibAccessControl.sol";
+import { LibReentrancyGuard } from "../libraries/LibReentrancyGuard.sol";
 import { AccessControlFacetInterface } from "../interfaces/AccessControlFacetInterface.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -27,6 +28,7 @@ contract FarmFacet is FarmFacetInterface {
   uint256 internal constant MAX_TARGET_BPS = 9500; // 95%
 
   event SetStrategy(address token, StrategyInterface strategy);
+  event SetPendingStrategy(address token, StrategyInterface strategy);
   event SetStrategyTargetBps(address token, uint256 targetBps);
   event StrategyDivest(address token, uint256 amount);
   event StrategyInvest(address token, uint256 amount);
@@ -36,6 +38,12 @@ contract FarmFacet is FarmFacetInterface {
   modifier onlyOwner() {
     LibDiamond.enforceIsContractOwner();
     _;
+  }
+
+  modifier nonReentrant() {
+    LibReentrancyGuard.lock();
+    _;
+    LibReentrancyGuard.unlock();
   }
 
   modifier onlyPoolDiamondOrFarmKeeper() {
@@ -54,6 +62,7 @@ contract FarmFacet is FarmFacetInterface {
   function setStrategyOf(address token, StrategyInterface newStrategy)
     external
     onlyOwner
+    nonReentrant
   {
     // Load PoolConfig Diamond storage
     LibPoolConfigV1.PoolConfigV1DiamondStorage
@@ -65,6 +74,7 @@ contract FarmFacet is FarmFacetInterface {
     if (strategyData.startTimestamp == 0 || pendingStrategy != newStrategy) {
       // When adding new strategy or changing strategy
       poolConfigDs.pendingStrategyOf[token] = newStrategy;
+      emit SetPendingStrategy(token, newStrategy);
       strategyData.startTimestamp = uint64(block.timestamp + STRATEGY_DELAY);
     } else {
       // When committing a new strategy
@@ -136,10 +146,7 @@ contract FarmFacet is FarmFacetInterface {
     StrategyInterface strategy = poolConfigDs.strategyOf[token];
 
     // Realized profits or losses from strategy
-    int256 balanceChange = strategy.realized(
-      strategyData.principle,
-      msg.sender
-    );
+    int256 balanceChange = strategy.realized(strategyData.principle);
     // If there is no change in balance, and does not need to rebalance, then stop it here.
     if (balanceChange == 0 && !isRebalanceNeeded) return;
 
@@ -147,6 +154,8 @@ contract FarmFacet is FarmFacetInterface {
       // If there is a profit, then increase pool liquidity
       uint256 profits = uint256(balanceChange);
       LibPoolV1.increasePoolLiquidity(token, profits);
+
+      LibPoolV1.updateTotalOf(token);
 
       emit StrategyRealizedProfit(token, profits);
     } else if (balanceChange < 0) {
@@ -187,6 +196,8 @@ contract FarmFacet is FarmFacetInterface {
 
         // Update how much pool put in the strategy
         strategyData.principle -= actualAmountIn.toUint128();
+
+        LibPoolV1.updateTotalOf(token);
 
         emit StrategyDivest(token, actualAmountIn);
       }

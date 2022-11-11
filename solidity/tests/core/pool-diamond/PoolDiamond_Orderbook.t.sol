@@ -132,13 +132,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     // Alice add liquidity with 117499 satoshi
     wbtc.approve(address(poolRouter), 117499);
     plp.approve(address(poolRouter), type(uint256).max);
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(wbtc),
-      117499,
-      ALICE,
-      0
-    );
+    poolRouter.addLiquidity(address(wbtc), 117499, ALICE, 0);
 
     // After Alice added 117499 satoshi as a liquidity,
     // the following conditions should be met:
@@ -167,13 +161,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
 
     // Alice add liquidity again with 117499 satoshi
     wbtc.approve(address(poolRouter), 117499);
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(wbtc),
-      117499,
-      ALICE,
-      0
-    );
+    poolRouter.addLiquidity(address(wbtc), 117499, ALICE, 0);
 
     // After Alice added 117499 satoshi as a liquidity,
     // the following conditions should be met:
@@ -400,13 +388,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     // Alice performs add liquidity by a 500 DAI
     dai.approve(address(poolRouter), 500 * 10**18);
     plp.approve(address(poolRouter), type(uint256).max);
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(dai),
-      500 * 10**18,
-      ALICE,
-      0
-    );
+    poolRouter.addLiquidity(address(dai), 500 * 10**18, ALICE, 0);
 
     // The following conditions need to be met:
     // 1. Pool's DAI liquidity should be 500 * (1-0.0004) = 499.8 DAI
@@ -789,13 +771,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     // Alice add liquidity 200 MATIC (~$60,000)
     matic.approve(address(poolRouter), 200 ether);
     plp.approve(address(poolRouter), type(uint256).max);
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(matic),
-      200 ether,
-      ALICE,
-      0
-    );
+    poolRouter.addLiquidity(address(matic), 200 ether, ALICE, 0);
 
     // Alice add 200 MATIC as liquidity to the pool, the following condition is expected:
     // 1. Pool should have 200 * (1-0.003) * 300 = 59820 USD in AUM
@@ -803,13 +779,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
 
     // Alice add liquidity 1 WBTC (~$60,000)
     wbtc.approve(address(poolRouter), 1 * 10**8);
-    poolRouter.addLiquidity(
-      address(poolDiamond),
-      address(wbtc),
-      1 * 10**8,
-      ALICE,
-      0
-    );
+    poolRouter.addLiquidity(address(wbtc), 1 * 10**8, ALICE, 0);
 
     // Alice add another 1 WBTC as liquidity to the pool, the following condition is expected:
     // 1. Pool should have 59,820 + (1 * (1-0.003) * 60000) = 119,640 USD in AUM

@@ -33,7 +33,6 @@ contract MockPoolRouter {
   ) external returns (uint256) {}
 
   function addLiquidity(
-    address pool,
     address token,
     uint256 amount,
     address receiver,
@@ -41,12 +40,4 @@ contract MockPoolRouter {
   ) external returns (uint256) {
     return amount * 2;
   }
-
-  function removeLiquidity(
-    address pool,
-    address tokenOut,
-    uint256 liquidity,
-    address receiver,
-    uint256 minAmountOut
-  ) external returns (uint256) {}
 }

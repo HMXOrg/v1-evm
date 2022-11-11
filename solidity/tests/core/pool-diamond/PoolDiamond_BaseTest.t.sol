@@ -84,7 +84,11 @@ abstract contract PoolDiamond_BaseTest is BaseTest {
 
     plpStaking.addStakingToken(address(plp), rewarders);
 
-    poolRouter = deployPoolRouter(address(matic), address(plpStaking));
+    poolRouter = deployPoolRouter(
+      address(matic),
+      address(plpStaking),
+      poolDiamond
+    );
     poolAdminFacet.setRouter(address(poolRouter));
 
     plp.setWhitelist(address(plpStaking), true);

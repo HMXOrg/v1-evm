@@ -18,6 +18,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`Deployed at: ${merkleAirdrop.address}`);
 
   config.MerkleAirdrop.address = merkleAirdrop.address;
+  config.MerkleAirdrop.deployedAtBlock = String(
+    await ethers.provider.getBlockNumber()
+  );
   writeConfigFile(config);
 
   await tenderly.verify({

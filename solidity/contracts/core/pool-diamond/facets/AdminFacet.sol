@@ -6,6 +6,7 @@ import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
 import { LibDiamond } from "../libraries/LibDiamond.sol";
 import { LinkedList } from "../../../libraries/LinkedList.sol";
 import { PoolOracle } from "../../PoolOracle.sol";
+import { LibReentrancyGuard } from "../libraries/LibReentrancyGuard.sol";
 
 import { AdminFacetInterface } from "../interfaces/AdminFacetInterface.sol";
 
@@ -113,6 +114,12 @@ contract AdminFacet is AdminFacetInterface {
   modifier onlyOwner() {
     LibDiamond.enforceIsContractOwner();
     _;
+  }
+
+  modifier nonReentrant() {
+    LibReentrancyGuard.lock();
+    _;
+    LibReentrancyGuard.unlock();
   }
 
   function setPoolOracle(PoolOracle newPoolOracle) external onlyOwner {
@@ -424,7 +431,7 @@ contract AdminFacet is AdminFacetInterface {
     address token,
     address to,
     uint256 amount
-  ) external {
+  ) external nonReentrant {
     // Load diamond storage
     LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
       .poolV1DiamondStorage();

@@ -45,6 +45,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(`Deployed at: ${rewardDistributor.address}`);
 
   config.Staking.RewardDistributor.address = rewardDistributor.address;
+  config.Staking.RewardDistributor.deployedAtBlock = String(
+    await ethers.provider.getBlockNumber()
+  );
   writeConfigFile(config);
 
   const implAddress = await getImplementationAddress(

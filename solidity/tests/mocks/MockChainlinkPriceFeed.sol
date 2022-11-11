@@ -25,14 +25,6 @@ contract MockChainlinkPriceFeed is ChainlinkPriceFeedInterface {
     isAdmin[_account] = _isAdmin;
   }
 
-  function latestAnswer() external view override returns (int256) {
-    return answer;
-  }
-
-  function latestRound() external view override returns (uint80) {
-    return roundId;
-  }
-
   function setLatestAnswer(int256 _answer) external {
     require(isAdmin[msg.sender], "PriceFeed: forbidden");
     roundId = roundId + 1;
@@ -53,5 +45,20 @@ contract MockChainlinkPriceFeed is ChainlinkPriceFeedInterface {
     )
   {
     return (_roundId, answers[_roundId], 0, 0, 0);
+  }
+
+  function latestRoundData()
+    external
+    view
+    override
+    returns (
+      uint80,
+      int256,
+      uint256,
+      uint256,
+      uint80
+    )
+  {
+    return (roundId, answers[roundId], 0, 0, 0);
   }
 }

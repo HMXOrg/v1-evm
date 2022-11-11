@@ -110,8 +110,12 @@ contract AdHocMintRewarder is IRewarder, OwnableUpgradeable {
     returns (uint256)
   {
     // [100% APR] If a user stake N shares for a year, he will be rewarded with N tokens.
-    return
-      ((block.timestamp - userLastRewards[user]) * _userShare(user)) / YEAR;
+    if (userLastRewards[user] > 0) {
+      return
+        ((block.timestamp - userLastRewards[user]) * _userShare(user)) / YEAR;
+    } else {
+      return 0;
+    }
   }
 
   function _userShare(address user) private view returns (uint256) {

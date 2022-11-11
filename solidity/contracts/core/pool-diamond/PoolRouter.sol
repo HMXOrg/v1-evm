@@ -15,6 +15,7 @@ contract PoolRouter {
 
   IWNative public immutable WNATIVE;
   IStaking public immutable plpStaking;
+  address public immutable pool;
 
   error PoolRouter_InsufficientOutputAmount(
     uint256 expectedAmount,
@@ -29,13 +30,17 @@ contract PoolRouter {
     uint256 actualPrice
   );
 
-  constructor(address wNative_, address plpStaking_) {
+  constructor(
+    address wNative_,
+    address plpStaking_,
+    address pool_
+  ) {
     WNATIVE = IWNative(wNative_);
     plpStaking = IStaking(plpStaking_);
+    pool = pool_;
   }
 
   function addLiquidity(
-    address pool,
     address token,
     uint256 amount,
     address receiver,
@@ -73,7 +78,6 @@ contract PoolRouter {
   }
 
   function addLiquidityNative(
-    address pool,
     address token,
     address receiver,
     uint256 minLiquidity
@@ -111,7 +115,6 @@ contract PoolRouter {
   }
 
   function removeLiquidity(
-    address pool,
     address tokenOut,
     uint256 liquidity,
     address receiver,
@@ -135,7 +138,6 @@ contract PoolRouter {
   }
 
   function removeLiquidityNative(
-    address pool,
     address tokenOut,
     uint256 liquidity,
     address receiver,
@@ -162,7 +164,6 @@ contract PoolRouter {
   }
 
   function increasePosition(
-    address pool,
     uint256 subAccountId,
     address tokenIn,
     address collateralToken,
@@ -186,7 +187,6 @@ contract PoolRouter {
 
     if (tokenIn != collateralToken) {
       uint256 amountOutFromSwap = _swap(
-        pool,
         msg.sender,
         tokenIn,
         collateralToken,
@@ -210,7 +210,6 @@ contract PoolRouter {
   }
 
   function increasePositionNative(
-    address pool,
     uint256 subAccountId,
     address tokenIn,
     address collateralToken,
@@ -234,7 +233,6 @@ contract PoolRouter {
     if (tokenIn != collateralToken && tokenIn == address(WNATIVE)) {
       WNATIVE.deposit{ value: msg.value }();
       uint256 amountOut = _swap(
-        pool,
         address(this),
         tokenIn,
         collateralToken,
@@ -259,7 +257,6 @@ contract PoolRouter {
   }
 
   function decreasePosition(
-    address pool,
     uint256 subAccountId,
     address collateralToken,
     address indexToken,
@@ -303,7 +300,6 @@ contract PoolRouter {
       IERC20(tokenOut).safeTransfer(receiver, amountOutFromPosition);
     } else {
       _swap(
-        pool,
         address(this),
         collateralToken,
         tokenOut,
@@ -315,7 +311,6 @@ contract PoolRouter {
   }
 
   function decreasePositionNative(
-    address pool,
     uint256 subAccountId,
     address collateralToken,
     address indexToken,
@@ -360,7 +355,6 @@ contract PoolRouter {
       payable(receiver).transfer(amountOutFromPosition);
     } else {
       uint256 amountOutFromSwap = _swap(
-        pool,
         address(this),
         collateralToken,
         tokenOut,
@@ -374,7 +368,6 @@ contract PoolRouter {
   }
 
   function swap(
-    address pool,
     address tokenIn,
     address tokenOut,
     uint256 amountIn,
@@ -382,19 +375,10 @@ contract PoolRouter {
     address receiver
   ) external returns (uint256) {
     return
-      _swap(
-        pool,
-        msg.sender,
-        tokenIn,
-        tokenOut,
-        amountIn,
-        minAmountOut,
-        receiver
-      );
+      _swap(msg.sender, tokenIn, tokenOut, amountIn, minAmountOut, receiver);
   }
 
   function _swap(
-    address pool,
     address sender,
     address tokenIn,
     address tokenOut,
@@ -420,7 +404,6 @@ contract PoolRouter {
   }
 
   function swapNative(
-    address pool,
     address tokenIn,
     address tokenOut,
     uint256 amountIn,

@@ -13,11 +13,6 @@ const REWARDERS: string[] = [
       (o) => o.name === "PLP Staking Protocol Revenue"
     ) as any
   ).address,
-  (
-    config.Staking.DragonStaking.rewarders.find(
-      (o) => o.name === "Dragon Staking Protocol Revenue"
-    ) as any
-  ).address,
 ];
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {

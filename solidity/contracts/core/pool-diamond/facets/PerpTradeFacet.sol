@@ -778,7 +778,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     address indexToken,
     bool isLong,
     address to
-  ) external {
+  ) external nonReentrant {
     LiquidateLocalVars memory vars;
     // Load diamond storage
     LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1

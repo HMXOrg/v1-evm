@@ -13,6 +13,9 @@ contract FeedableRewarder is IRewarder, OwnableUpgradeable {
   using SafeCastUpgradeable for int256;
   using SafeERC20Upgradeable for IERC20Upgradeable;
 
+  uint256 public constant MINIMUM_PERIOD = 7 days;
+  uint256 public constant MAXIMUM_PERIOD = 365 days;
+
   string public name;
   address public rewardToken;
   address public staking;
@@ -41,11 +44,13 @@ contract FeedableRewarder is IRewarder, OwnableUpgradeable {
     uint256 rewardRate,
     uint256 rewardRateExpiredAt
   );
+  event LogSetFeeder(address oldFeeder, address newFeeder);
 
   // Error
   error FeedableRewarderError_FeedAmountDecayed();
   error FeedableRewarderError_NotStakingContract();
   error FeedableRewarderError_NotFeeder();
+  error FeedableRewarderError_BadDuration();
 
   modifier onlyStakingContract() {
     if (msg.sender != staking)
@@ -146,10 +151,14 @@ contract FeedableRewarder is IRewarder, OwnableUpgradeable {
   }
 
   function setFeeder(address feeder_) external onlyOwner {
+    emit LogSetFeeder(feeder, feeder_);
     feeder = feeder_;
   }
 
   function _feed(uint256 feedAmount, uint256 duration) internal {
+    if (duration < MINIMUM_PERIOD || duration > MAXIMUM_PERIOD)
+      revert FeedableRewarderError_BadDuration();
+
     uint256 totalShare = _totalShare();
     _forceUpdateRewardCalculationParams(totalShare);
 
