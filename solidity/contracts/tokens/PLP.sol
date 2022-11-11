@@ -66,7 +66,7 @@ contract PLP is ERC20Upgradeable, OwnableUpgradeable {
     address from,
     address to,
     uint256 amount
-  ) internal override {
+  ) internal view override {
     if (whitelist[from] || whitelist[to]) return;
 
     uint256 cooldownExpireAt = cooldown[from];

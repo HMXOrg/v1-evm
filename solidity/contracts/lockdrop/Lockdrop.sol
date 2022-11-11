@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity 0.8.17;
 
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -502,22 +501,22 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       uint256 userAccumReward = ((userShare * accRewardPerShares[i]) / 1e12);
 
       // calculate pending reward to be received for user
-      uint256 pendingReward = userAccumReward -
+      uint256 _pendingReward = userAccumReward -
         lockdropStates[user].userRewardDebts[i];
 
       // Transfer reward to user
       if (rewardTokens[i] == nativeTokenAddress) {
-        payable(receiver).transfer(pendingReward);
+        payable(receiver).transfer(_pendingReward);
       } else {
         IERC20Upgradeable(rewardTokens[i]).safeTransfer(
           receiver,
-          pendingReward
+          _pendingReward
         );
       }
 
       // calculate for update user reward dept
       lockdropStates[user].userRewardDebts[i] = userAccumReward;
-      emit LogClaimReward(user, rewardTokens[i], pendingReward);
+      emit LogClaimReward(user, rewardTokens[i], _pendingReward);
       unchecked {
         ++i;
       }
