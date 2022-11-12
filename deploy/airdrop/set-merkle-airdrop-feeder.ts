@@ -3,6 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { MerkleAirdrop__factory } from "../../typechain";
 import { getConfig } from "../utils/config";
+import { eip1559rapidGas } from "../utils/gas";
 
 const config = getConfig();
 
@@ -15,10 +16,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     config.MerkleAirdrop.address,
     deployer
   );
-  const tx = await rewarder.setFeeder(FEEDER);
-  const txReceipt = await tx.wait();
-  console.log(`Executed setFeeder at MerkleAirdrop`);
-  console.log(`Feeder: ${FEEDER}`);
+  console.log(`> Setting merkle airdrop feeder to ${FEEDER}`);
+  const tx = await rewarder.setFeeder(FEEDER, await eip1559rapidGas());
+  console.log(`> ⛓ Tx submitted: ${tx.hash}`);
+  console.log(`> Waiting for tx to be mined...`);
+  tx.wait(3);
+  console.log(`> Tx is mined`);
+  console.log(`> ✅ Done`);
 };
 
 export default func;

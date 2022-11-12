@@ -2,8 +2,9 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, tenderly } from "hardhat";
 import { getConfig, writeConfigFile } from "../utils/config";
+import { eip1559rapidGas } from "../utils/gas";
 
-const feeder = "0x6629eC35c8Aa279BA45Dbfb575c728d3812aE31a";
+const feeder = "0x1E0Fae3797C82D1C191aE6C9082bbDd04169fA0C";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const config = getConfig();
@@ -12,10 +13,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "MerkleAirdrop",
     deployer
   );
-  const merkleAirdrop = await MerkleAirdrop.deploy(config.Tokens.USDC, feeder);
-  await merkleAirdrop.deployed();
-  console.log(`Deploying MerkleAirdrop Contract`);
-  console.log(`Deployed at: ${merkleAirdrop.address}`);
+  console.log(`> Deploying MerkleAirdrop Contract`);
+  const merkleAirdrop = await MerkleAirdrop.deploy(
+    config.Tokens.USDC,
+    feeder,
+    await eip1559rapidGas()
+  );
+  console.log(`> ⛓ Tx submitted: ${merkleAirdrop.deployTransaction.hash}`);
+  console.log(`> Waiting for tx to be mined...`);
+  await merkleAirdrop.deployTransaction.wait(3);
+  console.log(`> Deployed at: ${merkleAirdrop.address}`);
 
   config.MerkleAirdrop.address = merkleAirdrop.address;
   config.MerkleAirdrop.deployedAtBlock = String(
@@ -23,10 +30,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   );
   writeConfigFile(config);
 
+  console.log(`> Verifying contract on Tenderly`);
   await tenderly.verify({
     address: merkleAirdrop.address,
     name: "MerkleAirdrop",
   });
+  console.log(`> ✅ Done`);
 };
 
 export default func;

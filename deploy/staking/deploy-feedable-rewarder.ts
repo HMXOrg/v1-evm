@@ -18,14 +18,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const isNative = REWARD_TOKEN_ADDRESS.toLowerCase() === WMATIC.toLowerCase();
   const contractName = isNative ? "WFeedableRewarder" : "FeedableRewarder";
   const Rewarder = await ethers.getContractFactory(contractName, deployer);
+
+  console.log(`> Deploying ${NAME} ${contractName} Contract`);
   const rewarder = await upgrades.deployProxy(Rewarder, [
     NAME,
     REWARD_TOKEN_ADDRESS,
     STAKING_CONTRACT_ADDRESS,
   ]);
-  await rewarder.deployed();
-  console.log(`Deploying ${NAME} ${contractName} Contract`);
-  console.log(`Deployed at: ${rewarder.address}`);
+  console.log(`> ⛓ Tx submitted: ${rewarder.deployTransaction.hash}`);
+  console.log(`> Waiting for tx to be mined...`);
+  await rewarder.deployTransaction.wait(3);
+  console.log(`> Tx mined!`);
+  console.log(`> Deployed at: ${rewarder.address}`);
 
   if (NAME.includes("PLP")) {
     config.Staking.PLPStaking.rewarders =
@@ -68,10 +72,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     rewarder.address
   );
 
+  console.log(`> Verifying contract on Tenderly`);
   await tenderly.verify({
     address: implAddress,
     name: contractName,
   });
+  console.log(`> ✅ Verified!`);
 };
 
 function getRewardTokenAddress(rewarderName: string): string {

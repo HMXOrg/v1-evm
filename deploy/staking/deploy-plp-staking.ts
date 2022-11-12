@@ -8,11 +8,13 @@ const config = getConfig();
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
+
+  console.log(`> Deploying PLPStaking Contract`);
   const PLPStaking = await ethers.getContractFactory("PLPStaking", deployer);
   const plpStaking = await upgrades.deployProxy(PLPStaking, []);
-  await plpStaking.deployed();
-  console.log(`Deploying PLPStaking Contract`);
-  console.log(`Deployed at: ${plpStaking.address}`);
+  console.log(`> ⛓ Tx submitted: ${plpStaking.deployTransaction.hash}`);
+  await plpStaking.deployTransaction.wait(3);
+  console.log(`> Deployed at: ${plpStaking.address}`);
 
   config.Staking.PLPStaking.address = plpStaking.address;
   writeConfigFile(config);
@@ -22,10 +24,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     plpStaking.address
   );
 
+  console.log(`> Verifying contract on Tenderly...`);
   await tenderly.verify({
     address: implAddress,
     name: "PLPStaking",
   });
+  console.log(`> ✅ Done!`);
 };
 
 export default func;

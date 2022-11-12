@@ -3,6 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { AdminFacetInterface__factory } from "../../typechain";
 import { getConfig } from "../utils/config";
+import { eip1559rapidGas } from "../utils/gas";
 
 const config = getConfig();
 
@@ -14,9 +15,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     config.Pools.PLP.poolDiamond,
     deployer
   );
-  const tx = await pool.setRouter(PoolRouter);
-  const txReceipt = await tx.wait();
-  console.log(`Execute  setRouter`);
+
+  console.log(`> Setting Pool's router`);
+  const tx = await pool.setRouter(PoolRouter, await eip1559rapidGas());
+  console.log(`> ⛓ Tx submitted: ${tx.hash}`);
+  console.log(`> Waiting for tx to be mined...`);
+  await tx.wait(3);
+  console.log(`> Tx mined!`);
+  console.log(`> ✅ Done!`);
 };
 
 export default func;

@@ -3,36 +3,79 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import {
   FeedableRewarder__factory,
+  Multicall__factory,
   RewardDistributor__factory,
 } from "../../typechain";
 import { getConfig } from "../utils/config";
+import { eip1559rapidGas } from "../utils/gas";
 
 const config = getConfig();
 
-const FEEDER: string = "0x6629eC35c8Aa279BA45Dbfb575c728d3812aE31a";
+interface RewardDistributorSetParamsArgs {
+  rewardToken?: string;
+  pool?: string;
+  poolRouter?: string;
+  plpStakingProtocolRevenue?: string;
+  dragonStakingProtocolRevenue?: string;
+  devFundBps?: string;
+  plpStakingBps?: string;
+  devFundAddress?: string;
+  merkleAirdrop?: string;
+}
+
+const args: RewardDistributorSetParamsArgs = {
+  devFundAddress: "0xcf0D151f84dCa261b1d201b04cDe24227Aa181F6",
+};
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
+  const config = getConfig();
 
   const rewardDistributor = RewardDistributor__factory.connect(
     config.Staking.RewardDistributor.address,
     deployer
   );
-  const tx = await rewardDistributor.setParams(
-    config.Tokens.USDC,
-    config.Pools.PLP.poolDiamond,
-    config.PoolRouter,
-    config.Staking.PLPStaking.rewarders[0].address,
-    ethers.constants.AddressZero,
+
+  const [
+    prevRewardToken,
+    prevPool,
+    prevPoolRouter,
+    prevPlpStakingProtocolRevenue,
+    prevDragonStakingProtocolRevenue,
+    prevDevFundBps,
+    prevPlpStakingBps,
+    prevDevFundAddress,
+    prevMerkleAirdrop,
+  ] = await Promise.all([
+    await rewardDistributor.rewardToken(),
+    await rewardDistributor.pool(),
+    await rewardDistributor.poolRouter(),
+    await rewardDistributor.plpStakingProtocolRevenueRewarder(),
+    await rewardDistributor.dragonStakingProtocolRevenueRewarder(),
     await rewardDistributor.devFundBps(),
     await rewardDistributor.plpStakingBps(),
     await rewardDistributor.devFundAddress(),
     await rewardDistributor.merkleAirdrop(),
-    { gasLimit: 10000000 }
+  ]);
+
+  console.log(`> Setting reward distributor params`);
+  const tx = await rewardDistributor.setParams(
+    args.rewardToken || prevRewardToken,
+    args.pool || prevPool,
+    args.poolRouter || prevPoolRouter,
+    args.plpStakingProtocolRevenue || prevPlpStakingProtocolRevenue,
+    args.dragonStakingProtocolRevenue || prevDragonStakingProtocolRevenue,
+    args.devFundBps || prevDevFundBps,
+    args.plpStakingBps || prevPlpStakingBps,
+    args.devFundAddress || prevDevFundAddress,
+    args.merkleAirdrop || prevMerkleAirdrop,
+    await eip1559rapidGas()
   );
-  const txReceipt = await tx.wait();
-  console.log(`Executed setParams at RewardDistributor`);
-  console.log(`Feeder: ${FEEDER}`);
+  console.log(`> ⛓ Tx submitted: ${tx.hash}`);
+  console.log(`> Waiting for tx to be mined...`);
+  tx.wait(3);
+  console.log(`> Tx is mined`);
+  console.log(`> ✅ Done`);
 };
 
 export default func;

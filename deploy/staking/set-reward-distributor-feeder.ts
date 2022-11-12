@@ -9,7 +9,7 @@ import { getConfig } from "../utils/config";
 
 const config = getConfig();
 
-const FEEDER: string = "0x6629eC35c8Aa279BA45Dbfb575c728d3812aE31a";
+const FEEDER: string = "0x1E0Fae3797C82D1C191aE6C9082bbDd04169fA0C";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
@@ -18,10 +18,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     config.Staking.RewardDistributor.address,
     deployer
   );
+  console.log(`> Setting reward distributor feeder to ${FEEDER}`);
   const tx = await rewarder.setFeeder(FEEDER);
-  const txReceipt = await tx.wait();
-  console.log(`Executed setFeeder at RewardDistributor`);
-  console.log(`Feeder: ${FEEDER}`);
+  console.log(`> ⛓ Tx submitted: ${tx.hash}`);
+  console.log(`> Waiting for tx to be mined...`);
+  tx.wait(3);
+  console.log(`> Tx is mined`);
+  console.log(`> ✅ Done`);
 };
 
 export default func;

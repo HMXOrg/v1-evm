@@ -214,7 +214,10 @@
     "deploy:tenderly:airdrop:set-merkle-airdrop-feeder": "npx hardhat --network tenderly deploy --no-compile --reset --tags SetMerkleAirdropFeeder",
     "deploy:matic:timelock:deploy-timelock": "npx hardhat --network matic deploy --no-compile --reset --tags TimelockController",
     "deploy:mumbai:timelock:deploy-timelock": "npx hardhat --network mumbai deploy --no-compile --reset --tags TimelockController",
-    "deploy:tenderly:timelock:deploy-timelock": "npx hardhat --network tenderly deploy --no-compile --reset --tags TimelockController"
+    "deploy:tenderly:timelock:deploy-timelock": "npx hardhat --network tenderly deploy --no-compile --reset --tags TimelockController",
+    "deploy:matic:staking:set-reward-distributor-params": "npx hardhat --network matic deploy --no-compile --reset --tags SetRewardDistributorParams",
+    "deploy:mumbai:staking:set-reward-distributor-params": "npx hardhat --network mumbai deploy --no-compile --reset --tags SetRewardDistributorParams",
+    "deploy:tenderly:staking:set-reward-distributor-params": "npx hardhat --network tenderly deploy --no-compile --reset --tags SetRewardDistributorParams"
   },
   "devDependencies": {
     "@tenderly/hardhat-tenderly": "^1.3.2",

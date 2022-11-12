@@ -28,6 +28,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "RewardDistributor",
     deployer
   );
+  console.log(`> Deploying RewardDistributor Contract`);
   const rewardDistributor = await upgrades.deployProxy(RewardDistributor, [
     REWARD_TOKEN,
     POOL,
@@ -40,9 +41,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     MERKLE_AIRDROP,
     REFERRAL_REVENUE_MAX_THRESHOLD,
   ]);
-  await rewardDistributor.deployed();
-  console.log(`Deploying RewardDistributor Contract`);
-  console.log(`Deployed at: ${rewardDistributor.address}`);
+  console.log(`> ⛓ Tx submitted: ${rewardDistributor.deployTransaction.hash}`);
+  console.log(`> Waiting for tx to be mined...`);
+  await rewardDistributor.deployTransaction.wait(3);
+  console.log(`> Deployed at: ${rewardDistributor.address}`);
 
   config.Staking.RewardDistributor.address = rewardDistributor.address;
   config.Staking.RewardDistributor.deployedAtBlock = String(
@@ -55,10 +57,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     rewardDistributor.address
   );
 
+  console.log(`> Verifying contract on Tenderly`);
   await tenderly.verify({
     address: implAddress,
     name: "RewardDistributor",
   });
+  console.log(`> ✅ Verified`);
 };
 
 export default func;

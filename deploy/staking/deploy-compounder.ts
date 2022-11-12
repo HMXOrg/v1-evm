@@ -14,15 +14,17 @@ const IS_COMPOUNDABLE_TOKENS = [false];
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
   const Compounder = await ethers.getContractFactory("Compounder", deployer);
+  console.log(`> Deploying Compounder Contract`);
   const compounder = await upgrades.deployProxy(Compounder, [
     DRAGON_POINT,
     DESTINATION_COMPUND_POOL,
     TOKENS,
     IS_COMPOUNDABLE_TOKENS,
   ]);
-  await compounder.deployed();
-  console.log(`Deploying Compounder Contract`);
-  console.log(`Deployed at: ${compounder.address}`);
+  console.log(`> ⛓ Tx submitted: ${compounder.deployTransaction.hash}`);
+  console.log(`> Waiting for tx to be mined...`);
+  await compounder.deployTransaction.wait(3);
+  console.log(`> Deployed at: ${compounder.address}`);
 
   config.Staking.Compounder = compounder.address;
   writeConfigFile(config);
@@ -32,10 +34,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     compounder.address
   );
 
+  console.log(`> Verifying contract on Tenderly`);
   await tenderly.verify({
     address: implAddress,
     name: "Compounder",
   });
+  console.log(`> ✅ Verified`);
 };
 
 export default func;

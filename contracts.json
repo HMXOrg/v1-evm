@@ -38,7 +38,7 @@
     "AAVE_USD": "0xE7a24EF0C5e95Ffb0f6684b813A78F2a3AD7D171",
     "atricrypto3": "0xdAD97F7713Ae9437fa9249920eC8507e5FbB23d3"
   },
-  "PoolRouter": "",
+  "PoolRouter": "0x4EE6b2FAE66a1d7E44A7a43D426Cec6849949827",
   "Pools": {
     "PLP": {
       "poolDiamond": "0xE7D96684A56e60ffBAAe0fC0683879da48daB383",
@@ -63,14 +63,14 @@
   },
   "Vester": "0x0000000000000000000000000000000000000000",
   "Staking": {
-    "Compounder": "",
+    "Compounder": "0xb37A75920b7E21097a0687b0948def279fEa3457",
     "PLPStaking": {
-      "address": "",
+      "address": "0x903E50c494A97A133204F5ff207E73e481441064",
       "rewarders": [
         {
           "name": "PLP Staking Protocol Revenue",
-          "address": "",
-          "rewardToken": ""
+          "address": "0x1fBdB30f4588589575AE2DBbA028CA6f6e8c84dd",
+          "rewardToken": "0x2791bca1f2de4661ed88a30c99a7a9449aa84174"
         },
         {
           "name": "PLP Staking esP88 Emission",
@@ -110,8 +110,8 @@
       ]
     },
     "RewardDistributor": {
-      "address": "",
-      "deployedAtBlock": ""
+      "address": "0x974ddb0dB42aF10F64D74CbaDf4B34309655fC80",
+      "deployedAtBlock": "35511191"
     }
   },
   "Lockdrop": {
@@ -152,7 +152,7 @@
     ]
   },
   "MerkleAirdrop": {
-    "address": "",
-    "deployedAtBlock": ""
+    "address": "0x6B0076ecF4999fa75EeE7a64984Ac0F4cFaca631",
+    "deployedAtBlock": "35511121"
   }
 }

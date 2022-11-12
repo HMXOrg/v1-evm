@@ -14,9 +14,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     config.Pools.PLP.poolDiamond,
     deployer
   );
+  console.log(`> Setting treasury to ${TREASURY_ADDRESS}`);
   const tx = await pool.setTreasury(TREASURY_ADDRESS);
-  const txReceipt = await tx.wait();
-  console.log(`Execute setTreasury`);
+  console.log(`> ⛓ Tx submitted: ${tx.hash}`);
+  console.log(`> Waiting for tx to be mined...`);
+  tx.wait(3);
+  console.log(`> Tx is mined`);
+  console.log(`> ✅ Done`);
 };
 
 export default func;

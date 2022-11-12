@@ -1,8 +1,9 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
-import { PLPStaking__factory } from "../../typechain";
+import { ERC20__factory, PLPStaking__factory } from "../../typechain";
 import { getConfig } from "../utils/config";
+import { eip1559rapidGas } from "../utils/gas";
 
 const config = getConfig();
 
@@ -18,14 +19,22 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     STAKING_CONTRACT_ADDRESS,
     deployer
   );
+  const newStakingToken = ERC20__factory.connect(
+    STAKING_TOKEN_ADDRESS,
+    deployer
+  );
+  const newStakingTokenSymbol = await newStakingToken.symbol();
+
+  console.log(`> Adding ${newStakingTokenSymbol} to staking contract`);
   const tx = await stakingContract.addStakingToken(
     STAKING_TOKEN_ADDRESS,
-    REWARDERS
+    REWARDERS,
+    await eip1559rapidGas()
   );
-  const txReceipt = await tx.wait();
-  console.log(`Execute  addStakingToken`);
-  console.log(`Staking Token: ${STAKING_TOKEN_ADDRESS}`);
-  console.log(`Rewarders: ${REWARDERS}`);
+  console.log(`> ⛓ Tx submitted: ${tx.hash}`);
+  console.log(`> Waiting for tx to be mined...`);
+  await tx.wait(3);
+  console.log(`> ✅ Done`);
 };
 
 export default func;
