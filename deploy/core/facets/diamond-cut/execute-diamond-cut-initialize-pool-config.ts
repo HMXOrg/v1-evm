@@ -9,7 +9,7 @@ import { getConfig } from "../../../utils/config";
 
 const config = getConfig();
 
-const treasury = "0x6629ec35c8aa279ba45dbfb575c728d3812ae31a";
+const treasury = "0xcf0D151f84dCa261b1d201b04cDe24227Aa181F6";
 const fundingInterval = 60 * 60; // 1 hour
 const mintBurnFeeBps = 0; // 0% at launch
 const taxBps = 0; // 0% at launch
@@ -44,7 +44,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         ]
       )
     )
-  ).wait();
+  ).wait(3);
 
   console.log(`Execute diamondCut for InitializePoolConfig`);
 };

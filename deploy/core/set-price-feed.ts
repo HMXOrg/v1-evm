@@ -3,6 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { PoolOracle__factory } from "../../typechain";
 import { getConfig } from "../utils/config";
+import { eip1559rapidGas } from "../utils/gas";
 
 const config = getConfig();
 
@@ -50,11 +51,16 @@ const FEED_INFOS = [
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
   const oracle = PoolOracle__factory.connect(ORACLE, deployer);
+
+  console.log("> Setting price feeds");
   const tx = await oracle.setPriceFeed(TOKENS, FEED_INFOS, {
+    ...(await eip1559rapidGas()),
     gasLimit: 10000000,
   });
-  const txReceipt = await tx.wait();
-  console.log(`Execute  setPriceFeed`);
+  console.log(`> ⛓ Tx submitted: ${tx.hash}`);
+  console.log(`> Waiting for tx to be mined...`);
+  await tx.wait(3);
+  console.log(`> ✅ Done setting price feeds`);
 };
 
 export default func;

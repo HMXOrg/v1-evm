@@ -11,7 +11,7 @@
   "Tokens": {
     "P88": "0x0000000000000000000000000000000000000000",
     "esP88": "0x0000000000000000000000000000000000000000",
-    "PLP": "",
+    "PLP": "0x6A69561199E01E5E76eA53A59aD804d919e30BA8",
     "DragonPoint": "0x0000000000000000000000000000000000000000",
     "P88QSLP": "0x0000000000000000000000000000000000000000",
     "WMATIC": "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
@@ -41,23 +41,23 @@
   "PoolRouter": "",
   "Pools": {
     "PLP": {
-      "poolDiamond": "",
-      "oracle": "",
-      "orderbook": "",
+      "poolDiamond": "0xE7D96684A56e60ffBAAe0fC0683879da48daB383",
+      "oracle": "0xF4F7123fFe42c4C90A4bCDD2317D397E0B7d7cc0",
+      "orderbook": "0x6a0f77D9eE49FfA3164CF87CeD9eE1a1f5278C4D",
       "facets": {
-        "admin": "",
-        "accessControl": "",
-        "farm": "",
-        "diamondCut": "",
-        "diamondLoupe": "",
-        "liquidity": "",
-        "fundingRate": "",
-        "getter": "",
-        "ownership": "",
-        "perpTrade": "",
-        "diamondInitializer": "",
-        "poolConfigInitializer": "",
-        "accessControlInitializer": ""
+        "admin": "0x0FdE910552977041Dc8c7ef652b5a07B40B9e006",
+        "accessControl": "0xfA0B82bE3C88F22cCf35cdEa66c6e5f9C4De8799",
+        "farm": "0x0b71cBBAd974B9DF8BDF6A83973B710AAa48e7ac",
+        "diamondCut": "0x9A200f41c4331ABc7783d65c11690C28e2B1C5df",
+        "diamondLoupe": "0x2D1F1Bec308AFd21B8a4D2aE5233Ef7241914416",
+        "liquidity": "0x642DCcee2C90986A7472510A6a4E1f4126A76432",
+        "fundingRate": "0xFB3b755Be8647589f03c5F647556D7E35db9438b",
+        "getter": "0x963Cbe4cFcDC58795869be74b80A328b022DE00C",
+        "ownership": "0xF0D92907236418Fa8Ee900E384b4c6928f7cADfc",
+        "perpTrade": "0x0a8D9c0A4a039dDe3Cb825fF4c2f063f8B54313A",
+        "diamondInitializer": "0x72399114898019Bace477623605D33a804437633",
+        "poolConfigInitializer": "0x9F1f13eBC178122C3ef6c14FA3A523680563F58b",
+        "accessControlInitializer": "0x5bb83667E29EF15F141256eEc189e60B0C18DB14"
       }
     }
   },

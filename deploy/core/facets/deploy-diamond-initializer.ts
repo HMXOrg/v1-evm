@@ -13,7 +13,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   );
   console.log(`Deploying DiamondInitializer Contract`);
   const diamondInitializer = await DiamondInitializer.deploy();
-  await diamondInitializer.deployed();
+  await diamondInitializer.deployTransaction.wait(3);
   console.log(`Deployed at: ${diamondInitializer.address}`);
 
   config.Pools.PLP.facets.diamondInitializer = diamondInitializer.address;

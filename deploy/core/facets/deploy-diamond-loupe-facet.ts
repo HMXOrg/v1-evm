@@ -11,9 +11,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "DiamondLoupeFacet",
     deployer
   );
-  const diamondLoupeFacet = await DiamondLoupeFacet.deploy();
-  diamondLoupeFacet.deployed();
   console.log(`Deploying DiamondLoupeFacet Contract`);
+  const diamondLoupeFacet = await DiamondLoupeFacet.deploy();
+  await diamondLoupeFacet.deployTransaction.wait(3);
   console.log(`Deployed at: ${diamondLoupeFacet.address}`);
 
   config.Pools.PLP.facets.diamondLoupe = diamondLoupeFacet.address;

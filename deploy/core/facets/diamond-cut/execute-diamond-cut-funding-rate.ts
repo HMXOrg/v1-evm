@@ -40,11 +40,20 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     deployer
   );
 
-  await (
-    await poolDiamond.diamondCut(facetCuts, ethers.constants.AddressZero, "0x")
-  ).wait();
-
-  console.log(`Execute diamondCut for FundingRateFacet`);
+  console.log(`> Diamond cutting funding rate facet`);
+  const tx = await poolDiamond.diamondCut(
+    facetCuts,
+    ethers.constants.AddressZero,
+    "0x",
+    {
+      maxFeePerGas: ethers.utils.parseUnits("200", "gwei"),
+      maxPriorityFeePerGas: ethers.utils.parseUnits("100", "gwei"),
+    }
+  );
+  console.log(`> ⛓ Tx submitted: ${tx.hash}`);
+  console.log(`> Waiting for tx to be mined...`);
+  await tx.wait(3);
+  console.log(`> ✅ Diamond cut funding rate facet`);
 };
 
 export default func;

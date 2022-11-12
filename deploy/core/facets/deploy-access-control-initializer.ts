@@ -13,7 +13,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   );
   console.log(`Deploying AccessControlInitializer Contract`);
   const accessControlInitializer = await AccessControlInitializer.deploy();
-  await accessControlInitializer.deployed();
+  await accessControlInitializer.deployTransaction.wait(3);
   console.log(`Deployed at: ${accessControlInitializer.address}`);
 
   config.Pools.PLP.facets.accessControlInitializer =

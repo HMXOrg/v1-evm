@@ -8,9 +8,10 @@ const config = getConfig();
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
   const FarmFacet = await ethers.getContractFactory("FarmFacet", deployer);
-  const farmFacet = await FarmFacet.deploy();
-  farmFacet.deployed();
+
   console.log(`Deploying FarmFacet Contract`);
+  const farmFacet = await FarmFacet.deploy();
+  await farmFacet.deployTransaction.wait(3);
   console.log(`Deployed at: ${farmFacet.address}`);
 
   config.Pools.PLP.facets.farm = farmFacet.address;

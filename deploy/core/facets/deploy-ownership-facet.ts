@@ -11,9 +11,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "OwnershipFacet",
     deployer
   );
-  const ownershipFacet = await OwnershipFacet.deploy();
-  await ownershipFacet.deployed();
+
   console.log(`Deploying OwnershipFacet Contract`);
+  const ownershipFacet = await OwnershipFacet.deploy();
+  await ownershipFacet.deployTransaction.wait(3);
   console.log(`Deployed at: ${ownershipFacet.address}`);
 
   config.Pools.PLP.facets.ownership = ownershipFacet.address;

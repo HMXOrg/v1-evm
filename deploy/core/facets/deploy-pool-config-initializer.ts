@@ -11,9 +11,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "PoolConfigInitializer02",
     deployer
   );
+
   console.log(`Deploying PoolConfigInitializer02 Contract`);
   const poolConfigInitializer = await PoolConfigInitializer.deploy();
-  await poolConfigInitializer.deployed();
+  await poolConfigInitializer.deployTransaction.wait(3);
   console.log(`Deployed at: ${poolConfigInitializer.address}`);
 
   config.Pools.PLP.facets.poolConfigInitializer = poolConfigInitializer.address;

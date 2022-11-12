@@ -10,13 +10,14 @@ const WNATIVE = config.Tokens.WMATIC;
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
   const PoolRouter = await ethers.getContractFactory("PoolRouter", deployer);
+
+  console.log(`Deploying PoolRouter Contract`);
   const poolRouter = await PoolRouter.deploy(
     WNATIVE,
     config.Staking.PLPStaking.address,
     config.Pools.PLP.poolDiamond
   );
-  await poolRouter.deployed();
-  console.log(`Deploying PoolRouter Contract`);
+  await poolRouter.deployTransaction.wait(3);
   console.log(`Deployed at: ${poolRouter.address}`);
 
   config.PoolRouter = poolRouter.address;

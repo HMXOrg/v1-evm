@@ -3,6 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { AdminFacetInterface__factory } from "../../typechain";
 import { getConfig } from "../utils/config";
+import { eip1559rapidGas } from "../utils/gas";
 
 const config = getConfig();
 
@@ -52,7 +53,7 @@ const TOKEN_CONFIGS = [
     isStable: true,
     isShortable: false,
     decimals: 6,
-    weight: 3500,
+    weight: 4000,
     minProfitBps: 0,
     usdDebtCeiling: ethers.utils.parseEther("0"),
     shortCeiling: 0,
@@ -65,7 +66,7 @@ const TOKEN_CONFIGS = [
     isStable: true,
     isShortable: false,
     decimals: 6,
-    weight: 1500,
+    weight: 1000,
     minProfitBps: 0,
     usdDebtCeiling: ethers.utils.parseEther("0"),
     shortCeiling: 0,
@@ -80,12 +81,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     config.Pools.PLP.poolDiamond,
     deployer
   );
+
+  console.log("> Setting token configs");
   const tx = await pool.setTokenConfigs(
     TOKEN_CONFIGS.map((each) => each.token),
-    TOKEN_CONFIGS
+    TOKEN_CONFIGS,
+    await eip1559rapidGas()
   );
-  const txReceipt = await tx.wait();
-  console.log(`Execute  setTokenConfigs`);
+  console.log(`> ⛓ Tx submitted: ${tx.hash}`);
+  console.log(`> Waiting for tx to be mined...`);
+  await tx.wait(3);
+  console.log(`> ✅ Token configs set`);
 };
 
 export default func;

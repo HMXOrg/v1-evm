@@ -13,7 +13,7 @@ import "hardhat-deploy";
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   networks: {
-    polygon: {
+    matic: {
       url: process.env.POLYGON_MAINNET_RPC,
       accounts:
         process.env.POLYGON_MAINNET_PRIVATE_KEY !== undefined

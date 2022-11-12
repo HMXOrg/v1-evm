@@ -14,7 +14,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   console.log(`Deploying DiamondCutFacet Contract`);
   const diamondCutFacet = await DiamondCutFacet.deploy();
-  await diamondCutFacet.deployed();
+  await diamondCutFacet.deployTransaction.wait(3);
   console.log(`Deployed at: ${diamondCutFacet.address}`);
 
   config.Pools.PLP.facets.diamondCut = diamondCutFacet.address;

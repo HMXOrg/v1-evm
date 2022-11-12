@@ -11,9 +11,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "PerpTradeFacet",
     deployer
   );
-  const perpTradeFacet = await PerpTradeFacet.deploy();
-  perpTradeFacet.deployed();
+
   console.log(`Deploying PerpTradeFacet Contract`);
+  const perpTradeFacet = await PerpTradeFacet.deploy();
+  await perpTradeFacet.deployTransaction.wait(3);
   console.log(`Deployed at: ${perpTradeFacet.address}`);
 
   config.Pools.PLP.facets.perpTrade = perpTradeFacet.address;

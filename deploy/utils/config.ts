@@ -5,7 +5,7 @@ import TenderlyConfig from "../../contracts.tenderly.json";
 import MumbaiConfig from "../../contracts.mumbai.json";
 
 export function getConfig() {
-  if (network.name === "polygon") {
+  if (network.name === "matic") {
     return MainnetConfig;
   }
   if (network.name === "tenderly") {
@@ -21,7 +21,7 @@ export function getConfig() {
 export function writeConfigFile(config: any) {
   let filePath;
   switch (network.name) {
-    case "polygon":
+    case "matic":
       filePath = "contracts.json";
       break;
     case "tenderly":
@@ -33,7 +33,7 @@ export function writeConfigFile(config: any) {
     default:
       throw Error("Unsupported network");
   }
-  console.log(`>> Writing ${filePath}`);
+  console.log(`> Writing ${filePath}`);
   fs.writeFileSync(filePath, JSON.stringify(config, null, 2));
-  console.log("✅ Done");
+  console.log("> ✅ Done");
 }

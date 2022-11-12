@@ -1,8 +1,12 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
-import { MintableTokenInterface__factory } from "../../typechain";
+import {
+  ERC20__factory,
+  MintableTokenInterface__factory,
+} from "../../typechain";
 import { getConfig } from "../utils/config";
+import { eip1559rapidGas } from "../utils/gas";
 
 const config = getConfig();
 
@@ -11,17 +15,31 @@ const MINTER_ADDRESSES = [config.Pools.PLP.poolDiamond];
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
-  const token = MintableTokenInterface__factory.connect(
+  const mintableToken = MintableTokenInterface__factory.connect(
     TOKEN_ADDRESS,
     deployer
   );
+  const erc20 = ERC20__factory.connect(TOKEN_ADDRESS, deployer);
+  const tokenSymbol = await erc20.symbol();
+
   for (let i = 0; i < MINTER_ADDRESSES.length; i++) {
-    const tx = await token.setMinter(MINTER_ADDRESSES[i], true);
-    const txReceipt = await tx.wait();
-    console.log(`Execute  setMinter`);
-    console.log(`Token: ${TOKEN_ADDRESS}`);
-    console.log(`Minter: ${MINTER_ADDRESSES[i]}`);
+    console.log(
+      `> Setting minter [${i + 1}/${
+        MINTER_ADDRESSES.length
+      }] for ${tokenSymbol}: ${MINTER_ADDRESSES[i]}`
+    );
+    const tx = await mintableToken.setMinter(
+      MINTER_ADDRESSES[i],
+      true,
+      await eip1559rapidGas()
+    );
+    console.log(`> ⛓ Tx submitted: ${tx.hash}`);
+    console.log(`> Waiting for tx to be mined...`);
+    await tx.wait(3);
+    console.log(`> Tx mined!`);
   }
+
+  console.log(`> ✅ Done!`);
 };
 
 export default func;

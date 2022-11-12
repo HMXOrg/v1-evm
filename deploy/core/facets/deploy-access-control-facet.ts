@@ -12,8 +12,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     deployer
   );
   const accessControlFacet = await AccessControlFacet.deploy();
-  accessControlFacet.deployed();
   console.log(`Deploying AccessControlFacet Contract`);
+  await accessControlFacet.deployTransaction.wait(3);
   console.log(`Deployed at: ${accessControlFacet.address}`);
 
   config.Pools.PLP.facets.accessControl = accessControlFacet.address;

@@ -7,14 +7,15 @@ const config = getConfig();
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
+
+  console.log(`Deploying PoolDiamond Contract`);
   const PoolDiamond = await ethers.getContractFactory("PoolDiamond", deployer);
   const poolDiamond = await PoolDiamond.deploy(
     config.Pools.PLP.facets.diamondCut,
     config.Tokens.PLP,
     config.Pools.PLP.oracle
   );
-  poolDiamond.deployed();
-  console.log(`Deploying PoolDiamond Contract`);
+  await poolDiamond.deployTransaction.wait(3);
   console.log(`Deployed at: ${poolDiamond.address}`);
 
   config.Pools.PLP.poolDiamond = poolDiamond.address;

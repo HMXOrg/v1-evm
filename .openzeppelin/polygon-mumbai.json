@@ -334,6 +334,11 @@
       "address": "0xBbEa76a9Dd340e93Ae0DF3dcA64272FF18EB7E29",
       "txHash": "0xac48600df017ccd6d007bf22ed8953ad539ce9328c144b0013df4f79824cbc2d",
       "kind": "transparent"
+    },
+    {
+      "address": "0x60eAE3FEAF9128CfB9FC83d044398De525B888c0",
+      "txHash": "0xaeaf7363e62701ff3a3ce570d52f59b3c4ecf382f9023720889db24341f8fb36",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -5938,6 +5943,152 @@
           "t_uint8": {
             "label": "uint8",
             "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "e0aa0445c894986a933c4105e49510dbababf99c7ebe5e8a579fd73aa1683118": {
+      "address": "0x83d6c8C06ac276465e4C92E7aC8C23740F435140",
+      "txHash": "0xe77f996b9c90cbcaf899a7a18acde603da2d4f99cef25c7daad7a5c36f554ac1",
+      "layout": {
+        "solcVersion": "0.8.17",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "priceFeedInfo",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_address,t_struct(PriceFeedInfo)7864_storage)",
+            "contract": "PoolOracle",
+            "src": "solidity/contracts/core/PoolOracle.sol:25"
+          },
+          {
+            "label": "roundDepth",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_uint80",
+            "contract": "PoolOracle",
+            "src": "solidity/contracts/core/PoolOracle.sol:26"
+          },
+          {
+            "label": "maxStrictPriceDeviation",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_uint256",
+            "contract": "PoolOracle",
+            "src": "solidity/contracts/core/PoolOracle.sol:27"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(ChainlinkPriceFeedInterface)27252": {
+            "label": "contract ChainlinkPriceFeedInterface",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_struct(PriceFeedInfo)7864_storage)": {
+            "label": "mapping(address => struct PoolOracle.PriceFeedInfo)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(PriceFeedInfo)7864_storage": {
+            "label": "struct PoolOracle.PriceFeedInfo",
+            "members": [
+              {
+                "label": "priceFeed",
+                "type": "t_contract(ChainlinkPriceFeedInterface)27252",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "decimals",
+                "type": "t_uint8",
+                "offset": 20,
+                "slot": "0"
+              },
+              {
+                "label": "spreadBps",
+                "type": "t_uint64",
+                "offset": 21,
+                "slot": "0"
+              },
+              {
+                "label": "isStrictStable",
+                "type": "t_bool",
+                "offset": 29,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          },
+          "t_uint80": {
+            "label": "uint80",
+            "numberOfBytes": "10"
           }
         }
       }

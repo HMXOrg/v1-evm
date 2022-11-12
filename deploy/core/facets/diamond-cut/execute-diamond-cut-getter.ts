@@ -12,6 +12,7 @@ import {
   PerpTradeFacet__factory,
 } from "../../../../typechain";
 import { getConfig } from "../../../utils/config";
+import { eip1559rapidGas } from "../../../utils/gas";
 
 const config = getConfig();
 
@@ -109,16 +110,24 @@ const facetCuts = [
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
 
+  ethers.provider;
+
   const poolDiamond = DiamondCutFacet__factory.connect(
     config.Pools.PLP.poolDiamond,
     deployer
   );
 
-  await (
-    await poolDiamond.diamondCut(facetCuts, ethers.constants.AddressZero, "0x")
-  ).wait();
-
-  console.log(`Execute diamondCut for GetterFacet`);
+  console.log(`> Diamond cutting getter facet`);
+  const tx = await poolDiamond.diamondCut(
+    facetCuts,
+    ethers.constants.AddressZero,
+    "0x",
+    await eip1559rapidGas()
+  );
+  console.log(`> ⛓ Tx hash: ${tx.hash}`);
+  console.log(`> Waiting for tx to be mined...`);
+  await tx.wait(3);
+  console.log(`> ✅ Done`);
 };
 
 export default func;

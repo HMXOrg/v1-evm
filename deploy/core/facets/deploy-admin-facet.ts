@@ -9,8 +9,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
   const AdminFacet = await ethers.getContractFactory("AdminFacet", deployer);
   const adminFacet = await AdminFacet.deploy();
-  adminFacet.deployed();
   console.log(`Deploying AdminFacet Contract`);
+  await adminFacet.deployTransaction.wait(3);
   console.log(`Deployed at: ${adminFacet.address}`);
 
   config.Pools.PLP.facets.admin = adminFacet.address;

@@ -11,9 +11,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "LiquidityFacet",
     deployer
   );
-  const liquidityFacet = await LiquidityFacet.deploy();
-  await liquidityFacet.deployed();
+
   console.log(`Deploying LiquidityFacet Contract`);
+  const liquidityFacet = await LiquidityFacet.deploy();
+  await liquidityFacet.deployTransaction.wait(3);
   console.log(`Deployed at: ${liquidityFacet.address}`);
 
   config.Pools.PLP.facets.liquidity = liquidityFacet.address;

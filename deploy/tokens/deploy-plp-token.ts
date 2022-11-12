@@ -10,9 +10,10 @@ const LIQUIDITY_COOLDOWN = 60 * 15; // 15 minutes
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
   const PLP = await ethers.getContractFactory("PLP", deployer);
-  const plp = await upgrades.deployProxy(PLP, [LIQUIDITY_COOLDOWN]);
-  await plp.deployed();
+
   console.log(`Deploying PLP Token Contract`);
+  const plp = await upgrades.deployProxy(PLP, [LIQUIDITY_COOLDOWN]);
+  await plp.deployTransaction.wait(3);
   console.log(`Deployed at: ${plp.address}`);
 
   config.Tokens.PLP = plp.address;
