@@ -7,6 +7,7 @@ tdly.setup({ automaticVerifications: false });
 
 import "@openzeppelin/hardhat-upgrades";
 import "@nomiclabs/hardhat-ethers";
+import "@nomiclabs/hardhat-etherscan";
 import "@typechain/hardhat";
 import "hardhat-deploy";
 
@@ -60,6 +61,9 @@ const config: HardhatUserConfig = {
     project: process.env.TENDERLY_PROJECT_NAME!,
     username: process.env.TENDERLY_USERNAME!,
     privateVerification: true,
+  },
+  etherscan: {
+    apiKey: process.env.POLYGONSCAN_API_KEY,
   },
 };
 

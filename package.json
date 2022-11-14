@@ -220,6 +220,7 @@
     "deploy:tenderly:staking:set-reward-distributor-params": "npx hardhat --network tenderly deploy --no-compile --reset --tags SetRewardDistributorParams"
   },
   "devDependencies": {
+    "@nomiclabs/hardhat-etherscan": "^3.1.2",
     "@tenderly/hardhat-tenderly": "^1.3.2",
     "@typechain/ethers-v5": "^10.0.0",
     "@typechain/hardhat": "^5.0.0",
