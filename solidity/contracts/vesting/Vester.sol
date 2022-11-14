@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
@@ -120,10 +120,10 @@ contract Vester is ReentrancyGuardUpgradeable {
     _claimFor(account, itemIndex);
   }
 
-  function claimFor(address account, uint256[] memory itemIndexes)
-    external
-    nonReentrant
-  {
+  function claimFor(
+    address account,
+    uint256[] memory itemIndexes
+  ) external nonReentrant {
     for (uint256 i = 0; i < itemIndexes.length; i++) {
       _claimFor(account, itemIndexes[i]);
     }
@@ -174,11 +174,10 @@ contract Vester is ReentrancyGuardUpgradeable {
     emit Cancel(msg.sender, itemIndex, returnAmount);
   }
 
-  function getUnlockAmount(uint256 amount, uint256 duration)
-    public
-    pure
-    returns (uint256)
-  {
+  function getUnlockAmount(
+    uint256 amount,
+    uint256 duration
+  ) public pure returns (uint256) {
     // x^1.5 model where x is the ratio of duration over MAX_DURATION, seconds in year
     // amount * (duration/MAX_DURATION) * sqrt(duration/MAX_DURATION)
     uint256 ratioX18 = Math.divWadDown(duration, YEAR);

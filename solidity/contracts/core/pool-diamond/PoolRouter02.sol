@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -30,11 +30,7 @@ contract PoolRouter02 {
     uint256 actualPrice
   );
 
-  constructor(
-    address wNative_,
-    address plpStaking_,
-    address pool_
-  ) {
+  constructor(address wNative_, address plpStaking_, address pool_) {
     WNATIVE = IWNative(wNative_);
     plpStaking = IStaking(plpStaking_);
     pool = pool_;

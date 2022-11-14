@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { Lockdrop_BaseTest, console, math } from "./Lockdrop_BaseTest.inte.t.sol";

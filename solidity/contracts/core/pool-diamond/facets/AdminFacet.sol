@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { LibPoolV1 } from "../libraries/LibPoolV1.sol";
@@ -43,7 +43,7 @@ contract AdminFacet is AdminFacetInterface {
   // Max funding rate factor at 1% (10000 / 1000000 * 100 = 1%)
   uint256 internal constant MAX_FUNDING_RATE_FACTOR = 10000;
   uint256 internal constant MAX_BORROWING_RATE_FACTOR = 10000;
-  uint256 internal constant MAX_LIQUIDATION_FEE_USD = 100 * 10**30;
+  uint256 internal constant MAX_LIQUIDATION_FEE_USD = 100 * 10 ** 30;
   uint256 internal constant MIN_LEVERAGE = 10000;
 
   address internal constant LINKEDLIST_START = address(1);
@@ -134,10 +134,10 @@ contract AdminFacet is AdminFacetInterface {
     ds.oracle = newPoolOracle;
   }
 
-  function setAllowLiquidators(address[] calldata liquidators, bool allow)
-    external
-    onlyOwner
-  {
+  function setAllowLiquidators(
+    address[] calldata liquidators,
+    bool allow
+  ) external onlyOwner {
     // Load PoolConfig Diamond storage
     LibPoolConfigV1.PoolConfigV1DiamondStorage
       storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
@@ -195,10 +195,9 @@ contract AdminFacet is AdminFacetInterface {
     poolConfigDs.fundingRateFactor = newFundingRateFactor;
   }
 
-  function setIsAllowAllLiquidators(bool _isAllowAllLiquidators)
-    external
-    onlyOwner
-  {
+  function setIsAllowAllLiquidators(
+    bool _isAllowAllLiquidators
+  ) external onlyOwner {
     // Load PoolConfig Diamond storage
     LibPoolConfigV1.PoolConfigV1DiamondStorage
       storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
@@ -210,10 +209,9 @@ contract AdminFacet is AdminFacetInterface {
     poolConfigDs.isAllowAllLiquidators = _isAllowAllLiquidators;
   }
 
-  function setIsDynamicFeeEnable(bool newIsDynamicFeeEnable)
-    external
-    onlyOwner
-  {
+  function setIsDynamicFeeEnable(
+    bool newIsDynamicFeeEnable
+  ) external onlyOwner {
     // Load PoolConfig Diamond storage
     LibPoolConfigV1.PoolConfigV1DiamondStorage
       storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
@@ -246,10 +244,9 @@ contract AdminFacet is AdminFacetInterface {
     poolConfigDs.isSwapEnable = newIsSwapEnable;
   }
 
-  function setLiquidationFeeUsd(uint256 newLiquidationFeeUsd)
-    external
-    onlyOwner
-  {
+  function setLiquidationFeeUsd(
+    uint256 newLiquidationFeeUsd
+  ) external onlyOwner {
     if (newLiquidationFeeUsd > MAX_LIQUIDATION_FEE_USD)
       revert AdminFacet_BadNewLiquidationFeeUsd();
 
@@ -275,10 +272,9 @@ contract AdminFacet is AdminFacetInterface {
     poolConfigDs.maxLeverage = newMaxLeverage;
   }
 
-  function setMinProfitDuration(uint64 newMinProfitDuration)
-    external
-    onlyOwner
-  {
+  function setMinProfitDuration(
+    uint64 newMinProfitDuration
+  ) external onlyOwner {
     // Load PoolConfig Diamond storage
     LibPoolConfigV1.PoolConfigV1DiamondStorage
       storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
@@ -323,10 +319,10 @@ contract AdminFacet is AdminFacetInterface {
     poolConfigDs.router = newRouter;
   }
 
-  function setSwapFeeBps(uint64 newSwapFeeBps, uint64 newStableSwapFeeBps)
-    external
-    onlyOwner
-  {
+  function setSwapFeeBps(
+    uint64 newSwapFeeBps,
+    uint64 newStableSwapFeeBps
+  ) external onlyOwner {
     if (newSwapFeeBps > MAX_FEE_BPS) revert AdminFacet_BadNewSwapFeeBps();
     if (newStableSwapFeeBps > MAX_FEE_BPS)
       revert AdminFacet_BadNewStableSwapFeeBps();
@@ -345,10 +341,10 @@ contract AdminFacet is AdminFacetInterface {
     poolConfigDs.stableSwapFeeBps = newStableSwapFeeBps;
   }
 
-  function setTaxBps(uint64 newTaxBps, uint64 newStableTaxBps)
-    external
-    onlyOwner
-  {
+  function setTaxBps(
+    uint64 newTaxBps,
+    uint64 newStableTaxBps
+  ) external onlyOwner {
     if (newTaxBps > MAX_FEE_BPS) revert AdminFacet_BadNewTaxBps();
     if (newStableTaxBps > MAX_FEE_BPS) revert AdminFacet_BadNewStableTaxBps();
 

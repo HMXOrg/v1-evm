@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { PoolDiamond_BaseTest, console, LibPoolConfigV1, LiquidityFacetInterface, GetterFacetInterface, PerpTradeFacetInterface } from "./PoolDiamond_BaseTest.t.sol";
@@ -20,17 +20,17 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     vm.warp(1662100761);
 
     // Initialized price feeds
-    daiPriceFeed.setLatestAnswer(1 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
-    maticPriceFeed.setLatestAnswer(400 * 10**8);
+    daiPriceFeed.setLatestAnswer(1 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(400 * 10 ** 8);
 
     // Assuming WBTC price is at 40,000 - 41,000 USD
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
 
     // Add 0.0025 WBTC as a liquidity of the pool
-    wbtc.mint(address(poolDiamond), 0.0025 * 10**8);
+    wbtc.mint(address(poolDiamond), 0.0025 * 10 ** 8);
     poolLiquidityFacet.addLiquidity(
       address(this),
       address(wbtc),
@@ -42,18 +42,18 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // 0.0025 * (1-0.003) * 40000 = 99.7 USD
     // 2. Pool's AUM by max price should be:
     // 0.0025 * (1-0.003) * 41000 = 102.1925 USD
-    assertEq(poolGetterFacet.getAumE18(false), 99.7 * 10**18);
-    assertEq(poolGetterFacet.getAumE18(true), 102.1925 * 10**18);
+    assertEq(poolGetterFacet.getAumE18(false), 99.7 * 10 ** 18);
+    assertEq(poolGetterFacet.getAumE18(true), 102.1925 * 10 ** 18);
 
     // Increase long position with 0.00025 WBTC (=10 USD) as a collateral
     // With 9x leverage; Hence position's size should be 90 USD.
-    wbtc.mint(address(poolDiamond), 0.00025 * 10**8);
+    wbtc.mint(address(poolDiamond), 0.00025 * 10 ** 8);
     poolPerpTradeFacet.increasePosition(
       address(this),
       0,
       address(wbtc),
       address(wbtc),
-      90 * 10**30,
+      90 * 10 ** 30,
       true
     );
 
@@ -74,12 +74,12 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // = 80.09 + ((0.00274031 - 0.00225) * 40000)
     // 6. Pool's AUM by max price should be:
     // = 80.09 + ((0.00274031 - 0.00225) * 41000)
-    assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 0.00274031 * 10**8);
-    assertEq(poolGetterFacet.guaranteedUsdOf(address(wbtc)), 80.09 * 10**30);
-    assertEq(poolGetterFacet.reservedOf(address(wbtc)), 0.00225 * 10**8);
+    assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 0.00274031 * 10 ** 8);
+    assertEq(poolGetterFacet.guaranteedUsdOf(address(wbtc)), 80.09 * 10 ** 30);
+    assertEq(poolGetterFacet.reservedOf(address(wbtc)), 0.00225 * 10 ** 8);
     assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 969);
-    assertEq(poolGetterFacet.getAumE18(false), 99.7024 * 10**18);
-    assertEq(poolGetterFacet.getAumE18(true), 100.19271 * 10**18);
+    assertEq(poolGetterFacet.getAumE18(false), 99.7024 * 10 ** 18);
+    assertEq(poolGetterFacet.getAumE18(true), 100.19271 * 10 ** 18);
 
     // Assert position
     // 1. Position's size should be 90 USD
@@ -96,16 +96,16 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
         address(wbtc),
         true
       );
-    assertEq(position.size, 90 * 10**30);
-    assertEq(position.collateral, 9.91 * 10**30);
-    assertEq(position.averagePrice, 41000 * 10**30);
-    assertEq(position.entryBorrowingRate, 0 * 10**30);
-    assertEq(position.reserveAmount, 0.00225 * 10**8);
+    assertEq(position.size, 90 * 10 ** 30);
+    assertEq(position.collateral, 9.91 * 10 ** 30);
+    assertEq(position.averagePrice, 41000 * 10 ** 30);
+    assertEq(position.entryBorrowingRate, 0 * 10 ** 30);
+    assertEq(position.reserveAmount, 0.00225 * 10 ** 8);
 
     // WBTC price chanaged
-    wbtcPriceFeed.setLatestAnswer(45_100 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(46_100 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(47_100 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(45_100 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(46_100 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(47_100 * 10 ** 8);
 
     // Assert position's delta
     // 1. Position's delta should be:
@@ -119,7 +119,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       address(wbtc),
       true
     );
-    assertEq(delta, 9 * 10**30);
+    assertEq(delta, 9 * 10 ** 30);
     assertTrue(isProfit);
 
     // Assert position's leverage
@@ -140,8 +140,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       0,
       address(wbtc),
       address(wbtc),
-      3 * 10**30,
-      50 * 10**30,
+      3 * 10 ** 30,
+      50 * 10 ** 30,
       true,
       BOB
     );
@@ -160,9 +160,9 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // = ((3 [CollateralDelta] + 5 [Profit] - 0.05 [MarginFee]) / 47100)
     // = 16878 sathoshi
     assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 1075);
-    assertEq(poolGetterFacet.reservedOf(address(wbtc)), 0.001 * 10**8);
-    assertEq(poolGetterFacet.guaranteedUsdOf(address(wbtc)), 33.09 * 10**30);
-    assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 0.00257046 * 10**8);
+    assertEq(poolGetterFacet.reservedOf(address(wbtc)), 0.001 * 10 ** 8);
+    assertEq(poolGetterFacet.guaranteedUsdOf(address(wbtc)), 33.09 * 10 ** 30);
+    assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 0.00257046 * 10 ** 8);
     assertEq(wbtc.balanceOf(BOB), 16878);
 
     // Assert position
@@ -180,12 +180,12 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       address(wbtc),
       true
     );
-    assertEq(position.size, 40 * 10**30);
-    assertEq(position.collateral, 6.91 * 10**30);
-    assertEq(position.averagePrice, 41000 * 10**30);
-    assertEq(position.entryBorrowingRate, 0 * 10**30);
-    assertEq(position.reserveAmount, 0.001 * 10**8);
-    assertEq(position.realizedPnl, 5 * 10**30);
+    assertEq(position.size, 40 * 10 ** 30);
+    assertEq(position.collateral, 6.91 * 10 ** 30);
+    assertEq(position.averagePrice, 41000 * 10 ** 30);
+    assertEq(position.entryBorrowingRate, 0 * 10 ** 30);
+    assertEq(position.reserveAmount, 0.001 * 10 ** 8);
+    assertEq(position.realizedPnl, 5 * 10 ** 30);
     assertTrue(position.hasProfit);
 
     // Assert position's leverage
@@ -221,7 +221,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       0,
       address(wbtc),
       address(wbtc),
-      1 * 10**30,
+      1 * 10 ** 30,
       0,
       true,
       BOB
@@ -250,8 +250,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // = 16878 + 2123 - 26 - 1 (offset)
     // = 18974 sathoshi
     assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 1101);
-    assertEq(poolGetterFacet.reservedOf(address(wbtc)), 0.001 * 10**8);
-    assertEq(poolGetterFacet.guaranteedUsdOf(address(wbtc)), 34.09 * 10**30);
+    assertEq(poolGetterFacet.reservedOf(address(wbtc)), 0.001 * 10 ** 8);
+    assertEq(poolGetterFacet.guaranteedUsdOf(address(wbtc)), 34.09 * 10 ** 30);
     assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 254923);
     assertEq(wbtc.balanceOf(BOB), 18974);
 
@@ -263,17 +263,17 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     vm.warp(1662100761);
 
     // Initialized price feeds
-    daiPriceFeed.setLatestAnswer(1 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
-    maticPriceFeed.setLatestAnswer(400 * 10**8);
+    daiPriceFeed.setLatestAnswer(1 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(400 * 10 ** 8);
 
     // Assuming WBTC price is at 41,000 USD
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
 
     // Add 10 WBTC as a liquidity of the pool
-    wbtc.mint(address(poolDiamond), 10 * 10**8);
+    wbtc.mint(address(poolDiamond), 10 * 10 ** 8);
     poolLiquidityFacet.addLiquidity(
       address(this),
       address(wbtc),
@@ -285,13 +285,13 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
 
     // Increase long position with 1 WBTC (=40,000 USD) as a collateral
     // With 9x leverage; Hence position's size should be 360,000 USD.
-    wbtc.mint(address(poolDiamond), 1 * 10**8);
+    wbtc.mint(address(poolDiamond), 1 * 10 ** 8);
     poolPerpTradeFacet.increasePosition(
       address(this),
       0,
       address(wbtc),
       address(wbtc),
-      360_000 * 10**30,
+      360_000 * 10 ** 30,
       true
     );
 
@@ -302,7 +302,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // = 0 WBTC (No Short position yet)
     assertEq(
       poolGetterFacet.openInterestLong(address(wbtc)),
-      8.7804878 * 10**8
+      8.7804878 * 10 ** 8
     );
     assertEq(poolGetterFacet.openInterestShort(address(wbtc)), 0);
 
@@ -344,8 +344,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // = positionSize * fundingRateLong / 1000000
     // = 360000 * 25 / 1000000 = 9 USD
     // (Delta only include funding fee here, cuz there is no delta from zero price movement)
-    assertEq(delta, 9 * 10**30);
-    assertEq(fundingFee, 9 * 10**30);
+    assertEq(delta, 9 * 10 ** 30);
+    assertEq(fundingFee, 9 * 10 ** 30);
   }
 
   function testCorrectness_FundingRate_LongPayShort_TwoToOne() external {
@@ -353,17 +353,17 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     vm.warp(1662100761);
 
     // Initialized price feeds
-    daiPriceFeed.setLatestAnswer(1 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
-    maticPriceFeed.setLatestAnswer(400 * 10**8);
+    daiPriceFeed.setLatestAnswer(1 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(400 * 10 ** 8);
 
     // Assuming WBTC price is at 41,000 USD
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
 
     // Add 10 WBTC as a liquidity of the pool
-    wbtc.mint(address(poolDiamond), 10 * 10**8);
+    wbtc.mint(address(poolDiamond), 10 * 10 ** 8);
     poolLiquidityFacet.addLiquidity(
       address(this),
       address(wbtc),
@@ -375,13 +375,13 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
 
     // Increase WBTC long position with 1 WBTC (=40,000 USD) as a collateral
     // With 9x leverage; Hence position's size should be 360,000 USD.
-    wbtc.mint(address(poolDiamond), 1 * 10**8);
+    wbtc.mint(address(poolDiamond), 1 * 10 ** 8);
     poolPerpTradeFacet.increasePosition(
       address(this),
       0,
       address(wbtc),
       address(wbtc),
-      360_000 * 10**30,
+      360_000 * 10 ** 30,
       true
     );
 
@@ -393,7 +393,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       0,
       address(dai),
       address(wbtc),
-      180_000 * 10**30,
+      180_000 * 10 ** 30,
       false
     );
 
@@ -404,11 +404,11 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // = 180000 / 41000 = 4.3902439 WBTC
     assertEq(
       poolGetterFacet.openInterestLong(address(wbtc)),
-      8.7804878 * 10**8
+      8.7804878 * 10 ** 8
     );
     assertEq(
       poolGetterFacet.openInterestShort(address(wbtc)),
-      4.3902439 * 10**8
+      4.3902439 * 10 ** 8
     );
 
     // Checking the position delta right after opening the position
@@ -474,8 +474,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // = 360000 * 13 / 1000000 = 4.68 USD
     // (Delta only include funding fee here, cuz there is no delta from zero price movement)
     assertFalse(isProfitLong);
-    assertEq(deltaLong, 4.68 * 10**30);
-    assertEq(fundingFeeLong, 4.68 * 10**30);
+    assertEq(deltaLong, 4.68 * 10 ** 30);
+    assertEq(fundingFeeLong, 4.68 * 10 ** 30);
 
     // Short Position:
     // No price movement, profit from funding fee
@@ -484,8 +484,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // = 180000 * (-25) / 1000000 = -4.5 USD
     // (Delta only include funding fee here, cuz there is no delta from zero price movement)
     assertTrue(isProfitShort);
-    assertEq(deltaShort, 4.5 * 10**30);
-    assertEq(fundingFeeShort, -4.5 * 10**30);
+    assertEq(deltaShort, 4.5 * 10 ** 30);
+    assertEq(fundingFeeShort, -4.5 * 10 ** 30);
 
     // No change in PLP AUM as there is no realized positions
     assertEq(aumBefore, poolGetterFacet.getAum(true));
@@ -497,7 +497,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       address(wbtc),
       address(wbtc),
       0,
-      360_000 * 10**30,
+      360_000 * 10 ** 30,
       true,
       address(this)
     );
@@ -509,8 +509,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // Long Position Funding Fee is 4.68 USD
     // fundingFeePayable = 0 + 4.68 = 4.68
     // fundingFeeReceivable = 0
-    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.00004 * 10**30);
-    assertEq(fundingFeePayable, 4.68 * 10**30);
+    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.00004 * 10 ** 30);
+    assertEq(fundingFeePayable, 4.68 * 10 ** 30);
     assertEq(fundingFeeReceivable, 0);
 
     // Close Short position entirely
@@ -520,7 +520,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       address(dai),
       address(wbtc),
       0,
-      180_000 * 10**30,
+      180_000 * 10 ** 30,
       false,
       address(this)
     );
@@ -532,8 +532,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // Long Position Funding Fee is -4.5 USD
     // fundingFeePayable = 4.68 - 4.5 = 0.18
     // fundingFeeReceivable = 0
-    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.00004 * 10**30);
-    assertEq(fundingFeePayable, 0.18 * 10**30);
+    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.00004 * 10 ** 30);
+    assertEq(fundingFeePayable, 0.18 * 10 ** 30);
     assertEq(fundingFeeReceivable, 0);
   }
 
@@ -544,17 +544,17 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     vm.warp(1662100761);
 
     // Initialized price feeds
-    daiPriceFeed.setLatestAnswer(1 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
-    maticPriceFeed.setLatestAnswer(400 * 10**8);
+    daiPriceFeed.setLatestAnswer(1 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(400 * 10 ** 8);
 
     // Assuming WBTC price is at 41,000 USD
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
 
     // Add 10 WBTC as a liquidity of the pool
-    wbtc.mint(address(poolDiamond), 10 * 10**8);
+    wbtc.mint(address(poolDiamond), 10 * 10 ** 8);
     poolLiquidityFacet.addLiquidity(
       address(this),
       address(wbtc),
@@ -566,13 +566,13 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
 
     // Increase WBTC long position with 1 WBTC (=40,000 USD) as a collateral
     // With 9x leverage; Hence position's size should be 360,000 USD.
-    wbtc.mint(address(poolDiamond), 1 * 10**8);
+    wbtc.mint(address(poolDiamond), 1 * 10 ** 8);
     poolPerpTradeFacet.increasePosition(
       address(this),
       0,
       address(wbtc),
       address(wbtc),
-      360_000 * 10**30,
+      360_000 * 10 ** 30,
       true
     );
 
@@ -584,7 +584,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       0,
       address(dai),
       address(wbtc),
-      180_000 * 10**30,
+      180_000 * 10 ** 30,
       false
     );
 
@@ -595,11 +595,11 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // = 180000 / 41000 = 4.3902439 WBTC
     assertEq(
       poolGetterFacet.openInterestLong(address(wbtc)),
-      8.7804878 * 10**8
+      8.7804878 * 10 ** 8
     );
     assertEq(
       poolGetterFacet.openInterestShort(address(wbtc)),
-      4.3902439 * 10**8
+      4.3902439 * 10 ** 8
     );
 
     // Checking the position delta right after opening the position
@@ -665,8 +665,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // = 360000 * 13 / 1000000 = 4.68 USD
     // (Delta only include funding fee here, cuz there is no delta from zero price movement)
     assertFalse(isProfitLong);
-    assertEq(deltaLong, 4.68 * 10**30);
-    assertEq(fundingFeeLong, 4.68 * 10**30);
+    assertEq(deltaLong, 4.68 * 10 ** 30);
+    assertEq(fundingFeeLong, 4.68 * 10 ** 30);
 
     // Short Position:
     // No price movement, profit from funding fee
@@ -675,8 +675,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // = 180000 * (-25) / 1000000 = -4.5 USD
     // (Delta only include funding fee here, cuz there is no delta from zero price movement)
     assertTrue(isProfitShort);
-    assertEq(deltaShort, 4.5 * 10**30);
-    assertEq(fundingFeeShort, -4.5 * 10**30);
+    assertEq(deltaShort, 4.5 * 10 ** 30);
+    assertEq(fundingFeeShort, -4.5 * 10 ** 30);
 
     // No change in PLP AUM as there is no realized positions
     assertEq(aumBefore, poolGetterFacet.getAum(true));
@@ -688,7 +688,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       address(wbtc),
       address(wbtc),
       0,
-      360_000 * 10**30,
+      360_000 * 10 ** 30,
       true,
       address(this)
     );
@@ -700,15 +700,15 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // Long Position Funding Fee is 4.68 USD
     // fundingFeePayable = 0 + 4.68 = 4.68
     // fundingFeeReceivable = 0
-    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.00004 * 10**30);
-    assertEq(fundingFeePayable, 4.68 * 10**30);
+    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.00004 * 10 ** 30);
+    assertEq(fundingFeePayable, 4.68 * 10 ** 30);
     assertEq(fundingFeeReceivable, 0);
     poolPerpTradeFacet.increasePosition(
       address(this),
       0,
       address(dai),
       address(wbtc),
-      360_000 * 10**30,
+      360_000 * 10 ** 30,
       false
     );
     (isProfitShort, deltaShort, fundingFeeShort) = poolGetterFacet
@@ -718,8 +718,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // Delta and Funding Fee of Short Position should remain the same
     // because there is not
     assertTrue(isProfitShort);
-    assertEq(deltaShort, 4.5 * 10**30, "delta short");
-    assertEq(fundingFeeShort, -4.5 * 10**30);
+    assertEq(deltaShort, 4.5 * 10 ** 30, "delta short");
+    assertEq(fundingFeeShort, -4.5 * 10 ** 30);
 
     // Close Short position entirely
     poolPerpTradeFacet.decreasePosition(
@@ -728,7 +728,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       address(dai),
       address(wbtc),
       0,
-      540_000 * 10**30,
+      540_000 * 10 ** 30,
       false,
       address(this)
     );
@@ -740,8 +740,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // Short Position Funding Fee is -4.5 USD
     // fundingFeePayable = 4.68 - 4.5 = 0.18
     // fundingFeeReceivable = 0
-    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.00004 * 10**30);
-    assertEq(fundingFeePayable, 0.18 * 10**30);
+    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.00004 * 10 ** 30);
+    assertEq(fundingFeePayable, 0.18 * 10 ** 30);
     assertEq(fundingFeeReceivable, 0);
   }
 
@@ -752,17 +752,17 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     vm.warp(1662100761);
 
     // Initialized price feeds
-    daiPriceFeed.setLatestAnswer(1 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
-    maticPriceFeed.setLatestAnswer(400 * 10**8);
+    daiPriceFeed.setLatestAnswer(1 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(400 * 10 ** 8);
 
     // Assuming WBTC price is at 41,000 USD
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
 
     // Add 10 WBTC as a liquidity of the pool
-    wbtc.mint(address(poolDiamond), 50 * 10**8);
+    wbtc.mint(address(poolDiamond), 50 * 10 ** 8);
     poolLiquidityFacet.addLiquidity(
       address(this),
       address(wbtc),
@@ -774,13 +774,13 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
 
     // Increase WBTC long position with 5 WBTC (=205,000 USD) as a collateral
     // With 5x leverage; Hence position's size should be 1,025,000 USD.
-    wbtc.mint(address(poolDiamond), 5 * 10**8);
+    wbtc.mint(address(poolDiamond), 5 * 10 ** 8);
     poolPerpTradeFacet.increasePosition(
       address(this),
       0,
       address(wbtc),
       address(wbtc),
-      1025000 * 10**30,
+      1025000 * 10 ** 30,
       true
     );
 
@@ -792,7 +792,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       0,
       address(dai),
       address(wbtc),
-      615000 * 10**30,
+      615000 * 10 ** 30,
       false
     );
 
@@ -801,8 +801,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // = 1025000 / 41000 = 25 WBTC
     // Open Interest Short
     // = 615000 / 41000 = 15 WBTC
-    assertEq(poolGetterFacet.openInterestLong(address(wbtc)), 25 * 10**8);
-    assertEq(poolGetterFacet.openInterestShort(address(wbtc)), 15 * 10**8);
+    assertEq(poolGetterFacet.openInterestLong(address(wbtc)), 25 * 10 ** 8);
+    assertEq(poolGetterFacet.openInterestShort(address(wbtc)), 15 * 10 ** 8);
 
     // Checking the position delta right after opening the position
     // Position should not have any delta or funding fee
@@ -866,8 +866,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // = 1025000 * 10 / 1000000 = 10.25 USD
     // (Delta only include funding fee here, cuz there is no delta from zero price movement)
     assertFalse(isProfitLong);
-    assertEq(deltaLong, 10.25 * 10**30);
-    assertEq(fundingFeeLong, 10.25 * 10**30);
+    assertEq(deltaLong, 10.25 * 10 ** 30);
+    assertEq(fundingFeeLong, 10.25 * 10 ** 30);
 
     // Short Position:
     // No price movement, profit from funding fee
@@ -876,8 +876,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // = 615000 * (-16) / 1000000 = -9.84 USD
     // (Delta only include funding fee here, cuz there is no delta from zero price movement)
     assertTrue(isProfitShort);
-    assertEq(deltaShort, 9.84 * 10**30);
-    assertEq(fundingFeeShort, -9.84 * 10**30);
+    assertEq(deltaShort, 9.84 * 10 ** 30);
+    assertEq(fundingFeeShort, -9.84 * 10 ** 30);
 
     // No change in PLP AUM as there is no realized positions
     assertEq(aumBefore, poolGetterFacet.getAum(true));
@@ -889,7 +889,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       address(wbtc),
       address(wbtc),
       0,
-      1025000 * 10**30,
+      1025000 * 10 ** 30,
       true,
       address(this)
     );
@@ -901,8 +901,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // Long Position Funding Fee is 10.25 USD
     // fundingFeePayable = 0 + 10.25 = 10.25
     // fundingFeeReceivable = 0
-    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.00004 * 10**30);
-    assertEq(fundingFeePayable, 10.25 * 10**30);
+    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.00004 * 10 ** 30);
+    assertEq(fundingFeePayable, 10.25 * 10 ** 30);
     assertEq(fundingFeeReceivable, 0);
 
     // Close Short position entirely
@@ -912,7 +912,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       address(dai),
       address(wbtc),
       0,
-      615000 * 10**30,
+      615000 * 10 ** 30,
       false,
       address(this)
     );
@@ -924,8 +924,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // Long Position Funding Fee is -9.84 USD
     // fundingFeePayable = 10.25 - 9.84 = 0.41
     // fundingFeeReceivable = 0
-    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.00004 * 10**30);
-    assertEq(fundingFeePayable, 0.41 * 10**30);
+    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.00004 * 10 ** 30);
+    assertEq(fundingFeePayable, 0.41 * 10 ** 30);
     assertEq(fundingFeeReceivable, 0);
   }
 
@@ -934,17 +934,17 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     vm.warp(1662100761);
 
     // Initialized price feeds
-    daiPriceFeed.setLatestAnswer(1 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
-    maticPriceFeed.setLatestAnswer(400 * 10**8);
+    daiPriceFeed.setLatestAnswer(1 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(400 * 10 ** 8);
 
     // Assuming WBTC price is at 41,000 USD
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
 
     // Add 10 WBTC as a liquidity of the pool
-    wbtc.mint(address(poolDiamond), 10 * 10**8);
+    wbtc.mint(address(poolDiamond), 10 * 10 ** 8);
     poolLiquidityFacet.addLiquidity(
       address(this),
       address(wbtc),
@@ -956,13 +956,13 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
 
     // Increase WBTC long position with 1 WBTC (=40,000 USD) as a collateral
     // With 4.5x leverage; Hence position's size should be 180,000 USD.
-    wbtc.mint(address(poolDiamond), 1 * 10**8);
+    wbtc.mint(address(poolDiamond), 1 * 10 ** 8);
     poolPerpTradeFacet.increasePosition(
       address(this),
       0,
       address(wbtc),
       address(wbtc),
-      180_000 * 10**30,
+      180_000 * 10 ** 30,
       true
     );
 
@@ -974,7 +974,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       0,
       address(dai),
       address(wbtc),
-      360_000 * 10**30,
+      360_000 * 10 ** 30,
       false
     );
 
@@ -985,11 +985,11 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // = 360000 / 41000 = 8.7804878 WBTC
     assertEq(
       poolGetterFacet.openInterestLong(address(wbtc)),
-      4.3902439 * 10**8
+      4.3902439 * 10 ** 8
     );
     assertEq(
       poolGetterFacet.openInterestShort(address(wbtc)),
-      8.7804878 * 10**8
+      8.7804878 * 10 ** 8
     );
 
     // Checking the position delta right after opening the position
@@ -1055,8 +1055,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // = 180000 * -25 / 1000000 = -4.5 USD
     // (Delta only include funding fee here, cuz there is no delta from zero price movement)
     assertTrue(isProfitLong);
-    assertEq(deltaLong, 4.5 * 10**30);
-    assertEq(fundingFeeLong, -4.5 * 10**30);
+    assertEq(deltaLong, 4.5 * 10 ** 30);
+    assertEq(fundingFeeLong, -4.5 * 10 ** 30);
 
     // Short Position:
     // No price movement, loss from funding fee
@@ -1065,8 +1065,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // = 360000 * 13 / 1000000 = 4.68 USD
     // (Delta only include funding fee here, cuz there is no delta from zero price movement)
     assertFalse(isProfitShort);
-    assertEq(deltaShort, 4.68 * 10**30);
-    assertEq(fundingFeeShort, 4.68 * 10**30);
+    assertEq(deltaShort, 4.68 * 10 ** 30);
+    assertEq(fundingFeeShort, 4.68 * 10 ** 30);
 
     // No change in PLP AUM as there is no realized positions
     assertEq(aumBefore, poolGetterFacet.getAum(true));
@@ -1078,7 +1078,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       address(wbtc),
       address(wbtc),
       0,
-      180_000 * 10**30,
+      180_000 * 10 ** 30,
       true,
       address(this)
     );
@@ -1090,9 +1090,9 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // Long Position Funding Fee is -4.5 USD
     // fundingFeePayable = 0
     // fundingFeeReceivable = 0 + 4.5 = 4.5
-    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.00004 * 10**30);
+    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.00004 * 10 ** 30);
     assertEq(fundingFeePayable, 0);
-    assertEq(fundingFeeReceivable, 4.5 * 10**30);
+    assertEq(fundingFeeReceivable, 4.5 * 10 ** 30);
 
     // Close Short position entirely
     poolPerpTradeFacet.decreasePosition(
@@ -1101,7 +1101,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       address(dai),
       address(wbtc),
       0,
-      360_000 * 10**30,
+      360_000 * 10 ** 30,
       false,
       address(this)
     );
@@ -1113,8 +1113,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // Long Position Funding Fee is 4.68 USD
     // fundingFeePayable = 4.68 - 4.5 = 0.18
     // fundingFeeReceivable = 4.5 => 0
-    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.00004 * 10**30);
-    assertEq(fundingFeePayable, 0.18 * 10**30);
+    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.00004 * 10 ** 30);
+    assertEq(fundingFeePayable, 0.18 * 10 ** 30);
     assertEq(fundingFeeReceivable, 0);
   }
 
@@ -1125,17 +1125,17 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     vm.warp(1662100761);
 
     // Initialized price feeds
-    daiPriceFeed.setLatestAnswer(1 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
-    maticPriceFeed.setLatestAnswer(400 * 10**8);
+    daiPriceFeed.setLatestAnswer(1 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(400 * 10 ** 8);
 
     // Assuming WBTC price is at 41,000 USD
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
 
     // Add 100 WBTC as a liquidity of the pool
-    wbtc.mint(address(poolDiamond), 100 * 10**8);
+    wbtc.mint(address(poolDiamond), 100 * 10 ** 8);
     poolLiquidityFacet.addLiquidity(
       address(this),
       address(wbtc),
@@ -1147,24 +1147,24 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
 
     // Increase WBTC long position with 1 WBTC (=40,000 USD) as a collateral
     // With 9x leverage; Hence position's size should be 360,000 USD.
-    wbtc.mint(address(poolDiamond), 1 * 10**8);
+    wbtc.mint(address(poolDiamond), 1 * 10 ** 8);
     poolPerpTradeFacet.increasePosition(
       address(this),
       0,
       address(wbtc),
       address(wbtc),
-      360_000 * 10**30,
+      360_000 * 10 ** 30,
       true
     );
     // Increase WBTC long position with 1 WBTC (=40,000 USD) as a collateral
     // With 9x leverage; Hence position's size should be 360,000 USD.
-    wbtc.mint(address(poolDiamond), 1 * 10**8);
+    wbtc.mint(address(poolDiamond), 1 * 10 ** 8);
     poolPerpTradeFacet.increasePosition(
       address(this),
       1,
       address(wbtc),
       address(wbtc),
-      180_000 * 10**30,
+      180_000 * 10 ** 30,
       true
     );
 
@@ -1176,7 +1176,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       0,
       address(dai),
       address(wbtc),
-      100_000 * 10**30,
+      100_000 * 10 ** 30,
       false
     );
 
@@ -1188,7 +1188,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       1,
       address(dai),
       address(wbtc),
-      100_000 * 10**30,
+      100_000 * 10 ** 30,
       false
     );
 
@@ -1200,7 +1200,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       2,
       address(dai),
       address(wbtc),
-      70_000 * 10**30,
+      70_000 * 10 ** 30,
       false
     );
 
@@ -1211,11 +1211,11 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // = 270000 / 41000 = 6.58536585 WBTC
     assertEq(
       poolGetterFacet.openInterestLong(address(wbtc)),
-      13.17073170 * 10**8
+      13.17073170 * 10 ** 8
     );
     assertEq(
       poolGetterFacet.openInterestShort(address(wbtc)),
-      6.58536585 * 10**8
+      6.58536585 * 10 ** 8
     );
 
     // Checking the position delta right after opening the position
@@ -1268,9 +1268,9 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     poolFundingRateFacet.updateFundingRate(address(wbtc), address(wbtc));
 
     // WBTC price rise up to 43,000
-    wbtcPriceFeed.setLatestAnswer(43_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(43_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(43_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(43_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(43_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(43_000 * 10 ** 8);
 
     (isProfitLong, deltaLong, fundingFeeLong) = poolGetterFacet
       .getPositionDelta(address(this), 0, address(wbtc), address(wbtc), true);
@@ -1285,8 +1285,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // Delta with funding fee
     // = 17560.97560976 - 9 = 17551.97560976
     assertTrue(isProfitLong);
-    assertCloseWei(deltaLong, 17551.97560976 * 10**30, 0.00004 * 10**30);
-    assertEq(fundingFeeLong, 9 * 10**30);
+    assertCloseWei(deltaLong, 17551.97560976 * 10 ** 30, 0.00004 * 10 ** 30);
+    assertEq(fundingFeeLong, 9 * 10 ** 30);
 
     (isProfitShort, deltaShort, fundingFeeShort) = poolGetterFacet
       .getPositionDelta(address(this), 0, address(dai), address(wbtc), false);
@@ -1300,8 +1300,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // Delta with funding fee
     // = -4878.04878049 - (-5) = -4873.04878049
     assertFalse(isProfitShort);
-    assertCloseWei(deltaShort, 4873.04878049 * 10**30, 0.00004 * 10**30);
-    assertEq(fundingFeeShort, -5 * 10**30);
+    assertCloseWei(deltaShort, 4873.04878049 * 10 ** 30, 0.00004 * 10 ** 30);
+    assertEq(fundingFeeShort, -5 * 10 ** 30);
 
     (isProfitShort, deltaShort, fundingFeeShort) = poolGetterFacet
       .getPositionDelta(address(this), 2, address(dai), address(wbtc), false);
@@ -1315,8 +1315,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // Delta with funding fee
     // = -3414.63414634 - (-3.5) = -3411.13414634
     assertFalse(isProfitShort);
-    assertCloseWei(deltaShort, 3411.13414634 * 10**30, 0.00004 * 10**30);
-    assertEq(fundingFeeShort, -3.5 * 10**30);
+    assertCloseWei(deltaShort, 3411.13414634 * 10 ** 30, 0.00004 * 10 ** 30);
+    assertEq(fundingFeeShort, -3.5 * 10 ** 30);
 
     uint256 aumBefore = poolGetterFacet.getAum(true);
 
@@ -1327,7 +1327,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       address(wbtc),
       address(wbtc),
       0,
-      126_000 * 10**30,
+      126_000 * 10 ** 30,
       true,
       address(this)
     );
@@ -1350,10 +1350,10 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // fundingFeePayable = 0 + 3.15 = 3.15
     // fundingFeeReceivable = 0
     // fundingFeeDebt = 4.5 - 3.15 = 1.35
-    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.0003 * 10**30);
-    assertEq(fundingFeePayable, 3.15 * 10**30);
+    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.0003 * 10 ** 30);
+    assertEq(fundingFeePayable, 3.15 * 10 ** 30);
     assertEq(fundingFeeReceivable, 0);
-    assertEq(position.fundingFeeDebt, 1.35 * 10**30);
+    assertEq(position.fundingFeeDebt, 1.35 * 10 ** 30);
 
     // Close half of the 1s Short position
     poolPerpTradeFacet.decreasePosition(
@@ -1362,7 +1362,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       address(dai),
       address(wbtc),
       0,
-      50_000 * 10**30,
+      50_000 * 10 ** 30,
       false,
       address(this)
     );
@@ -1384,10 +1384,10 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // fundingFeePayable = 3.15 - 2.5 = 0.65
     // fundingFeeReceivable = 0
     // fundingFeeDebt = -5 - (-2.5) = -2.5
-    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.0003 * 10**30);
-    assertEq(fundingFeePayable, 0.65 * 10**30);
+    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.0003 * 10 ** 30);
+    assertEq(fundingFeePayable, 0.65 * 10 ** 30);
     assertEq(fundingFeeReceivable, 0);
-    assertEq(position.fundingFeeDebt, -2.5 * 10**30);
+    assertEq(position.fundingFeeDebt, -2.5 * 10 ** 30);
 
     // Close the other half of the 1s Short position
     poolPerpTradeFacet.decreasePosition(
@@ -1396,7 +1396,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       address(dai),
       address(wbtc),
       0,
-      50_000 * 10**30,
+      50_000 * 10 ** 30,
       false,
       address(this)
     );
@@ -1418,9 +1418,9 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // fundingFeePayable = 0
     // fundingFeeReceivable = 2.5 - 0.65 = 1.85
     // fundingFeeDebt = 0
-    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.0003 * 10**30);
+    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.0003 * 10 ** 30);
     assertEq(fundingFeePayable, 0);
-    assertEq(fundingFeeReceivable, 1.85 * 10**30);
+    assertEq(fundingFeeReceivable, 1.85 * 10 ** 30);
     assertEq(position.fundingFeeDebt, 0);
 
     // Close 2nd Long entirely (30% remaining)
@@ -1430,7 +1430,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       address(wbtc),
       address(wbtc),
       0,
-      54_000 * 10**30,
+      54_000 * 10 ** 30,
       true,
       address(this)
     );
@@ -1452,9 +1452,9 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // fundingFeePayable = 0
     // fundingFeeReceivable = 1.85 - 1.35 = 0.5
     // fundingFeeDebt = 1.35 - 1.35 = 0
-    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.0006 * 10**30);
+    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.0006 * 10 ** 30);
     assertEq(fundingFeePayable, 0);
-    assertEq(fundingFeeReceivable, 0.5 * 10**30);
+    assertEq(fundingFeeReceivable, 0.5 * 10 ** 30);
     assertEq(position.fundingFeeDebt, 0);
   }
 
@@ -1465,17 +1465,17 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     vm.warp(1662100761);
 
     // Initialized price feeds
-    daiPriceFeed.setLatestAnswer(1 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
-    maticPriceFeed.setLatestAnswer(400 * 10**8);
+    daiPriceFeed.setLatestAnswer(1 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(400 * 10 ** 8);
 
     // Assuming WBTC price is at 41,000 USD
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
 
     // Add 10 WBTC as a liquidity of the pool
-    wbtc.mint(address(poolDiamond), 10 * 10**8);
+    wbtc.mint(address(poolDiamond), 10 * 10 ** 8);
     poolLiquidityFacet.addLiquidity(
       address(this),
       address(wbtc),
@@ -1487,13 +1487,13 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
 
     // Increase WBTC long position with 1 WBTC (=40,000 USD) as a collateral
     // With 9x leverage; Hence position's size should be 360,000 USD.
-    wbtc.mint(address(poolDiamond), 1 * 10**8);
+    wbtc.mint(address(poolDiamond), 1 * 10 ** 8);
     poolPerpTradeFacet.increasePosition(
       address(this),
       0,
       address(wbtc),
       address(wbtc),
-      360_000 * 10**30,
+      360_000 * 10 ** 30,
       true
     );
 
@@ -1505,7 +1505,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       0,
       address(dai),
       address(wbtc),
-      180_000 * 10**30,
+      180_000 * 10 ** 30,
       false
     );
 
@@ -1516,11 +1516,11 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // = 180000 / 41000 = 4.3902439 WBTC
     assertEq(
       poolGetterFacet.openInterestLong(address(wbtc)),
-      8.7804878 * 10**8
+      8.7804878 * 10 ** 8
     );
     assertEq(
       poolGetterFacet.openInterestShort(address(wbtc)),
-      4.3902439 * 10**8
+      4.3902439 * 10 ** 8
     );
 
     // Checking the position delta right after opening the position
@@ -1586,8 +1586,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // = 360000 * 13 / 1000000 = 4.68 USD
     // (Delta only include funding fee here, cuz there is no delta from zero price movement)
     assertFalse(isProfitLong);
-    assertEq(deltaLong, 4.68 * 10**30);
-    assertEq(fundingFeeLong, 4.68 * 10**30);
+    assertEq(deltaLong, 4.68 * 10 ** 30);
+    assertEq(fundingFeeLong, 4.68 * 10 ** 30);
 
     // Short Position:
     // No price movement, profit from funding fee
@@ -1596,16 +1596,16 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // = 180000 * (-25) / 1000000 = -4.5 USD
     // (Delta only include funding fee here, cuz there is no delta from zero price movement)
     assertTrue(isProfitShort);
-    assertEq(deltaShort, 4.5 * 10**30);
-    assertEq(fundingFeeShort, -4.5 * 10**30);
+    assertEq(deltaShort, 4.5 * 10 ** 30);
+    assertEq(fundingFeeShort, -4.5 * 10 ** 30);
 
     // No change in PLP AUM as there is no realized positions
     assertEq(aumBefore, poolGetterFacet.getAum(true));
 
     // WBTC price is at 36,500 USD
-    wbtcPriceFeed.setLatestAnswer(36500 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(36500 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(36500 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(36500 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(36500 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(36500 * 10 ** 8);
 
     poolAdminFacet.setIsAllowAllLiquidators(true);
 
@@ -1626,13 +1626,13 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // Long Position Funding Fee is 4.68 USD
     // fundingFeePayable = 0 + 4.68 = 4.68
     // fundingFeeReceivable = 0
-    assertEq(fundingFeePayable, 4.68 * 10**30);
+    assertEq(fundingFeePayable, 4.68 * 10 ** 30);
     assertEq(fundingFeeReceivable, 0);
 
     // WBTC price is at 43,255 USD
-    wbtcPriceFeed.setLatestAnswer(43240 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(43240 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(43240 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(43240 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(43240 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(43240 * 10 ** 8);
 
     // Hard Liquidate Short position
     poolPerpTradeFacet.liquidate(
@@ -1651,7 +1651,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // Long Position Funding Fee is -4.5 USD
     // fundingFeePayable = 4.68 - 4.5 = 0.18
     // fundingFeeReceivable = 0
-    assertEq(fundingFeePayable, 0.18 * 10**30);
+    assertEq(fundingFeePayable, 0.18 * 10 ** 30);
     assertEq(fundingFeeReceivable, 0);
   }
 
@@ -1662,17 +1662,17 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     vm.warp(1662100761);
 
     // Initialized price feeds
-    daiPriceFeed.setLatestAnswer(1 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
-    maticPriceFeed.setLatestAnswer(400 * 10**8);
+    daiPriceFeed.setLatestAnswer(1 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(400 * 10 ** 8);
 
     // Assuming WBTC price is at 41,000 USD
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
 
     // Add 100 WBTC as a liquidity of the pool
-    wbtc.mint(address(poolDiamond), 100 * 10**8);
+    wbtc.mint(address(poolDiamond), 100 * 10 ** 8);
     poolLiquidityFacet.addLiquidity(
       address(this),
       address(wbtc),
@@ -1684,24 +1684,24 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
 
     // Increase WBTC long position with 1 WBTC (=41,000 USD) as a collateral
     // With 9x leverage; Hence position's size should be 360,000 USD.
-    wbtc.mint(address(poolDiamond), 1 * 10**8);
+    wbtc.mint(address(poolDiamond), 1 * 10 ** 8);
     poolPerpTradeFacet.increasePosition(
       address(this),
       0,
       address(wbtc),
       address(wbtc),
-      360_000 * 10**30,
+      360_000 * 10 ** 30,
       true
     );
     // Increase WBTC long position with 1 WBTC (=41,000 USD) as a collateral
     // With 9x leverage; Hence position's size should be 360,000 USD.
-    wbtc.mint(address(poolDiamond), 1 * 10**8);
+    wbtc.mint(address(poolDiamond), 1 * 10 ** 8);
     poolPerpTradeFacet.increasePosition(
       address(this),
       1,
       address(wbtc),
       address(wbtc),
-      180_000 * 10**30,
+      180_000 * 10 ** 30,
       true
     );
 
@@ -1713,7 +1713,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       0,
       address(dai),
       address(wbtc),
-      100_000 * 10**30,
+      100_000 * 10 ** 30,
       false
     );
 
@@ -1725,7 +1725,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       1,
       address(dai),
       address(wbtc),
-      100_000 * 10**30,
+      100_000 * 10 ** 30,
       false
     );
 
@@ -1737,7 +1737,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       2,
       address(dai),
       address(wbtc),
-      70_000 * 10**30,
+      70_000 * 10 ** 30,
       false
     );
 
@@ -1748,11 +1748,11 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // = 270000 / 41000 = 6.58536585 WBTC
     assertEq(
       poolGetterFacet.openInterestLong(address(wbtc)),
-      13.17073170 * 10**8
+      13.17073170 * 10 ** 8
     );
     assertEq(
       poolGetterFacet.openInterestShort(address(wbtc)),
-      6.58536585 * 10**8
+      6.58536585 * 10 ** 8
     );
 
     // Checking the position delta right after opening the position
@@ -1805,9 +1805,9 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     poolFundingRateFacet.updateFundingRate(address(wbtc), address(wbtc));
 
     // WBTC price rise up to 43,000
-    wbtcPriceFeed.setLatestAnswer(43_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(43_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(43_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(43_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(43_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(43_000 * 10 ** 8);
 
     (isProfitLong, deltaLong, fundingFeeLong) = poolGetterFacet
       .getPositionDelta(address(this), 0, address(wbtc), address(wbtc), true);
@@ -1822,8 +1822,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // Delta with funding fee
     // = 17560.97560976 - 9 = 17551.97560976
     assertTrue(isProfitLong);
-    assertCloseWei(deltaLong, 17551.97560976 * 10**30, 0.00004 * 10**30);
-    assertEq(fundingFeeLong, 9 * 10**30);
+    assertCloseWei(deltaLong, 17551.97560976 * 10 ** 30, 0.00004 * 10 ** 30);
+    assertEq(fundingFeeLong, 9 * 10 ** 30);
 
     (isProfitShort, deltaShort, fundingFeeShort) = poolGetterFacet
       .getPositionDelta(address(this), 0, address(dai), address(wbtc), false);
@@ -1837,8 +1837,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // Delta with funding fee
     // = -4878.04878049 - (-5) = -4873.04878049
     assertFalse(isProfitShort);
-    assertCloseWei(deltaShort, 4873.04878049 * 10**30, 0.00004 * 10**30);
-    assertEq(fundingFeeShort, -5 * 10**30);
+    assertCloseWei(deltaShort, 4873.04878049 * 10 ** 30, 0.00004 * 10 ** 30);
+    assertEq(fundingFeeShort, -5 * 10 ** 30);
 
     (isProfitShort, deltaShort, fundingFeeShort) = poolGetterFacet
       .getPositionDelta(address(this), 2, address(dai), address(wbtc), false);
@@ -1852,8 +1852,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // Delta with funding fee
     // = -3414.63414634 - (-3.5) = -3411.13414634
     assertFalse(isProfitShort);
-    assertCloseWei(deltaShort, 3411.13414634 * 10**30, 0.00004 * 10**30);
-    assertEq(fundingFeeShort, -3.5 * 10**30);
+    assertCloseWei(deltaShort, 3411.13414634 * 10 ** 30, 0.00004 * 10 ** 30);
+    assertEq(fundingFeeShort, -3.5 * 10 ** 30);
 
     uint256 aumBefore = poolGetterFacet.getAum(true);
 
@@ -1864,7 +1864,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       address(wbtc),
       address(wbtc),
       0,
-      126_000 * 10**30,
+      126_000 * 10 ** 30,
       true,
       address(this)
     );
@@ -1887,10 +1887,10 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // fundingFeePayable = 0 + 3.15 = 3.15
     // fundingFeeReceivable = 0
     // fundingFeeDebt = 4.5 - 3.15 = 1.35
-    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.0003 * 10**30);
-    assertEq(fundingFeePayable, 3.15 * 10**30);
+    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.0003 * 10 ** 30);
+    assertEq(fundingFeePayable, 3.15 * 10 ** 30);
     assertEq(fundingFeeReceivable, 0);
-    assertEq(position.fundingFeeDebt, 1.35 * 10**30);
+    assertEq(position.fundingFeeDebt, 1.35 * 10 ** 30);
 
     // Close half of the 1s Short position
     poolPerpTradeFacet.decreasePosition(
@@ -1899,7 +1899,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       address(dai),
       address(wbtc),
       0,
-      50_000 * 10**30,
+      50_000 * 10 ** 30,
       false,
       address(this)
     );
@@ -1921,18 +1921,18 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // fundingFeePayable = 3.15 - 2.5 = 0.65
     // fundingFeeReceivable = 0
     // fundingFeeDebt = -5 - (-2.5) = -2.5
-    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.0003 * 10**30);
-    assertEq(fundingFeePayable, 0.65 * 10**30);
+    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.0003 * 10 ** 30);
+    assertEq(fundingFeePayable, 0.65 * 10 ** 30);
     assertEq(fundingFeeReceivable, 0);
-    assertEq(position.fundingFeeDebt, -2.5 * 10**30);
+    assertEq(position.fundingFeeDebt, -2.5 * 10 ** 30);
 
     poolAdminFacet.setIsAllowAllLiquidators(true);
 
     // Hard Liquidate 2nd Long Position
     // WBTC price is at 9,200 USD
-    wbtcPriceFeed.setLatestAnswer(9200 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(9200 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(9200 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(9200 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(9200 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(9200 * 10 ** 8);
 
     (
       PerpTradeFacetInterface.LiquidationState liquidationState,
@@ -1975,15 +1975,15 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // fundingFeePayable = 0.65 + 1.35 = 2
     // fundingFeeReceivable = 0
     // fundingFeeDebt = 1.35 - 1.35 = 0
-    assertEq(fundingFeePayable, 2 * 10**30);
+    assertEq(fundingFeePayable, 2 * 10 ** 30);
     assertEq(fundingFeeReceivable, 0);
     assertEq(position.fundingFeeDebt, 0);
 
     // Hard Liquidate 1st Short Position
     // WBTC price is at 49,200 USD
-    wbtcPriceFeed.setLatestAnswer(49200 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(49200 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(49200 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(49200 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(49200 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(49200 * 10 ** 8);
 
     (liquidationState, , , ) = poolPerpTradeFacet.checkLiquidation(
       poolGetterFacet.getSubAccount(address(this), 0),
@@ -2022,7 +2022,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // fundingFeeReceivable = 2.5 - 2 = 0.5
     // fundingFeeDebt = 0
     assertEq(fundingFeePayable, 0);
-    assertEq(fundingFeeReceivable, 0.5 * 10**30);
+    assertEq(fundingFeeReceivable, 0.5 * 10 ** 30);
     assertEq(position.fundingFeeDebt, 0);
   }
 
@@ -2031,17 +2031,17 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     vm.warp(1662100761);
 
     // Initialized price feeds
-    daiPriceFeed.setLatestAnswer(1 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
-    maticPriceFeed.setLatestAnswer(400 * 10**8);
+    daiPriceFeed.setLatestAnswer(1 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(400 * 10 ** 8);
 
     // Assuming WBTC price is at 41,000 USD
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(41_000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
 
     // Add 10 WBTC as a liquidity of the pool
-    wbtc.mint(address(poolDiamond), 100_000_000 * 10**8);
+    wbtc.mint(address(poolDiamond), 100_000_000 * 10 ** 8);
     poolLiquidityFacet.addLiquidity(
       address(this),
       address(wbtc),
@@ -2053,13 +2053,13 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
 
     // Increase WBTC long position with 1 WBTC (=41,000 USD) as a collateral
     // With 9x leverage; Hence position's size should be 360,000 USD.
-    wbtc.mint(address(poolDiamond), 1_000 * 10**8);
+    wbtc.mint(address(poolDiamond), 1_000 * 10 ** 8);
     poolPerpTradeFacet.increasePosition(
       address(this),
       0,
       address(wbtc),
       address(wbtc),
-      3280000000 * 10**30,
+      3280000000 * 10 ** 30,
       true
     );
 
@@ -2071,7 +2071,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       0,
       address(dai),
       address(wbtc),
-      7 * 10**30,
+      7 * 10 ** 30,
       false
     );
 
@@ -2080,10 +2080,10 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // = 3280000000 / 41000 = 80000 WBTC
     // Open Interest Short
     // = 7 / 41000 = 0.00017073 WBTC
-    assertEq(poolGetterFacet.openInterestLong(address(wbtc)), 80000 * 10**8);
+    assertEq(poolGetterFacet.openInterestLong(address(wbtc)), 80000 * 10 ** 8);
     assertEq(
       poolGetterFacet.openInterestShort(address(wbtc)),
-      0.00017073 * 10**8
+      0.00017073 * 10 ** 8
     );
 
     // Checking the position delta right after opening the position
@@ -2149,8 +2149,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // = 3280000000 * 25 / 1000000 = 82000 USD
     // (Delta only include funding fee here, cuz there is no delta from zero price movement)
     assertFalse(isProfitLong);
-    assertEq(deltaLong, 82000 * 10**30);
-    assertEq(fundingFeeLong, 82000 * 10**30);
+    assertEq(deltaLong, 82000 * 10 ** 30);
+    assertEq(fundingFeeLong, 82000 * 10 ** 30);
 
     // Short Position:
     // No price movement, profit from funding fee
@@ -2159,8 +2159,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // = 7 * (-11714402832) / 1000000 = -82000.819831 USD
     // (Delta only include funding fee here, cuz there is no delta from zero price movement)
     assertTrue(isProfitShort);
-    assertEq(deltaShort, 82000.819831 * 10**30);
-    assertEq(fundingFeeShort, -82000.819831 * 10**30);
+    assertEq(deltaShort, 82000.819831 * 10 ** 30);
+    assertEq(fundingFeeShort, -82000.819831 * 10 ** 30);
 
     // No change in PLP AUM as there is no realized positions
     assertEq(aumBefore, poolGetterFacet.getAum(true));
@@ -2172,7 +2172,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       address(wbtc),
       address(wbtc),
       0,
-      3280000000 * 10**30,
+      3280000000 * 10 ** 30,
       true,
       address(this)
     );
@@ -2184,8 +2184,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // Long Position Funding Fee is 82000 USD
     // fundingFeePayable = 0 + 82000 = 82000
     // fundingFeeReceivable = 0
-    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.00004 * 10**30);
-    assertEq(fundingFeePayable, 82000 * 10**30);
+    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.00004 * 10 ** 30);
+    assertEq(fundingFeePayable, 82000 * 10 ** 30);
     assertEq(fundingFeeReceivable, 0);
 
     // Close Short position entirely
@@ -2195,7 +2195,7 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
       address(dai),
       address(wbtc),
       0,
-      7 * 10**30,
+      7 * 10 ** 30,
       false,
       address(this)
     );
@@ -2207,8 +2207,8 @@ contract PoolDiamond_FundingRateTest is PoolDiamond_BaseTest {
     // Long Position Funding Fee is -82000 USD
     // fundingFeePayable = 0
     // fundingFeeReceivable = 82000.819831 - 82000 = 0.819831
-    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.00004 * 10**30);
+    assertCloseWei(aumBefore, poolGetterFacet.getAum(true), 0.00004 * 10 ** 30);
     assertEq(fundingFeePayable, 0);
-    assertEq(fundingFeeReceivable, 0.819831 * 10**30);
+    assertEq(fundingFeeReceivable, 0.819831 * 10 ** 30);
   }
 }

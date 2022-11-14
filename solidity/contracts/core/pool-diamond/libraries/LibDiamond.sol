@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 /******************************************************************************\
@@ -292,9 +292,10 @@ library LibDiamond {
     }
   }
 
-  function initializeDiamondCut(address _init, bytes memory _calldata)
-    internal
-  {
+  function initializeDiamondCut(
+    address _init,
+    bytes memory _calldata
+  ) internal {
     if (_init == address(0)) {
       require(
         _calldata.length == 0,

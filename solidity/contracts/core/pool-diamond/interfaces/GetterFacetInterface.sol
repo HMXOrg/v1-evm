@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
@@ -9,10 +9,10 @@ import { StrategyInterface } from "../../../interfaces/StrategyInterface.sol";
 interface GetterFacetInterface {
   function additionalAum() external view returns (uint256);
 
-  function approvedPlugins(address user, address plugin)
-    external
-    view
-    returns (bool);
+  function approvedPlugins(
+    address user,
+    address plugin
+  ) external view returns (bool);
 
   function discountedAum() external view returns (uint256);
 
@@ -22,19 +22,17 @@ interface GetterFacetInterface {
 
   function borrowingRateFactor() external view returns (uint64);
 
-  function getStrategyDeltaOf(address token)
-    external
-    view
-    returns (bool, uint256);
+  function getStrategyDeltaOf(
+    address token
+  ) external view returns (bool, uint256);
 
   function guaranteedUsdOf(address token) external view returns (uint256);
 
   function isAllowAllLiquidators() external view returns (bool);
 
-  function isAllowedLiquidators(address liquidator)
-    external
-    view
-    returns (bool);
+  function isAllowedLiquidators(
+    address liquidator
+  ) external view returns (bool);
 
   function isDynamicFeeEnable() external view returns (bool);
 
@@ -56,10 +54,9 @@ interface GetterFacetInterface {
 
   function oracle() external view returns (PoolOracle);
 
-  function pendingStrategyOf(address token)
-    external
-    view
-    returns (StrategyInterface);
+  function pendingStrategyOf(
+    address token
+  ) external view returns (StrategyInterface);
 
   function plp() external view returns (PLP);
 
@@ -83,10 +80,9 @@ interface GetterFacetInterface {
 
   function strategyOf(address token) external view returns (StrategyInterface);
 
-  function strategyDataOf(address token)
-    external
-    view
-    returns (LibPoolConfigV1.StrategyData memory);
+  function strategyDataOf(
+    address token
+  ) external view returns (LibPoolConfigV1.StrategyData memory);
 
   function swapFeeBps() external view returns (uint64);
 
@@ -94,10 +90,9 @@ interface GetterFacetInterface {
 
   function totalOf(address token) external view returns (uint256);
 
-  function tokenMetas(address token)
-    external
-    view
-    returns (LibPoolConfigV1.TokenConfig memory);
+  function tokenMetas(
+    address token
+  ) external view returns (LibPoolConfigV1.TokenConfig memory);
 
   function totalTokenWeight() external view returns (uint256);
 
@@ -113,14 +108,7 @@ interface GetterFacetInterface {
     uint256 lastIncreasedTime,
     int256 entryFundingRate,
     int256 fundingFeeDebt
-  )
-    external
-    view
-    returns (
-      bool,
-      uint256,
-      int256
-    );
+  ) external view returns (bool, uint256, int256);
 
   function getEntryBorrowingRate(
     address collateralToken,
@@ -170,10 +158,9 @@ interface GetterFacetInterface {
     int256 fundingFeeDebt;
   }
 
-  function getPoolShortDelta(address token)
-    external
-    view
-    returns (bool, uint256);
+  function getPoolShortDelta(
+    address token
+  ) external view returns (bool, uint256);
 
   function getPosition(
     address account,
@@ -196,14 +183,7 @@ interface GetterFacetInterface {
     address collateralToken,
     address indexToken,
     bool isLong
-  )
-    external
-    view
-    returns (
-      bool,
-      uint256,
-      int256
-    );
+  ) external view returns (bool, uint256, int256);
 
   function getPositionFee(
     address account,
@@ -231,36 +211,34 @@ interface GetterFacetInterface {
     uint256 lastIncreasedTime
   ) external view returns (uint256);
 
-  function getRedemptionCollateral(address token)
-    external
-    view
-    returns (uint256);
+  function getRedemptionCollateral(
+    address token
+  ) external view returns (uint256);
 
-  function getRedemptionCollateralUsd(address token)
-    external
-    view
-    returns (uint256);
+  function getRedemptionCollateralUsd(
+    address token
+  ) external view returns (uint256);
 
-  function getSubAccount(address primaryAccount, uint256 subAccountId)
-    external
-    pure
-    returns (address);
+  function getSubAccount(
+    address primaryAccount,
+    uint256 subAccountId
+  ) external pure returns (address);
 
   function getTargetValue(address token) external view returns (uint256);
 
-  function getAddLiquidityFeeBps(address token, uint256 value)
-    external
-    view
-    returns (uint256);
+  function getAddLiquidityFeeBps(
+    address token,
+    uint256 value
+  ) external view returns (uint256);
 
   function getAum(bool isUseMaxPrice) external view returns (uint256);
 
   function getAumE18(bool isUseMaxPrice) external view returns (uint256);
 
-  function getRemoveLiquidityFeeBps(address token, uint256 value)
-    external
-    view
-    returns (uint256);
+  function getRemoveLiquidityFeeBps(
+    address token,
+    uint256 value
+  ) external view returns (uint256);
 
   function getSwapFeeBps(
     address tokenIn,
@@ -270,10 +248,9 @@ interface GetterFacetInterface {
 
   function getNextBorrowingRate(address token) external view returns (uint256);
 
-  function getNextFundingRate(address token)
-    external
-    view
-    returns (int256, int256);
+  function getNextFundingRate(
+    address token
+  ) external view returns (int256, int256);
 
   function openInterestLong(address token) external view returns (uint256);
 
@@ -287,15 +264,13 @@ interface GetterFacetInterface {
     bool isUseMaxPrice
   ) external view returns (uint256);
 
-  function accumFundingRateLong(address indexToken)
-    external
-    view
-    returns (int256);
+  function accumFundingRateLong(
+    address indexToken
+  ) external view returns (int256);
 
-  function accumFundingRateShort(address indexToken)
-    external
-    view
-    returns (int256);
+  function accumFundingRateShort(
+    address indexToken
+  ) external view returns (int256);
 
   function fundingRateFactor() external view returns (uint64);
 }

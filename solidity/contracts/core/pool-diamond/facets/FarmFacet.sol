@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { LibDiamond } from "../libraries/LibDiamond.sol";
@@ -59,11 +59,10 @@ contract FarmFacet is FarmFacetInterface {
     _;
   }
 
-  function setStrategyOf(address token, StrategyInterface newStrategy)
-    external
-    onlyOwner
-    nonReentrant
-  {
+  function setStrategyOf(
+    address token,
+    StrategyInterface newStrategy
+  ) external onlyOwner nonReentrant {
     // Load PoolConfig Diamond storage
     LibPoolConfigV1.PoolConfigV1DiamondStorage
       storage poolConfigDs = LibPoolConfigV1.poolConfigV1DiamondStorage();
@@ -115,10 +114,10 @@ contract FarmFacet is FarmFacetInterface {
     poolConfigDs.strategyDataOf[token] = strategyData;
   }
 
-  function setStrategyTargetBps(address token, uint64 targetBps)
-    external
-    onlyOwner
-  {
+  function setStrategyTargetBps(
+    address token,
+    uint64 targetBps
+  ) external onlyOwner {
     if (targetBps > MAX_TARGET_BPS) revert FarmFacet_BadTargetBps();
 
     LibPoolConfigV1.PoolConfigV1DiamondStorage
@@ -128,10 +127,10 @@ contract FarmFacet is FarmFacetInterface {
     emit SetStrategyTargetBps(token, targetBps);
   }
 
-  function farm(address token, bool isRebalanceNeeded)
-    external
-    onlyPoolDiamondOrFarmKeeper
-  {
+  function farm(
+    address token,
+    bool isRebalanceNeeded
+  ) external onlyPoolDiamondOrFarmKeeper {
     // Load PoolV1 diamond storage
     LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
       .poolV1DiamondStorage();

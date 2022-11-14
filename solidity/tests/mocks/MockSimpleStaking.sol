@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { IRewarder } from "solidity/contracts/staking/interfaces/IRewarder.sol";
@@ -8,11 +8,7 @@ contract MockSimpleStaking {
   uint256 totalShare;
   mapping(address => uint256) shares;
 
-  function deposit(
-    address rewarder,
-    address user,
-    uint256 shareAmount
-  ) public {
+  function deposit(address rewarder, address user, uint256 shareAmount) public {
     IRewarder(rewarder).onDeposit(user, shareAmount);
     totalShare += shareAmount;
     shares[user] += shareAmount;
@@ -32,19 +28,16 @@ contract MockSimpleStaking {
     IRewarder(rewarder).onHarvest(user, user);
   }
 
-  function calculateTotalShare(address rewarder)
-    external
-    view
-    returns (uint256)
-  {
+  function calculateTotalShare(
+    address rewarder
+  ) external view returns (uint256) {
     return totalShare;
   }
 
-  function calculateShare(address rewarder, address user)
-    external
-    view
-    returns (uint256)
-  {
+  function calculateShare(
+    address rewarder,
+    address user
+  ) external view returns (uint256) {
     return shares[user];
   }
 

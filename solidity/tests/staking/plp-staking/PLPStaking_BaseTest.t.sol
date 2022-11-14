@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.4 <0.9.0;
 
 import { BaseTest, PLPStaking, PLP, EsP88, MockErc20, MockWNative, FeedableRewarder, WFeedableRewarder } from "../../base/BaseTest.sol";

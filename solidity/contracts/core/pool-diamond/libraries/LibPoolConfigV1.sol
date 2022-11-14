@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { LinkedList } from "../../../libraries/LinkedList.sol";
@@ -117,11 +117,9 @@ library LibPoolConfigV1 {
     return poolConfigV1DiamondStorage().allowTokens.getNextOf(token);
   }
 
-  function getStrategyDelta(address token)
-    internal
-    view
-    returns (bool, uint256)
-  {
+  function getStrategyDelta(
+    address token
+  ) internal view returns (bool, uint256) {
     // Load pool config diamond storage
     PoolConfigV1DiamondStorage
       storage poolConfigV1Ds = poolConfigV1DiamondStorage();
@@ -135,11 +133,9 @@ library LibPoolConfigV1 {
       );
   }
 
-  function getTokenBufferLiquidityOf(address token)
-    internal
-    view
-    returns (uint256)
-  {
+  function getTokenBufferLiquidityOf(
+    address token
+  ) internal view returns (uint256) {
     return poolConfigV1DiamondStorage().tokenMetas[token].bufferLiquidity;
   }
 
@@ -147,11 +143,9 @@ library LibPoolConfigV1 {
     return poolConfigV1DiamondStorage().tokenMetas[token].decimals;
   }
 
-  function getTokenMinProfitBpsOf(address token)
-    internal
-    view
-    returns (uint256)
-  {
+  function getTokenMinProfitBpsOf(
+    address token
+  ) internal view returns (uint256) {
     return poolConfigV1DiamondStorage().tokenMetas[token].minProfitBps;
   }
 
@@ -159,27 +153,21 @@ library LibPoolConfigV1 {
     return poolConfigV1DiamondStorage().tokenMetas[token].weight;
   }
 
-  function getTokenUsdDebtCeilingOf(address token)
-    internal
-    view
-    returns (uint256)
-  {
+  function getTokenUsdDebtCeilingOf(
+    address token
+  ) internal view returns (uint256) {
     return poolConfigV1DiamondStorage().tokenMetas[token].usdDebtCeiling;
   }
 
-  function getTokenShortCeilingOf(address token)
-    internal
-    view
-    returns (uint256)
-  {
+  function getTokenShortCeilingOf(
+    address token
+  ) internal view returns (uint256) {
     return poolConfigV1DiamondStorage().tokenMetas[token].shortCeiling;
   }
 
-  function getTokenOpenInterestLongCeilingOf(address token)
-    internal
-    view
-    returns (uint256)
-  {
+  function getTokenOpenInterestLongCeilingOf(
+    address token
+  ) internal view returns (uint256) {
     return
       poolConfigV1DiamondStorage().tokenMetas[token].openInterestLongCeiling;
   }
@@ -188,11 +176,9 @@ library LibPoolConfigV1 {
     return poolConfigV1DiamondStorage().tokenMetas[token].accept;
   }
 
-  function isAllowedLiquidators(address liquidator)
-    internal
-    view
-    returns (bool)
-  {
+  function isAllowedLiquidators(
+    address liquidator
+  ) internal view returns (bool) {
     // Load PoolConfigV1 diamond storage
     PoolConfigV1DiamondStorage
       storage poolConfigV1Ds = poolConfigV1DiamondStorage();

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { PoolOracle } from "../PoolOracle.sol";
@@ -12,11 +12,7 @@ import { DiamondCutInterface } from "./interfaces/DiamondCutInterface.sol";
 /// @title Pool with ERC-2535 Diamond Standard.
 /// Core logic of Diamond Standard is taken from https://github.com/mudgen/diamond-3-hardhat
 contract PoolDiamond {
-  constructor(
-    address diamondCutFacet,
-    PLP plp,
-    PoolOracle poolOracle
-  ) payable {
+  constructor(address diamondCutFacet, PLP plp, PoolOracle poolOracle) payable {
     // Set contract owner
     LibDiamond.setContractOwner(msg.sender);
 

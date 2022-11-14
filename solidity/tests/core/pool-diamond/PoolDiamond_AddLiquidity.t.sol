@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { PoolDiamond_BaseTest, LibPoolConfigV1, console, GetterFacetInterface, LiquidityFacetInterface, PoolRouter } from "./PoolDiamond_BaseTest.t.sol";
@@ -16,9 +16,9 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     poolAdminFacet.setTokenConfigs(tokens2, tokenConfigs2);
 
     // Feed prices
-    daiPriceFeed.setLatestAnswer(1 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(60000 * 10**8);
-    maticPriceFeed.setLatestAnswer(300 * 10**8);
+    daiPriceFeed.setLatestAnswer(1 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(60000 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(300 * 10 ** 8);
   }
 
   function testRevert_WhenTokenNotListed() external {
@@ -79,9 +79,9 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     vm.warp(block.timestamp + 1 days);
 
     // Feed MATIC price
-    maticPriceFeed.setLatestAnswer(300 * 10**8);
-    maticPriceFeed.setLatestAnswer(300 * 10**8);
-    maticPriceFeed.setLatestAnswer(400 * 10**8);
+    maticPriceFeed.setLatestAnswer(300 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(300 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(400 * 10 ** 8);
 
     // ------- Bob session -------
     vm.startPrank(BOB);
@@ -111,16 +111,16 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     vm.stopPrank();
     // ------- Finish Bob session -------
 
-    maticPriceFeed.setLatestAnswer(400 * 10**8);
-    maticPriceFeed.setLatestAnswer(500 * 10**8);
-    maticPriceFeed.setLatestAnswer(400 * 10**8);
+    maticPriceFeed.setLatestAnswer(400 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(500 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(400 * 10 ** 8);
 
     assertEq(poolGetterFacet.getAumE18(true), 598.2 ether);
     assertEq(poolGetterFacet.getAumE18(false), 498.5 ether);
 
-    wbtcPriceFeed.setLatestAnswer(60000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(60000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(60000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(60000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(60000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(60000 * 10 ** 8);
 
     // Mint 0.01 WBTC (600 USD) to CAT.
     wbtc.mint(CAT, 1000000);
@@ -194,9 +194,9 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     vm.warp(block.timestamp + 1 days);
 
     // Feed MATIC price
-    maticPriceFeed.setLatestAnswer(300 * 10**8);
-    maticPriceFeed.setLatestAnswer(300 * 10**8);
-    maticPriceFeed.setLatestAnswer(400 * 10**8);
+    maticPriceFeed.setLatestAnswer(300 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(300 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(400 * 10 ** 8);
 
     // ------- Bob session -------
     vm.startPrank(BOB);
@@ -227,16 +227,16 @@ contract PoolDiamond_AddLiquidityTest is PoolDiamond_BaseTest {
     vm.stopPrank();
     // ------- Finish Bob session -------
 
-    maticPriceFeed.setLatestAnswer(400 * 10**8);
-    maticPriceFeed.setLatestAnswer(500 * 10**8);
-    maticPriceFeed.setLatestAnswer(400 * 10**8);
+    maticPriceFeed.setLatestAnswer(400 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(500 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(400 * 10 ** 8);
 
     assertEq(poolGetterFacet.getAumE18(true), 595.7 ether);
     assertEq(poolGetterFacet.getAumE18(false), 496.5 ether);
 
-    wbtcPriceFeed.setLatestAnswer(60000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(60000 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(60000 * 10**8);
+    wbtcPriceFeed.setLatestAnswer(60000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(60000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(60000 * 10 ** 8);
 
     // Mint 0.01 WBTC (600 USD) to CAT.
     wbtc.mint(CAT, 1000000);

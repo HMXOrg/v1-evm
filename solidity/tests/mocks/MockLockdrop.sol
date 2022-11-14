@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { ILockdrop } from "solidity/contracts/lockdrop/interfaces/ILockdrop.sol";
@@ -36,10 +36,10 @@ contract MockLockdrop is ILockdrop {
 
   function addLockAmount(uint256 _amount) external {}
 
-  function earlyWithdrawLockedToken(uint256 _amount, address _user)
-    external
-    payable
-  {}
+  function earlyWithdrawLockedToken(
+    uint256 _amount,
+    address _user
+  ) external payable {}
 
   function _claimAllRewards(address _user) internal {
     IWNative(_lockdropConfig.nativeToken()).withdraw(
@@ -105,7 +105,9 @@ contract MockLockdrop is ILockdrop {
     return amount;
   }
 
-  function lockdropStates(address)
+  function lockdropStates(
+    address
+  )
     external
     pure
     returns (

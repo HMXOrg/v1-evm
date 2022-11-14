@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.5.0;
 pragma experimental ABIEncoderV2;
 
@@ -13,11 +13,15 @@ contract Multicall {
     bytes callData;
   }
 
-  function aggregate(Call[] memory calls) public returns (uint256 blockNumber, bytes[] memory returnData) {
+  function aggregate(
+    Call[] memory calls
+  ) public returns (uint256 blockNumber, bytes[] memory returnData) {
     blockNumber = block.number;
     returnData = new bytes[](calls.length);
     for (uint256 i = 0; i < calls.length; i++) {
-      (bool success, bytes memory ret) = calls[i].target.call(calls[i].callData);
+      (bool success, bytes memory ret) = calls[i].target.call(
+        calls[i].callData
+      );
       require(success);
       returnData[i] = ret;
     }
@@ -28,7 +32,9 @@ contract Multicall {
     balance = addr.balance;
   }
 
-  function getBlockHash(uint256 blockNumber) public view returns (bytes32 blockHash) {
+  function getBlockHash(
+    uint256 blockNumber
+  ) public view returns (bytes32 blockHash) {
     blockHash = blockhash(blockNumber);
   }
 
@@ -40,7 +46,11 @@ contract Multicall {
     timestamp = block.timestamp;
   }
 
-  function getCurrentBlockDifficulty() public view returns (uint256 difficulty) {
+  function getCurrentBlockDifficulty()
+    public
+    view
+    returns (uint256 difficulty)
+  {
     difficulty = block.difficulty;
   }
 

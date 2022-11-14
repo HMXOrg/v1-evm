@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 interface BasePoolInterface {
@@ -28,10 +28,10 @@ interface BasePoolInterface {
 
   function feeReserveOf(address) external view returns (uint256);
 
-  function getAddLiquidityFeeBps(address token, uint256 deltaValue)
-    external
-    view
-    returns (uint256);
+  function getAddLiquidityFeeBps(
+    address token,
+    uint256 deltaValue
+  ) external view returns (uint256);
 
   function getAumE18(bool isUseMaxPrice) external view returns (uint256);
 
@@ -67,10 +67,10 @@ interface BasePoolInterface {
     uint8 exposure
   ) external pure returns (bytes32);
 
-  function getSubAccount(address primary, uint256 subAccountId)
-    external
-    pure
-    returns (address);
+  function getSubAccount(
+    address primary,
+    uint256 subAccountId
+  ) external pure returns (address);
 
   function guaranteedUsdOf(address) external view returns (uint256);
 
@@ -106,7 +106,9 @@ interface BasePoolInterface {
 
   function poolMath() external view returns (address);
 
-  function positions(bytes32)
+  function positions(
+    bytes32
+  )
     external
     view
     returns (
@@ -155,8 +157,10 @@ interface BasePoolInterface {
 
   function transferOwnership(address newOwner) external;
 
-  function updateFundingRate(address collateralToken, address indexToken)
-    external;
+  function updateFundingRate(
+    address collateralToken,
+    address indexToken
+  ) external;
 
   function usdDebtOf(address) external view returns (uint256);
 

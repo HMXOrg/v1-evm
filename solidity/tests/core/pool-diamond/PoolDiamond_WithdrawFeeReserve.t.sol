@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { PoolDiamond_BaseTest, LibPoolConfigV1, stdError, console, GetterFacetInterface, LiquidityFacetInterface } from "./PoolDiamond_BaseTest.t.sol";
@@ -15,9 +15,9 @@ contract PoolDiamond_WithdrawFeeReserveTest is PoolDiamond_BaseTest {
     poolAdminFacet.setTokenConfigs(tokens2, tokenConfigs2);
 
     // Feed prices
-    daiPriceFeed.setLatestAnswer(1 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(60000 * 10**8);
-    maticPriceFeed.setLatestAnswer(300 * 10**8);
+    daiPriceFeed.setLatestAnswer(1 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(60000 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(300 * 10 ** 8);
   }
 
   function testRevert_WhenMsgSenderNotTreasury() external {
@@ -44,33 +44,33 @@ contract PoolDiamond_WithdrawFeeReserveTest is PoolDiamond_BaseTest {
 
   function testCorrectness_WhenWithdrawFeeReserveCorrectly() external {
     // Add 1000 DAI as a liquidity
-    dai.mint(address(poolDiamond), 1000 * 10**18);
+    dai.mint(address(poolDiamond), 1000 * 10 ** 18);
     poolLiquidityFacet.addLiquidity(address(this), address(dai), address(this));
 
     // Assert pool's DAI fee reserved.
     // 1. Pool's DAI fee should be:
     // = 1000 * 0.003 = 3 DAI
-    assertEq(poolGetterFacet.feeReserveOf(address(dai)), 3 * 10**18);
+    assertEq(poolGetterFacet.feeReserveOf(address(dai)), 3 * 10 ** 18);
 
     // -- Start Treasury session ---
     vm.startPrank(TREASURY);
 
     // Withdraw 1 DAI from fee reserve to Alice
-    poolAdminFacet.withdrawFeeReserve(address(dai), ALICE, 1 * 10**18);
+    poolAdminFacet.withdrawFeeReserve(address(dai), ALICE, 1 * 10 ** 18);
 
     // The following conditions need to be met:
     // 1. Alice should get 1 DAI
     // 2. Pool's DAI fee should be 2 DAI
-    assertEq(dai.balanceOf(ALICE), 1 * 10**18);
-    assertEq(poolGetterFacet.feeReserveOf(address(dai)), 2 * 10**18);
+    assertEq(dai.balanceOf(ALICE), 1 * 10 ** 18);
+    assertEq(poolGetterFacet.feeReserveOf(address(dai)), 2 * 10 ** 18);
 
     // Withdraw the rest of fee reserve to Bob
-    poolAdminFacet.withdrawFeeReserve(address(dai), BOB, 2 * 10**18);
+    poolAdminFacet.withdrawFeeReserve(address(dai), BOB, 2 * 10 ** 18);
 
     // The following conditions need to be met:
     // 1. Bob should get 2 DAI
     // 2. Pool's DAI fee should be 0 DAI
-    assertEq(dai.balanceOf(BOB), 2 * 10**18);
+    assertEq(dai.balanceOf(BOB), 2 * 10 ** 18);
     assertEq(poolGetterFacet.feeReserveOf(address(dai)), 0);
 
     checkPoolBalanceWithState(address(dai), 0);

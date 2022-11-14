@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import "../../base/DSTest.sol";
@@ -63,7 +63,7 @@ abstract contract Lockdrop_BaseTest is BaseTest {
         stableBorrowingRateFactor: 600,
         borrowingRateFactor: 600,
         fundingRateFactor: 600,
-        liquidationFeeUsd: 5 * 10**30
+        liquidationFeeUsd: 5 * 10 ** 30
       });
 
     (poolOracle, poolDiamond) = deployPoolDiamond(poolConfigParams);

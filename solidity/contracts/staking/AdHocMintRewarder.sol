@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -57,20 +57,20 @@ contract AdHocMintRewarder is IRewarder, OwnableUpgradeable {
     rewardRate = 31709791983 wei; // = 1 ether / 365 day
   }
 
-  function onDeposit(address user, uint256 shareAmount)
-    external
-    onlyStakingContract
-  {
+  function onDeposit(
+    address user,
+    uint256 shareAmount
+  ) external onlyStakingContract {
     // Accumulate user reward
     userAccRewards[user] += _calculateUserAccReward(user);
     userLastRewards[user] = block.timestamp.toUint64();
     emit LogOnDeposit(user, shareAmount);
   }
 
-  function onWithdraw(address user, uint256 shareAmount)
-    external
-    onlyStakingContract
-  {
+  function onWithdraw(
+    address user,
+    uint256 shareAmount
+  ) external onlyStakingContract {
     // Reset user reward
     // The rule is whenever withdraw occurs, no matter the size, reward calculation should restart.
     userAccRewards[user] = 0;
@@ -78,10 +78,10 @@ contract AdHocMintRewarder is IRewarder, OwnableUpgradeable {
     emit LogOnWithdraw(user, shareAmount);
   }
 
-  function onHarvest(address user, address receiver)
-    external
-    onlyStakingContract
-  {
+  function onHarvest(
+    address user,
+    address receiver
+  ) external onlyStakingContract {
     uint256 pendingRewardAmount = _pendingReward(user);
 
     // Reset user reward accumulation.
@@ -105,11 +105,9 @@ contract AdHocMintRewarder is IRewarder, OwnableUpgradeable {
     return _calculateUserAccReward(user) + userAccRewards[user];
   }
 
-  function _calculateUserAccReward(address user)
-    internal
-    view
-    returns (uint256)
-  {
+  function _calculateUserAccReward(
+    address user
+  ) internal view returns (uint256) {
     // [100% APR] If a user stake N shares for a year, he will be rewarded with N tokens.
     if (userLastRewards[user] > 0) {
       return
@@ -123,10 +121,10 @@ contract AdHocMintRewarder is IRewarder, OwnableUpgradeable {
     return IStaking(staking).calculateShare(address(this), user);
   }
 
-  function _harvestToken(address receiver, uint256 pendingRewardAmount)
-    internal
-    virtual
-  {
+  function _harvestToken(
+    address receiver,
+    uint256 pendingRewardAmount
+  ) internal virtual {
     MintableTokenInterface(rewardToken).mint(receiver, pendingRewardAmount);
   }
 

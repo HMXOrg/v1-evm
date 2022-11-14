@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 library LinkedList {
@@ -25,10 +25,10 @@ library LinkedList {
     return list.next[addr] != EMPTY;
   }
 
-  function add(List storage list, address addr)
-    internal
-    returns (List storage)
-  {
+  function add(
+    List storage list,
+    address addr
+  ) internal returns (List storage) {
     // Check
     if (has(list, addr)) revert LinkedList_Existed();
 
@@ -67,11 +67,10 @@ library LinkedList {
     return addrs;
   }
 
-  function getPreviousOf(List storage list, address addr)
-    internal
-    view
-    returns (address)
-  {
+  function getPreviousOf(
+    List storage list,
+    address addr
+  ) internal view returns (address) {
     address curr = list.next[START];
     if (curr == EMPTY) revert LinkedList_NotInitialized();
     for (uint256 i = 0; curr != END; i++) {
@@ -81,11 +80,10 @@ library LinkedList {
     return END;
   }
 
-  function getNextOf(List storage list, address curr)
-    internal
-    view
-    returns (address)
-  {
+  function getNextOf(
+    List storage list,
+    address curr
+  ) internal view returns (address) {
     return list.next[curr];
   }
 

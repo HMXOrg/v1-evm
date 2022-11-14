@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { IStaking } from "solidity/contracts/staking/interfaces/IStaking.sol";
@@ -35,11 +35,7 @@ contract MockPLPStaking is IStaking {
     esp88RewardLastReward = block.timestamp;
   }
 
-  function deposit(
-    address to,
-    address token,
-    uint256 amount
-  ) external {
+  function deposit(address to, address token, uint256 amount) external {
     IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
     userTokenAmount[token][to] += amount;
   }
@@ -49,19 +45,16 @@ contract MockPLPStaking is IStaking {
     IERC20(token).safeTransfer(msg.sender, amount);
   }
 
-  function getUserTokenAmount(address token, address sender)
-    external
-    view
-    returns (uint256)
-  {
+  function getUserTokenAmount(
+    address token,
+    address sender
+  ) external view returns (uint256) {
     return IERC20(plpTokenAddress).balanceOf(address(this));
   }
 
-  function getStakingTokenRewarders(address token)
-    external
-    view
-    returns (address[] memory)
-  {
+  function getStakingTokenRewarders(
+    address token
+  ) external view returns (address[] memory) {
     address[] memory rewarderList = new address[](1);
     rewarderList[0] = mockRewarder;
 
@@ -90,21 +83,19 @@ contract MockPLPStaking is IStaking {
     revenueRewardAmount += tokenAmount;
   }
 
-  function harvestToCompounder(address user, address[] memory rewarders)
-    external
-  {}
+  function harvestToCompounder(
+    address user,
+    address[] memory rewarders
+  ) external {}
 
-  function calculateTotalShare(address rewarder)
-    external
-    view
-    returns (uint256)
-  {}
+  function calculateTotalShare(
+    address rewarder
+  ) external view returns (uint256) {}
 
-  function calculateShare(address rewarder, address user)
-    external
-    view
-    returns (uint256)
-  {}
+  function calculateShare(
+    address rewarder,
+    address user
+  ) external view returns (uint256) {}
 
   function isRewarder(address rewarder) external view returns (bool) {}
 

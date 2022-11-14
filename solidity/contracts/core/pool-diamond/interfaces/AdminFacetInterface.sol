@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { PoolOracle } from "../../PoolOracle.sol";
@@ -8,8 +8,10 @@ import { LibPoolConfigV1 } from "../libraries/LibPoolConfigV1.sol";
 interface AdminFacetInterface {
   function deleteTokenConfig(address token) external;
 
-  function setAllowLiquidators(address[] memory liquidators, bool allow)
-    external;
+  function setAllowLiquidators(
+    address[] memory liquidators,
+    bool allow
+  ) external;
 
   function setFlashLoanFeeBps(uint64 newFlashLoanFeeBps) external;
 
@@ -42,8 +44,10 @@ interface AdminFacetInterface {
 
   function setRouter(address newRouter) external;
 
-  function setSwapFeeBps(uint64 newSwapFeeBps, uint64 newStableSwapFeeBps)
-    external;
+  function setSwapFeeBps(
+    uint64 newSwapFeeBps,
+    uint64 newStableSwapFeeBps
+  ) external;
 
   function setTaxBps(uint64 newTaxBps, uint64 newStableTaxBps) external;
 

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 interface PerpTradeFacetInterface {
@@ -14,15 +14,7 @@ interface PerpTradeFacetInterface {
     address indexToken,
     bool isLong,
     bool isRevertOnError
-  )
-    external
-    view
-    returns (
-      LiquidationState,
-      uint256,
-      uint256,
-      int256
-    );
+  ) external view returns (LiquidationState, uint256, uint256, int256);
 
   function increasePosition(
     address primaryAccount,

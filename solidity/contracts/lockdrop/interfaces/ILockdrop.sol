@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 interface ILockdrop {
@@ -18,9 +18,10 @@ interface ILockdrop {
 
   function addLockAmountFor(uint256 amount, address user) external;
 
-  function earlyWithdrawLockedToken(uint256 amount, address user)
-    external
-    payable;
+  function earlyWithdrawLockedToken(
+    uint256 amount,
+    address user
+  ) external payable;
 
   function claimAllRewardsFor(address user, address receiver) external;
 
@@ -32,7 +33,9 @@ interface ILockdrop {
 
   function claimAllP88(address user) external returns (uint256);
 
-  function lockdropStates(address user)
+  function lockdropStates(
+    address user
+  )
     external
     view
     returns (

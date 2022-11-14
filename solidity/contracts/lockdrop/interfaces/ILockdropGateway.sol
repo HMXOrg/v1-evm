@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { IStaking } from "../../staking/interfaces/IStaking.sol";
@@ -12,6 +12,8 @@ interface ILockdropGateway {
 
   function claimAllP88(address[] memory lockdropList, address user) external;
 
-  function withdrawAllAndStakePLP(address[] memory lockdropList, address user)
-    external;
+  function withdrawAllAndStakePLP(
+    address[] memory lockdropList,
+    address user
+  ) external;
 }

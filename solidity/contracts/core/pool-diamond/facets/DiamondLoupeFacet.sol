@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 /******************************************************************************\
 * Author: Nick Mudge <nick@perfectabstractions.com> (https://twitter.com/mudgen)
@@ -40,12 +40,9 @@ contract DiamondLoupeFacet is DiamondLoupeInterface, ERC165Interface {
   /// @notice Gets all the function selectors provided by a facet.
   /// @param _facet The facet address.
   /// @return facetFunctionSelectors_
-  function facetFunctionSelectors(address _facet)
-    external
-    view
-    override
-    returns (bytes4[] memory facetFunctionSelectors_)
-  {
+  function facetFunctionSelectors(
+    address _facet
+  ) external view override returns (bytes4[] memory facetFunctionSelectors_) {
     LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
     facetFunctionSelectors_ = ds
       .facetFunctionSelectors[_facet]
@@ -68,12 +65,9 @@ contract DiamondLoupeFacet is DiamondLoupeInterface, ERC165Interface {
   /// @dev If facet is not found return address(0).
   /// @param _functionSelector The function selector.
   /// @return facetAddress_ The facet address.
-  function facetAddress(bytes4 _functionSelector)
-    external
-    view
-    override
-    returns (address facetAddress_)
-  {
+  function facetAddress(
+    bytes4 _functionSelector
+  ) external view override returns (address facetAddress_) {
     LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
     facetAddress_ = ds
       .selectorToFacetAndPosition[_functionSelector]
@@ -81,12 +75,9 @@ contract DiamondLoupeFacet is DiamondLoupeInterface, ERC165Interface {
   }
 
   // This implements ERC-165.
-  function supportsInterface(bytes4 _interfaceId)
-    external
-    view
-    override
-    returns (bool)
-  {
+  function supportsInterface(
+    bytes4 _interfaceId
+  ) external view override returns (bool) {
     LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
     return ds.supportedInterfaces[_interfaceId];
   }

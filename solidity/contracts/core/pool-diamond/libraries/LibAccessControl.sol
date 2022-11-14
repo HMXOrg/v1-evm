@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/utils/Strings.sol";
@@ -69,11 +69,10 @@ library LibAccessControl {
   /**
    * @dev Returns `true` if `account` has been granted `role`.
    */
-  function _hasRole(bytes32 role, address account)
-    internal
-    view
-    returns (bool)
-  {
+  function _hasRole(
+    bytes32 role,
+    address account
+  ) internal view returns (bool) {
     AccessControlDiamondStorage
       storage accessControlDs = accessControlDiamondStorage();
     return accessControlDs.roles[role].members[account];

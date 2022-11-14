@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { PoolDiamond_BaseTest, LibPoolConfigV1, console, GetterFacetInterface, LiquidityFacetInterface, MockFlashLoanBorrower } from "./PoolDiamond_BaseTest.t.sol";
@@ -17,9 +17,9 @@ contract PoolDiamond_FlashLoanTest is PoolDiamond_BaseTest {
     poolAdminFacet.setTokenConfigs(tokens2, tokenConfigs2);
 
     // Feed prices
-    daiPriceFeed.setLatestAnswer(1 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(60000 * 10**8);
-    maticPriceFeed.setLatestAnswer(300 * 10**8);
+    daiPriceFeed.setLatestAnswer(1 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(60000 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(300 * 10 ** 8);
 
     mockFlashLoanBorrower = deployMockFlashLoanBorrower();
   }

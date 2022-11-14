@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 interface StrategyInterface {
@@ -16,8 +16,7 @@ interface StrategyInterface {
   /// @param principle The amount of tokens that Pool thinks the strategy has
   function exit(uint256 principle) external returns (int256 amountDelta);
 
-  function getStrategyDelta(uint256 principle)
-    external
-    view
-    returns (bool isProfit, uint256 amountDelta);
+  function getStrategyDelta(
+    uint256 principle
+  ) external view returns (bool isProfit, uint256 amountDelta);
 }

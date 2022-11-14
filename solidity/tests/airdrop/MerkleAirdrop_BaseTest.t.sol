@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { BaseTest, console, MerkleAirdrop } from "../base/BaseTest.sol";
@@ -14,8 +14,8 @@ abstract contract MerkleAirdrop_BaseTest is BaseTest {
   bytes32 internal ipfsHash = keccak256("1");
   uint256 internal weekTimestamp1 = 1 weeks / 1 weeks;
   uint256 internal weekTimestamp2 = 2 weeks / 1 weeks;
-  uint256 internal referralAmountWeek1 = 4497.234393 * 10**6;
-  uint256 internal referralAmountWeek2 = 500 * 10**6;
+  uint256 internal referralAmountWeek1 = 4497.234393 * 10 ** 6;
+  uint256 internal referralAmountWeek2 = 500 * 10 ** 6;
 
   function setUp() public virtual {
     merkleAirdrop = deployMerkleAirdrop(address(usdc), address(this));

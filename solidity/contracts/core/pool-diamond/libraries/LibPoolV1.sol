@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { StrategyInterface } from "../../../interfaces/StrategyInterface.sol";
@@ -161,11 +161,10 @@ library LibPoolV1 {
       keccak256(abi.encodePacked(account, collateralToken, indexToken, isLong));
   }
 
-  function getSubAccount(address primary, uint256 subAccountId)
-    internal
-    pure
-    returns (address)
-  {
+  function getSubAccount(
+    address primary,
+    uint256 subAccountId
+  ) internal pure returns (address) {
     if (subAccountId > 255) revert LibPoolV1_BadSubAccountId();
     return address(uint160(primary) ^ uint160(subAccountId));
   }
@@ -308,11 +307,7 @@ library LibPoolV1 {
       FarmFacetInterface(address(this)).farm(token, false);
   }
 
-  function tokenOut(
-    address token,
-    address to,
-    uint256 amountOut
-  ) internal {
+  function tokenOut(address token, address to, uint256 amountOut) internal {
     // Load PoolV1 diamond storage
     LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
       .poolV1DiamondStorage();
@@ -372,11 +367,7 @@ library LibPoolV1 {
     return nextBalance - prevBalance;
   }
 
-  function pushTokens(
-    address token,
-    address to,
-    uint256 amount
-  ) internal {
+  function pushTokens(address token, address to, uint256 amount) internal {
     PoolV1DiamondStorage storage poolV1ds = poolV1DiamondStorage();
 
     IERC20(token).safeTransfer(to, amount);
@@ -391,7 +382,7 @@ library LibPoolV1 {
     uint256 toTokenDecimals,
     uint256 amount
   ) internal pure returns (uint256) {
-    return (amount * 10**toTokenDecimals) / 10**fromTokenDecimals;
+    return (amount * 10 ** toTokenDecimals) / 10 ** fromTokenDecimals;
   }
 
   function convertUsde30ToTokens(
@@ -405,7 +396,7 @@ library LibPoolV1 {
     PoolV1DiamondStorage storage poolV1ds = poolV1DiamondStorage();
 
     return
-      (amountUsd * (10**LibPoolConfigV1.getTokenDecimalsOf(token))) /
+      (amountUsd * (10 ** LibPoolConfigV1.getTokenDecimalsOf(token))) /
       poolV1ds.oracle.getPrice(token, isUseMaxPrice);
   }
 
@@ -420,7 +411,7 @@ library LibPoolV1 {
     PoolV1DiamondStorage storage poolV1ds = poolV1DiamondStorage();
 
     return
-      (amountUsd * int256(10**LibPoolConfigV1.getTokenDecimalsOf(token))) /
+      (amountUsd * int256(10 ** LibPoolConfigV1.getTokenDecimalsOf(token))) /
       int256(poolV1ds.oracle.getPrice(token, isUseMaxPrice));
   }
 
@@ -436,7 +427,7 @@ library LibPoolV1 {
 
     return
       (amountTokens * poolV1ds.oracle.getPrice(token, isUseMaxPrice)) /
-      (10**LibPoolConfigV1.getTokenDecimalsOf(token));
+      (10 ** LibPoolConfigV1.getTokenDecimalsOf(token));
   }
 
   function increaseOpenInterest(

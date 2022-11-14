@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { SafeERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
@@ -66,10 +66,10 @@ contract LockdropGateway is ILockdropGateway, OwnableUpgradeable {
     WNATIVE = wnative_;
   }
 
-  function setBaseTokenLockdropInfo(address token, address lockdrop)
-    external
-    onlyOwner
-  {
+  function setBaseTokenLockdropInfo(
+    address token,
+    address lockdrop
+  ) external onlyOwner {
     _setLockdropInfo(token, TokenType.BaseToken, lockdrop, bytes(""));
   }
 
@@ -77,10 +77,10 @@ contract LockdropGateway is ILockdropGateway, OwnableUpgradeable {
     _setLockdropInfo(token, TokenType.AToken, address(0), bytes(""));
   }
 
-  function setLpPairTokenLockdropInfo(address token, address router)
-    external
-    onlyOwner
-  {
+  function setLpPairTokenLockdropInfo(
+    address token,
+    address router
+  ) external onlyOwner {
     _setLockdropInfo(
       token,
       TokenType.LpPairToken,
@@ -146,9 +146,10 @@ contract LockdropGateway is ILockdropGateway, OwnableUpgradeable {
     }
   }
 
-  function claimAndStakeAllP88(address[] memory lockdropList, address user)
-    external
-  {
+  function claimAndStakeAllP88(
+    address[] memory lockdropList,
+    address user
+  ) external {
     uint256 length = lockdropList.length;
     uint256 totalP88Amount = 0;
     for (uint256 index = 0; index < length; ) {
@@ -171,9 +172,10 @@ contract LockdropGateway is ILockdropGateway, OwnableUpgradeable {
   }
 
   // Withdraw All Deposit Token
-  function withdrawAllAndStakePLP(address[] memory lockdropList, address user)
-    external
-  {
+  function withdrawAllAndStakePLP(
+    address[] memory lockdropList,
+    address user
+  ) external {
     uint256 length = lockdropList.length;
     for (uint256 index = 0; index < length; ) {
       ILockdrop(lockdropList[index]).withdrawAll(user);

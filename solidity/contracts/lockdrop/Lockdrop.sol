@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 
 pragma solidity 0.8.17;
 
@@ -172,11 +172,10 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   /// @dev Users can lock their ERC20 Token during the lockdrop period
   /// @param amount Number of token that user wants to lock
   /// @param lockPeriod Number of second that user wants to lock
-  function lockToken(uint256 amount, uint256 lockPeriod)
-    external
-    onlyInLockdropPeriod
-    nonReentrant
-  {
+  function lockToken(
+    uint256 amount,
+    uint256 lockPeriod
+  ) external onlyInLockdropPeriod nonReentrant {
     _lockTokenFor(amount, lockPeriod, msg.sender);
   }
 
@@ -207,23 +206,19 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
   /// @dev Users can extend their lock period during the lockdrop period
   /// @param newLockPeriod New number of second that user wants to lock
-  function extendLockPeriod(uint256 newLockPeriod)
-    external
-    onlyInLockdropPeriod
-    nonReentrant
-  {
+  function extendLockPeriod(
+    uint256 newLockPeriod
+  ) external onlyInLockdropPeriod nonReentrant {
     _extendLockPeriodFor(newLockPeriod, msg.sender);
   }
 
   /// @dev Users can extend their lock period during the lockdrop period
   /// @param newLockPeriod New number of second that user wants to lock
   /// @param user Address of the user that wants extend the lock period
-  function extendLockPeriodFor(uint256 newLockPeriod, address user)
-    external
-    onlyInLockdropPeriod
-    onlyGateway
-    nonReentrant
-  {
+  function extendLockPeriodFor(
+    uint256 newLockPeriod,
+    address user
+  ) external onlyInLockdropPeriod onlyGateway nonReentrant {
     _extendLockPeriodFor(newLockPeriod, user);
   }
 
@@ -247,20 +242,16 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
   /// @dev Users can add more lock amount during the lockdrop period
   /// @param amount Number of lock token that user wants to add
-  function addLockAmountFor(uint256 amount, address user)
-    external
-    onlyInLockdropPeriod
-    onlyGateway
-    nonReentrant
-  {
+  function addLockAmountFor(
+    uint256 amount,
+    address user
+  ) external onlyInLockdropPeriod onlyGateway nonReentrant {
     _addLockAmountFor(amount, user);
   }
 
-  function _getEarlyWithdrawableAmount(address user)
-    internal
-    view
-    returns (uint256 amount)
-  {
+  function _getEarlyWithdrawableAmount(
+    address user
+  ) internal view returns (uint256 amount) {
     uint256 startRestrictedWithdrawalTimestamp = lockdropConfig
       .startRestrictedWithdrawalTimestamp();
     uint256 lockdropTokenAmount = lockdropStates[user].lockdropTokenAmount;
@@ -282,23 +273,19 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
   /// @dev Withdrawable amount calculation logic
   /// @param user Address of user that we want to know their valid withdraw amount
-  function getEarlyWithdrawableAmount(address user)
-    external
-    view
-    returns (uint256)
-  {
+  function getEarlyWithdrawableAmount(
+    address user
+  ) external view returns (uint256) {
     return _getEarlyWithdrawableAmount(user);
   }
 
   /// @dev Users able to withdraw their ERC20 Token within lockdrop period
   /// @param amount Number of token that user wants to withdraw
   /// @param user Address of the user that wants to withdraw
-  function earlyWithdrawLockedToken(uint256 amount, address user)
-    external
-    payable
-    onlyInLockdropPeriod
-    nonReentrant
-  {
+  function earlyWithdrawLockedToken(
+    uint256 amount,
+    address user
+  ) external payable onlyInLockdropPeriod nonReentrant {
     uint256 lockdropTokenAmount = lockdropStates[user].lockdropTokenAmount;
     if (lockdropStates[user].restrictedWithdrawn)
       revert Lockdrop_WithdrawNotAllowed();
@@ -368,12 +355,9 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
   /// @dev Owner of the contract can allocate P88
   /// @param amount Number of P88 that feeder will feed
-  function allocateP88(uint256 amount)
-    external
-    onlyAfterLockdropPeriod
-    onlyOwner
-    nonReentrant
-  {
+  function allocateP88(
+    uint256 amount
+  ) external onlyAfterLockdropPeriod onlyOwner nonReentrant {
     // Prevent multiple call
     if (totalP88 > 0) revert Lockdrop_AlreadyAllocateP88();
     totalP88 = amount;
@@ -387,12 +371,9 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
   /// @dev Users can claim their P88, this is a one time claim
   /// @param user Address of the user that wants to claim P88
-  function claimAllP88(address user)
-    external
-    onlyAfterLockdropPeriod
-    nonReentrant
-    returns (uint256)
-  {
+  function claimAllP88(
+    address user
+  ) external onlyAfterLockdropPeriod nonReentrant returns (uint256) {
     if (lockdropStates[msg.sender].lockdropTokenAmount == 0)
       revert Lockdrop_NoPosition();
     if (totalP88 == 0) revert Lockdrop_ZeroTotalP88NotAllowed();
@@ -471,11 +452,9 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     return harvestedReward;
   }
 
-  function _calculateAccPerShare(uint256 claimedReward)
-    internal
-    view
-    returns (uint256)
-  {
+  function _calculateAccPerShare(
+    uint256 claimedReward
+  ) internal view returns (uint256) {
     uint256 totalStakedPLPAmount = lockdropConfig
       .plpStaking()
       .getUserTokenAmount(address(lockdropConfig.plpToken()), address(this));
@@ -524,11 +503,9 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     }
   }
 
-  function pendingReward(address user)
-    external
-    view
-    returns (uint256[] memory)
-  {
+  function pendingReward(
+    address user
+  ) external view returns (uint256[] memory) {
     uint256[] memory harvestedRewards = _allPendingReward();
     uint256 userShare = totalAmount > 0
       ? (lockdropStates[user].lockdropTokenAmount * totalPLPAmount) /
@@ -558,23 +535,19 @@ contract Lockdrop is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
   /// @dev Users can claim all their reward
   /// @param user Address of the user that wants to claim the reward
-  function claimAllRewards(address user)
-    external
-    onlyAfterLockdropPeriod
-    nonReentrant
-  {
+  function claimAllRewards(
+    address user
+  ) external onlyAfterLockdropPeriod nonReentrant {
     _claimAllRewardsFor(user, user);
   }
 
   /// @dev Receiver can claim users reward
   /// @param user Address of user that own the reward
   /// @param receiver Address of receiver that claim the reward for user
-  function claimAllRewardsFor(address user, address receiver)
-    external
-    onlyLockdropCompounder
-    onlyAfterLockdropPeriod
-    nonReentrant
-  {
+  function claimAllRewardsFor(
+    address user,
+    address receiver
+  ) external onlyLockdropCompounder onlyAfterLockdropPeriod nonReentrant {
     _claimAllRewardsFor(user, receiver);
   }
 

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { LibReentrancyGuard } from "../libraries/LibReentrancyGuard.sol";
@@ -39,7 +39,7 @@ contract LiquidityFacet is LiquidityFacetInterface {
     SWAP
   }
 
-  uint256 internal constant PRICE_PRECISION = 10**30;
+  uint256 internal constant PRICE_PRECISION = 10 ** 30;
   uint256 internal constant BPS = 10000;
   uint256 internal constant USD_DECIMALS = 18;
 
@@ -131,21 +131,21 @@ contract LiquidityFacet is LiquidityFacetInterface {
       emit CollectSwapFee(
         account,
         token,
-        (fee * tokenPriceUsd) / 10**ERC20(token).decimals(),
+        (fee * tokenPriceUsd) / 10 ** ERC20(token).decimals(),
         fee
       );
     } else if (action == LiquidityAction.ADD_LIQUIDITY) {
       emit CollectAddLiquidityFee(
         account,
         token,
-        (fee * tokenPriceUsd) / 10**ERC20(token).decimals(),
+        (fee * tokenPriceUsd) / 10 ** ERC20(token).decimals(),
         fee
       );
     } else if (action == LiquidityAction.REMOVE_LIQUIDITY) {
       emit CollectRemoveLiquidityFee(
         account,
         token,
-        (fee * tokenPriceUsd) / 10**ERC20(token).decimals(),
+        (fee * tokenPriceUsd) / 10 ** ERC20(token).decimals(),
         fee
       );
     }

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
@@ -260,10 +260,9 @@ contract RewardDistributor is OwnableUpgradeable {
     );
   }
 
-  function _feedRewardToRewarders(uint256 feedingExpiredAt)
-    internal
-    returns (uint256)
-  {
+  function _feedRewardToRewarders(
+    uint256 feedingExpiredAt
+  ) internal returns (uint256) {
     uint256 totalRewardAmount = IERC20Upgradeable(rewardToken).balanceOf(
       address(this)
     );

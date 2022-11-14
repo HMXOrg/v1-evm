@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { FlashLoanBorrowerInterface } from "solidity/contracts/interfaces/FlashLoanBorrowerInterface.sol";
@@ -6,10 +6,10 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract MockFlashLoanBorrower is FlashLoanBorrowerInterface {
   function onFlashLoan(
-    address, /* caller */
+    address /* caller */,
     address[] calldata tokens,
-    uint256[] calldata, /* amounts */
-    uint256[] calldata, /* fees */
+    uint256[] calldata /* amounts */,
+    uint256[] calldata /* fees */,
     bytes calldata /* data */
   ) external override {
     for (uint256 i = 0; i < tokens.length; i++) {

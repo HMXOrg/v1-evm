@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import "solidity/contracts/interfaces/ChainLinkPriceFeedInterface.sol";
@@ -32,18 +32,9 @@ contract MockChainlinkPriceFeed is ChainlinkPriceFeedInterface {
     answers[roundId] = _answer;
   }
 
-  function getRoundData(uint80 _roundId)
-    external
-    view
-    override
-    returns (
-      uint80,
-      int256,
-      uint256,
-      uint256,
-      uint80
-    )
-  {
+  function getRoundData(
+    uint80 _roundId
+  ) external view override returns (uint80, int256, uint256, uint256, uint80) {
     return (_roundId, answers[_roundId], 0, 0, 0);
   }
 
@@ -51,13 +42,7 @@ contract MockChainlinkPriceFeed is ChainlinkPriceFeedInterface {
     external
     view
     override
-    returns (
-      uint80,
-      int256,
-      uint256,
-      uint256,
-      uint80
-    )
+    returns (uint80, int256, uint256, uint256, uint80)
   {
     return (roundId, answers[roundId], 0, 0, 0);
   }

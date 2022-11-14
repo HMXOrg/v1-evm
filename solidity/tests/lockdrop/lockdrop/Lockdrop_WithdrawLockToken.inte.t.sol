@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { Lockdrop_BaseTest, console } from "./Lockdrop_BaseTest.inte.t.sol";
@@ -9,7 +9,7 @@ contract Lockdrop_WithdrawLockToken is Lockdrop_BaseTest {
 
   function setUp() public override {
     super.setUp();
-    usdcPriceFeed.setLatestAnswer(1 * 10**8);
+    usdcPriceFeed.setLatestAnswer(1 * 10 ** 8);
 
     lockAmount = 16 ether;
     lockPeriod = 8 days;

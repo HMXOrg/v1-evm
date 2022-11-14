@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 // OpenZeppelin Contracts (last updated v4.7.0) (governance/TimelockController.sol)
 
 pragma solidity ^0.8.0;
@@ -134,13 +134,9 @@ contract TimelockController is
   /**
    * @dev See {IERC165-supportsInterface}.
    */
-  function supportsInterface(bytes4 interfaceId)
-    public
-    view
-    virtual
-    override(IERC165, AccessControl)
-    returns (bool)
-  {
+  function supportsInterface(
+    bytes4 interfaceId
+  ) public view virtual override(IERC165, AccessControl) returns (bool) {
     return
       interfaceId == type(IERC1155Receiver).interfaceId ||
       super.supportsInterface(interfaceId);
@@ -150,36 +146,27 @@ contract TimelockController is
    * @dev Returns whether an id correspond to a registered operation. This
    * includes both Pending, Ready and Done operations.
    */
-  function isOperation(bytes32 id)
-    public
-    view
-    virtual
-    returns (bool registered)
-  {
+  function isOperation(
+    bytes32 id
+  ) public view virtual returns (bool registered) {
     return getTimestamp(id) > 0;
   }
 
   /**
    * @dev Returns whether an operation is pending or not.
    */
-  function isOperationPending(bytes32 id)
-    public
-    view
-    virtual
-    returns (bool pending)
-  {
+  function isOperationPending(
+    bytes32 id
+  ) public view virtual returns (bool pending) {
     return getTimestamp(id) > _DONE_TIMESTAMP;
   }
 
   /**
    * @dev Returns whether an operation is ready or not.
    */
-  function isOperationReady(bytes32 id)
-    public
-    view
-    virtual
-    returns (bool ready)
-  {
+  function isOperationReady(
+    bytes32 id
+  ) public view virtual returns (bool ready) {
     uint256 timestamp = getTimestamp(id);
     return timestamp > _DONE_TIMESTAMP && timestamp <= block.timestamp;
   }
@@ -195,12 +182,9 @@ contract TimelockController is
    * @dev Returns the timestamp at with an operation becomes ready (0 for
    * unset operations, 1 for done operations).
    */
-  function getTimestamp(bytes32 id)
-    public
-    view
-    virtual
-    returns (uint256 timestamp)
-  {
+  function getTimestamp(
+    bytes32 id
+  ) public view virtual returns (uint256 timestamp) {
     return _timestamps[id];
   }
 

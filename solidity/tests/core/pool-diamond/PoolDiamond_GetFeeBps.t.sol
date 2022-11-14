@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { PoolDiamond_BaseTest, console, LibPoolConfigV1, LiquidityFacetInterface, GetterFacetInterface, PerpTradeFacetInterface } from "./PoolDiamond_BaseTest.t.sol";
@@ -30,9 +30,9 @@ contract PoolDiamond_GetFeeBpsTest is PoolDiamond_BaseTest {
 
   function testCorrectness_GetFeeBps() external {
     // Initialized price feeds
-    daiPriceFeed.setLatestAnswer(1 * 10**8);
-    maticPriceFeed.setLatestAnswer(300 * 10**8);
-    wbtcPriceFeed.setLatestAnswer(40_000 * 10**8);
+    daiPriceFeed.setLatestAnswer(1 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(300 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
 
     // Set Mint Burn Fee Bps to 20 BPS
     poolAdminFacet.setMintBurnFeeBps(20);

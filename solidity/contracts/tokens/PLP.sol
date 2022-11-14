@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 import { ERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -31,10 +31,9 @@ contract PLP is ERC20Upgradeable, OwnableUpgradeable {
     liquidityCooldown = liquidityCooldown_;
   }
 
-  function setLiquidityCooldown(uint256 newLiquidityCooldown)
-    external
-    onlyOwner
-  {
+  function setLiquidityCooldown(
+    uint256 newLiquidityCooldown
+  ) external onlyOwner {
     if (newLiquidityCooldown > MAX_COOLDOWN_DURATION)
       revert PLP_BadLiquidityCooldown(newLiquidityCooldown);
     uint256 oldCooldown = liquidityCooldown;

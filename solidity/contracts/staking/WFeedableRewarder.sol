@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -90,10 +90,10 @@ contract WFeedableRewarder is IRewarder, OwnableUpgradeable {
     IWNative(rewardToken).deposit{ value: 0 }();
   }
 
-  function onDeposit(address user, uint256 shareAmount)
-    external
-    onlyStakingContract
-  {
+  function onDeposit(
+    address user,
+    uint256 shareAmount
+  ) external onlyStakingContract {
     _updateRewardCalculationParams();
 
     userRewardDebts[user] =
@@ -103,10 +103,10 @@ contract WFeedableRewarder is IRewarder, OwnableUpgradeable {
     emit LogOnDeposit(user, shareAmount);
   }
 
-  function onWithdraw(address user, uint256 shareAmount)
-    external
-    onlyStakingContract
-  {
+  function onWithdraw(
+    address user,
+    uint256 shareAmount
+  ) external onlyStakingContract {
     _updateRewardCalculationParams();
 
     userRewardDebts[user] =
@@ -116,10 +116,10 @@ contract WFeedableRewarder is IRewarder, OwnableUpgradeable {
     emit LogOnWithdraw(user, shareAmount);
   }
 
-  function onHarvest(address user, address receiver)
-    external
-    onlyStakingContract
-  {
+  function onHarvest(
+    address user,
+    address receiver
+  ) external onlyStakingContract {
     _updateRewardCalculationParams();
 
     int256 accumulatedRewards = ((_userShare(user) * accRewardPerShare) /
@@ -150,10 +150,10 @@ contract WFeedableRewarder is IRewarder, OwnableUpgradeable {
     _feed(feedAmount, duration);
   }
 
-  function feedWithExpiredAt(uint256 feedAmount, uint256 expiredAt)
-    external
-    onlyFeeder
-  {
+  function feedWithExpiredAt(
+    uint256 feedAmount,
+    uint256 expiredAt
+  ) external onlyFeeder {
     _feed(feedAmount, expiredAt - block.timestamp);
   }
 
@@ -211,11 +211,9 @@ contract WFeedableRewarder is IRewarder, OwnableUpgradeable {
     emit LogUpdateRewardCalculationParams(lastRewardTime, accRewardPerShare);
   }
 
-  function _calculateAccRewardPerShare(uint256 totalShare)
-    internal
-    view
-    returns (uint128)
-  {
+  function _calculateAccRewardPerShare(
+    uint256 totalShare
+  ) internal view returns (uint128) {
     if (totalShare > 0) {
       uint256 _rewards = _timePast() * rewardRate;
       return ((_rewards * ACC_REWARD_PRECISION) / totalShare).toUint128();
@@ -243,9 +241,10 @@ contract WFeedableRewarder is IRewarder, OwnableUpgradeable {
     return IStaking(staking).calculateShare(address(this), user);
   }
 
-  function _harvestToken(address receiver, uint256 pendingRewardAmount)
-    internal
-  {
+  function _harvestToken(
+    address receiver,
+    uint256 pendingRewardAmount
+  ) internal {
     // unwrap
     IWNative(rewardToken).withdraw(pendingRewardAmount);
 

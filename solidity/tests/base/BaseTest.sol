@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.4 <0.9.0;
 
 import { DSTest } from "./DSTest.sol";
@@ -69,7 +69,7 @@ import { MerkleAirdrop } from "solidity/contracts/airdrop/MerkleAirdrop.sol";
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
 contract BaseTest is DSTest {
-  uint256 internal constant PRICE_PRECISION = 10**30;
+  uint256 internal constant PRICE_PRECISION = 10 ** 30;
   uint256 internal constant BPS = 10000;
 
   struct PoolConfigConstructorParams2 {
@@ -324,10 +324,9 @@ contract BaseTest is DSTest {
     return new DiamondInitializer();
   }
 
-  function deployDiamondLoupeFacet(DiamondCutFacet diamondCutFacet)
-    internal
-    returns (DiamondLoupeFacet, bytes4[] memory)
-  {
+  function deployDiamondLoupeFacet(
+    DiamondCutFacet diamondCutFacet
+  ) internal returns (DiamondLoupeFacet, bytes4[] memory) {
     DiamondLoupeFacet diamondLoupeFacet = new DiamondLoupeFacet();
 
     bytes4[] memory selectors = new bytes4[](4);
@@ -346,10 +345,9 @@ contract BaseTest is DSTest {
     return (diamondLoupeFacet, selectors);
   }
 
-  function deployOwnershipFacet(DiamondCutFacet diamondCutFacet)
-    internal
-    returns (OwnershipFacet, bytes4[] memory)
-  {
+  function deployOwnershipFacet(
+    DiamondCutFacet diamondCutFacet
+  ) internal returns (OwnershipFacet, bytes4[] memory) {
     OwnershipFacet ownershipFacet = new OwnershipFacet();
 
     bytes4[] memory selectors = new bytes4[](2);
@@ -366,10 +364,9 @@ contract BaseTest is DSTest {
     return (ownershipFacet, selectors);
   }
 
-  function deployGetterFacet(DiamondCutFacet diamondCutFacet)
-    internal
-    returns (GetterFacet, bytes4[] memory)
-  {
+  function deployGetterFacet(
+    DiamondCutFacet diamondCutFacet
+  ) internal returns (GetterFacet, bytes4[] memory) {
     GetterFacet getterFacet = new GetterFacet();
 
     bytes4[] memory selectors = new bytes4[](63);
@@ -447,10 +444,9 @@ contract BaseTest is DSTest {
     return (getterFacet, selectors);
   }
 
-  function deployFundingRateFacet(DiamondCutFacet diamondCutFacet)
-    internal
-    returns (FundingRateFacet, bytes4[] memory)
-  {
+  function deployFundingRateFacet(
+    DiamondCutFacet diamondCutFacet
+  ) internal returns (FundingRateFacet, bytes4[] memory) {
     FundingRateFacet fundingRateFacet = new FundingRateFacet();
 
     bytes4[] memory selectors = new bytes4[](1);
@@ -466,10 +462,9 @@ contract BaseTest is DSTest {
     return (fundingRateFacet, selectors);
   }
 
-  function deployLiquidityFacet(DiamondCutFacet diamondCutFacet)
-    internal
-    returns (LiquidityFacet, bytes4[] memory)
-  {
+  function deployLiquidityFacet(
+    DiamondCutFacet diamondCutFacet
+  ) internal returns (LiquidityFacet, bytes4[] memory) {
     LiquidityFacet liquidityFacet = new LiquidityFacet();
 
     bytes4[] memory selectors = new bytes4[](4);
@@ -488,10 +483,9 @@ contract BaseTest is DSTest {
     return (liquidityFacet, selectors);
   }
 
-  function deployPerpTradeFacet(DiamondCutFacet diamondCutFacet)
-    internal
-    returns (PerpTradeFacet, bytes4[] memory functionSelectors)
-  {
+  function deployPerpTradeFacet(
+    DiamondCutFacet diamondCutFacet
+  ) internal returns (PerpTradeFacet, bytes4[] memory functionSelectors) {
     PerpTradeFacet perpTradeFacet = new PerpTradeFacet();
 
     bytes4[] memory selectors = new bytes4[](4);
@@ -524,10 +518,9 @@ contract BaseTest is DSTest {
     return new AccessControlInitializer();
   }
 
-  function deployAdminFacet(DiamondCutFacet diamondCutFacet)
-    internal
-    returns (AdminFacet, bytes4[] memory)
-  {
+  function deployAdminFacet(
+    DiamondCutFacet diamondCutFacet
+  ) internal returns (AdminFacet, bytes4[] memory) {
     AdminFacet adminFacet = new AdminFacet();
 
     bytes4[] memory selectors = new bytes4[](20);
@@ -562,10 +555,9 @@ contract BaseTest is DSTest {
     return (adminFacet, selectors);
   }
 
-  function deployFarmFacet(DiamondCutFacet diamondCutFacet)
-    internal
-    returns (FarmFacet, bytes4[] memory)
-  {
+  function deployFarmFacet(
+    DiamondCutFacet diamondCutFacet
+  ) internal returns (FarmFacet, bytes4[] memory) {
     FarmFacet farmFacet = new FarmFacet();
 
     bytes4[] memory selectors = new bytes4[](3);
@@ -583,10 +575,9 @@ contract BaseTest is DSTest {
     return (farmFacet, selectors);
   }
 
-  function deployAccessControlFacet(DiamondCutFacet diamondCutFacet)
-    internal
-    returns (AccessControlFacet, bytes4[] memory)
-  {
+  function deployAccessControlFacet(
+    DiamondCutFacet diamondCutFacet
+  ) internal returns (AccessControlFacet, bytes4[] memory) {
     AccessControlFacet accessControlFacet = new AccessControlFacet();
     AccessControlInitializer accessControlInitializer = deployAccessControlInitializer();
 
@@ -666,10 +657,9 @@ contract BaseTest is DSTest {
     return new MockChainlinkPriceFeed();
   }
 
-  function deployMockDonateVault(address token)
-    internal
-    returns (MockDonateVault)
-  {
+  function deployMockDonateVault(
+    address token
+  ) internal returns (MockDonateVault) {
     return new MockDonateVault(token);
   }
 
@@ -829,10 +819,9 @@ contract BaseTest is DSTest {
     return PLPStaking(payable(_proxy));
   }
 
-  function deployDragonStaking(address dragonPointToken)
-    internal
-    returns (DragonStaking)
-  {
+  function deployDragonStaking(
+    address dragonPointToken
+  ) internal returns (DragonStaking) {
     bytes memory _logicBytecode = abi.encodePacked(
       vm.getCode("./out/DragonStaking.sol/DragonStaking.json")
     );
@@ -1089,10 +1078,10 @@ contract BaseTest is DSTest {
     return Orderbook(payable(_proxy));
   }
 
-  function deployMerkleAirdrop(address token, address feeder)
-    internal
-    returns (MerkleAirdrop)
-  {
+  function deployMerkleAirdrop(
+    address token,
+    address feeder
+  ) internal returns (MerkleAirdrop) {
     return new MerkleAirdrop(token, feeder);
   }
 }

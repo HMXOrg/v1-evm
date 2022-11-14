@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { IBridgeStrategy } from "../../interfaces/IBridgeStrategy.sol";
@@ -70,11 +70,10 @@ contract BaseBridgeableToken is BaseMintableToken {
     isBridge[bridge_] = active_;
   }
 
-  function bridgeMint(address to_, uint256 amount_)
-    public
-    onlyBridge
-    whenNotPaused
-  {
+  function bridgeMint(
+    address to_,
+    uint256 amount_
+  ) public onlyBridge whenNotPaused {
     if (!isBurnAndMint) {
       _transfer(address(this), to_, amount_);
     } else {

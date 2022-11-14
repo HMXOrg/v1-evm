@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -42,10 +42,10 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
     OwnableUpgradeable.__Ownable_init();
   }
 
-  function addStakingToken(address newToken, address[] memory newRewarders)
-    external
-    onlyOwner
-  {
+  function addStakingToken(
+    address newToken,
+    address[] memory newRewarders
+  ) external onlyOwner {
     if (ERC20Upgradeable(newToken).decimals() != 18)
       revert PLPStaking_BadDecimals();
 
@@ -60,10 +60,10 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
     }
   }
 
-  function addRewarder(address newRewarder, address[] memory newTokens)
-    external
-    onlyOwner
-  {
+  function addRewarder(
+    address newRewarder,
+    address[] memory newTokens
+  ) external onlyOwner {
     uint256 length = newTokens.length;
     for (uint256 i = 0; i < length; ) {
       if (ERC20Upgradeable(newTokens[i]).decimals() != 18)
@@ -118,11 +118,10 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
     }
   }
 
-  function isDuplicatedRewarder(address stakingToken, address rewarder)
-    internal
-    view
-    returns (bool)
-  {
+  function isDuplicatedRewarder(
+    address stakingToken,
+    address rewarder
+  ) internal view returns (bool) {
     uint256 length = stakingTokenRewarders[stakingToken].length;
     for (uint256 i = 0; i < length; ) {
       if (stakingTokenRewarders[stakingToken][i] == rewarder) {
@@ -135,11 +134,10 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
     return false;
   }
 
-  function isDuplicatedStakingToken(address stakingToken, address rewarder)
-    internal
-    view
-    returns (bool)
-  {
+  function isDuplicatedStakingToken(
+    address stakingToken,
+    address rewarder
+  ) internal view returns (bool) {
     uint256 length = rewarderStakingTokens[rewarder].length;
     for (uint256 i = 0; i < length; ) {
       if (rewarderStakingTokens[rewarder][i] == stakingToken) {
@@ -157,11 +155,7 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
     compounder = compounder_;
   }
 
-  function deposit(
-    address to,
-    address token,
-    uint256 amount
-  ) external {
+  function deposit(address to, address token, uint256 amount) external {
     if (!isStakingToken[token]) revert PLPStaking_UnknownStakingToken();
 
     uint256 length = stakingTokenRewarders[token].length;
@@ -185,19 +179,16 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
     emit LogDeposit(msg.sender, to, token, amount);
   }
 
-  function getUserTokenAmount(address token, address sender)
-    external
-    view
-    returns (uint256)
-  {
+  function getUserTokenAmount(
+    address token,
+    address sender
+  ) external view returns (uint256) {
     return userTokenAmount[token][sender];
   }
 
-  function getStakingTokenRewarders(address token)
-    external
-    view
-    returns (address[] memory)
-  {
+  function getStakingTokenRewarders(
+    address token
+  ) external view returns (address[] memory) {
     return stakingTokenRewarders[token];
   }
 
@@ -230,9 +221,10 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
     _harvestFor(msg.sender, msg.sender, rewarders);
   }
 
-  function harvestToCompounder(address user, address[] memory rewarders)
-    external
-  {
+  function harvestToCompounder(
+    address user,
+    address[] memory rewarders
+  ) external {
     if (compounder != msg.sender) revert PLPStaking_NotCompounder();
     _harvestFor(user, compounder, rewarders);
   }
@@ -256,11 +248,10 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
     }
   }
 
-  function calculateShare(address rewarder, address user)
-    external
-    view
-    returns (uint256)
-  {
+  function calculateShare(
+    address rewarder,
+    address user
+  ) external view returns (uint256) {
     address[] memory tokens = rewarderStakingTokens[rewarder];
     uint256 share = 0;
     uint256 length = tokens.length;
@@ -274,11 +265,9 @@ contract PLPStaking is IStaking, OwnableUpgradeable {
     return share;
   }
 
-  function calculateTotalShare(address rewarder)
-    external
-    view
-    returns (uint256)
-  {
+  function calculateTotalShare(
+    address rewarder
+  ) external view returns (uint256) {
     address[] memory tokens = rewarderStakingTokens[rewarder];
     uint256 totalShare = 0;
     uint256 length = tokens.length;

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.4 <0.9.0;
 
 import { PLPStaking_BaseTest } from "./PLPStaking_BaseTest.t.sol";

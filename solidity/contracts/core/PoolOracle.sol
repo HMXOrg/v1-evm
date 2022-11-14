@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -12,7 +12,7 @@ contract PoolOracle is OwnableUpgradeable {
   error PoolOracle_PriceFeedNotAvailable();
   error PoolOracle_UnableFetchPrice();
 
-  uint256 internal constant PRICE_PRECISION = 10**30;
+  uint256 internal constant PRICE_PRECISION = 10 ** 30;
   uint256 internal constant ONE_USD = PRICE_PRECISION;
   uint256 internal constant BPS = 10000;
 
@@ -44,11 +44,10 @@ contract PoolOracle is OwnableUpgradeable {
     roundDepth = _roundDepth;
   }
 
-  function _getPrice(address token, bool isUseMaxPrice)
-    internal
-    view
-    returns (uint256)
-  {
+  function _getPrice(
+    address token,
+    bool isUseMaxPrice
+  ) internal view returns (uint256) {
     // SLOAD
     PriceFeedInfo memory priceFeed = priceFeedInfo[token];
     if (address(priceFeed.priceFeed) == address(0))
@@ -90,7 +89,7 @@ contract PoolOracle is OwnableUpgradeable {
 
     if (price == 0) revert PoolOracle_UnableFetchPrice();
 
-    price = (price * PRICE_PRECISION) / 10**priceFeed.decimals;
+    price = (price * PRICE_PRECISION) / 10 ** priceFeed.decimals;
 
     // Handle strict stable price deviation.
     if (priceFeed.isStrictStable) {
@@ -114,11 +113,10 @@ contract PoolOracle is OwnableUpgradeable {
     return (price * (BPS - priceFeed.spreadBps)) / BPS;
   }
 
-  function getPrice(address token, bool isUseMaxPrice)
-    external
-    view
-    returns (uint256)
-  {
+  function getPrice(
+    address token,
+    bool isUseMaxPrice
+  ) external view returns (uint256) {
     return _getPrice(token, isUseMaxPrice);
   }
 
@@ -130,10 +128,9 @@ contract PoolOracle is OwnableUpgradeable {
     return _getPrice(token, false);
   }
 
-  function setMaxStrictPriceDeviation(uint256 _maxStrictPriceDeviation)
-    external
-    onlyOwner
-  {
+  function setMaxStrictPriceDeviation(
+    uint256 _maxStrictPriceDeviation
+  ) external onlyOwner {
     emit SetMaxStrictPriceDeviation(
       maxStrictPriceDeviation,
       _maxStrictPriceDeviation

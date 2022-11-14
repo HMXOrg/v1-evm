@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { PoolOracle } from "../../PoolOracle.sol";
@@ -22,7 +22,7 @@ contract GetterFacet is GetterFacetInterface {
   address internal constant LINKEDLIST_END = address(1);
   address internal constant LINKEDLIST_EMPTY = address(0);
 
-  uint256 internal constant PRICE_PRECISION = 10**30;
+  uint256 internal constant PRICE_PRECISION = 10 ** 30;
   uint256 internal constant FUNDING_RATE_PRECISION = 1000000;
   uint256 internal constant BPS = 10000;
   uint256 internal constant USD_DECIMALS = 18;
@@ -34,11 +34,10 @@ contract GetterFacet is GetterFacetInterface {
     return LibPoolV1.poolV1DiamondStorage().additionalAum;
   }
 
-  function approvedPlugins(address user, address plugin)
-    external
-    view
-    returns (bool)
-  {
+  function approvedPlugins(
+    address user,
+    address plugin
+  ) external view returns (bool) {
     return LibPoolV1.poolV1DiamondStorage().approvedPlugins[user][plugin];
   }
 
@@ -62,11 +61,9 @@ contract GetterFacet is GetterFacetInterface {
     return LibPoolConfigV1.poolConfigV1DiamondStorage().fundingRateFactor;
   }
 
-  function getStrategyDeltaOf(address token)
-    external
-    view
-    returns (bool, uint256)
-  {
+  function getStrategyDeltaOf(
+    address token
+  ) external view returns (bool, uint256) {
     return LibPoolConfigV1.getStrategyDelta(token);
   }
 
@@ -78,11 +75,9 @@ contract GetterFacet is GetterFacetInterface {
     return LibPoolConfigV1.poolConfigV1DiamondStorage().isAllowAllLiquidators;
   }
 
-  function isAllowedLiquidators(address liquidator)
-    external
-    view
-    returns (bool)
-  {
+  function isAllowedLiquidators(
+    address liquidator
+  ) external view returns (bool) {
     return LibPoolConfigV1.isAllowedLiquidators(liquidator);
   }
 
@@ -126,11 +121,9 @@ contract GetterFacet is GetterFacetInterface {
     return LibPoolV1.poolV1DiamondStorage().oracle;
   }
 
-  function pendingStrategyOf(address token)
-    external
-    view
-    returns (StrategyInterface)
-  {
+  function pendingStrategyOf(
+    address token
+  ) external view returns (StrategyInterface) {
     return
       LibPoolConfigV1.poolConfigV1DiamondStorage().pendingStrategyOf[token];
   }
@@ -176,11 +169,9 @@ contract GetterFacet is GetterFacetInterface {
     return LibPoolConfigV1.poolConfigV1DiamondStorage().strategyOf[token];
   }
 
-  function strategyDataOf(address token)
-    external
-    view
-    returns (LibPoolConfigV1.StrategyData memory)
-  {
+  function strategyDataOf(
+    address token
+  ) external view returns (LibPoolConfigV1.StrategyData memory) {
     return LibPoolConfigV1.poolConfigV1DiamondStorage().strategyDataOf[token];
   }
 
@@ -200,11 +191,9 @@ contract GetterFacet is GetterFacetInterface {
     return LibPoolV1.poolV1DiamondStorage().totalOf[token];
   }
 
-  function tokenMetas(address token)
-    external
-    view
-    returns (LibPoolConfigV1.TokenConfig memory)
-  {
+  function tokenMetas(
+    address token
+  ) external view returns (LibPoolConfigV1.TokenConfig memory) {
     return LibPoolConfigV1.poolConfigV1DiamondStorage().tokenMetas[token];
   }
 
@@ -246,15 +235,7 @@ contract GetterFacet is GetterFacetInterface {
     uint256 lastIncreasedTime,
     int256 entryFundingRate,
     int256 fundingFeeDebt
-  )
-    public
-    view
-    returns (
-      bool,
-      uint256,
-      int256
-    )
-  {
+  ) public view returns (bool, uint256, int256) {
     GetDeltaLocalVars memory vars;
 
     // Load diamond storage
@@ -348,14 +329,14 @@ contract GetterFacet is GetterFacetInterface {
 
   function getEntryBorrowingRate(
     address collateralToken,
-    address, /* indexToken */
+    address /* indexToken */,
     bool /* isLong */
   ) external view returns (uint256) {
     return LibPoolV1.poolV1DiamondStorage().sumBorrowingRateOf[collateralToken];
   }
 
   function getEntryFundingRate(
-    address, /*collateralToken*/
+    address /*collateralToken*/,
     address indexToken,
     bool isLong
   ) external view returns (int256) {
@@ -366,10 +347,10 @@ contract GetterFacet is GetterFacetInterface {
   }
 
   function getBorrowingFee(
-    address, /* account */
+    address /* account */,
     address collateralToken,
-    address, /* indexToken */
-    bool, /* isLong */
+    address /* indexToken */,
+    bool /* isLong */,
     uint256 size,
     uint256 entryBorrowingRate
   ) public view returns (uint256) {
@@ -429,11 +410,9 @@ contract GetterFacet is GetterFacetInterface {
     return (nextPrice * nextSize) / divisor;
   }
 
-  function getPoolShortDelta(address token)
-    external
-    view
-    returns (bool, uint256)
-  {
+  function getPoolShortDelta(
+    address token
+  ) external view returns (bool, uint256) {
     // Load Diamond Storage
     LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
       .poolV1DiamondStorage();
@@ -508,15 +487,7 @@ contract GetterFacet is GetterFacetInterface {
     address collateralToken,
     address indexToken,
     bool isLong
-  )
-    external
-    view
-    returns (
-      bool,
-      uint256,
-      int256
-    )
-  {
+  ) external view returns (bool, uint256, int256) {
     LibPoolV1.Position memory position = LibPoolV1
       .poolV1DiamondStorage()
       .positions[
@@ -540,10 +511,10 @@ contract GetterFacet is GetterFacetInterface {
   }
 
   function getPositionFee(
-    address, /* account */
-    address, /* collateralToken */
-    address, /* indexToken */
-    bool, /* isLong */
+    address /* account */,
+    address /* collateralToken */,
+    address /* indexToken */,
+    bool /* isLong */,
     uint256 sizeDelta
   ) public view returns (uint256) {
     // Load PoolConfigV1 diamond storage
@@ -602,11 +573,9 @@ contract GetterFacet is GetterFacetInterface {
     return (nextPrice * nextSize) / divisor;
   }
 
-  function getRedemptionCollateral(address token)
-    public
-    view
-    returns (uint256)
-  {
+  function getRedemptionCollateral(
+    address token
+  ) public view returns (uint256) {
     // Load diamond storage
     LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
       .poolV1DiamondStorage();
@@ -621,11 +590,9 @@ contract GetterFacet is GetterFacetInterface {
     return collateral + ds.liquidityOf[token] - ds.reservedOf[token];
   }
 
-  function getRedemptionCollateralUsd(address token)
-    external
-    view
-    returns (uint256)
-  {
+  function getRedemptionCollateralUsd(
+    address token
+  ) external view returns (uint256) {
     return
       LibPoolV1.convertTokensToUsde30(
         token,
@@ -634,11 +601,10 @@ contract GetterFacet is GetterFacetInterface {
       );
   }
 
-  function getSubAccount(address primary, uint256 subAccountId)
-    public
-    pure
-    returns (address)
-  {
+  function getSubAccount(
+    address primary,
+    uint256 subAccountId
+  ) public pure returns (address) {
     return LibPoolV1.getSubAccount(primary, subAccountId);
   }
 
@@ -685,7 +651,7 @@ contract GetterFacet is GetterFacetInterface {
       else liquidity -= strategyDelta;
 
       if (LibPoolConfigV1.isStableToken(token)) {
-        aum += (liquidity * price) / 10**decimals;
+        aum += (liquidity * price) / 10 ** decimals;
       } else {
         uint256 shortSize = poolV1ds.shortSizeOf[token];
         if (shortSize > 0) {
@@ -714,7 +680,7 @@ contract GetterFacet is GetterFacetInterface {
         // Add actual liquidity of the token to the aum.
         aum +=
           ((liquidity - poolV1ds.reservedOf[token]) * price) /
-          10**decimals;
+          10 ** decimals;
       }
 
       token = LibPoolConfigV1.getNextAllowTokenOf(token);
@@ -730,7 +696,7 @@ contract GetterFacet is GetterFacetInterface {
   }
 
   function getAumE18(bool isUseMaxPrice) external view returns (uint256) {
-    return (getAum(isUseMaxPrice) * 10**18) / PRICE_PRECISION;
+    return (getAum(isUseMaxPrice) * 10 ** 18) / PRICE_PRECISION;
   }
 
   // ------------------------
@@ -783,11 +749,10 @@ contract GetterFacet is GetterFacetInterface {
     return feeBps + _taxBps;
   }
 
-  function getAddLiquidityFeeBps(address token, uint256 value)
-    external
-    view
-    returns (uint256)
-  {
+  function getAddLiquidityFeeBps(
+    address token,
+    uint256 value
+  ) external view returns (uint256) {
     // Load PoolConfigV1 Diamond Storage
     LibPoolConfigV1.PoolConfigV1DiamondStorage
       storage poolConfigV1ds = LibPoolConfigV1.poolConfigV1DiamondStorage();
@@ -802,11 +767,10 @@ contract GetterFacet is GetterFacetInterface {
       );
   }
 
-  function getRemoveLiquidityFeeBps(address token, uint256 value)
-    external
-    view
-    returns (uint256)
-  {
+  function getRemoveLiquidityFeeBps(
+    address token,
+    uint256 value
+  ) external view returns (uint256) {
     // Load PoolConfigV1 Diamond Storage
     LibPoolConfigV1.PoolConfigV1DiamondStorage
       storage poolConfigV1ds = LibPoolConfigV1.poolConfigV1DiamondStorage();
@@ -894,11 +858,9 @@ contract GetterFacet is GetterFacetInterface {
   // Funding rate
   // ------------
 
-  function getNextFundingRate(address token)
-    public
-    view
-    returns (int256 fundingRateLong, int256 fundingRateShort)
-  {
+  function getNextFundingRate(
+    address token
+  ) public view returns (int256 fundingRateLong, int256 fundingRateShort) {
     // Load diamond storage
     LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
       .poolV1DiamondStorage();
@@ -964,25 +926,21 @@ contract GetterFacet is GetterFacetInterface {
 
     return
       (amountTokens * poolV1ds.oracle.getPrice(token, isUseMaxPrice)) /
-      (10**LibPoolConfigV1.getTokenDecimalsOf(token));
+      (10 ** LibPoolConfigV1.getTokenDecimalsOf(token));
   }
 
-  function accumFundingRateLong(address indexToken)
-    external
-    view
-    returns (int256)
-  {
+  function accumFundingRateLong(
+    address indexToken
+  ) external view returns (int256) {
     // Load PoolV1 diamond storage
     LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
       .poolV1DiamondStorage();
     return poolV1ds.accumFundingRateLong[indexToken];
   }
 
-  function accumFundingRateShort(address indexToken)
-    external
-    view
-    returns (int256)
-  {
+  function accumFundingRateShort(
+    address indexToken
+  ) external view returns (int256) {
     // Load PoolV1 diamond storage
     LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
       .poolV1DiamondStorage();

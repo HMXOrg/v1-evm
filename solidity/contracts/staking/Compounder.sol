@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
@@ -72,10 +72,10 @@ contract Compounder is OwnableUpgradeable {
     }
   }
 
-  function setCompoundToken(address token, bool isCompoundToken)
-    public
-    onlyOwner
-  {
+  function setCompoundToken(
+    address token,
+    bool isCompoundToken
+  ) public onlyOwner {
     isCompoundableTokens[token] = isCompoundToken;
 
     if (isCompoundToken)
@@ -87,16 +87,18 @@ contract Compounder is OwnableUpgradeable {
     emit LogSetCompoundToken(token, isCompoundToken);
   }
 
-  function claimAll(address[] memory pools, address[][] memory rewarders)
-    external
-  {
+  function claimAll(
+    address[] memory pools,
+    address[][] memory rewarders
+  ) external {
     _claimAll(pools, rewarders);
     _compoundOrTransfer(false);
   }
 
-  function compound(address[] memory pools, address[][] memory rewarders)
-    external
-  {
+  function compound(
+    address[] memory pools,
+    address[][] memory rewarders
+  ) external {
     _claimAll(pools, rewarders);
     _compoundOrTransfer(true);
   }
@@ -126,9 +128,10 @@ contract Compounder is OwnableUpgradeable {
     }
   }
 
-  function _claimAll(address[] memory pools, address[][] memory rewarders)
-    internal
-  {
+  function _claimAll(
+    address[] memory pools,
+    address[][] memory rewarders
+  ) internal {
     uint256 length = pools.length;
     for (uint256 i = 0; i < length; ) {
       IStaking(pools[i]).harvestToCompounder(msg.sender, rewarders[i]);

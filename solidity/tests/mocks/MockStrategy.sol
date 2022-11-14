@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -16,11 +16,7 @@ contract MockStrategy is StrategyInterface {
     _;
   }
 
-  constructor(
-    address token_,
-    MockDonateVault vault_,
-    address pool_
-  ) {
+  constructor(address token_, MockDonateVault vault_, address pool_) {
     token = token_;
     vault = vault_;
     pool = pool_;
@@ -28,18 +24,14 @@ contract MockStrategy is StrategyInterface {
     IERC20(token).approve(address(vault), type(uint256).max);
   }
 
-  function run(
-    uint256 /* amount */
-  ) external onlyPool {
+  function run(uint256 /* amount */) external onlyPool {
     // Deposit funds into vault
     vault.deposit(IERC20(token).balanceOf(address(this)));
   }
 
-  function _roundedValueToShare(uint256 amount)
-    internal
-    view
-    returns (uint256)
-  {
+  function _roundedValueToShare(
+    uint256 amount
+  ) internal view returns (uint256) {
     uint256 share = vault.valueToShare(amount);
     uint256 convertedAmount = vault.shareToValue(share);
     // If calculated share converting back to value is less than the actual value, increase 1 WEI of share
@@ -49,11 +41,9 @@ contract MockStrategy is StrategyInterface {
     return share;
   }
 
-  function realized(uint256 principle)
-    external
-    onlyPool
-    returns (int256 amountDelta)
-  {
+  function realized(
+    uint256 principle
+  ) external onlyPool returns (int256 amountDelta) {
     (bool isProfit, uint256 amount) = getStrategyDelta(principle);
     if (isProfit) {
       vault.withdraw(_roundedValueToShare(amount));
@@ -65,11 +55,9 @@ contract MockStrategy is StrategyInterface {
     }
   }
 
-  function withdraw(uint256 amount)
-    external
-    onlyPool
-    returns (uint256 actualAmount)
-  {
+  function withdraw(
+    uint256 amount
+  ) external onlyPool returns (uint256 actualAmount) {
     vault.withdraw(_roundedValueToShare(amount));
     actualAmount = IERC20(token).balanceOf(address(this));
     IERC20(token).transfer(msg.sender, actualAmount);
@@ -77,11 +65,9 @@ contract MockStrategy is StrategyInterface {
     return actualAmount;
   }
 
-  function exit(uint256 principle)
-    external
-    onlyPool
-    returns (int256 amountDelta)
-  {
+  function exit(
+    uint256 principle
+  ) external onlyPool returns (int256 amountDelta) {
     // Calculate profit/losee
     (bool isProfit, uint256 uamountDelta) = getStrategyDelta(principle);
 
@@ -94,11 +80,9 @@ contract MockStrategy is StrategyInterface {
     return isProfit ? int256(uamountDelta) : -int256(uamountDelta);
   }
 
-  function getStrategyDelta(uint256 principle)
-    public
-    view
-    returns (bool isProfit, uint256 amountDelta)
-  {
+  function getStrategyDelta(
+    uint256 principle
+  ) public view returns (bool isProfit, uint256 amountDelta) {
     uint256 value = vault.shareToValue(vault.balanceOf(address(this)));
     if (value > principle) {
       return (true, value - principle);

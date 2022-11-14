@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
@@ -24,11 +24,10 @@ contract MockPoolOracle is Ownable {
     return minPrices[token];
   }
 
-  function getPrice(address token, bool isUseMaxPrice)
-    external
-    view
-    returns (uint256)
-  {
+  function getPrice(
+    address token,
+    bool isUseMaxPrice
+  ) external view returns (uint256) {
     if (isUseMaxPrice) {
       return maxPrices[token];
     } else {

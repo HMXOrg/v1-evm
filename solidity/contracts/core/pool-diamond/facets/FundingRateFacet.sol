@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { LibPoolV1 } from "../libraries/LibPoolV1.sol";
@@ -15,9 +15,10 @@ contract FundingRateFacet is FundingRateFacetInterface {
     int256 sumRateShort
   );
 
-  function updateFundingRate(address collateralToken, address indexToken)
-    external
-  {
+  function updateFundingRate(
+    address collateralToken,
+    address indexToken
+  ) external {
     _updateBorrowingRateAndFundingRate(collateralToken);
     if (collateralToken != indexToken)
       _updateBorrowingRateAndFundingRate(indexToken);

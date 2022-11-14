@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
 import { IMerkleAirdrop } from "../interfaces/IMerkleAirdrop.sol";
@@ -50,10 +50,10 @@ contract MerkleAirdrop is Ownable {
     feeder = newFeeder;
   }
 
-  function init(uint256 weekTimestamp, bytes32 merkleRoot_)
-    external
-    onlyFeederOrOwner
-  {
+  function init(
+    uint256 weekTimestamp,
+    bytes32 merkleRoot_
+  ) external onlyFeederOrOwner {
     uint256 currentWeekTimestamp = block.timestamp / (60 * 60 * 24 * 7);
     if (currentWeekTimestamp <= weekTimestamp)
       revert MerkleAirdrop_CannotInitFutureWeek();
@@ -65,11 +65,10 @@ contract MerkleAirdrop is Ownable {
     emit Init(weekTimestamp, merkleRoot_);
   }
 
-  function isClaimed(uint256 weekTimestamp, uint256 index)
-    public
-    view
-    returns (bool)
-  {
+  function isClaimed(
+    uint256 weekTimestamp,
+    uint256 index
+  ) public view returns (bool) {
     uint256 claimedWordIndex = index / 256;
     uint256 claimedBitIndex = index % 256;
     uint256 claimedWord = claimedBitMap[weekTimestamp][claimedWordIndex];
