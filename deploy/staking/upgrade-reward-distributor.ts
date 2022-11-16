@@ -12,18 +12,24 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "RewardDistributor",
     deployer
   );
-  const newOrderbookImp = await upgrades.prepareUpgrade(
+
+  console.log(`> Preparing to upgrade RewardDistributor`);
+  const newOrderbookImpDeployTx = await upgrades.prepareUpgrade(
     config.Staking.RewardDistributor.address,
     Orderbook
   );
-  console.log(`> New Orderbook Implementation address: ${newOrderbookImp}`);
-  const con = await upgrades.upgradeProxy(
+  console.log(`> Done`);
+
+  console.log(
+    `> New Orderbook Implementation address: ${newOrderbookImpDeployTx}`
+  );
+  const upgradeTx = await upgrades.upgradeProxy(
     config.Staking.RewardDistributor.address,
     Orderbook
   );
-  console.log(`> ⛓ Tx is submitted: ${con.deployTransaction.hash}`);
+  console.log(`> ⛓ Tx is submitted: ${upgradeTx.deployTransaction.hash}`);
   console.log(`> Waiting for tx to be mined...`);
-  await con.deployTransaction.wait(3);
+  await upgradeTx.deployTransaction.wait(3);
   console.log(`> Tx is mined!`);
 
   const implAddress = await getImplementationAddress(
