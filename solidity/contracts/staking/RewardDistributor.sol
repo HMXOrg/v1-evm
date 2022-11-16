@@ -250,14 +250,7 @@ contract RewardDistributor is OwnableUpgradeable {
     IERC20Upgradeable(token).approve(poolRouter, amount);
 
     // Swap
-    IPoolRouter(poolRouter).swap(
-      pool,
-      token,
-      rewardToken,
-      amount,
-      0,
-      address(this)
-    );
+    IPoolRouter(poolRouter).swap(token, rewardToken, amount, 0, address(this));
   }
 
   function _feedRewardToRewarders(

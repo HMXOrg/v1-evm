@@ -9,7 +9,6 @@ contract MockPoolRouterForRewardDistributor {
   using SafeERC20 for IERC20;
 
   function swap(
-    address pool,
     address tokenIn,
     address tokenOut,
     uint256 amountIn,
