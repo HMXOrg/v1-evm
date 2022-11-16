@@ -217,7 +217,8 @@
     "deploy:tenderly:timelock:deploy-timelock": "npx hardhat --network tenderly deploy --no-compile --reset --tags TimelockController",
     "deploy:matic:staking:set-reward-distributor-params": "npx hardhat --network matic deploy --no-compile --reset --tags SetRewardDistributorParams",
     "deploy:mumbai:staking:set-reward-distributor-params": "npx hardhat --network mumbai deploy --no-compile --reset --tags SetRewardDistributorParams",
-    "deploy:tenderly:staking:set-reward-distributor-params": "npx hardhat --network tenderly deploy --no-compile --reset --tags SetRewardDistributorParams"
+    "deploy:tenderly:staking:set-reward-distributor-params": "npx hardhat --network tenderly deploy --no-compile --reset --tags SetRewardDistributorParams",
+    "deploy:matic:staking:upgrade-reward-distributor": "npx hardhat --network matic deploy --no-compile --reset --tags UpgradeRewardDistributor"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-etherscan": "^3.1.2",

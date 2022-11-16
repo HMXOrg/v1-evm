@@ -17,20 +17,26 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     Orderbook
   );
   console.log(`> New Orderbook Implementation address: ${newOrderbookImp}`);
-  await upgrades.upgradeProxy(
+  const con = await upgrades.upgradeProxy(
     config.Staking.RewardDistributor.address,
     Orderbook
   );
+  console.log(`> ⛓ Tx is submitted: ${con.deployTransaction.hash}`);
+  console.log(`> Waiting for tx to be mined...`);
+  await con.deployTransaction.wait(3);
+  console.log(`> Tx is mined!`);
 
   const implAddress = await getImplementationAddress(
     ethers.provider,
     config.Staking.RewardDistributor.address
   );
 
+  console.log(`> Verify contract on Tenderly`);
   await tenderly.verify({
     address: implAddress,
     name: "RewardDistributor",
   });
+  console.log(`> ✅ Done`);
 };
 
 export default func;

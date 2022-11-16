@@ -1,15 +1,9 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
-import {
-  FeedableRewarder__factory,
-  Multicall__factory,
-  RewardDistributor__factory,
-} from "../../typechain";
+import { RewardDistributor__factory } from "../../typechain";
 import { getConfig } from "../utils/config";
 import { eip1559rapidGas } from "../utils/gas";
-
-const config = getConfig();
 
 interface RewardDistributorSetParamsArgs {
   rewardToken?: string;
