@@ -14,7 +14,7 @@ contract FeedableRewarder is IRewarder, OwnableUpgradeable {
   using SafeCastUpgradeable for int256;
   using SafeERC20Upgradeable for IERC20Upgradeable;
 
-  uint256 public constant MINIMUM_PERIOD = 7 days;
+  uint256 public constant MINIMUM_PERIOD = 5 days;
   uint256 public constant MAXIMUM_PERIOD = 365 days;
 
   string public name;
