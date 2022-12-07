@@ -252,6 +252,32 @@ contract FastPriceFeed is OwnableUpgradeable {
     tokenPrecisions = _tokenPrecisions;
   }
 
+  function setConfigs(
+    address[] memory _tokens,
+    uint256[] memory _tokenPrecisions,
+    uint256 _minAuthorizations,
+    uint256 _priceDataInterval,
+    uint256[] memory _maxCumulativeDeltaDiffs,
+    uint256 _maxTimeDeviation
+  ) external onlyOwner {
+    require(
+      _tokens.length == _tokenPrecisions.length,
+      "FastPriceFeed: invalid lengths"
+    );
+    tokens = _tokens;
+    tokenPrecisions = _tokenPrecisions;
+
+    minAuthorizations = _minAuthorizations;
+    priceDataInterval = _priceDataInterval;
+
+    for (uint256 i = 0; i < _tokens.length; i++) {
+      address token = _tokens[i];
+      maxCumulativeDeltaDiffs[token] = _maxCumulativeDeltaDiffs[i];
+    }
+
+    maxTimeDeviation = _maxTimeDeviation;
+  }
+
   function setPrices(
     address[] memory _tokens,
     uint256[] memory _prices,
