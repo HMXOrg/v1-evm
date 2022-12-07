@@ -35,7 +35,7 @@ contract FastPriceFeed is OwnableUpgradeable {
   bool public isInitialized;
   bool public isSpreadEnabled;
 
-  address public vaultPriceFeed;
+  address public poolOracle;
 
   address public tokenManager;
 
@@ -162,8 +162,8 @@ contract FastPriceFeed is OwnableUpgradeable {
     isUpdater[_account] = _isActive;
   }
 
-  function setVaultPriceFeed(address _vaultPriceFeed) external onlyOwner {
-    vaultPriceFeed = _vaultPriceFeed;
+  function setPoolOracle(address _poolOracle) external onlyOwner {
+    poolOracle = _poolOracle;
   }
 
   function setMaxTimeDeviation(uint256 _maxTimeDeviation) external onlyOwner {
@@ -261,11 +261,11 @@ contract FastPriceFeed is OwnableUpgradeable {
     bool shouldUpdate = _setLastUpdatedValues(_timestamp);
 
     if (shouldUpdate) {
-      address _vaultPriceFeed = vaultPriceFeed;
+      address _poolOracle = poolOracle;
 
       for (uint256 i = 0; i < _tokens.length; i++) {
         address token = _tokens[i];
-        _setPrice(token, _prices[i], _vaultPriceFeed, _checksum);
+        _setPrice(token, _prices[i], _poolOracle, _checksum);
       }
     }
   }
@@ -278,7 +278,7 @@ contract FastPriceFeed is OwnableUpgradeable {
     bool shouldUpdate = _setLastUpdatedValues(_timestamp);
 
     if (shouldUpdate) {
-      address _vaultPriceFeed = vaultPriceFeed;
+      address _poolOracle = poolOracle;
 
       for (uint256 i = 0; i < _priceBitArray.length; i++) {
         uint256 priceBits = _priceBitArray[i];
@@ -296,7 +296,7 @@ contract FastPriceFeed is OwnableUpgradeable {
           uint256 tokenPrecision = tokenPrecisions[i * 8 + j];
           uint256 adjustedPrice = (price * PRICE_PRECISION) / tokenPrecision;
 
-          _setPrice(token, adjustedPrice, _vaultPriceFeed, _checksum);
+          _setPrice(token, adjustedPrice, _poolOracle, _checksum);
         }
       }
     }
@@ -365,7 +365,7 @@ contract FastPriceFeed is OwnableUpgradeable {
   }
 
   // under regular operation, the fastPrice (prices[token]) is returned and there is no spread returned from this function,
-  // though VaultPriceFeed might apply its own spread
+  // though PoolOracle might apply its own spread
   //
   // if the fastPrice has not been updated within priceDuration then it is ignored and only _refPrice with a spread is used (spread: spreadBasisPointsIfInactive)
   // in case the fastPrice has not been updated for maxPriceUpdateDelay then the _refPrice with a larger spread is used (spread: spreadBasisPointsIfChainError)
@@ -480,7 +480,7 @@ contract FastPriceFeed is OwnableUpgradeable {
     bool shouldUpdate = _setLastUpdatedValues(_timestamp);
 
     if (shouldUpdate) {
-      address _vaultPriceFeed = vaultPriceFeed;
+      address _poolOracle = poolOracle;
 
       for (uint256 j = 0; j < 8; j++) {
         uint256 index = j;
@@ -495,7 +495,7 @@ contract FastPriceFeed is OwnableUpgradeable {
         uint256 tokenPrecision = tokenPrecisions[j];
         uint256 adjustedPrice = (price * PRICE_PRECISION) / tokenPrecision;
 
-        _setPrice(token, adjustedPrice, _vaultPriceFeed, _checksum);
+        _setPrice(token, adjustedPrice, _poolOracle, _checksum);
       }
     }
   }
@@ -503,13 +503,11 @@ contract FastPriceFeed is OwnableUpgradeable {
   function _setPrice(
     address _token,
     uint256 _price,
-    address _vaultPriceFeed,
+    address _poolOracle,
     bytes32 checksum
   ) private {
-    if (_vaultPriceFeed != address(0)) {
-      uint256 refPrice = PoolOracle(_vaultPriceFeed).getLatestPrimaryPrice(
-        _token
-      );
+    if (_poolOracle != address(0)) {
+      uint256 refPrice = PoolOracle(_poolOracle).getLatestPrimaryPrice(_token);
       uint256 fastPrice = prices[_token];
 
       (
@@ -535,12 +533,16 @@ contract FastPriceFeed is OwnableUpgradeable {
           cumulativeFastDelta = 0;
         }
 
-        cumulativeRefDelta =
-          cumulativeRefDelta +
-          ((refDeltaAmount * (CUMULATIVE_DELTA_PRECISION)) / (prevRefPrice));
-        cumulativeFastDelta =
-          cumulativeFastDelta +
-          ((fastDeltaAmount * (CUMULATIVE_DELTA_PRECISION)) / (fastPrice));
+        if (prevRefPrice > 0) {
+          cumulativeRefDelta =
+            cumulativeRefDelta +
+            ((refDeltaAmount * CUMULATIVE_DELTA_PRECISION) / prevRefPrice);
+        }
+        if (fastPrice > 0) {
+          cumulativeFastDelta =
+            cumulativeFastDelta +
+            ((fastDeltaAmount * CUMULATIVE_DELTA_PRECISION) / fastPrice);
+        }
       }
 
       if (
