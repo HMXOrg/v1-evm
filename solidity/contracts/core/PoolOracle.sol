@@ -163,6 +163,21 @@ contract PoolOracle is OwnableUpgradeable {
       );
   }
 
+  function getLatestPrimaryPrice(
+    address token
+  ) external view returns (uint256) {
+    // SLOAD
+    PriceFeedInfo memory priceFeed = priceFeedInfo[token];
+    if (address(priceFeed.priceFeed) == address(0))
+      revert PoolOracle_PriceFeedNotAvailable();
+
+    (, int256 price, , , ) = priceFeed.priceFeed.latestRoundData();
+
+    if (price == 0) revert PoolOracle_UnableFetchPrice();
+
+    return uint256(price);
+  }
+
   function getPrice(
     address token,
     bool isUseMaxPrice
