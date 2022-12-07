@@ -33,7 +33,7 @@ contract FastPriceFeed is OwnableUpgradeable {
   uint256 public constant MAX_PRICE_DURATION = 30 minutes;
 
   bool public isInitialized;
-  bool public isSpreadEnabled = false;
+  bool public isSpreadEnabled;
 
   address public vaultPriceFeed;
 
@@ -57,7 +57,7 @@ contract FastPriceFeed is OwnableUpgradeable {
   uint256 public maxDeviationBasisPoints;
 
   uint256 public minAuthorizations;
-  uint256 public disableFastPriceVoteCount = 0;
+  uint256 public disableFastPriceVoteCount;
 
   mapping(address => bool) public isUpdater;
 
@@ -128,6 +128,9 @@ contract FastPriceFeed is OwnableUpgradeable {
     maxDeviationBasisPoints = _maxDeviationBasisPoints;
     tokenManager = _tokenManager;
     positionRouter = _positionRouter;
+
+    isSpreadEnabled = false;
+    disableFastPriceVoteCount = 0;
   }
 
   function init(
