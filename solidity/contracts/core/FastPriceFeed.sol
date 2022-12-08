@@ -258,7 +258,9 @@ contract FastPriceFeed is OwnableUpgradeable {
     uint256 _minAuthorizations,
     uint256 _priceDataInterval,
     uint256[] memory _maxCumulativeDeltaDiffs,
-    uint256 _maxTimeDeviation
+    uint256 _maxTimeDeviation,
+    uint256 _spreadBasisPointsIfChainError,
+    uint256 _spreadBasisPointsIfInactive
   ) external onlyOwner {
     require(
       _tokens.length == _tokenPrecisions.length,
@@ -276,6 +278,8 @@ contract FastPriceFeed is OwnableUpgradeable {
     }
 
     maxTimeDeviation = _maxTimeDeviation;
+    spreadBasisPointsIfChainError = _spreadBasisPointsIfChainError;
+    spreadBasisPointsIfInactive = _spreadBasisPointsIfInactive;
   }
 
   function setPrices(

@@ -7,14 +7,9 @@ import { eip1559rapidGas } from "../utils/gas";
 
 const config = getConfig();
 
-const tokens = [config.Tokens.WBTC, config.Tokens.WETH, config.Tokens.WMATIC];
-const tokenPrecisions = [1000, 1000, 1000];
 const minAuthorizations = 1;
-const priceDataInterval = 60;
-const maxCumulativeDeltaDiffs = [1000000, 1000000, 1000000];
-const maxTimeDeviation = 3600;
-const spreadBasisPointsIfChainError = 500;
-const spreadBasisPointsIfInactive = 20;
+const signers = ["0x6629eC35c8Aa279BA45Dbfb575c728d3812aE31a"];
+const updaters = ["0x6629eC35c8Aa279BA45Dbfb575c728d3812aE31a"];
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
@@ -23,16 +18,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     deployer
   );
 
-  console.log("> Set Configs for FastPriceFeed");
-  const tx = await fastPriceFeed.setConfigs(
-    tokens,
-    tokenPrecisions,
+  console.log("> Init FastPriceFeed");
+  const tx = await fastPriceFeed.init(
     minAuthorizations,
-    priceDataInterval,
-    maxCumulativeDeltaDiffs,
-    maxTimeDeviation,
-    spreadBasisPointsIfChainError,
-    spreadBasisPointsIfInactive,
+    signers,
+    updaters,
     await eip1559rapidGas()
   );
   console.log(`> ⛓ Tx submitted: ${tx.hash}`);
@@ -42,4 +32,4 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 
 export default func;
-func.tags = ["SetConfigsFastPriceFeed"];
+func.tags = ["InitFastPriceFeed"];
