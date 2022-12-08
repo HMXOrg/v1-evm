@@ -12,6 +12,7 @@ const minBlockInterval = 0;
 const maxDeviationBasisPoints = 1000;
 const tokenManager = "0x6629eC35c8Aa279BA45Dbfb575c728d3812aE31a";
 const positionRouter = "0x6629eC35c8Aa279BA45Dbfb575c728d3812aE31a";
+const orderbook = config.Pools.PLP.orderbook;
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
@@ -28,6 +29,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     maxDeviationBasisPoints,
     tokenManager,
     positionRouter,
+    orderbook,
   ]);
   console.log(`> ⛓ Tx submitted: ${fastPriceFeed.deployTransaction.hash}`);
   await fastPriceFeed.deployTransaction.wait(3);

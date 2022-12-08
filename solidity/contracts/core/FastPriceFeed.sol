@@ -4,6 +4,7 @@ import { OwnableUpgradeable } from "@openzeppelin/contracts-upgradeable/access/O
 import { ISecondaryPriceFeed } from "../interfaces/ISecondaryPriceFeed.sol";
 import { IPositionRouter } from "../interfaces/IPositionRouter.sol";
 import { PoolOracle } from "../core/PoolOracle.sol";
+import { Orderbook } from "../core/pool-diamond/Orderbook.sol";
 
 pragma solidity 0.8.17;
 
@@ -14,6 +15,11 @@ contract FastPriceFeed is OwnableUpgradeable {
     uint32 refTime; // last updated at time
     uint32 cumulativeRefDelta; // cumulative Chainlink price delta
     uint32 cumulativeFastDelta; // cumulative fast price delta
+  }
+  struct LimitOrderKey {
+    address primaryAccount;
+    uint256 subAccountId;
+    uint256 orderIndex;
   }
 
   uint256 public constant PRICE_PRECISION = 10 ** 30;
@@ -39,7 +45,8 @@ contract FastPriceFeed is OwnableUpgradeable {
 
   address public tokenManager;
 
-  address public positionRouter;
+  address public positionRouter; // market order
+  address public orderbook; // limit/trigger order
 
   uint256 public lastUpdatedAt;
   uint256 public lastUpdatedBlock;
@@ -114,7 +121,8 @@ contract FastPriceFeed is OwnableUpgradeable {
     uint256 _minBlockInterval,
     uint256 _maxDeviationBasisPoints,
     address _tokenManager,
-    address _positionRouter
+    address _positionRouter,
+    address _orderbook
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
 
@@ -128,6 +136,7 @@ contract FastPriceFeed is OwnableUpgradeable {
     maxDeviationBasisPoints = _maxDeviationBasisPoints;
     tokenManager = _tokenManager;
     positionRouter = _positionRouter;
+    orderbook = _orderbook;
 
     isSpreadEnabled = false;
     disableFastPriceVoteCount = 0;
@@ -373,6 +382,62 @@ contract FastPriceFeed is OwnableUpgradeable {
       _endIndexForDecreasePositions,
       payable(msg.sender)
     );
+  }
+
+  function setPricesWithBitsAndExecute(
+    uint256 _priceBits,
+    uint256 _timestamp,
+    LimitOrderKey[] memory _increaseOrders,
+    LimitOrderKey[] memory _decreaseOrders,
+    LimitOrderKey[] memory _swapOrders,
+    bytes32 _checksum
+  ) external onlyUpdater {
+    _setPricesWithBits(_priceBits, _timestamp, _checksum);
+
+    Orderbook _orderbook = Orderbook(payable(orderbook));
+    for (uint256 i = 0; i < _increaseOrders.length; ) {
+      try
+        _orderbook.executeIncreaseOrder(
+          _increaseOrders[i].primaryAccount,
+          _increaseOrders[i].subAccountId,
+          _increaseOrders[i].orderIndex,
+          payable(msg.sender)
+        )
+      {} catch {}
+
+      unchecked {
+        i++;
+      }
+    }
+
+    for (uint256 i = 0; i < _decreaseOrders.length; ) {
+      try
+        _orderbook.executeDecreaseOrder(
+          _decreaseOrders[i].primaryAccount,
+          _decreaseOrders[i].subAccountId,
+          _decreaseOrders[i].orderIndex,
+          payable(msg.sender)
+        )
+      {} catch {}
+
+      unchecked {
+        i++;
+      }
+    }
+
+    for (uint256 i = 0; i < _swapOrders.length; ) {
+      try
+        _orderbook.executeSwapOrder(
+          _decreaseOrders[i].primaryAccount,
+          _decreaseOrders[i].orderIndex,
+          payable(msg.sender)
+        )
+      {} catch {}
+
+      unchecked {
+        i++;
+      }
+    }
   }
 
   function disableFastPrice() external onlySigner {

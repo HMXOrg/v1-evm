@@ -43,7 +43,7 @@
     "PLP": {
       "poolDiamond": "0x74d841657cDFdFcbDd2A40818F2Bc6cA60283428",
       "oracle": "0xD0EC40bC1521703986132D79c146bB150D7D7a64",
-      "fastPriceFeed": "0x9DA47079A2662Dc4cD4DB0aBaCaAE30260f77a08",
+      "fastPriceFeed": "0xFc4D208a7501c83BB7CD6ac5E29cDA137098e752",
       "orderbook": "0x1B6ccB3A5B3eB918211424c0624b1f874500aa3E",
       "facets": {
         "admin": "0x3C718685c13cB047b75644d1958C3D8CE1E78d0D",
