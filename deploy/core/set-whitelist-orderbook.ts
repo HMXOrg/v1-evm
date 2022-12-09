@@ -10,7 +10,7 @@ import { eip1559rapidGas } from "../utils/gas";
 
 const config = getConfig();
 
-const WHITELIST_ADDRESS = "0x3A16765161fEeC1E5d8a80020d4974e5032A23B1";
+const WHITELIST_ADDRESS = config.Pools.PLP.fastPriceFeed;
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
