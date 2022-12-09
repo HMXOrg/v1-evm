@@ -65,6 +65,7 @@ import { PoolRouter } from "solidity/contracts/core/pool-diamond/PoolRouter.sol"
 import { Orderbook } from "solidity/contracts/core/pool-diamond/Orderbook.sol";
 import { MockWNative } from "../mocks/MockWNative.sol";
 import { MerkleAirdrop } from "solidity/contracts/airdrop/MerkleAirdrop.sol";
+import { FastPriceFeed } from "solidity/contracts/core/FastPriceFeed.sol";
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
@@ -1083,5 +1084,35 @@ contract BaseTest is DSTest {
     address feeder
   ) internal returns (MerkleAirdrop) {
     return new MerkleAirdrop(token, feeder);
+  }
+
+  function deployFastPriceFeed(
+    uint256 _priceDuration,
+    uint256 _maxPriceUpdateDelay,
+    uint256 _minBlockInterval,
+    uint256 _maxDeviationBasisPoints,
+    address _tokenManager,
+    address _positionRouter,
+    address _orderbook
+  ) internal returns (FastPriceFeed) {
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/FastPriceFeed.sol/FastPriceFeed.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(
+        keccak256(
+          "initialize(uint256,uint256,uint256,uint256,address,address,address)"
+        )
+      ),
+      _priceDuration,
+      _maxPriceUpdateDelay,
+      _minBlockInterval,
+      _maxDeviationBasisPoints,
+      _tokenManager,
+      _positionRouter,
+      _orderbook
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return FastPriceFeed(payable(_proxy));
   }
 }

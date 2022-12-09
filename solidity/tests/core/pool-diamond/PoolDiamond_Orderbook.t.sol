@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
-import { PoolDiamond_BaseTest, console, LibPoolConfigV1, LiquidityFacetInterface, GetterFacetInterface, PerpTradeFacetInterface } from "./PoolDiamond_BaseTest.t.sol";
+import { PoolDiamond_BaseTest, console, LibPoolConfigV1, LiquidityFacetInterface, GetterFacetInterface, PerpTradeFacetInterface, FastPriceFeed } from "./PoolDiamond_BaseTest.t.sol";
 
 contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
+  FastPriceFeed internal fastPriceFeed;
+
   function setUp() public override {
     super.setUp();
 
@@ -14,6 +16,50 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
 
     poolAdminFacet.setTokenConfigs(tokens2, tokenConfigs2);
     orderbook.setWhitelist(address(this), true);
+
+    fastPriceFeed = deployFastPriceFeed(
+      300,
+      3600,
+      0,
+      1000,
+      address(this),
+      address(this),
+      address(orderbook)
+    );
+
+    address[] memory _signers = new address[](1);
+    _signers[0] = address(this);
+    address[] memory _updaters = new address[](1);
+    _updaters[0] = address(this);
+    fastPriceFeed.init(1, _signers, _updaters);
+
+    address[] memory _tokens = new address[](3);
+    _tokens[0] = address(wbtc);
+    _tokens[1] = address(weth);
+    _tokens[2] = address(matic);
+    uint256[] memory _tokenPrecisions = new uint256[](3);
+    _tokenPrecisions[0] = 1000;
+    _tokenPrecisions[1] = 1000;
+    _tokenPrecisions[2] = 1000;
+    uint256[] memory _maxCumulativeDeltaDiffs = new uint256[](3);
+    _maxCumulativeDeltaDiffs[0] = 1000000;
+    _maxCumulativeDeltaDiffs[1] = 1000000;
+    _maxCumulativeDeltaDiffs[2] = 1000000;
+    fastPriceFeed.setConfigs(
+      _tokens,
+      _tokenPrecisions,
+      1,
+      60,
+      _maxCumulativeDeltaDiffs,
+      3600,
+      500,
+      20
+    );
+
+    poolOracle.setSecondaryPriceFeed(address(fastPriceFeed));
+    poolOracle.setIsSecondaryPriceEnabled(true);
+
+    orderbook.setWhitelist(address(fastPriceFeed), true);
   }
 
   function testRevert_IncreaseOrder_InsufficientExecutionFee() external {
@@ -263,7 +309,28 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     (bool shouldExecute, uint160[] memory orderList) = orderbook
       .getShouldExecuteOrderList(false, 10);
     assertTrue(shouldExecute);
-    executeOrders(orderList, payable(BOB));
+
+    vm.warp(1669832202); // warp ahead to prevent FastPriceFeed failure in checking last update validation
+    FastPriceFeed.LimitOrderKey memory orderKey;
+    orderKey.primaryAccount = ALICE;
+    orderKey.subAccountId = 0;
+    orderKey.orderIndex = 1;
+    FastPriceFeed.LimitOrderKey[]
+      memory increaseOrderKeys = new FastPriceFeed.LimitOrderKey[](1);
+    increaseOrderKeys[0] = orderKey;
+    FastPriceFeed.LimitOrderKey[]
+      memory emptyArray = new FastPriceFeed.LimitOrderKey[](0);
+    fastPriceFeed.setPricesWithBitsAndExecute(
+      getPriceBits(41000000, 1200000, 870),
+      block.timestamp,
+      increaseOrderKeys,
+      emptyArray,
+      emptyArray,
+      payable(BOB),
+      0x0000000000000000000000000000000000000000000000000000000000000000
+    );
+
+    // executeOrders(orderList, payable(BOB));
     // orderbook.executeIncreaseOrder(ALICE, 0, 1, payable(BOB));
     // Bob should receive 0.01 ether as execution fee
     assertEq(BOB.balance, 0.01 ether);
@@ -273,28 +340,28 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     // = 234292 + 22500 - (((47 * 0.001) + (47 * 0)) / 41000)
     // = 234292 + 22500 - 114 = 256678 sathoshi
     // 2. Pool's WBTC reserved should be:
-    // = 47 / 40000 = 117500 sathoshi
+    // = 47 / 41000 = 114634 sathoshi
     // 3. Pool's WBTC guarantee USD should be:
-    // = 47 + 0.0047 - ((22500 / 1e8) * 40000) = 38.047 USD
+    // = 47 + 0.047 - ((22500 / 1e8) * 41000) = 37.822 USD
     // 4. Redeemable WBTC in USD should be:
-    // = ((256678 + 92797 - 117500) / 1e8) * 40000 = 92.79 USD
+    // = ((256678 + 92248 - 114634) / 1e8) * 41000 = 96.05972 USD
     // 5. Pool's AUM by min price should be:
-    // 38.047 + ((256678 - 117500) / 1e8) * 40000 = 93.7182 USD
+    // 37.822 + ((256678 - 114634) / 1e8) * 41000 = 96.06004 USD
     // 6. Pool's AUM by max price should be:
-    // 38.047 + ((256678 - 117500) / 1e8) * 41000 = 95.10998 USD
+    // 37.822 + ((256678 - 114634) / 1e8) * 41000 = 96.06004 USD
     // 7. Pool should makes 706 + 114 = 820 sathoshi
     // 8. Pool's WBTC USD debt should still the same as before
     // 9. Pool's WBTC balance should be:
     // = 256678 + 820 = 257498 sathoshi
     assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 256678);
-    assertEq(poolGetterFacet.reservedOf(address(wbtc)), 117500);
-    assertEq(poolGetterFacet.guaranteedUsdOf(address(wbtc)), 38.047 * 10 ** 30);
+    assertEq(poolGetterFacet.reservedOf(address(wbtc)), 114634);
+    assertEq(poolGetterFacet.guaranteedUsdOf(address(wbtc)), 37.822 * 10 ** 30);
     assertEq(
       poolGetterFacet.getRedemptionCollateralUsd(address(wbtc)),
-      92.79 * 10 ** 30
+      96.05972 * 10 ** 30
     );
-    assertEq(poolGetterFacet.getAumE18(false), 93.7182 * 10 ** 18);
-    assertEq(poolGetterFacet.getAumE18(true), 95.10998 * 10 ** 18);
+    assertEq(poolGetterFacet.getAumE18(false), 96.06004 * 10 ** 18);
+    assertEq(poolGetterFacet.getAumE18(true), 96.06004 * 10 ** 18);
     assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 820);
     assertEq(poolGetterFacet.usdDebtOf(address(wbtc)), 93.7168 * 10 ** 18);
     assertEq(wbtc.balanceOf(address(poolDiamond)), 257498);
@@ -302,7 +369,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     // Assert a postion
     // 1. Position's size should be 47 USD
     // 2. Position's collateral should be:
-    // = ((22500 / 1e8) * 40000) - 0.047 = 8.953 USD
+    // = ((22500 / 1e8) * 41000) - 0.047 = 9.178 USD
     // 3. Position's average price should be 41000 USD
     GetterFacetInterface.GetPositionReturnVars memory position = poolGetterFacet
       .getPositionWithSubAccountId(
@@ -313,10 +380,10 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
         true
       );
     assertEq(position.size, 47 * 10 ** 30);
-    assertEq(position.collateral, 8.953 * 10 ** 30);
+    assertEq(position.collateral, 9.178 * 10 ** 30);
     assertEq(position.averagePrice, 41000 * 10 ** 30);
     assertEq(position.entryFundingRate, 0);
-    assertEq(position.reserveAmount, 117500);
+    assertEq(position.reserveAmount, 114634);
     assertEq(position.realizedPnl, 0);
     assertTrue(position.hasProfit == true);
     assertEq(position.lastIncreasedTime, block.timestamp);
@@ -340,10 +407,23 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     wbtcPriceFeed.setLatestAnswer(45_000 * 10 ** 8);
 
     uint256 aliceWBTCBalanceBefore = wbtc.balanceOf(ALICE);
-
-    (shouldExecute, orderList) = orderbook.getShouldExecuteOrderList(false, 10);
-    assertTrue(shouldExecute);
-    executeOrders(orderList, payable(BOB));
+    orderKey.primaryAccount = ALICE;
+    orderKey.subAccountId = 0;
+    orderKey.orderIndex = 0;
+    FastPriceFeed.LimitOrderKey[]
+      memory decreaseOrderKeys = new FastPriceFeed.LimitOrderKey[](1);
+    decreaseOrderKeys[0] = orderKey;
+    vm.warp(block.timestamp + 1000);
+    fastPriceFeed.setPricesWithBitsAndExecute(
+      getPriceBits(45000000, 1200000, 870),
+      block.timestamp,
+      emptyArray,
+      decreaseOrderKeys,
+      emptyArray,
+      payable(BOB),
+      0x0000000000000000000000000000000000000000000000000000000000000000
+    );
+    // executeOrders(orderList, payable(BOB));
     // orderbook.executeDecreaseOrder(ALICE, 0, 0, payable(BOB));
     // Bob should receive another 0.01 ether as execution fee
     assertEq(BOB.balance, 0.02 ether);
@@ -945,5 +1025,17 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
       }
       curIndex++;
     }
+  }
+
+  function getPriceBits(
+    uint256 wbtcPrice,
+    uint256 wethPrice,
+    uint256 maticPrice
+  ) internal returns (uint256) {
+    uint256 priceBits = 0;
+    priceBits = priceBits | (wbtcPrice << (0 * 32));
+    priceBits = priceBits | (wethPrice << (1 * 32));
+    priceBits = priceBits | (maticPrice << (2 * 32));
+    return priceBits;
   }
 }
