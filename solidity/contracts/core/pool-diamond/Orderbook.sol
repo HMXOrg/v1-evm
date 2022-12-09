@@ -828,12 +828,6 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   }
 
   function executeIncreaseOrder(
-    address _subAccount,
-    uint256 _orderIndex,
-    address payable _feeReceiver
-  ) external nonReentrant whitelisted {}
-
-  function executeIncreaseOrder(
     address _address,
     uint256 _subAccountId,
     uint256 _orderIndex,
