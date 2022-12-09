@@ -390,6 +390,7 @@ contract FastPriceFeed is OwnableUpgradeable {
     LimitOrderKey[] memory _increaseOrders,
     LimitOrderKey[] memory _decreaseOrders,
     LimitOrderKey[] memory _swapOrders,
+    address payable _feeReceiver,
     bytes32 _checksum
   ) external onlyUpdater {
     _setPricesWithBits(_priceBits, _timestamp, _checksum);
@@ -401,7 +402,7 @@ contract FastPriceFeed is OwnableUpgradeable {
           _increaseOrders[i].primaryAccount,
           _increaseOrders[i].subAccountId,
           _increaseOrders[i].orderIndex,
-          payable(msg.sender)
+          payable(_feeReceiver)
         )
       {} catch {}
 
@@ -416,7 +417,7 @@ contract FastPriceFeed is OwnableUpgradeable {
           _decreaseOrders[i].primaryAccount,
           _decreaseOrders[i].subAccountId,
           _decreaseOrders[i].orderIndex,
-          payable(msg.sender)
+          payable(_feeReceiver)
         )
       {} catch {}
 
@@ -430,7 +431,7 @@ contract FastPriceFeed is OwnableUpgradeable {
         _orderbook.executeSwapOrder(
           _decreaseOrders[i].primaryAccount,
           _decreaseOrders[i].orderIndex,
-          payable(msg.sender)
+          payable(_feeReceiver)
         )
       {} catch {}
 
@@ -726,4 +727,6 @@ contract FastPriceFeed is OwnableUpgradeable {
   constructor() {
     _disableInitializers();
   }
+
+  receive() external payable {}
 }
