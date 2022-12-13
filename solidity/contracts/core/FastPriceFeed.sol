@@ -516,13 +516,7 @@ contract FastPriceFeed is OwnableUpgradeable {
       diffBasisPoints > maxDeviationBasisPoints;
 
     if (hasSpread) {
-      // return the higher of the two prices
-      if (_maximise) {
-        return _refPrice > fastPrice ? _refPrice : fastPrice;
-      }
-
-      // return the lower of the two prices
-      return _refPrice < fastPrice ? _refPrice : fastPrice;
+      return _refPrice;
     }
 
     return fastPrice;
