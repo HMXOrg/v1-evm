@@ -32,8 +32,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     maxCumulativeDeltaDiffs,
     maxTimeDeviation,
     spreadBasisPointsIfChainError,
-    spreadBasisPointsIfInactive,
-    await eip1559rapidGas()
+    spreadBasisPointsIfInactive
   );
   console.log(`> ⛓ Tx submitted: ${tx.hash}`);
   console.log(`> Waiting for tx to be mined...`);

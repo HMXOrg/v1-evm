@@ -8,10 +8,10 @@ const config = getConfig();
 
 const priceDuration = 300;
 const maxPriceUpdateDelay = 3600;
-const minBlockInterval = 0;
+const minBlockInterval = 1;
 const maxDeviationBasisPoints = 1000;
 const tokenManager = "0x6629eC35c8Aa279BA45Dbfb575c728d3812aE31a";
-const positionRouter = "0x6629eC35c8Aa279BA45Dbfb575c728d3812aE31a";
+const positionRouter = config.Pools.PLP.marketOrderbook;
 const orderbook = config.Pools.PLP.orderbook;
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {

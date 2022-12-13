@@ -24,7 +24,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   );
   const timestamp = (new Date().valueOf() / 1000).toFixed();
   const tx = await fastPriceFeed.setPricesWithBits(
-    getPriceBits(["16828640", "1230110", "887"]),
+    getPriceBits(["17162390", "1465110", "880"]),
     timestamp,
     "0x0000000000000000000000000000000000000000000000000000000000000000",
     { gasLimit: 10000000 }

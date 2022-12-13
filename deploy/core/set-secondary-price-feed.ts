@@ -16,8 +16,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   console.log("> Set Secondary Price Feed for PoolOracle");
   const tx = await poolOracle.setSecondaryPriceFeed(
-    config.Pools.PLP.fastPriceFeed,
-    await eip1559rapidGas()
+    config.Pools.PLP.fastPriceFeed
   );
   console.log(`> ⛓ Tx submitted: ${tx.hash}`);
   console.log(`> Waiting for tx to be mined...`);

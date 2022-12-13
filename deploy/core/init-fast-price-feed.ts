@@ -19,12 +19,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   );
 
   console.log("> Init FastPriceFeed");
-  const tx = await fastPriceFeed.init(
-    minAuthorizations,
-    signers,
-    updaters,
-    await eip1559rapidGas()
-  );
+  const tx = await fastPriceFeed.init(minAuthorizations, signers, updaters);
   console.log(`> ⛓ Tx submitted: ${tx.hash}`);
   console.log(`> Waiting for tx to be mined...`);
   await tx.wait(3);
