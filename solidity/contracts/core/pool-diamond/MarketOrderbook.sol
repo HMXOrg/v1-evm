@@ -1590,4 +1590,9 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
     return (index, key);
   }
+
+  /// @custom:oz-upgrades-unsafe-allow constructor
+  constructor() {
+    _disableInitializers();
+  }
 }
