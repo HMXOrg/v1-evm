@@ -6,7 +6,7 @@ import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 
 const config = getConfig();
 
-const minExecutionFee = ethers.utils.parseEther("0.002");
+const minExecutionFee = ethers.utils.parseEther("0.2");
 const minPurchaseTokenAmountUsd = ethers.utils.parseUnits("10", 30);
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
@@ -17,12 +17,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     "MarketOrderbook",
     deployer
   );
+
   const orderbook = await upgrades.deployProxy(MarketOrderbook, [
-    config.Pools.PLP.poolDiamond,
-    config.Pools.PLP.oracle,
-    config.Tokens.WMATIC,
-    minExecutionFee,
-    minPurchaseTokenAmountUsd,
+    config.Pools.PLP.poolDiamond, // _pool
+    config.Pools.PLP.oracle, // _poolOracle
+    config.Tokens.WMATIC, // _weth
+    minPurchaseTokenAmountUsd, // _depositFee
+    minExecutionFee, // _minExecutionFee
   ]);
   console.log(`> ⛓ Tx submitted: ${orderbook.deployTransaction.hash}`);
   console.log(`> Waiting tx to be mined...`);

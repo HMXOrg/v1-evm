@@ -8,28 +8,29 @@ const config = getConfig();
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
-  const FastPriceFeed = await ethers.getContractFactory(
-    "FastPriceFeed",
+  const Orderbook = await ethers.getContractFactory(
+    "MarketOrderbook",
     deployer
   );
-  const newFastPriceFeedImp = await upgrades.prepareUpgrade(
-    config.Pools.PLP.fastPriceFeed,
-    FastPriceFeed
+  const newOrderbookImp = await upgrades.prepareUpgrade(
+    config.Pools.PLP.marketOrderbook,
+    Orderbook
   );
   console.log(
-    `> New FastPriceFeed Implementation address: ${newFastPriceFeedImp}`
+    `> New MarketOrderbook Implementation address: ${newOrderbookImp}`
   );
-  const tx = await upgrades.upgradeProxy(
-    config.Pools.PLP.fastPriceFeed,
-    FastPriceFeed
+  await upgrades.upgradeProxy(config.Pools.PLP.marketOrderbook, Orderbook);
+
+  const implAddress = await getImplementationAddress(
+    ethers.provider,
+    config.Pools.PLP.marketOrderbook
   );
-  await tx.deployed();
 
   await tenderly.verify({
-    address: newFastPriceFeedImp.toString(),
-    name: "FastPriceFeed",
+    address: implAddress,
+    name: "MarketOrderbook",
   });
 };
 
 export default func;
-func.tags = ["UpgradeFastPriceFeed"];
+func.tags = ["UpgradeMarketOrderbook"];

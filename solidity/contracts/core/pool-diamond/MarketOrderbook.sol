@@ -269,6 +269,7 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   error TooEarly();
   error InvalidAmountIn();
   error OnlyNativeShouldWrap();
+  error InvalidSender();
 
   modifier onlyAdmin() {
     if (msg.sender != admin) revert OnlyAdmin();
@@ -1587,6 +1588,10 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     swapOrderRequestKeys.push(key);
 
     return (index, key);
+  }
+
+  receive() external payable {
+    if (msg.sender != weth) revert InvalidSender();
   }
 
   /// @custom:oz-upgrades-unsafe-allow constructor
