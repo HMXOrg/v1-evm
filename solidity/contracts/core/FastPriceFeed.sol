@@ -391,20 +391,30 @@ contract FastPriceFeed is OwnableUpgradeable {
     LimitOrderKey[] memory _decreaseOrders,
     LimitOrderKey[] memory _swapOrders,
     address payable _feeReceiver,
-    bytes32 _checksum
+    bytes32 _checksum,
+    bool _revertOnError
   ) external onlyUpdater {
     _setPricesWithBits(_priceBits, _timestamp, _checksum);
 
     Orderbook _orderbook = Orderbook(payable(orderbook));
     for (uint256 i = 0; i < _increaseOrders.length; ) {
-      try
+      if (!_revertOnError) {
+        try
+          _orderbook.executeIncreaseOrder(
+            _increaseOrders[i].primaryAccount,
+            _increaseOrders[i].subAccountId,
+            _increaseOrders[i].orderIndex,
+            payable(_feeReceiver)
+          )
+        {} catch {}
+      } else {
         _orderbook.executeIncreaseOrder(
           _increaseOrders[i].primaryAccount,
           _increaseOrders[i].subAccountId,
           _increaseOrders[i].orderIndex,
           payable(_feeReceiver)
-        )
-      {} catch {}
+        );
+      }
 
       unchecked {
         i++;
@@ -412,14 +422,23 @@ contract FastPriceFeed is OwnableUpgradeable {
     }
 
     for (uint256 i = 0; i < _decreaseOrders.length; ) {
-      try
+      if (!_revertOnError) {
+        try
+          _orderbook.executeDecreaseOrder(
+            _decreaseOrders[i].primaryAccount,
+            _decreaseOrders[i].subAccountId,
+            _decreaseOrders[i].orderIndex,
+            payable(_feeReceiver)
+          )
+        {} catch {}
+      } else {
         _orderbook.executeDecreaseOrder(
           _decreaseOrders[i].primaryAccount,
           _decreaseOrders[i].subAccountId,
           _decreaseOrders[i].orderIndex,
           payable(_feeReceiver)
-        )
-      {} catch {}
+        );
+      }
 
       unchecked {
         i++;
@@ -427,13 +446,21 @@ contract FastPriceFeed is OwnableUpgradeable {
     }
 
     for (uint256 i = 0; i < _swapOrders.length; ) {
-      try
+      if (!_revertOnError) {
+        try
+          _orderbook.executeSwapOrder(
+            _decreaseOrders[i].primaryAccount,
+            _decreaseOrders[i].orderIndex,
+            payable(_feeReceiver)
+          )
+        {} catch {}
+      } else {
         _orderbook.executeSwapOrder(
           _decreaseOrders[i].primaryAccount,
           _decreaseOrders[i].orderIndex,
           payable(_feeReceiver)
-        )
-      {} catch {}
+        );
+      }
 
       unchecked {
         i++;
