@@ -264,6 +264,12 @@ interface GetterFacetInterface {
     bool isUseMaxPrice
   ) external view returns (uint256);
 
+  function convertUsde30ToTokens(
+    address token,
+    uint256 amountUsd,
+    bool isUseMaxPrice
+  ) external view returns (uint256);
+
   function accumFundingRateLong(
     address indexToken
   ) external view returns (int256);

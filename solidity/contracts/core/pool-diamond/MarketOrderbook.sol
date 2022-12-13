@@ -13,7 +13,8 @@ import { GetterFacetInterface } from "./interfaces/GetterFacetInterface.sol";
 import { LiquidityFacetInterface } from "./interfaces/LiquidityFacetInterface.sol";
 import { PerpTradeFacetInterface } from "./interfaces/PerpTradeFacetInterface.sol";
 import { LibPoolConfigV1 } from "./libraries/LibPoolConfigV1.sol";
-import { LibPoolV1 } from "./libraries/LibPoolV1.sol";
+
+// import { LibPoolV1 } from "./libraries/LibPoolV1.sol";
 
 contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   using SafeERC20Upgradeable for IERC20Upgradeable;
@@ -1120,11 +1121,8 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       .tokenMetas(_indexToken);
 
     if (_isLong) {
-      uint256 openInterestDelta = LibPoolV1.convertUsde30ToTokens(
-        _indexToken,
-        _sizeDelta,
-        true
-      );
+      uint256 openInterestDelta = GetterFacetInterface(pool)
+        .convertUsde30ToTokens(_indexToken, _sizeDelta, true);
       uint256 maxGlobalLongSize = config.openInterestLongCeiling;
       if (
         maxGlobalLongSize > 0 &&
