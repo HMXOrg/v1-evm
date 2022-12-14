@@ -72,10 +72,10 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   address public weth;
 
   // to prevent using the deposit and withdrawal of collateral as a zero fee swap,
-  // there is a small depositFee charged if a collateral deposit results in the decrease
+  // there is a small depositFeeBps charged if a collateral deposit results in the decrease
   // of leverage for an existing position
   // increasePositionBufferBps allows for a small amount of decrease of leverage
-  uint256 public depositFee;
+  uint256 public depositFeeBps;
   uint256 public increasePositionBufferBps;
 
   mapping(address => uint256) public feeReserves;
@@ -105,7 +105,7 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   mapping(address => uint256) public swapOrdersIndex;
   mapping(bytes32 => SwapOrderRequest) public swapOrderRequests;
 
-  event SetDepositFee(uint256 depositFee);
+  event SetDepositFee(uint256 depositFeeBps);
   event SetIncreasePositionBufferBps(uint256 increasePositionBufferBps);
   event SetAdmin(address admin);
   event WithdrawFees(address token, address receiver, uint256 amount);
@@ -253,6 +253,11 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     uint256 decreasePositionRequestKeysStart,
     uint256 swapOrderRequestKeysStart
   );
+  event CollectFee(
+    address indexed token,
+    uint256 feeAmount,
+    uint256 feeReserve
+  );
 
   error InsufficientExecutionFee();
   error IncorrectValueTransferred();
@@ -281,11 +286,16 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     _;
   }
 
+  /// @custom:oz-upgrades-unsafe-allow constructor
+  constructor() {
+    _disableInitializers();
+  }
+
   function initialize(
     address _pool,
     address _poolOracle,
     address _weth,
-    uint256 _depositFee,
+    uint256 _depositFeeBps,
     uint256 _minExecutionFee
   ) external initializer {
     OwnableUpgradeable.__Ownable_init();
@@ -294,7 +304,7 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     pool = _pool;
     poolOracle = _poolOracle;
     weth = _weth;
-    depositFee = _depositFee;
+    depositFeeBps = _depositFeeBps;
     minExecutionFee = _minExecutionFee;
 
     increasePositionBufferBps = 100;
@@ -306,9 +316,9 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     emit SetAdmin(_admin);
   }
 
-  function setDepositFee(uint256 _depositFee) external onlyAdmin {
-    depositFee = _depositFee;
-    emit SetDepositFee(_depositFee);
+  function setDepositFee(uint256 _depositFeeBps) external onlyAdmin {
+    depositFeeBps = _depositFeeBps;
+    emit SetDepositFee(_depositFeeBps);
   }
 
   function setIncreasePositionBufferBps(
@@ -661,7 +671,7 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     uint256 _executionFee,
     bool _shouldWrap,
     bool _shouldUnwrap
-  ) external payable nonReentrant {
+  ) external payable nonReentrant returns (bytes32) {
     if (_path.length != 1 && _path.length != 2) revert InvalidPathLength();
     if (_path[0] == _path[_path.length - 1]) revert InvalidPath();
     if (_amountIn == 0) revert InvalidAmountIn();
@@ -683,26 +693,29 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       );
     }
 
-    _createSwapOrder(
-      msg.sender,
-      _path,
-      _amountIn,
-      _minOut,
-      _shouldUnwrap,
-      _executionFee
-    );
+    return
+      _createSwapOrder(
+        msg.sender,
+        _path,
+        _amountIn,
+        _minOut,
+        _shouldUnwrap,
+        _executionFee
+      );
   }
 
   function getRequestQueueLengths()
     external
     view
-    returns (uint256, uint256, uint256, uint256)
+    returns (uint256, uint256, uint256, uint256, uint256, uint256)
   {
     return (
       increasePositionRequestKeysStart,
       increasePositionRequestKeys.length,
       decreasePositionRequestKeysStart,
-      decreasePositionRequestKeys.length
+      decreasePositionRequestKeys.length,
+      swapOrderRequestKeysStart,
+      swapOrderRequestKeys.length
     );
   }
 
@@ -1109,6 +1122,13 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     return request.path;
   }
 
+  function getSwapOrderRequestPath(
+    bytes32 _key
+  ) public view returns (address[] memory) {
+    SwapOrderRequest memory request = swapOrderRequests[_key];
+    return request.path;
+  }
+
   function _validateMaxGlobalSize(
     address _indexToken,
     bool _isLong,
@@ -1291,10 +1311,13 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
     if (shouldDeductFee) {
       uint256 afterFeeAmount = (_amountIn *
-        (BASIS_POINTS_DIVISOR - depositFee)) / (BASIS_POINTS_DIVISOR);
+        (BASIS_POINTS_DIVISOR - depositFeeBps)) / (BASIS_POINTS_DIVISOR);
       uint256 feeAmount = _amountIn - afterFeeAmount;
       address feeToken = _path[_path.length - 1];
       feeReserves[feeToken] = feeReserves[feeToken] + feeAmount;
+
+      emit CollectFee(feeToken, feeAmount, feeReserves[feeToken]);
+
       return afterFeeAmount;
     }
 
@@ -1570,7 +1593,7 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       request.shouldUnwrap,
       request.executionFee,
       index,
-      decreasePositionRequestKeys.length - 1
+      swapOrderRequestKeys.length - 1
     );
 
     return requestKey;
@@ -1592,10 +1615,5 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
   receive() external payable {
     if (msg.sender != weth) revert InvalidSender();
-  }
-
-  /// @custom:oz-upgrades-unsafe-allow constructor
-  constructor() {
-    _disableInitializers();
   }
 }
