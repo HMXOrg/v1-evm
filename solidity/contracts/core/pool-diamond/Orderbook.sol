@@ -330,7 +330,7 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     if (_amountIn == 0) revert InvalidAmountIn();
     if (_executionFee < minExecutionFee) revert InsufficientExecutionFee();
 
-    // always need this call because of mandatory executionFee user has to transfer in BNB
+    // always need this call because of mandatory executionFee user has to transfer in MATIC
     _transferInETH();
 
     if (_shouldWrap) {
@@ -652,7 +652,7 @@ contract Orderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     bool _shouldWrap
   ) external payable nonReentrant {
     CreateIncreaseOrderLocalVars memory vars;
-    // always need this call because of mandatory executionFee user has to transfer in BNB
+    // always need this call because of mandatory executionFee user has to transfer in MATIC
     _transferInETH();
 
     if (_executionFee < minExecutionFee) revert InsufficientExecutionFee();
