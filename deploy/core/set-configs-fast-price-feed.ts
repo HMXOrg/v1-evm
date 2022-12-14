@@ -13,8 +13,8 @@ const minAuthorizations = 1;
 const priceDataInterval = 60;
 const maxCumulativeDeltaDiffs = [1000000, 1000000, 1000000];
 const maxTimeDeviation = 3600;
-const spreadBasisPointsIfChainError = 500;
-const spreadBasisPointsIfInactive = 20;
+const spreadBasisPointsIfChainError = 0;
+const spreadBasisPointsIfInactive = 0;
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
