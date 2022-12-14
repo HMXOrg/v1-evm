@@ -19,15 +19,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(
     `> New MarketOrderbook Implementation address: ${newOrderbookImp}`
   );
-  await upgrades.upgradeProxy(config.Pools.PLP.marketOrderbook, Orderbook);
-
-  const implAddress = await getImplementationAddress(
-    ethers.provider,
-    config.Pools.PLP.marketOrderbook
+  const tx = await upgrades.upgradeProxy(
+    config.Pools.PLP.marketOrderbook,
+    Orderbook
   );
+  await tx.deployed();
 
   await tenderly.verify({
-    address: implAddress,
+    address: newOrderbookImp.toString(),
     name: "MarketOrderbook",
   });
 };

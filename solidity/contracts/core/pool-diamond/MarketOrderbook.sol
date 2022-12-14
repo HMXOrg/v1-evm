@@ -145,10 +145,9 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     uint256 minOut,
     uint256 sizeDelta,
     bool isLong,
-    uint256 acceptablePrice,
-    uint256 executionFee,
     uint256 blockGap,
-    uint256 timeGap
+    uint256 timeGap,
+    uint256 index
   );
   event CancelIncreasePosition(
     address indexed account,
@@ -159,10 +158,9 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     uint256 minOut,
     uint256 sizeDelta,
     bool isLong,
-    uint256 acceptablePrice,
-    uint256 executionFee,
     uint256 blockGap,
-    uint256 timeGap
+    uint256 timeGap,
+    uint256 index
   );
   event CreateDecreasePosition(
     address indexed account,
@@ -187,12 +185,9 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     uint256 collateralDelta,
     uint256 sizeDelta,
     bool isLong,
-    address receiver,
-    uint256 acceptablePrice,
-    uint256 minOut,
-    uint256 executionFee,
     uint256 blockGap,
-    uint256 timeGap
+    uint256 timeGap,
+    uint256 index
   );
   event CancelDecreasePosition(
     address indexed account,
@@ -202,12 +197,9 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     uint256 collateralDelta,
     uint256 sizeDelta,
     bool isLong,
-    address receiver,
-    uint256 acceptablePrice,
-    uint256 minOut,
-    uint256 executionFee,
     uint256 blockGap,
-    uint256 timeGap
+    uint256 timeGap,
+    uint256 index
   );
   event CreateSwapOrder(
     address account,
@@ -228,7 +220,8 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     uint256 executionFee,
     uint256 amountOut,
     uint256 blockGap,
-    uint256 timeGap
+    uint256 timeGap,
+    uint256 index
   );
   event CancelSwapOrder(
     address account,
@@ -238,7 +231,8 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     bool shouldUnwrap,
     uint256 executionFee,
     uint256 blockGap,
-    uint256 timeGap
+    uint256 timeGap,
+    uint256 index
   );
   event SetPositionKeeper(address indexed account, bool isActive);
   event SetMinExecutionFee(uint256 minExecutionFee);
@@ -428,17 +422,17 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       // an error could be thrown if the request is too old or if the slippage is
       // higher than what the user specified, or if there is insufficient liquidity for the position
       // in case an error was thrown, cancel the request
-      try this.executeIncreasePosition(key, _executionFeeReceiver) returns (
-        bool _wasExecuted
-      ) {
+      try
+        this.executeIncreasePosition(key, _executionFeeReceiver, index)
+      returns (bool _wasExecuted) {
         if (!_wasExecuted) {
           break;
         }
       } catch {
         // wrap this call in a try catch to prevent invalid cancels from blocking the loop
-        try this.cancelIncreasePosition(key, _executionFeeReceiver) returns (
-          bool _wasCancelled
-        ) {
+        try
+          this.cancelIncreasePosition(key, _executionFeeReceiver, index)
+        returns (bool _wasCancelled) {
           if (!_wasCancelled) {
             break;
           }
@@ -475,17 +469,17 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       // minimum number of blocks has not yet passed
       // an error could be thrown if the request is too old
       // in case an error was thrown, cancel the request
-      try this.executeDecreasePosition(key, _executionFeeReceiver) returns (
-        bool _wasExecuted
-      ) {
+      try
+        this.executeDecreasePosition(key, _executionFeeReceiver, index)
+      returns (bool _wasExecuted) {
         if (!_wasExecuted) {
           break;
         }
       } catch {
         // wrap this call in a try catch to prevent invalid cancels from blocking the loop
-        try this.cancelDecreasePosition(key, _executionFeeReceiver) returns (
-          bool _wasCancelled
-        ) {
+        try
+          this.cancelDecreasePosition(key, _executionFeeReceiver, index)
+        returns (bool _wasCancelled) {
           if (!_wasCancelled) {
             break;
           }
@@ -522,7 +516,7 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       // minimum number of blocks has not yet passed
       // an error could be thrown if the request is too old
       // in case an error was thrown, cancel the request
-      try this.executeSwapOrder(key, _executionFeeReceiver) returns (
+      try this.executeSwapOrder(key, _executionFeeReceiver, index) returns (
         bool _wasExecuted
       ) {
         if (!_wasExecuted) {
@@ -530,7 +524,7 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
         }
       } catch {
         // wrap this call in a try catch to prevent invalid cancels from blocking the loop
-        try this.cancelSwapOrder(key, _executionFeeReceiver) returns (
+        try this.cancelSwapOrder(key, _executionFeeReceiver, index) returns (
           bool _wasCancelled
         ) {
           if (!_wasCancelled) {
@@ -721,7 +715,8 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
   function executeIncreasePosition(
     bytes32 _key,
-    address payable _executionFeeReceiver
+    address payable _executionFeeReceiver,
+    uint256 index
   ) public nonReentrant returns (bool) {
     IncreasePositionRequest memory request = increasePositionRequests[_key];
     // if the request was already executed or cancelled, return true so that the executeIncreasePositions loop will continue executing the next request
@@ -791,10 +786,9 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       request.minOut,
       request.sizeDelta,
       request.isLong,
-      request.acceptablePrice,
-      request.executionFee,
       block.number - request.blockNumber,
-      block.timestamp - request.blockTime
+      block.timestamp - request.blockTime,
+      index
     );
 
     return true;
@@ -802,7 +796,8 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
   function cancelIncreasePosition(
     bytes32 _key,
-    address payable _executionFeeReceiver
+    address payable _executionFeeReceiver,
+    uint256 index
   ) public nonReentrant returns (bool) {
     IncreasePositionRequest memory request = increasePositionRequests[_key];
     // if the request was already executed or cancelled, return true so that the executeIncreasePositions loop will continue executing the next request
@@ -833,10 +828,10 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       );
     }
 
-    _transferOutETHWithGasLimitIgnoreFail(
-      request.executionFee,
-      _executionFeeReceiver
-    );
+    // _transferOutETHWithGasLimitIgnoreFail(
+    //   request.executionFee,
+    //   _executionFeeReceiver
+    // );
 
     emit CancelIncreasePosition(
       request.account,
@@ -847,10 +842,9 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       request.minOut,
       request.sizeDelta,
       request.isLong,
-      request.acceptablePrice,
-      request.executionFee,
       block.number - request.blockNumber,
-      block.timestamp - request.blockTime
+      block.timestamp - request.blockTime,
+      index
     );
 
     return true;
@@ -858,7 +852,8 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
   function executeDecreasePosition(
     bytes32 _key,
-    address payable _executionFeeReceiver
+    address payable _executionFeeReceiver,
+    uint256 index
   ) public nonReentrant returns (bool) {
     DecreasePositionRequest memory request = decreasePositionRequests[_key];
     // if the request was already executed or cancelled, return true so that the executeDecreasePositions loop will continue executing the next request
@@ -926,12 +921,9 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       request.collateralDelta,
       request.sizeDelta,
       request.isLong,
-      request.receiver,
-      request.acceptablePrice,
-      request.minOut,
-      request.executionFee,
       block.number - request.blockNumber,
-      block.timestamp - request.blockTime
+      block.timestamp - request.blockTime,
+      index
     );
 
     return true;
@@ -939,7 +931,8 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
   function cancelDecreasePosition(
     bytes32 _key,
-    address payable _executionFeeReceiver
+    address payable _executionFeeReceiver,
+    uint256 index
   ) public nonReentrant returns (bool) {
     DecreasePositionRequest memory request = decreasePositionRequests[_key];
     // if the request was already executed or cancelled, return true so that the executeDecreasePositions loop will continue executing the next request
@@ -971,12 +964,9 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       request.collateralDelta,
       request.sizeDelta,
       request.isLong,
-      request.receiver,
-      request.acceptablePrice,
-      request.minOut,
-      request.executionFee,
       block.number - request.blockNumber,
-      block.timestamp - request.blockTime
+      block.timestamp - request.blockTime,
+      index
     );
 
     return true;
@@ -984,7 +974,8 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
   function executeSwapOrder(
     bytes32 _key,
-    address payable _executionFeeReceiver
+    address payable _executionFeeReceiver,
+    uint256 index
   ) public nonReentrant returns (bool) {
     SwapOrderRequest memory request = swapOrderRequests[_key];
     // if the request was already executed or cancelled, return true so that the executeDecreasePositions loop will continue executing the next request
@@ -1041,7 +1032,8 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       request.executionFee,
       _amountOut,
       block.number - request.blockNumber,
-      block.timestamp - request.blockTime
+      block.timestamp - request.blockTime,
+      index
     );
 
     return true;
@@ -1049,7 +1041,8 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
 
   function cancelSwapOrder(
     bytes32 _key,
-    address payable _executionFeeReceiver
+    address payable _executionFeeReceiver,
+    uint256 index
   ) public nonReentrant returns (bool) {
     SwapOrderRequest memory request = swapOrderRequests[_key];
     // if the request was already executed or cancelled, return true so that the executeIncreasePositions loop will continue executing the next request
@@ -1095,7 +1088,8 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       request.shouldUnwrap,
       request.executionFee,
       block.number - request.blockNumber,
-      block.timestamp - request.blockTime
+      block.timestamp - request.blockTime,
+      index
     );
 
     return true;
