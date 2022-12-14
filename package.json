@@ -228,6 +228,7 @@
     "deploy:matic:oracle:enable-secondary-price-feed": "npx hardhat --network matic deploy --no-compile --reset --tags EnableSecondaryPriceFeed",
     "deploy:matic:pool:market-orderbook": "npx hardhat --network matic deploy --no-compile --reset --tags MarketOrderbook",
     "deploy:matic:pool:set-delay-values": "npx hardhat --network matic deploy --no-compile --reset --tags SetDelayValues",
+    "deploy:matic:pool:set-admin-market-orderbook": "npx hardhat --network matic deploy --no-compile --reset --tags SetAdminMarketOrderbook",
     "deploy:matic:pool:set-position-keeper": "npx hardhat --network matic deploy --no-compile --reset --tags SetPositionKeeper"
   },
   "devDependencies": {

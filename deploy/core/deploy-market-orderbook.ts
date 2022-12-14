@@ -6,8 +6,8 @@ import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 
 const config = getConfig();
 
-const minExecutionFee = ethers.utils.parseEther("0.2");
-const minPurchaseTokenAmountUsd = ethers.utils.parseUnits("10", 30);
+const minExecutionFee = ethers.utils.parseEther("0.002");
+const depositFeeBps = ethers.BigNumber.from(30); // 0.3%
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
@@ -22,7 +22,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     config.Pools.PLP.poolDiamond, // _pool
     config.Pools.PLP.oracle, // _poolOracle
     config.Tokens.WMATIC, // _weth
-    minPurchaseTokenAmountUsd, // _depositFee
+    depositFeeBps, // _depositFeeBps
     minExecutionFee, // _minExecutionFee
   ]);
   console.log(`> ⛓ Tx submitted: ${orderbook.deployTransaction.hash}`);
