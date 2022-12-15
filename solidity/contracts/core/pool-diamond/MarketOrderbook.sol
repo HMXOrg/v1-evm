@@ -14,8 +14,6 @@ import { LiquidityFacetInterface } from "./interfaces/LiquidityFacetInterface.so
 import { PerpTradeFacetInterface } from "./interfaces/PerpTradeFacetInterface.sol";
 import { LibPoolConfigV1 } from "./libraries/LibPoolConfigV1.sol";
 
-// import { LibPoolV1 } from "./libraries/LibPoolV1.sol";
-
 contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   using SafeERC20Upgradeable for IERC20Upgradeable;
   using AddressUpgradeable for address payable;
@@ -828,10 +826,10 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       );
     }
 
-    // _transferOutETHWithGasLimitIgnoreFail(
-    //   request.executionFee,
-    //   _executionFeeReceiver
-    // );
+    _transferOutETHWithGasLimitIgnoreFail(
+      request.executionFee,
+      _executionFeeReceiver
+    );
 
     emit CancelIncreasePosition(
       request.account,
