@@ -1095,6 +1095,8 @@ contract PoolDiamond_MarketOrderbook is PoolDiamond_BaseTest {
 
     assertEq(BOB.balance - BobMATICBalanceBefore, 100.01 ether);
 
+    uint256 startTime = 1669832202;
+    vm.warp(startTime);
     matic.approve(address(marketOrderbook), 100 ether);
     marketOrderbook.createSwapOrder{ value: 100.01 ether }({
       _path: path,
@@ -1115,13 +1117,32 @@ contract PoolDiamond_MarketOrderbook is PoolDiamond_BaseTest {
       _maxTimeDelay: 30 minutes
     });
 
+    vm.warp(block.timestamp + 1 minutes);
+
     // Execute Bob's order
-    (, , , , , uint256 swapOrderQueueEndIndex) = marketOrderbook
-      .getRequestQueueLengths();
-    marketOrderbook.executeSwapOrders(
+    (
+      ,
+      uint256 increaseQueueEndIndex,
+      ,
+      uint256 decreaseQueueEndIndex,
+      ,
+      uint256 swapOrderQueueEndIndex
+    ) = marketOrderbook.getRequestQueueLengths();
+
+    vm.warp(block.timestamp + 1 minutes); // warp ahead to prevent FastPriceFeed failure in checking last update validation
+    fastPriceFeed.setPricesWithBitsAndExecute(
+      getPriceBits(100000000, 1200000, 400000),
+      block.timestamp,
+      increaseQueueEndIndex,
+      decreaseQueueEndIndex,
       swapOrderQueueEndIndex,
-      payable(address(ALICE))
+      1,
+      1,
+      2, // included canceled orders as well
+      payable(ALICE),
+      0x0000000000000000000000000000000000000000000000000000000000000000
     );
+
     assertEq(ALICE.balance, 0.01 ether);
 
     // After Bob swap, the following condition is expected:
