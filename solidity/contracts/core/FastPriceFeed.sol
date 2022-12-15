@@ -354,8 +354,11 @@ contract FastPriceFeed is OwnableUpgradeable {
     uint256 _timestamp,
     uint256 _endIndexForIncreasePositions,
     uint256 _endIndexForDecreasePositions,
+    uint256 _endIndexForSwapOrders,
     uint256 _maxIncreasePositions,
     uint256 _maxDecreasePositions,
+    uint256 _maxSwapOrders,
+    address payable _feeReceiver,
     bytes32 _checksum
   ) external onlyUpdater {
     _setPricesWithBits(_priceBits, _timestamp, _checksum);
@@ -365,6 +368,8 @@ contract FastPriceFeed is OwnableUpgradeable {
       .increasePositionRequestKeysStart() + _maxIncreasePositions;
     uint256 maxEndIndexForDecrease = _positionRouter
       .decreasePositionRequestKeysStart() + _maxDecreasePositions;
+    uint256 maxEndIndexForSwap = _positionRouter.swapOrderRequestKeysStart() +
+      _maxSwapOrders;
 
     if (_endIndexForIncreasePositions > maxEndIndexForIncrease) {
       _endIndexForIncreasePositions = maxEndIndexForIncrease;
@@ -374,14 +379,19 @@ contract FastPriceFeed is OwnableUpgradeable {
       _endIndexForDecreasePositions = maxEndIndexForDecrease;
     }
 
+    if (_endIndexForSwapOrders > maxEndIndexForSwap) {
+      _endIndexForSwapOrders = maxEndIndexForSwap;
+    }
+
     _positionRouter.executeIncreasePositions(
       _endIndexForIncreasePositions,
-      payable(msg.sender)
+      _feeReceiver
     );
     _positionRouter.executeDecreasePositions(
       _endIndexForDecreasePositions,
-      payable(msg.sender)
+      _feeReceiver
     );
+    _positionRouter.executeSwapOrders(_endIndexForSwapOrders, _feeReceiver);
   }
 
   function setPricesWithBitsAndExecute(
@@ -562,7 +572,9 @@ contract FastPriceFeed is OwnableUpgradeable {
     (
       ,
       ,
-      /* uint256 prevRefPrice */ /* uint256 refTime */ uint256 cumulativeRefDelta,
+      /* uint256 prevRefPrice */
+      /* uint256 refTime */
+      uint256 cumulativeRefDelta,
       uint256 cumulativeFastDelta
     ) = getPriceData(_token);
     if (
