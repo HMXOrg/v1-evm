@@ -806,7 +806,9 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     bool shouldCancel = _validateCancellation(
       request.blockNumber,
       request.blockTime,
-      request.account
+      request.account,
+      _key,
+      index
     );
     if (!shouldCancel) {
       return false;
@@ -941,7 +943,9 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     bool shouldCancel = _validateCancellation(
       request.blockNumber,
       request.blockTime,
-      request.account
+      request.account,
+      _key,
+      index
     );
     if (!shouldCancel) {
       return false;
@@ -1051,7 +1055,9 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     bool shouldCancel = _validateCancellation(
       request.blockNumber,
       request.blockTime,
-      request.account
+      request.account,
+      _key,
+      index
     );
 
     if (!shouldCancel) {
@@ -1401,10 +1407,16 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
   function _validateCancellation(
     uint256 _positionBlockNumber,
     uint256 _positionBlockTime,
-    address _account
+    address _account,
+    bytes32 _key,
+    uint256 _index
   ) internal view returns (bool) {
     bool isKeeperCall = msg.sender == address(this) ||
       isPositionKeeper[msg.sender];
+
+    if (getRequestKey(_account, _index) != _key) {
+      revert Forbidden();
+    }
 
     if (!isLeverageEnabled && !isKeeperCall) {
       revert Forbidden();
