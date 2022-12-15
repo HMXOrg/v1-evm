@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { PoolDiamond_BaseTest, console, LibPoolConfigV1, LiquidityFacetInterface, GetterFacetInterface, PerpTradeFacetInterface } from "./PoolDiamond_BaseTest.t.sol";
+import { PoolDiamond_BaseTest, console, LibPoolConfigV1, LiquidityFacetInterface, GetterFacetInterface, PerpTradeFacetInterface, FastPriceFeed } from "./PoolDiamond_BaseTest.t.sol";
 
 contract PoolDiamond_MarketOrderbook is PoolDiamond_BaseTest {
+  FastPriceFeed internal fastPriceFeed;
+
   function setUp() public override {
     super.setUp();
 
@@ -15,6 +17,49 @@ contract PoolDiamond_MarketOrderbook is PoolDiamond_BaseTest {
     poolAdminFacet.setTokenConfigs(tokens2, tokenConfigs2);
     marketOrderbook.setAdmin(address(this));
     marketOrderbook.setPositionKeeper(address(this), true);
+
+    // Fast price feed batch
+    fastPriceFeed = deployFastPriceFeed(
+      300,
+      3600,
+      0,
+      1000,
+      address(this),
+      address(marketOrderbook),
+      address(orderbook)
+    );
+
+    address[] memory _signers = new address[](1);
+    _signers[0] = address(this);
+    address[] memory _updaters = new address[](1);
+    _updaters[0] = address(this);
+    fastPriceFeed.init(1, _signers, _updaters);
+    address[] memory _tokens = new address[](3);
+    _tokens[0] = address(wbtc);
+    _tokens[1] = address(weth);
+    _tokens[2] = address(matic);
+    uint256[] memory _tokenPrecisions = new uint256[](3);
+    _tokenPrecisions[0] = 1000;
+    _tokenPrecisions[1] = 1000;
+    _tokenPrecisions[2] = 1000;
+    uint256[] memory _maxCumulativeDeltaDiffs = new uint256[](3);
+    _maxCumulativeDeltaDiffs[0] = 1000000;
+    _maxCumulativeDeltaDiffs[1] = 1000000;
+    _maxCumulativeDeltaDiffs[2] = 1000000;
+    fastPriceFeed.setConfigs(
+      _tokens,
+      _tokenPrecisions,
+      1,
+      60,
+      _maxCumulativeDeltaDiffs,
+      3600,
+      500,
+      20
+    );
+
+    poolOracle.setSecondaryPriceFeed(address(fastPriceFeed));
+    poolOracle.setIsSecondaryPriceEnabled(true);
+    marketOrderbook.setPositionKeeper(address(fastPriceFeed), true);
   }
 
   function testRevert_CreateIncreasePosition_WithInsufficientExecutionFee()
@@ -367,7 +412,7 @@ contract PoolDiamond_MarketOrderbook is PoolDiamond_BaseTest {
 
     // After Alice added 117499 satoshi as a liquidity,
     // the following conditions should be met:
-    // 1. Alice should get 46.8584 PLP
+    // 1. Alice should get 46.8584 ALP
     // 2. Pool should make 353 sathoshi
     // 3. Pool's AUM by min price should be:
     // 0.00117499 * (1-0.003) * 40000 = 46.8584 USD
@@ -396,7 +441,7 @@ contract PoolDiamond_MarketOrderbook is PoolDiamond_BaseTest {
 
     // After Alice added 117499 satoshi as a liquidity,
     // the following conditions should be met:
-    // 1. Alice Contract should get 46.8584 + (46.8584 * 46.8584 / 48.02986) = 92573912195121951219 PLP
+    // 1. Alice Contract should get 46.8584 + (46.8584 * 46.8584 / 48.02986) = 92573912195121951219 ALP
     // 2. Pool should make 706 sathoshi
     // 3. Pool's AUM by min price should be:
     // 46.8584 + (0.00117499 * (1-0.003) * 40000) = 93.7168 USD
@@ -425,6 +470,8 @@ contract PoolDiamond_MarketOrderbook is PoolDiamond_BaseTest {
     wbtcPriceFeed.setLatestAnswer(41_000 * 10 ** 8);
     wbtcPriceFeed.setLatestAnswer(45_000 * 10 ** 8);
 
+    uint256 startTime = 1669832202;
+    vm.warp(startTime);
     // Alice increase long position with sub account id = 0
     vm.startPrank(ALICE);
     wbtc.approve(address(marketOrderbook), 22500);
@@ -496,12 +543,29 @@ contract PoolDiamond_MarketOrderbook is PoolDiamond_BaseTest {
     });
 
     // Execute Alice's order
-    (, uint256 increaseQueueEndIndex, , , , ) = marketOrderbook
-      .getRequestQueueLengths();
-    marketOrderbook.executeIncreasePositions(
+    (
+      ,
+      uint256 increaseQueueEndIndex,
+      ,
+      uint256 decreaseQueueEndIndex,
+      ,
+      uint256 swapOrderQueueEndIndex
+    ) = marketOrderbook.getRequestQueueLengths();
+
+    vm.warp(block.timestamp + 1 minutes); // warp ahead to prevent FastPriceFeed failure in checking last update validation
+    fastPriceFeed.setPricesWithBitsAndExecute(
+      getPriceBits(41000000, 1200000, 870),
+      block.timestamp,
       increaseQueueEndIndex,
-      payable(address(BOB))
+      decreaseQueueEndIndex,
+      swapOrderQueueEndIndex,
+      1,
+      1,
+      1,
+      payable(BOB),
+      0x0000000000000000000000000000000000000000000000000000000000000000
     );
+
     // Bob should receive 0.01 ether as execution fee
     assertEq(BOB.balance, 0.01 ether);
 
@@ -510,28 +574,28 @@ contract PoolDiamond_MarketOrderbook is PoolDiamond_BaseTest {
     // = 234292 + 22500 - (((47 * 0.001) + (47 * 0)) / 41000)
     // = 234292 + 22500 - 114 = 256678 sathoshi
     // 2. Pool's WBTC reserved should be:
-    // = 47 / 40000 = 117500 sathoshi
+    // = 47 / 41000 = 114634 sathoshi
     // 3. Pool's WBTC guarantee USD should be:
-    // = 47 + 0.0047 - ((22500 / 1e8) * 40000) = 38.047 USD
+    // = 47 + 0.047 - ((22500 / 1e8) * 41000) = 37.822 USD
     // 4. Redeemable WBTC in USD should be:
-    // = ((256678 + 92797 - 117500) / 1e8) * 40000 = 92.79 USD
+    // = ((256678 + 92248 - 114634) / 1e8) * 41000 = 96.05972 USD
     // 5. Pool's AUM by min price should be:
-    // 38.047 + ((256678 - 117500) / 1e8) * 40000 = 93.7182 USD
+    // 37.822 + ((256678 - 114634) / 1e8) * 41000 = 96.06004 USD
     // 6. Pool's AUM by max price should be:
-    // 38.047 + ((256678 - 117500) / 1e8) * 41000 = 95.10998 USD
+    // 37.822 + ((256678 - 114634) / 1e8) * 41000 = 96.06004 USD
     // 7. Pool should makes 706 + 114 = 820 sathoshi
     // 8. Pool's WBTC USD debt should still the same as before
     // 9. Pool's WBTC balance should be:
     // = 256678 + 820 = 257498 sathoshi
     assertEq(poolGetterFacet.liquidityOf(address(wbtc)), 256678);
-    assertEq(poolGetterFacet.reservedOf(address(wbtc)), 117500);
-    assertEq(poolGetterFacet.guaranteedUsdOf(address(wbtc)), 38.047 * 10 ** 30);
+    assertEq(poolGetterFacet.reservedOf(address(wbtc)), 114634);
+    assertEq(poolGetterFacet.guaranteedUsdOf(address(wbtc)), 37.822 * 10 ** 30);
     assertEq(
       poolGetterFacet.getRedemptionCollateralUsd(address(wbtc)),
-      92.79 * 10 ** 30
+      96.05972 * 10 ** 30
     );
-    assertEq(poolGetterFacet.getAumE18(false), 93.7182 * 10 ** 18);
-    assertEq(poolGetterFacet.getAumE18(true), 95.10998 * 10 ** 18);
+    assertEq(poolGetterFacet.getAumE18(false), 96.06004 * 10 ** 18);
+    assertEq(poolGetterFacet.getAumE18(true), 96.06004 * 10 ** 18);
     assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 820);
     assertEq(poolGetterFacet.usdDebtOf(address(wbtc)), 93.7168 * 10 ** 18);
     assertEq(wbtc.balanceOf(address(poolDiamond)), 257498);
@@ -539,7 +603,7 @@ contract PoolDiamond_MarketOrderbook is PoolDiamond_BaseTest {
     // Assert a postion
     // 1. Position's size should be 47 USD
     // 2. Position's collateral should be:
-    // = ((22500 / 1e8) * 40000) - 0.047 = 8.953 USD
+    // = ((22500 / 1e8) * 41000) - 0.047 = 9.178 USD
     // 3. Position's average price should be 41000 USD
     GetterFacetInterface.GetPositionReturnVars memory position = poolGetterFacet
       .getPositionWithSubAccountId(
@@ -550,10 +614,10 @@ contract PoolDiamond_MarketOrderbook is PoolDiamond_BaseTest {
         true
       );
     assertEq(position.size, 47 * 10 ** 30);
-    assertEq(position.collateral, 8.953 * 10 ** 30);
+    assertEq(position.collateral, 9.178 * 10 ** 30);
     assertEq(position.averagePrice, 41000 * 10 ** 30);
     assertEq(position.entryFundingRate, 0);
-    assertEq(position.reserveAmount, 117500);
+    assertEq(position.reserveAmount, 114634);
     assertEq(position.realizedPnl, 0);
     assertTrue(position.hasProfit == true);
     assertEq(position.lastIncreasedTime, block.timestamp);
@@ -582,11 +646,27 @@ contract PoolDiamond_MarketOrderbook is PoolDiamond_BaseTest {
     uint256 aliceWBTCBalanceBefore = wbtc.balanceOf(ALICE);
 
     // Execute Alice's order
-    (, , , uint256 decreaseQueueEndIndex, , ) = marketOrderbook
-      .getRequestQueueLengths();
-    marketOrderbook.executeDecreasePositions(
+    (
+      ,
+      increaseQueueEndIndex,
+      ,
       decreaseQueueEndIndex,
-      payable(address(BOB))
+      ,
+      swapOrderQueueEndIndex
+    ) = marketOrderbook.getRequestQueueLengths();
+
+    vm.warp(block.timestamp + 1000);
+    fastPriceFeed.setPricesWithBitsAndExecute(
+      getPriceBits(45000000, 1200000, 870),
+      block.timestamp,
+      increaseQueueEndIndex,
+      decreaseQueueEndIndex,
+      swapOrderQueueEndIndex,
+      1,
+      1,
+      1,
+      payable(BOB),
+      0x0000000000000000000000000000000000000000000000000000000000000000
     );
 
     // Bob should receive another 0.01 ether as execution fee
@@ -911,7 +991,7 @@ contract PoolDiamond_MarketOrderbook is PoolDiamond_BaseTest {
 
     // Alice add another 1 WBTC as liquidity to the pool, the following condition is expected:
     // 1. Pool should have 59,820 + (1 * (1-0.003) * 60000) = 119,640 USD in AUM
-    // 2. Alice Contract should have 119,640 PLP
+    // 2. Alice Contract should have 119,640 ALP
     // 3. Pool should make 200 * 0.003 = 0.6 MATIC in fee
     // 4. Pool should make 1 * 0.003 = 0.003 WBTC in fee
     // 5. USD debt for MATIC should be 59,820 USD
@@ -919,7 +999,7 @@ contract PoolDiamond_MarketOrderbook is PoolDiamond_BaseTest {
     // 7. Pool's MATIC liquidity should be 200 * (1-0.003) = 199.4 MATIC
     // 8. Pool's WBTC liquidity should be 1 * (1-0.003) = 0.997 WBTC
     assertEq(poolGetterFacet.getAumE18(false), 119640 ether);
-    assertEq(poolGetterFacet.plp().balanceOf(address(ALICE)), 119640 ether);
+    assertEq(plpStaking.userTokenAmount(address(plp), ALICE), 119640 ether);
     assertEq(poolGetterFacet.feeReserveOf(address(matic)), 0.6 ether);
     assertEq(poolGetterFacet.feeReserveOf(address(wbtc)), 300000);
     assertEq(poolGetterFacet.usdDebtOf(address(matic)), 59820 ether);

@@ -129,4 +129,16 @@ abstract contract PoolDiamond_BaseTest is BaseTest {
       )
     );
   }
+
+  function getPriceBits(
+    uint256 wbtcPrice,
+    uint256 wethPrice,
+    uint256 maticPrice
+  ) internal pure returns (uint256) {
+    uint256 priceBits = 0;
+    priceBits = priceBits | (wbtcPrice << (0 * 32));
+    priceBits = priceBits | (wethPrice << (1 * 32));
+    priceBits = priceBits | (maticPrice << (2 * 32));
+    return priceBits;
+  }
 }

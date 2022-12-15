@@ -1028,16 +1028,4 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
       curIndex++;
     }
   }
-
-  function getPriceBits(
-    uint256 wbtcPrice,
-    uint256 wethPrice,
-    uint256 maticPrice
-  ) internal returns (uint256) {
-    uint256 priceBits = 0;
-    priceBits = priceBits | (wbtcPrice << (0 * 32));
-    priceBits = priceBits | (wethPrice << (1 * 32));
-    priceBits = priceBits | (maticPrice << (2 * 32));
-    return priceBits;
-  }
 }
