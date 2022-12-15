@@ -66,6 +66,7 @@ import { Orderbook } from "solidity/contracts/core/pool-diamond/Orderbook.sol";
 import { MockWNative } from "../mocks/MockWNative.sol";
 import { MerkleAirdrop } from "solidity/contracts/airdrop/MerkleAirdrop.sol";
 import { FastPriceFeed } from "solidity/contracts/core/FastPriceFeed.sol";
+import { MarketOrderbook } from "solidity/contracts/core/pool-diamond/MarketOrderbook.sol";
 
 // solhint-disable const-name-snakecase
 // solhint-disable no-inline-assembly
@@ -370,7 +371,7 @@ contract BaseTest is DSTest {
   ) internal returns (GetterFacet, bytes4[] memory) {
     GetterFacet getterFacet = new GetterFacet();
 
-    bytes4[] memory selectors = new bytes4[](63);
+    bytes4[] memory selectors = new bytes4[](64);
     selectors[0] = GetterFacet.getAddLiquidityFeeBps.selector;
     selectors[1] = GetterFacet.getRemoveLiquidityFeeBps.selector;
     selectors[2] = GetterFacet.getSwapFeeBps.selector;
@@ -434,6 +435,7 @@ contract BaseTest is DSTest {
     selectors[60] = GetterFacet.getFundingFeeAccounting.selector;
     selectors[61] = GetterFacet.convertTokensToUsde30.selector;
     selectors[62] = GetterFacet.getFundingFee.selector;
+    selectors[63] = GetterFacet.convertUsde30ToTokens.selector;
 
     DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
       address(getterFacet),
@@ -1114,5 +1116,27 @@ contract BaseTest is DSTest {
     );
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
     return FastPriceFeed(payable(_proxy));
+  }
+
+  function deployMarketOrderbook(
+    address _pool,
+    address _poolOracle,
+    address _weth,
+    uint256 _depositFee,
+    uint256 _minExecutionFee
+  ) internal returns (MarketOrderbook) {
+    bytes memory _logicBytecode = abi.encodePacked(
+      vm.getCode("./out/MarketOrderbook.sol/MarketOrderbook.json")
+    );
+    bytes memory _initializer = abi.encodeWithSelector(
+      bytes4(keccak256("initialize(address,address,address,uint256,uint256)")),
+      _pool,
+      _poolOracle,
+      _weth,
+      _depositFee,
+      _minExecutionFee
+    );
+    address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
+    return MarketOrderbook(payable(_proxy));
   }
 }
