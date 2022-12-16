@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import { PoolDiamond_BaseTest, console, LibPoolConfigV1, LiquidityFacetInterface, GetterFacetInterface, PerpTradeFacetInterface, FastPriceFeed } from "./PoolDiamond_BaseTest.t.sol";
+import { PoolDiamond_BaseTest, console, LibPoolConfigV1, LiquidityFacetInterface, GetterFacetInterface, PerpTradeFacetInterface, MEVAegis } from "./PoolDiamond_BaseTest.t.sol";
 
 contract PoolDiamond_MarketOrderbook is PoolDiamond_BaseTest {
-  FastPriceFeed internal fastPriceFeed;
+  MEVAegis internal mevAegis;
 
   function setUp() public override {
     super.setUp();
@@ -19,7 +19,7 @@ contract PoolDiamond_MarketOrderbook is PoolDiamond_BaseTest {
     marketOrderbook.setPositionKeeper(address(this), true);
 
     // Fast price feed batch
-    fastPriceFeed = deployFastPriceFeed(
+    mevAegis = deployMEVAegis(
       300,
       3600,
       0,
@@ -33,7 +33,7 @@ contract PoolDiamond_MarketOrderbook is PoolDiamond_BaseTest {
     _signers[0] = address(this);
     address[] memory _updaters = new address[](1);
     _updaters[0] = address(this);
-    fastPriceFeed.init(1, _signers, _updaters);
+    mevAegis.init(1, _signers, _updaters);
     address[] memory _tokens = new address[](3);
     _tokens[0] = address(wbtc);
     _tokens[1] = address(weth);
@@ -46,7 +46,7 @@ contract PoolDiamond_MarketOrderbook is PoolDiamond_BaseTest {
     _maxCumulativeDeltaDiffs[0] = 1000000;
     _maxCumulativeDeltaDiffs[1] = 1000000;
     _maxCumulativeDeltaDiffs[2] = 1000000;
-    fastPriceFeed.setConfigs(
+    mevAegis.setConfigs(
       _tokens,
       _tokenPrecisions,
       1,
@@ -57,9 +57,9 @@ contract PoolDiamond_MarketOrderbook is PoolDiamond_BaseTest {
       20
     );
 
-    poolOracle.setSecondaryPriceFeed(address(fastPriceFeed));
+    poolOracle.setSecondaryPriceFeed(address(mevAegis));
     poolOracle.setIsSecondaryPriceEnabled(true);
-    marketOrderbook.setPositionKeeper(address(fastPriceFeed), true);
+    marketOrderbook.setPositionKeeper(address(mevAegis), true);
   }
 
   function testRevert_CreateIncreasePosition_WithInsufficientExecutionFee()
@@ -552,8 +552,8 @@ contract PoolDiamond_MarketOrderbook is PoolDiamond_BaseTest {
       uint256 swapOrderQueueEndIndex
     ) = marketOrderbook.getRequestQueueLengths();
 
-    vm.warp(block.timestamp + 1 minutes); // warp ahead to prevent FastPriceFeed failure in checking last update validation
-    fastPriceFeed.setPricesWithBitsAndExecute(
+    vm.warp(block.timestamp + 1 minutes); // warp ahead to prevent MEVAegis failure in checking last update validation
+    mevAegis.setPricesWithBitsAndExecute(
       getPriceBits(41000000, 1200000, 870),
       block.timestamp,
       increaseQueueEndIndex,
@@ -656,7 +656,7 @@ contract PoolDiamond_MarketOrderbook is PoolDiamond_BaseTest {
     ) = marketOrderbook.getRequestQueueLengths();
 
     vm.warp(block.timestamp + 1000);
-    fastPriceFeed.setPricesWithBitsAndExecute(
+    mevAegis.setPricesWithBitsAndExecute(
       getPriceBits(45000000, 1200000, 870),
       block.timestamp,
       increaseQueueEndIndex,
@@ -1132,8 +1132,8 @@ contract PoolDiamond_MarketOrderbook is PoolDiamond_BaseTest {
       uint256 swapOrderQueueEndIndex
     ) = marketOrderbook.getRequestQueueLengths();
 
-    vm.warp(block.timestamp + 1 minutes); // warp ahead to prevent FastPriceFeed failure in checking last update validation
-    fastPriceFeed.setPricesWithBitsAndExecute(
+    vm.warp(block.timestamp + 1 minutes); // warp ahead to prevent MEVAegis failure in checking last update validation
+    mevAegis.setPricesWithBitsAndExecute(
       getPriceBits(100000000, 1200000, 400000),
       block.timestamp,
       increaseQueueEndIndex,

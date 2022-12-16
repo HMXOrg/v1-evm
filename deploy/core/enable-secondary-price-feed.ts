@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
-import { FastPriceFeed__factory, PoolOracle__factory } from "../../typechain";
+import { MEVAegis__factory, PoolOracle__factory } from "../../typechain";
 import { getConfig } from "../utils/config";
 import { eip1559rapidGas } from "../utils/gas";
 

@@ -17,12 +17,9 @@ const orderbook = config.Pools.PLP.orderbook;
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
 
-  console.log(`> Deploying FastPriceFeed Contract`);
-  const FastPriceFeed = await ethers.getContractFactory(
-    "FastPriceFeed",
-    deployer
-  );
-  const fastPriceFeed = await upgrades.deployProxy(FastPriceFeed, [
+  console.log(`> Deploying MEVAegis Contract`);
+  const MEVAegis = await ethers.getContractFactory("MEVAegis", deployer);
+  const mevAegis = await upgrades.deployProxy(MEVAegis, [
     priceDuration,
     maxPriceUpdateDelay,
     minBlockInterval,
@@ -31,25 +28,25 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     positionRouter,
     orderbook,
   ]);
-  console.log(`> ⛓ Tx submitted: ${fastPriceFeed.deployTransaction.hash}`);
-  await fastPriceFeed.deployTransaction.wait(3);
-  console.log(`> Deployed at: ${fastPriceFeed.address}`);
+  console.log(`> ⛓ Tx submitted: ${mevAegis.deployTransaction.hash}`);
+  await mevAegis.deployTransaction.wait(3);
+  console.log(`> Deployed at: ${mevAegis.address}`);
 
-  config.Pools.PLP.fastPriceFeed = fastPriceFeed.address;
+  config.Pools.PLP.mevAegis = mevAegis.address;
   writeConfigFile(config);
 
   const implAddress = await getImplementationAddress(
     ethers.provider,
-    fastPriceFeed.address
+    mevAegis.address
   );
 
   console.log(`> Verifying contract on Tenderly...`);
   await tenderly.verify({
     address: implAddress,
-    name: "FastPriceFeed",
+    name: "MEVAegis",
   });
   console.log(`> ✅ Done!`);
 };
 
 export default func;
-func.tags = ["FastPriceFeed"];
+func.tags = ["MEVAegis"];

@@ -65,7 +65,7 @@ import { PoolRouter } from "solidity/contracts/core/pool-diamond/PoolRouter.sol"
 import { Orderbook } from "solidity/contracts/core/pool-diamond/Orderbook.sol";
 import { MockWNative } from "../mocks/MockWNative.sol";
 import { MerkleAirdrop } from "solidity/contracts/airdrop/MerkleAirdrop.sol";
-import { FastPriceFeed } from "solidity/contracts/core/FastPriceFeed.sol";
+import { MEVAegis } from "solidity/contracts/core/MEVAegis.sol";
 import { MarketOrderbook } from "solidity/contracts/core/pool-diamond/MarketOrderbook.sol";
 
 // solhint-disable const-name-snakecase
@@ -1088,7 +1088,7 @@ contract BaseTest is DSTest {
     return new MerkleAirdrop(token, feeder);
   }
 
-  function deployFastPriceFeed(
+  function deployMEVAegis(
     uint256 _priceDuration,
     uint256 _maxPriceUpdateDelay,
     uint256 _minBlockInterval,
@@ -1096,9 +1096,9 @@ contract BaseTest is DSTest {
     address _tokenManager,
     address _positionRouter,
     address _orderbook
-  ) internal returns (FastPriceFeed) {
+  ) internal returns (MEVAegis) {
     bytes memory _logicBytecode = abi.encodePacked(
-      vm.getCode("./out/FastPriceFeed.sol/FastPriceFeed.json")
+      vm.getCode("./out/MEVAegis.sol/MEVAegis.json")
     );
     bytes memory _initializer = abi.encodeWithSelector(
       bytes4(
@@ -1115,7 +1115,7 @@ contract BaseTest is DSTest {
       _orderbook
     );
     address _proxy = _setupUpgradeable(_logicBytecode, _initializer);
-    return FastPriceFeed(payable(_proxy));
+    return MEVAegis(payable(_proxy));
   }
 
   function deployMarketOrderbook(

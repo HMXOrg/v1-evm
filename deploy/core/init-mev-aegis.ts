@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
-import { FastPriceFeed__factory, PoolOracle__factory } from "../../typechain";
+import { MEVAegis__factory, PoolOracle__factory } from "../../typechain";
 import { getConfig } from "../utils/config";
 import { eip1559rapidGas } from "../utils/gas";
 
@@ -13,13 +13,13 @@ const updaters = ["0x6629eC35c8Aa279BA45Dbfb575c728d3812aE31a"];
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
-  const fastPriceFeed = FastPriceFeed__factory.connect(
-    config.Pools.PLP.fastPriceFeed,
+  const mevAegis = MEVAegis__factory.connect(
+    config.Pools.PLP.mevAegis,
     deployer
   );
 
-  console.log("> Init FastPriceFeed");
-  const tx = await fastPriceFeed.init(minAuthorizations, signers, updaters);
+  console.log("> Init MEVAegis");
+  const tx = await mevAegis.init(minAuthorizations, signers, updaters);
   console.log(`> ⛓ Tx submitted: ${tx.hash}`);
   console.log(`> Waiting for tx to be mined...`);
   await tx.wait(3);
@@ -27,4 +27,4 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 
 export default func;
-func.tags = ["InitFastPriceFeed"];
+func.tags = ["InitMEVAegis"];

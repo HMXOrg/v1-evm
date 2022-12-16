@@ -43,7 +43,7 @@
     "PLP": {
       "poolDiamond": "0x74d841657cDFdFcbDd2A40818F2Bc6cA60283428",
       "oracle": "0x01053CA7aB6b64D8844B01026f94e63Fc73E7483",
-      "fastPriceFeed": "0xb913551b87A17e1BB9b35827C2632946a8CDd3Bb",
+      "mevAegis": "0xb913551b87A17e1BB9b35827C2632946a8CDd3Bb",
       "orderbook": "0x1B6ccB3A5B3eB918211424c0624b1f874500aa3E",
       "marketOrderbook": "0x25264E7B37751caf125D97a6AF38a0aD0019a5DE",
       "facets": {

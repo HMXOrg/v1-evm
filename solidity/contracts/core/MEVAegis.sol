@@ -8,7 +8,7 @@ import { Orderbook } from "../core/pool-diamond/Orderbook.sol";
 
 pragma solidity 0.8.17;
 
-contract FastPriceFeed is OwnableUpgradeable {
+contract MEVAegis is OwnableUpgradeable {
   // fit data in a uint256 slot to save gas costs
   struct PriceDataItem {
     uint160 refPrice; // Chainlink price
@@ -101,17 +101,17 @@ contract FastPriceFeed is OwnableUpgradeable {
   );
 
   modifier onlySigner() {
-    require(isSigner[msg.sender], "FastPriceFeed: forbidden");
+    require(isSigner[msg.sender], "MEVAegis: forbidden");
     _;
   }
 
   modifier onlyUpdater() {
-    require(isUpdater[msg.sender], "FastPriceFeed: forbidden");
+    require(isUpdater[msg.sender], "MEVAegis: forbidden");
     _;
   }
 
   modifier onlyTokenManager() {
-    require(msg.sender == tokenManager, "FastPriceFeed: forbidden");
+    require(msg.sender == tokenManager, "MEVAegis: forbidden");
     _;
   }
 
@@ -128,7 +128,7 @@ contract FastPriceFeed is OwnableUpgradeable {
 
     require(
       _priceDuration <= MAX_PRICE_DURATION,
-      "FastPriceFeed: invalid _priceDuration"
+      "MEVAegis: invalid _priceDuration"
     );
     priceDuration = _priceDuration;
     maxPriceUpdateDelay = _maxPriceUpdateDelay;
@@ -147,7 +147,7 @@ contract FastPriceFeed is OwnableUpgradeable {
     address[] memory _signers,
     address[] memory _updaters
   ) public onlyOwner {
-    require(!isInitialized, "FastPriceFeed: already initialized");
+    require(!isInitialized, "MEVAegis: already initialized");
     isInitialized = true;
 
     minAuthorizations = _minAuthorizations;
@@ -182,7 +182,7 @@ contract FastPriceFeed is OwnableUpgradeable {
   function setPriceDuration(uint256 _priceDuration) external onlyOwner {
     require(
       _priceDuration <= MAX_PRICE_DURATION,
-      "FastPriceFeed: invalid _priceDuration"
+      "MEVAegis: invalid _priceDuration"
     );
     priceDuration = _priceDuration;
   }
@@ -255,7 +255,7 @@ contract FastPriceFeed is OwnableUpgradeable {
   ) external onlyOwner {
     require(
       _tokens.length == _tokenPrecisions.length,
-      "FastPriceFeed: invalid lengths"
+      "MEVAegis: invalid lengths"
     );
     tokens = _tokens;
     tokenPrecisions = _tokenPrecisions;
@@ -273,7 +273,7 @@ contract FastPriceFeed is OwnableUpgradeable {
   ) external onlyOwner {
     require(
       _tokens.length == _tokenPrecisions.length,
-      "FastPriceFeed: invalid lengths"
+      "MEVAegis: invalid lengths"
     );
     tokens = _tokens;
     tokenPrecisions = _tokenPrecisions;
@@ -479,7 +479,7 @@ contract FastPriceFeed is OwnableUpgradeable {
   }
 
   function disableFastPrice() external onlySigner {
-    require(!disableFastPriceVotes[msg.sender], "FastPriceFeed: already voted");
+    require(!disableFastPriceVotes[msg.sender], "MEVAegis: already voted");
     disableFastPriceVotes[msg.sender] = true;
     disableFastPriceVoteCount = disableFastPriceVoteCount + 1;
 
@@ -487,10 +487,7 @@ contract FastPriceFeed is OwnableUpgradeable {
   }
 
   function enableFastPrice() external onlySigner {
-    require(
-      disableFastPriceVotes[msg.sender],
-      "FastPriceFeed: already enabled"
-    );
+    require(disableFastPriceVotes[msg.sender], "MEVAegis: already enabled");
     disableFastPriceVotes[msg.sender] = false;
     disableFastPriceVoteCount = disableFastPriceVoteCount - 1;
 
@@ -708,15 +705,15 @@ contract FastPriceFeed is OwnableUpgradeable {
     uint256 _cumulativeRefDelta,
     uint256 _cumulativeFastDelta
   ) private {
-    require(_refPrice < MAX_REF_PRICE, "FastPriceFeed: invalid refPrice");
+    require(_refPrice < MAX_REF_PRICE, "MEVAegis: invalid refPrice");
     // skip validation of block.timestamp, it should only be out of range after the year 2100
     require(
       _cumulativeRefDelta < MAX_CUMULATIVE_REF_DELTA,
-      "FastPriceFeed: invalid cumulativeRefDelta"
+      "MEVAegis: invalid cumulativeRefDelta"
     );
     require(
       _cumulativeFastDelta < MAX_CUMULATIVE_FAST_DELTA,
-      "FastPriceFeed: invalid cumulativeFastDelta"
+      "MEVAegis: invalid cumulativeFastDelta"
     );
 
     priceData[_token] = PriceDataItem(
@@ -731,18 +728,18 @@ contract FastPriceFeed is OwnableUpgradeable {
     if (minBlockInterval > 0) {
       require(
         block.number - lastUpdatedBlock >= minBlockInterval,
-        "FastPriceFeed: minBlockInterval not yet passed"
+        "MEVAegis: minBlockInterval not yet passed"
       );
     }
 
     uint256 _maxTimeDeviation = maxTimeDeviation;
     require(
       _timestamp > block.timestamp - _maxTimeDeviation,
-      "FastPriceFeed: _timestamp below allowed range"
+      "MEVAegis: _timestamp below allowed range"
     );
     require(
       _timestamp < block.timestamp + _maxTimeDeviation,
-      "FastPriceFeed: _timestamp exceeds allowed range"
+      "MEVAegis: _timestamp exceeds allowed range"
     );
 
     // do not update prices if _timestamp is before the current lastUpdatedAt value

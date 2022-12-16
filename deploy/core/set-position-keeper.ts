@@ -10,7 +10,7 @@ import { eip1559rapidGas } from "../utils/gas";
 
 const config = getConfig();
 
-const KEEPER = config.Pools.PLP.fastPriceFeed;
+const KEEPER = config.Pools.PLP.mevAegis;
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];

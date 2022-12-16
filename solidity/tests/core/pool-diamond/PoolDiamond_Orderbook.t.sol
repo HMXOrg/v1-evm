@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.17;
 
-import { PoolDiamond_BaseTest, console, LibPoolConfigV1, LiquidityFacetInterface, GetterFacetInterface, PerpTradeFacetInterface, FastPriceFeed } from "./PoolDiamond_BaseTest.t.sol";
+import { PoolDiamond_BaseTest, console, LibPoolConfigV1, LiquidityFacetInterface, GetterFacetInterface, PerpTradeFacetInterface, MEVAegis } from "./PoolDiamond_BaseTest.t.sol";
 
 contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
-  FastPriceFeed internal fastPriceFeed;
+  MEVAegis internal mevAegis;
 
   function setUp() public override {
     super.setUp();
@@ -17,7 +17,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     poolAdminFacet.setTokenConfigs(tokens2, tokenConfigs2);
     orderbook.setWhitelist(address(this), true);
 
-    fastPriceFeed = deployFastPriceFeed(
+    mevAegis = deployMEVAegis(
       300,
       3600,
       0,
@@ -31,7 +31,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     _signers[0] = address(this);
     address[] memory _updaters = new address[](1);
     _updaters[0] = address(this);
-    fastPriceFeed.init(1, _signers, _updaters);
+    mevAegis.init(1, _signers, _updaters);
 
     address[] memory _tokens = new address[](3);
     _tokens[0] = address(wbtc);
@@ -45,7 +45,7 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     _maxCumulativeDeltaDiffs[0] = 1000000;
     _maxCumulativeDeltaDiffs[1] = 1000000;
     _maxCumulativeDeltaDiffs[2] = 1000000;
-    fastPriceFeed.setConfigs(
+    mevAegis.setConfigs(
       _tokens,
       _tokenPrecisions,
       1,
@@ -56,10 +56,10 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
       20
     );
 
-    poolOracle.setSecondaryPriceFeed(address(fastPriceFeed));
+    poolOracle.setSecondaryPriceFeed(address(mevAegis));
     poolOracle.setIsSecondaryPriceEnabled(true);
 
-    orderbook.setWhitelist(address(fastPriceFeed), true);
+    orderbook.setWhitelist(address(mevAegis), true);
   }
 
   function testRevert_IncreaseOrder_InsufficientExecutionFee() external {
@@ -310,17 +310,18 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
       .getShouldExecuteOrderList(false, 10);
     assertTrue(shouldExecute);
 
-    vm.warp(1669832202); // warp ahead to prevent FastPriceFeed failure in checking last update validation
-    FastPriceFeed.LimitOrderKey memory orderKey;
+    vm.warp(1669832202); // warp ahead to prevent MEVAegis failure in checking last update validation
+    MEVAegis.LimitOrderKey memory orderKey;
     orderKey.primaryAccount = ALICE;
     orderKey.subAccountId = 0;
     orderKey.orderIndex = 1;
-    FastPriceFeed.LimitOrderKey[]
-      memory increaseOrderKeys = new FastPriceFeed.LimitOrderKey[](1);
+    MEVAegis.LimitOrderKey[]
+      memory increaseOrderKeys = new MEVAegis.LimitOrderKey[](1);
     increaseOrderKeys[0] = orderKey;
-    FastPriceFeed.LimitOrderKey[]
-      memory emptyArray = new FastPriceFeed.LimitOrderKey[](0);
-    fastPriceFeed.setPricesWithBitsAndExecute(
+    MEVAegis.LimitOrderKey[] memory emptyArray = new MEVAegis.LimitOrderKey[](
+      0
+    );
+    mevAegis.setPricesWithBitsAndExecute(
       getPriceBits(41000000, 1200000, 870),
       block.timestamp,
       increaseOrderKeys,
@@ -411,11 +412,11 @@ contract PoolDiamond_Orderbook is PoolDiamond_BaseTest {
     orderKey.primaryAccount = ALICE;
     orderKey.subAccountId = 0;
     orderKey.orderIndex = 0;
-    FastPriceFeed.LimitOrderKey[]
-      memory decreaseOrderKeys = new FastPriceFeed.LimitOrderKey[](1);
+    MEVAegis.LimitOrderKey[]
+      memory decreaseOrderKeys = new MEVAegis.LimitOrderKey[](1);
     decreaseOrderKeys[0] = orderKey;
     vm.warp(block.timestamp + 1000);
-    fastPriceFeed.setPricesWithBitsAndExecute(
+    mevAegis.setPricesWithBitsAndExecute(
       getPriceBits(45000000, 1200000, 870),
       block.timestamp,
       emptyArray,

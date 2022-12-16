@@ -3,7 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { getConfig } from "../utils/config";
 import {
-  FastPriceFeed__factory,
+  MEVAegis__factory,
   MockPoolOracle__factory,
   PoolOracle__factory,
 } from "../../typechain";
@@ -14,8 +14,8 @@ const config = getConfig();
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
-  const fastPriceFeed = FastPriceFeed__factory.connect(
-    config.Pools.PLP.fastPriceFeed,
+  const mevAegis = MEVAegis__factory.connect(
+    config.Pools.PLP.mevAegis,
     deployer
   );
   const poolOracle = PoolOracle__factory.connect(
@@ -23,7 +23,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     deployer
   );
   const timestamp = (new Date().valueOf() / 1000).toFixed();
-  const tx = await fastPriceFeed.setPricesWithBits(
+  const tx = await mevAegis.setPricesWithBits(
     getPriceBits(["17431890", "1282760", "880"]),
     timestamp,
     "0x0000000000000000000000000000000000000000000000000000000000000000",
@@ -35,7 +35,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // WBTC
   console.log(
     "WBTC fast price: ",
-    await fastPriceFeed.getPrice(
+    await mevAegis.getPrice(
       config.Tokens.WBTC,
       await poolOracle.getLatestPrimaryPrice(config.Tokens.WBTC),
       true
@@ -46,16 +46,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await poolOracle.getPrice(config.Tokens.WBTC, true),
     await poolOracle.getPrice(config.Tokens.WBTC, false)
   );
-  console.log(await fastPriceFeed.favorFastPrice(config.Tokens.WBTC));
+  console.log(await mevAegis.favorFastPrice(config.Tokens.WBTC));
   console.log(
     "WBTC getPriceData",
-    await fastPriceFeed.getPriceData(config.Tokens.WBTC)
+    await mevAegis.getPriceData(config.Tokens.WBTC)
   );
 
   // WETH
   console.log(
     "WETH fast price: ",
-    await fastPriceFeed.getPrice(
+    await mevAegis.getPrice(
       config.Tokens.WETH,
       await poolOracle.getLatestPrimaryPrice(config.Tokens.WETH),
       true
@@ -66,12 +66,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await poolOracle.getPrice(config.Tokens.WETH, true),
     await poolOracle.getPrice(config.Tokens.WETH, false)
   );
-  console.log(await fastPriceFeed.favorFastPrice(config.Tokens.WETH));
+  console.log(await mevAegis.favorFastPrice(config.Tokens.WETH));
 
   // WMATIC
   console.log(
     "WMATIC fast price: ",
-    await fastPriceFeed.getPrice(
+    await mevAegis.getPrice(
       config.Tokens.WMATIC,
       await poolOracle.getLatestPrimaryPrice(config.Tokens.WMATIC),
       true
@@ -82,7 +82,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await poolOracle.getPrice(config.Tokens.WMATIC, true),
     await poolOracle.getPrice(config.Tokens.WMATIC, false)
   );
-  console.log(await fastPriceFeed.favorFastPrice(config.Tokens.WMATIC));
+  console.log(await mevAegis.favorFastPrice(config.Tokens.WMATIC));
   console.log("Done");
 };
 
