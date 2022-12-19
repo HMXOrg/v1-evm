@@ -930,8 +930,8 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       block.timestamp - request.blockTime,
       index,
       request.isLong
-        ? IPoolOracle(poolOracle).getMaxPrice(request.indexToken)
-        : IPoolOracle(poolOracle).getMinPrice(request.indexToken)
+        ? IPoolOracle(poolOracle).getMinPrice(request.indexToken)
+        : IPoolOracle(poolOracle).getMaxPrice(request.indexToken)
     );
 
     return true;
