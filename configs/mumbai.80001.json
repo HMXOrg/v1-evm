@@ -43,9 +43,9 @@
     "PLP": {
       "poolDiamond": "0x74d841657cDFdFcbDd2A40818F2Bc6cA60283428",
       "oracle": "0x01053CA7aB6b64D8844B01026f94e63Fc73E7483",
-      "mevAegis": "0xb913551b87A17e1BB9b35827C2632946a8CDd3Bb",
+      "mevAegis": "0x8061D12B5cc1d4e5fBa40e60058f5BC56fc6B06A",
       "orderbook": "0x1B6ccB3A5B3eB918211424c0624b1f874500aa3E",
-      "marketOrderbook": "0x25264E7B37751caf125D97a6AF38a0aD0019a5DE",
+      "marketOrderbook": "0xAc5739fFe97E6FB8D8842723fFFf79D79a855a1e",
       "facets": {
         "admin": "0x3C718685c13cB047b75644d1958C3D8CE1E78d0D",
         "accessControl": "0xaCC38E2123DAE5223440bd4c7f0822c97f37B481",

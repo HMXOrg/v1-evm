@@ -145,7 +145,8 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     bool isLong,
     uint256 blockGap,
     uint256 timeGap,
-    uint256 index
+    uint256 index,
+    uint256 markPrice
   );
   event CancelIncreasePosition(
     address indexed account,
@@ -185,7 +186,8 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     bool isLong,
     uint256 blockGap,
     uint256 timeGap,
-    uint256 index
+    uint256 index,
+    uint256 markPrice
   );
   event CancelDecreasePosition(
     address indexed account,
@@ -786,7 +788,10 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       request.isLong,
       block.number - request.blockNumber,
       block.timestamp - request.blockTime,
-      index
+      index,
+      request.isLong
+        ? IPoolOracle(poolOracle).getMaxPrice(request.indexToken)
+        : IPoolOracle(poolOracle).getMinPrice(request.indexToken)
     );
 
     return true;
@@ -923,7 +928,10 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       request.isLong,
       block.number - request.blockNumber,
       block.timestamp - request.blockTime,
-      index
+      index,
+      request.isLong
+        ? IPoolOracle(poolOracle).getMaxPrice(request.indexToken)
+        : IPoolOracle(poolOracle).getMinPrice(request.indexToken)
     );
 
     return true;

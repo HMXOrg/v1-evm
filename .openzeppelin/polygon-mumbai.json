@@ -394,6 +394,16 @@
       "address": "0x25264E7B37751caf125D97a6AF38a0aD0019a5DE",
       "txHash": "0x4d6b5b29286b4c6780bac793d9543f974dbe9e55f2eed2d07f9e904ace6fa8ea",
       "kind": "transparent"
+    },
+    {
+      "address": "0xAc5739fFe97E6FB8D8842723fFFf79D79a855a1e",
+      "txHash": "0x560d2811c38c4bcfca135d8a281f186f5cd38a26cdd06566bcccd4c7fb0622ed",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x8061D12B5cc1d4e5fBa40e60058f5BC56fc6B06A",
+      "txHash": "0xc127ccb881ad3369ca9c90d508534031ecb1cd81b2ab2bda4cf3b4b48819053f",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -12212,6 +12222,900 @@
     "52bb50f41e827c46dae6adfa82ea90c61d53043b07ab6dc16af101f2f5190b49": {
       "address": "0xAE4BaB455Aa13c3324aa594116c64482Bb06C3Fd",
       "txHash": "0xf3b039125feb4e470d482b3c2b916239cf1521fb2423ca8e529fbca9a7aafd9e",
+      "layout": {
+        "solcVersion": "0.8.17",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "_status",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:80"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "admin",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_address",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:67"
+          },
+          {
+            "label": "pool",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_address",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:68"
+          },
+          {
+            "label": "poolOracle",
+            "offset": 0,
+            "slot": "153",
+            "type": "t_address",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:69"
+          },
+          {
+            "label": "weth",
+            "offset": 0,
+            "slot": "154",
+            "type": "t_address",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:70"
+          },
+          {
+            "label": "depositFeeBps",
+            "offset": 0,
+            "slot": "155",
+            "type": "t_uint256",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:76"
+          },
+          {
+            "label": "increasePositionBufferBps",
+            "offset": 0,
+            "slot": "156",
+            "type": "t_uint256",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:77"
+          },
+          {
+            "label": "feeReserves",
+            "offset": 0,
+            "slot": "157",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:79"
+          },
+          {
+            "label": "minExecutionFee",
+            "offset": 0,
+            "slot": "158",
+            "type": "t_uint256",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:81"
+          },
+          {
+            "label": "minBlockDelayKeeper",
+            "offset": 0,
+            "slot": "159",
+            "type": "t_uint256",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:83"
+          },
+          {
+            "label": "minTimeDelayPublic",
+            "offset": 0,
+            "slot": "160",
+            "type": "t_uint256",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:84"
+          },
+          {
+            "label": "maxTimeDelay",
+            "offset": 0,
+            "slot": "161",
+            "type": "t_uint256",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:85"
+          },
+          {
+            "label": "isLeverageEnabled",
+            "offset": 0,
+            "slot": "162",
+            "type": "t_bool",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:87"
+          },
+          {
+            "label": "increasePositionRequestKeys",
+            "offset": 0,
+            "slot": "163",
+            "type": "t_array(t_bytes32)dyn_storage",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:89"
+          },
+          {
+            "label": "decreasePositionRequestKeys",
+            "offset": 0,
+            "slot": "164",
+            "type": "t_array(t_bytes32)dyn_storage",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:90"
+          },
+          {
+            "label": "swapOrderRequestKeys",
+            "offset": 0,
+            "slot": "165",
+            "type": "t_array(t_bytes32)dyn_storage",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:91"
+          },
+          {
+            "label": "increasePositionRequestKeysStart",
+            "offset": 0,
+            "slot": "166",
+            "type": "t_uint256",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:93"
+          },
+          {
+            "label": "decreasePositionRequestKeysStart",
+            "offset": 0,
+            "slot": "167",
+            "type": "t_uint256",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:94"
+          },
+          {
+            "label": "swapOrderRequestKeysStart",
+            "offset": 0,
+            "slot": "168",
+            "type": "t_uint256",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:95"
+          },
+          {
+            "label": "isPositionKeeper",
+            "offset": 0,
+            "slot": "169",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:97"
+          },
+          {
+            "label": "increasePositionsIndex",
+            "offset": 0,
+            "slot": "170",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:99"
+          },
+          {
+            "label": "increasePositionRequests",
+            "offset": 0,
+            "slot": "171",
+            "type": "t_mapping(t_bytes32,t_struct(IncreasePositionRequest)11547_storage)",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:100"
+          },
+          {
+            "label": "decreasePositionsIndex",
+            "offset": 0,
+            "slot": "172",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:101"
+          },
+          {
+            "label": "decreasePositionRequests",
+            "offset": 0,
+            "slot": "173",
+            "type": "t_mapping(t_bytes32,t_struct(DecreasePositionRequest)11577_storage)",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:102"
+          },
+          {
+            "label": "swapOrdersIndex",
+            "offset": 0,
+            "slot": "174",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:103"
+          },
+          {
+            "label": "swapOrderRequests",
+            "offset": 0,
+            "slot": "175",
+            "type": "t_mapping(t_bytes32,t_struct(SwapOrderRequest)11595_storage)",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:104"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_bytes32)dyn_storage": {
+            "label": "bytes32[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(DecreasePositionRequest)11577_storage)": {
+            "label": "mapping(bytes32 => struct MarketOrderbook.DecreasePositionRequest)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(IncreasePositionRequest)11547_storage)": {
+            "label": "mapping(bytes32 => struct MarketOrderbook.IncreasePositionRequest)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(SwapOrderRequest)11595_storage)": {
+            "label": "mapping(bytes32 => struct MarketOrderbook.SwapOrderRequest)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(DecreasePositionRequest)11577_storage": {
+            "label": "struct MarketOrderbook.DecreasePositionRequest",
+            "members": [
+              {
+                "label": "account",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "subAccountId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "path",
+                "type": "t_array(t_address)dyn_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "indexToken",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "collateralDelta",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "sizeDelta",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "isLong",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "receiver",
+                "type": "t_address",
+                "offset": 1,
+                "slot": "6"
+              },
+              {
+                "label": "acceptablePrice",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "7"
+              },
+              {
+                "label": "minOut",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "8"
+              },
+              {
+                "label": "executionFee",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "9"
+              },
+              {
+                "label": "blockNumber",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "10"
+              },
+              {
+                "label": "blockTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "11"
+              },
+              {
+                "label": "withdrawETH",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "12"
+              }
+            ],
+            "numberOfBytes": "416"
+          },
+          "t_struct(IncreasePositionRequest)11547_storage": {
+            "label": "struct MarketOrderbook.IncreasePositionRequest",
+            "members": [
+              {
+                "label": "account",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "subAccountId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "path",
+                "type": "t_array(t_address)dyn_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "indexToken",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "amountIn",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "minOut",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "sizeDelta",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "isLong",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "7"
+              },
+              {
+                "label": "acceptablePrice",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "8"
+              },
+              {
+                "label": "executionFee",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "9"
+              },
+              {
+                "label": "blockNumber",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "10"
+              },
+              {
+                "label": "blockTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "11"
+              },
+              {
+                "label": "hasCollateralInETH",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "12"
+              }
+            ],
+            "numberOfBytes": "416"
+          },
+          "t_struct(SwapOrderRequest)11595_storage": {
+            "label": "struct MarketOrderbook.SwapOrderRequest",
+            "members": [
+              {
+                "label": "account",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "path",
+                "type": "t_array(t_address)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "amountIn",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "minOut",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "shouldUnwrap",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "executionFee",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "blockNumber",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "blockTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "7"
+              }
+            ],
+            "numberOfBytes": "256"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "12c180eedadb523362c03bdefa81dc6061ed6f52d6b97ceea942eff3e2400d70": {
+      "address": "0xa9fEE7aBb00576dbFD09197d89C0E26555C2483F",
+      "txHash": "0xf1438143e681b1b7d2c966c2b60b5583a93f03b72b401d8fbefe5b3eb77dfe5f",
+      "layout": {
+        "solcVersion": "0.8.17",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "52",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "isInitialized",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_bool",
+            "contract": "MEVAegis",
+            "src": "solidity/contracts/core/MEVAegis.sol:41"
+          },
+          {
+            "label": "isSpreadEnabled",
+            "offset": 1,
+            "slot": "101",
+            "type": "t_bool",
+            "contract": "MEVAegis",
+            "src": "solidity/contracts/core/MEVAegis.sol:42"
+          },
+          {
+            "label": "poolOracle",
+            "offset": 2,
+            "slot": "101",
+            "type": "t_address",
+            "contract": "MEVAegis",
+            "src": "solidity/contracts/core/MEVAegis.sol:44"
+          },
+          {
+            "label": "tokenManager",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_address",
+            "contract": "MEVAegis",
+            "src": "solidity/contracts/core/MEVAegis.sol:46"
+          },
+          {
+            "label": "positionRouter",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_address",
+            "contract": "MEVAegis",
+            "src": "solidity/contracts/core/MEVAegis.sol:48"
+          },
+          {
+            "label": "orderbook",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_address",
+            "contract": "MEVAegis",
+            "src": "solidity/contracts/core/MEVAegis.sol:49"
+          },
+          {
+            "label": "lastUpdatedAt",
+            "offset": 0,
+            "slot": "105",
+            "type": "t_uint256",
+            "contract": "MEVAegis",
+            "src": "solidity/contracts/core/MEVAegis.sol:51"
+          },
+          {
+            "label": "lastUpdatedBlock",
+            "offset": 0,
+            "slot": "106",
+            "type": "t_uint256",
+            "contract": "MEVAegis",
+            "src": "solidity/contracts/core/MEVAegis.sol:52"
+          },
+          {
+            "label": "priceDuration",
+            "offset": 0,
+            "slot": "107",
+            "type": "t_uint256",
+            "contract": "MEVAegis",
+            "src": "solidity/contracts/core/MEVAegis.sol:54"
+          },
+          {
+            "label": "maxPriceUpdateDelay",
+            "offset": 0,
+            "slot": "108",
+            "type": "t_uint256",
+            "contract": "MEVAegis",
+            "src": "solidity/contracts/core/MEVAegis.sol:55"
+          },
+          {
+            "label": "spreadBasisPointsIfInactive",
+            "offset": 0,
+            "slot": "109",
+            "type": "t_uint256",
+            "contract": "MEVAegis",
+            "src": "solidity/contracts/core/MEVAegis.sol:56"
+          },
+          {
+            "label": "spreadBasisPointsIfChainError",
+            "offset": 0,
+            "slot": "110",
+            "type": "t_uint256",
+            "contract": "MEVAegis",
+            "src": "solidity/contracts/core/MEVAegis.sol:57"
+          },
+          {
+            "label": "minBlockInterval",
+            "offset": 0,
+            "slot": "111",
+            "type": "t_uint256",
+            "contract": "MEVAegis",
+            "src": "solidity/contracts/core/MEVAegis.sol:58"
+          },
+          {
+            "label": "maxTimeDeviation",
+            "offset": 0,
+            "slot": "112",
+            "type": "t_uint256",
+            "contract": "MEVAegis",
+            "src": "solidity/contracts/core/MEVAegis.sol:59"
+          },
+          {
+            "label": "priceDataInterval",
+            "offset": 0,
+            "slot": "113",
+            "type": "t_uint256",
+            "contract": "MEVAegis",
+            "src": "solidity/contracts/core/MEVAegis.sol:61"
+          },
+          {
+            "label": "maxDeviationBasisPoints",
+            "offset": 0,
+            "slot": "114",
+            "type": "t_uint256",
+            "contract": "MEVAegis",
+            "src": "solidity/contracts/core/MEVAegis.sol:64"
+          },
+          {
+            "label": "minAuthorizations",
+            "offset": 0,
+            "slot": "115",
+            "type": "t_uint256",
+            "contract": "MEVAegis",
+            "src": "solidity/contracts/core/MEVAegis.sol:66"
+          },
+          {
+            "label": "disableFastPriceVoteCount",
+            "offset": 0,
+            "slot": "116",
+            "type": "t_uint256",
+            "contract": "MEVAegis",
+            "src": "solidity/contracts/core/MEVAegis.sol:67"
+          },
+          {
+            "label": "isUpdater",
+            "offset": 0,
+            "slot": "117",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "MEVAegis",
+            "src": "solidity/contracts/core/MEVAegis.sol:69"
+          },
+          {
+            "label": "prices",
+            "offset": 0,
+            "slot": "118",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "MEVAegis",
+            "src": "solidity/contracts/core/MEVAegis.sol:71"
+          },
+          {
+            "label": "priceData",
+            "offset": 0,
+            "slot": "119",
+            "type": "t_mapping(t_address,t_struct(PriceDataItem)8818_storage)",
+            "contract": "MEVAegis",
+            "src": "solidity/contracts/core/MEVAegis.sol:72"
+          },
+          {
+            "label": "maxCumulativeDeltaDiffs",
+            "offset": 0,
+            "slot": "120",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "MEVAegis",
+            "src": "solidity/contracts/core/MEVAegis.sol:73"
+          },
+          {
+            "label": "isSigner",
+            "offset": 0,
+            "slot": "121",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "MEVAegis",
+            "src": "solidity/contracts/core/MEVAegis.sol:75"
+          },
+          {
+            "label": "disableFastPriceVotes",
+            "offset": 0,
+            "slot": "122",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "MEVAegis",
+            "src": "solidity/contracts/core/MEVAegis.sol:76"
+          },
+          {
+            "label": "tokens",
+            "offset": 0,
+            "slot": "123",
+            "type": "t_array(t_address)dyn_storage",
+            "contract": "MEVAegis",
+            "src": "solidity/contracts/core/MEVAegis.sol:79"
+          },
+          {
+            "label": "tokenPrecisions",
+            "offset": 0,
+            "slot": "124",
+            "type": "t_array(t_uint256)dyn_storage",
+            "contract": "MEVAegis",
+            "src": "solidity/contracts/core/MEVAegis.sol:83"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_array(t_uint256)dyn_storage": {
+            "label": "uint256[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_struct(PriceDataItem)8818_storage)": {
+            "label": "mapping(address => struct MEVAegis.PriceDataItem)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(PriceDataItem)8818_storage": {
+            "label": "struct MEVAegis.PriceDataItem",
+            "members": [
+              {
+                "label": "refPrice",
+                "type": "t_uint160",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "refTime",
+                "type": "t_uint32",
+                "offset": 20,
+                "slot": "0"
+              },
+              {
+                "label": "cumulativeRefDelta",
+                "type": "t_uint32",
+                "offset": 24,
+                "slot": "0"
+              },
+              {
+                "label": "cumulativeFastDelta",
+                "type": "t_uint32",
+                "offset": 28,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint160": {
+            "label": "uint160",
+            "numberOfBytes": "20"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint32": {
+            "label": "uint32",
+            "numberOfBytes": "4"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "5ef8068690983c387c0375affadf7356bb24d769945747294a3cf34852976cff": {
+      "address": "0xa8fdD15bF5a17bb31392CfADc4569e6153679919",
+      "txHash": "0x8d6e5ccb72ed10a9b06d56b7bcea8d83d8c410126b8e528df540cd5a6298ff4b",
       "layout": {
         "solcVersion": "0.8.17",
         "storage": [
