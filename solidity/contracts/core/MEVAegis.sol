@@ -82,6 +82,7 @@ contract MEVAegis is OwnableUpgradeable {
   // should be 10 ** 3
   uint256[] public tokenPrecisions;
 
+  event SetPositionRouter(address oldRouter, address newRouter);
   event DisableFastPrice(address signer);
   event EnableFastPrice(address signer);
   event PriceData(
@@ -140,6 +141,11 @@ contract MEVAegis is OwnableUpgradeable {
 
     isSpreadEnabled = false;
     disableFastPriceVoteCount = 0;
+  }
+
+  function setPositionRouter(address _positionRouter) external onlyOwner {
+    emit SetPositionRouter(positionRouter, _positionRouter);
+    positionRouter = _positionRouter;
   }
 
   function init(
