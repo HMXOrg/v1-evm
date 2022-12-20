@@ -130,7 +130,6 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     bool isLong,
     uint256 acceptablePrice,
     uint256 executionFee,
-    uint256 index,
     uint256 queueIndex,
     uint256 gasPrice
   );
@@ -145,7 +144,7 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     bool isLong,
     uint256 blockGap,
     uint256 timeGap,
-    uint256 index,
+    uint256 queueIndex,
     uint256 markPrice
   );
   event CancelIncreasePosition(
@@ -173,7 +172,6 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     uint256 acceptablePrice,
     uint256 minOut,
     uint256 executionFee,
-    uint256 index,
     uint256 queueIndex
   );
   event ExecuteDecreasePosition(
@@ -186,7 +184,7 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     bool isLong,
     uint256 blockGap,
     uint256 timeGap,
-    uint256 index,
+    uint256 queueIndex,
     uint256 markPrice
   );
   event CancelDecreasePosition(
@@ -208,7 +206,6 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     uint256 minOut,
     bool shouldUnwrap,
     uint256 executionFee,
-    uint256 index,
     uint256 queueIndex
   );
   event ExecuteSwapOrder(
@@ -221,7 +218,7 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     uint256 amountOut,
     uint256 blockGap,
     uint256 timeGap,
-    uint256 index
+    uint256 queueIndex
   );
   event CancelSwapOrder(
     address account,
@@ -1488,7 +1485,6 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       _isLong,
       _acceptablePrice,
       _executionFee,
-      index,
       increasePositionRequestKeys.length - 1,
       tx.gasprice
     );
@@ -1556,7 +1552,6 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       request.acceptablePrice,
       request.minOut,
       request.executionFee,
-      index,
       decreasePositionRequestKeys.length - 1
     );
     return requestKey;
@@ -1604,7 +1599,6 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       request.minOut,
       request.shouldUnwrap,
       request.executionFee,
-      index,
       swapOrderRequestKeys.length - 1
     );
 
