@@ -1488,7 +1488,7 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       _isLong,
       _acceptablePrice,
       _executionFee,
-      index,
+      index - 1,
       increasePositionRequestKeys.length - 1,
       tx.gasprice
     );
@@ -1556,7 +1556,7 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       request.acceptablePrice,
       request.minOut,
       request.executionFee,
-      index,
+      index - 1,
       decreasePositionRequestKeys.length - 1
     );
     return requestKey;
@@ -1604,7 +1604,7 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       request.minOut,
       request.shouldUnwrap,
       request.executionFee,
-      index,
+      index - 1,
       swapOrderRequestKeys.length - 1
     );
 
