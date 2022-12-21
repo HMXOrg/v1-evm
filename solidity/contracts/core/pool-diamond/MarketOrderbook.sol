@@ -1419,9 +1419,10 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
     bool isKeeperCall = msg.sender == address(this) ||
       isPositionKeeper[msg.sender];
 
-    if (getRequestKey(_account, _index) != _key) {
-      revert Forbidden();
-    }
+    // Remove validation due to not possible to find personal order index
+    // if (getRequestKey(_account, _index) != _key) {
+    //   revert Forbidden();
+    // }
 
     if (!isLeverageEnabled && !isKeeperCall) {
       revert Forbidden();
