@@ -144,6 +144,12 @@ interface GetterFacetInterface {
     uint256 sizeDelta
   ) external view returns (uint256);
 
+  function getNextShortAveragePriceInt(
+    address indexToken,
+    uint256 nextPrice,
+    int256 sizeDelta
+  ) external view returns (uint256);
+
   struct GetPositionReturnVars {
     address primaryAccount;
     uint256 size;

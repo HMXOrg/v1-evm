@@ -369,7 +369,7 @@ contract BaseTest is DSTest {
   ) internal returns (GetterFacet, bytes4[] memory) {
     GetterFacet getterFacet = new GetterFacet();
 
-    bytes4[] memory selectors = new bytes4[](63);
+    bytes4[] memory selectors = new bytes4[](64);
     selectors[0] = GetterFacet.getAddLiquidityFeeBps.selector;
     selectors[1] = GetterFacet.getRemoveLiquidityFeeBps.selector;
     selectors[2] = GetterFacet.getSwapFeeBps.selector;
@@ -433,6 +433,7 @@ contract BaseTest is DSTest {
     selectors[60] = GetterFacet.getFundingFeeAccounting.selector;
     selectors[61] = GetterFacet.convertTokensToUsde30.selector;
     selectors[62] = GetterFacet.getFundingFee.selector;
+    selectors[63] = GetterFacet.getNextShortAveragePriceInt.selector;
 
     DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(
       address(getterFacet),

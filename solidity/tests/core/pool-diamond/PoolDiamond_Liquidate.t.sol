@@ -867,10 +867,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     assertEq(poolGetterFacet.liquidityOf(address(dai)), 1090.5996 * 10 ** 18);
     assertEq(poolGetterFacet.feeReserveOf(address(dai)), 2.4004 * 10 ** 18);
     assertEq(poolGetterFacet.shortSizeOf(address(wbtc)), 0);
-    assertEq(
-      poolGetterFacet.shortAveragePriceOf(address(wbtc)),
-      40_000 * 10 ** 30
-    );
+    assertEq(poolGetterFacet.shortAveragePriceOf(address(wbtc)), 0);
     assertEq(poolGetterFacet.getAumE18(false), 1090.5996 * 10 ** 18);
 
     // Assert position's owner DAI
@@ -1163,10 +1160,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     assertEq(poolGetterFacet.getAumE18(false), 104.78 * 10 ** 18);
     assertEq(poolGetterFacet.getAumE18(true), 104.78 * 10 ** 18);
     assertEq(poolGetterFacet.shortSizeOf(address(wbtc)), 0);
-    assertEq(
-      poolGetterFacet.shortAveragePriceOf(address(wbtc)),
-      40000 * 10 ** 30
-    );
+    assertEq(poolGetterFacet.shortAveragePriceOf(address(wbtc)), 0);
 
     // Set WBTC prices to be 50,000 USD
     wbtcPriceFeed.setLatestAnswer(50_000 * 10 ** 8);

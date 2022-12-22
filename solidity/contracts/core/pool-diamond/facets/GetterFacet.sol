@@ -410,6 +410,33 @@ contract GetterFacet is GetterFacetInterface {
     return (nextPrice * nextSize) / divisor;
   }
 
+  function getNextShortAveragePriceInt(
+    address indexToken,
+    uint256 nextPrice,
+    int256 sizeDelta
+  ) public view returns (uint256) {
+    // Load diamond storage
+    LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
+      .poolV1DiamondStorage();
+
+    uint256 shortSize = ds.shortSizeOf[indexToken];
+    uint256 shortAveragePrice = ds.shortAveragePriceOf[indexToken];
+    uint256 priceDelta = shortAveragePrice > nextPrice
+      ? shortAveragePrice - nextPrice
+      : nextPrice - shortAveragePrice;
+    uint256 delta = (shortSize * priceDelta) / shortAveragePrice;
+    bool isProfit = nextPrice < shortAveragePrice;
+
+    uint256 nextSize = sizeDelta > 0
+      ? shortSize + uint256(sizeDelta)
+      : shortSize - uint256(-sizeDelta);
+    uint256 divisor = isProfit
+      ? (nextSize > 0 ? nextSize - delta : 0)
+      : nextSize + delta;
+
+    return divisor > 0 ? (nextPrice * nextSize) / divisor : 0;
+  }
+
   function getPoolShortDelta(
     address token
   ) external view returns (bool, uint256) {

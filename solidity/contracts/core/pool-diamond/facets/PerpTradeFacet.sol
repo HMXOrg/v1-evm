@@ -727,7 +727,18 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       );
     }
 
-    if (!isLong) LibPoolV1.decreaseShortSize(indexToken, sizeDelta);
+    if (!isLong) {
+      if (ds.shortSizeOf[indexToken] == 0)
+        ds.shortAveragePriceOf[indexToken] = vars.price;
+      else
+        ds.shortAveragePriceOf[indexToken] = GetterFacetInterface(address(this))
+          .getNextShortAveragePriceInt(
+            indexToken,
+            vars.price,
+            -int256(sizeDelta)
+          );
+      LibPoolV1.decreaseShortSize(indexToken, sizeDelta);
+    }
 
     if (vars.usdOut > 0) {
       if (isLong)
@@ -912,7 +923,18 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       );
     }
 
-    if (!isLong) LibPoolV1.decreaseShortSize(indexToken, position.size);
+    if (!isLong) {
+      if (ds.shortSizeOf[indexToken] == 0)
+        ds.shortAveragePriceOf[indexToken] = vars.markPrice;
+      else
+        ds.shortAveragePriceOf[indexToken] = GetterFacetInterface(address(this))
+          .getNextShortAveragePriceInt(
+            indexToken,
+            vars.markPrice,
+            -int256(position.size)
+          );
+      LibPoolV1.decreaseShortSize(indexToken, position.size);
+    }
 
     delete ds.positions[vars.posId];
 
