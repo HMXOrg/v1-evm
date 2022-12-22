@@ -413,7 +413,8 @@ contract GetterFacet is GetterFacetInterface {
   function getNextShortAveragePriceInt(
     address indexToken,
     uint256 nextPrice,
-    int256 sizeDelta
+    int256 sizeDelta,
+    int256 realizedPnl
   ) public view returns (uint256) {
     // Load diamond storage
     LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
@@ -425,15 +426,19 @@ contract GetterFacet is GetterFacetInterface {
       ? shortAveragePrice - nextPrice
       : nextPrice - shortAveragePrice;
     uint256 delta = (shortSize * priceDelta) / shortAveragePrice;
-    bool isProfit = nextPrice < shortAveragePrice;
+
+    (bool isProfit, uint256 nextDelta) = _getNextDelta(
+      delta,
+      shortAveragePrice,
+      nextPrice,
+      realizedPnl
+    );
 
     uint256 nextSize = sizeDelta > 0
       ? shortSize + uint256(sizeDelta)
       : shortSize - uint256(-sizeDelta);
-    uint256 divisor = isProfit
-      ? (nextSize > 0 ? nextSize - delta : 0)
-      : nextSize + delta;
 
+    uint256 divisor = isProfit ? nextSize - nextDelta : nextSize + nextDelta;
     return divisor > 0 ? (nextPrice * nextSize) / divisor : 0;
   }
 
@@ -972,5 +977,48 @@ contract GetterFacet is GetterFacetInterface {
     LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
       .poolV1DiamondStorage();
     return poolV1ds.accumFundingRateShort[indexToken];
+  }
+
+  function _getNextDelta(
+    uint256 _delta,
+    uint256 _averagePrice,
+    uint256 _nextPrice,
+    int256 _realizedPnl
+  ) internal pure returns (bool, uint256) {
+    // global delta 10000, realised pnl 1000 => new pnl 9000
+    // global delta 10000, realised pnl -1000 => new pnl 11000
+    // global delta -10000, realised pnl 1000 => new pnl -11000
+    // global delta -10000, realised pnl -1000 => new pnl -9000
+    // global delta 10000, realised pnl 11000 => new pnl -1000 (flips sign)
+    // global delta -10000, realised pnl -11000 => new pnl 1000 (flips sign)
+
+    bool hasProfit = _averagePrice > _nextPrice;
+    if (hasProfit) {
+      // global shorts pnl is positive
+      if (_realizedPnl > 0) {
+        if (uint256(_realizedPnl) > _delta) {
+          _delta = uint256(_realizedPnl) - _delta;
+          hasProfit = false;
+        } else {
+          _delta = _delta - uint256(_realizedPnl);
+        }
+      } else {
+        _delta = _delta + uint256(-_realizedPnl);
+      }
+
+      return (hasProfit, _delta);
+    }
+
+    if (_realizedPnl > 0) {
+      _delta = _delta + uint256(_realizedPnl);
+    } else {
+      if (uint256(-_realizedPnl) > _delta) {
+        _delta = uint256(-_realizedPnl) - _delta;
+        hasProfit = true;
+      } else {
+        _delta = _delta - uint256(-_realizedPnl);
+      }
+    }
+    return (hasProfit, _delta);
   }
 }

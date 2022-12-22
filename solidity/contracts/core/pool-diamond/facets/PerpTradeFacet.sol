@@ -495,9 +495,24 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     } else {
       if (ds.shortSizeOf[indexToken] == 0)
         ds.shortAveragePriceOf[indexToken] = vars.price;
-      else
+      else {
+        (bool isProfit, uint256 pnl) = GetterFacetInterface(address(this))
+          .getDeltaWithoutFundingFee(
+            indexToken,
+            position.size,
+            position.averagePrice,
+            isLong,
+            position.lastIncreasedTime
+          );
+        uint256 realizedPnl = (pnl * sizeDelta) / position.size;
         ds.shortAveragePriceOf[indexToken] = GetterFacetInterface(address(this))
-          .getNextShortAveragePrice(indexToken, vars.price, sizeDelta);
+          .getNextShortAveragePriceInt(
+            indexToken,
+            vars.price,
+            int256(sizeDelta),
+            isProfit ? int256(realizedPnl) : -int256(realizedPnl)
+          );
+      }
 
       LibPoolV1.increaseShortSize(indexToken, sizeDelta);
     }
@@ -633,6 +648,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       isLong
     );
 
+    bool isFullClose;
     if (position.size != sizeDelta) {
       // Partially close the position
       position.entryBorrowingRate = GetterFacetInterface(address(this))
@@ -691,6 +707,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       );
     } else {
       // Close position
+      isFullClose = true;
       if (isLong) {
         LibPoolV1.increaseGuaranteedUsd(collateralToken, vars.collateral);
         LibPoolV1.decreaseGuaranteedUsd(collateralToken, sizeDelta);
@@ -699,8 +716,6 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       vars.price = isLong
         ? ds.oracle.getMinPrice(indexToken)
         : ds.oracle.getMaxPrice(indexToken);
-
-      delete ds.positions[vars.posId];
 
       emit DecreasePosition(
         vars.posId,
@@ -730,15 +745,29 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     if (!isLong) {
       if (ds.shortSizeOf[indexToken] == 0)
         ds.shortAveragePriceOf[indexToken] = vars.price;
-      else
+      else {
+        (bool isProfit, uint256 pnl) = GetterFacetInterface(address(this))
+          .getDeltaWithoutFundingFee(
+            indexToken,
+            position.size,
+            position.averagePrice,
+            isLong,
+            position.lastIncreasedTime
+          );
+        uint256 realizedPnl = (pnl * sizeDelta) / position.size;
         ds.shortAveragePriceOf[indexToken] = GetterFacetInterface(address(this))
           .getNextShortAveragePriceInt(
             indexToken,
             vars.price,
-            -int256(sizeDelta)
+            -int256(sizeDelta),
+            isProfit ? int256(realizedPnl) : -int256(realizedPnl)
           );
+      }
       LibPoolV1.decreaseShortSize(indexToken, sizeDelta);
     }
+
+    // Remove position if it is fully closed
+    if (isFullClose) delete ds.positions[vars.posId];
 
     if (vars.usdOut > 0) {
       if (isLong)
@@ -926,13 +955,24 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
     if (!isLong) {
       if (ds.shortSizeOf[indexToken] == 0)
         ds.shortAveragePriceOf[indexToken] = vars.markPrice;
-      else
+      else {
+        (bool isProfit, uint256 realizedPnl) = GetterFacetInterface(
+          address(this)
+        ).getDeltaWithoutFundingFee(
+            indexToken,
+            position.size,
+            position.averagePrice,
+            isLong,
+            position.lastIncreasedTime
+          );
         ds.shortAveragePriceOf[indexToken] = GetterFacetInterface(address(this))
           .getNextShortAveragePriceInt(
             indexToken,
             vars.markPrice,
-            -int256(position.size)
+            -int256(position.size),
+            isProfit ? int256(realizedPnl) : -int256(realizedPnl)
           );
+      }
       LibPoolV1.decreaseShortSize(indexToken, position.size);
     }
 
