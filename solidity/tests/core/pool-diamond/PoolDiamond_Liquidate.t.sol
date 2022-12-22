@@ -861,7 +861,7 @@ contract PoolDiamond_LiquidateTest is PoolDiamond_BaseTest {
     // = 1.4004 + (1000 * 0.001)
     // = 2.4004 DAI
     // 3. Pool's WBTC short size should be 0 USD
-    // 4. Pool's WBTC short average price should be 40,000 USD
+    // 4. Pool's WBTC short average price should be 0 USD
     // 5. Pool's AUM by min price should be:
     // = 1090.5996
     assertEq(poolGetterFacet.liquidityOf(address(dai)), 1090.5996 * 10 ** 18);

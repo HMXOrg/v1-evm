@@ -2171,7 +2171,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
     // 3. Pool's DAI reserved amount should be: 0 DAI
     // 4. Pool's DAI guaranteed USD should be 0
     // 5. Pool's WBTC short size should be 0
-    // 6. Pool's WBTC short average price should be 40000 USD
+    // 6. Pool's WBTC short average price should be 0 USD
     // 7. Pool's AUM by min price should be:
     // = 99.96 + (90 * (36000-40000) / 40000)
     // = 90.96
@@ -2183,10 +2183,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
     assertEq(poolGetterFacet.reservedOf(address(dai)), 0);
     assertEq(poolGetterFacet.guaranteedUsdOf(address(dai)), 0);
     assertEq(poolGetterFacet.shortSizeOf(address(wbtc)), 0);
-    assertEq(
-      poolGetterFacet.shortAveragePriceOf(address(wbtc)),
-      40_000 * 10 ** 30
-    );
+    assertEq(poolGetterFacet.shortAveragePriceOf(address(wbtc)), 0);
     assertEq(poolGetterFacet.getAumE18(false), 90.96 * 10 ** 18);
     assertEq(poolGetterFacet.getAumE18(true), 90.96 * 10 ** 18);
 
@@ -2355,7 +2352,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
     // 3. Pool's DAI reserved amount should be: 0 DAI
     // 4. Pool's DAI guaranteed USD should be 0
     // 5. Pool's WBTC short size should be 0
-    // 6. Pool's WBTC short average price should be 40000 USD
+    // 6. Pool's WBTC short average price should be 0 USD
     // 7. Pool's AUM by min price should be:
     // = 99.96 + (90 * (41000-40000) / 40000)
     // = 102.21
@@ -2367,10 +2364,7 @@ contract PoolDiamond_DecreasePositionTest is PoolDiamond_BaseTest {
     assertEq(poolGetterFacet.reservedOf(address(dai)), 0);
     assertEq(poolGetterFacet.guaranteedUsdOf(address(dai)), 0);
     assertEq(poolGetterFacet.shortSizeOf(address(wbtc)), 0);
-    assertEq(
-      poolGetterFacet.shortAveragePriceOf(address(wbtc)),
-      40_000 * 10 ** 30
-    );
+    assertEq(poolGetterFacet.shortAveragePriceOf(address(wbtc)), 0);
     assertEq(poolGetterFacet.getAumE18(false), 102.21 * 10 ** 18);
     assertEq(poolGetterFacet.getAumE18(true), 102.21 * 10 ** 18);
 

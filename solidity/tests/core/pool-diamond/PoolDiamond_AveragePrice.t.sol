@@ -1788,10 +1788,39 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
       false
     );
 
+    // Assert position's delta
+    // 1. Position's delta should be:
+    // = 100 * ((40000 - 50000) / 40000)
+    // = -22.5 USD
+    // 2. Position is loss
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      false
+    );
+    assertEq(delta, 22.5 * 10 ** 30);
+    assertFalse(isProfit);
+
+    // Assert pool's state
+    // 1. Pool's WBTC short size should be:
+    // = 90 + 10 = 100 USD
+    // 4. Pool's WBTC short average price should be:
+    // = nextPrice * nextSize / (nextSize + nextDelta)
+    // = 50000 * 100 / (100 + 22.5) = 40816.32653061
+    // 5. Pool's DAI reserved should be 90 USD
+    assertEq(poolGetterFacet.shortSizeOf(address(wbtc)), 100 * 10 ** 30);
+    assertCloseWei(
+      poolGetterFacet.shortAveragePriceOf(address(wbtc)),
+      40816.32653061 * 10 ** 30,
+      0.00004 * 10 ** 30
+    );
+
     // Assert pool's AUM
     // 1. Pool's AUM by min price should be:
-    // = 100.697 + (90 * ((50000 - 40000) / 40000))
-    // = 123.197
+    // = 100.697 + (100 * ((50000 - 41580.04158004) / 41580.04158004))
+    // = 120.947
     // 2. Pool's AUM by max price should be:
     // = 100.697 + (90 * ((50000 - 40000) / 40000))
     // = 123.197
