@@ -496,21 +496,12 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       if (ds.shortSizeOf[indexToken] == 0)
         ds.shortAveragePriceOf[indexToken] = vars.price;
       else {
-        (bool isProfit, uint256 pnl) = GetterFacetInterface(address(this))
-          .getDeltaWithoutFundingFee(
-            indexToken,
-            position.size,
-            position.averagePrice,
-            isLong,
-            position.lastIncreasedTime
-          );
-        uint256 realizedPnl = (pnl * sizeDelta) / position.size;
         ds.shortAveragePriceOf[indexToken] = GetterFacetInterface(address(this))
           .getNextShortAveragePriceInt(
             indexToken,
             vars.price,
             int256(sizeDelta),
-            isProfit ? int256(realizedPnl) : -int256(realizedPnl)
+            0
           );
       }
 
