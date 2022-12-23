@@ -398,6 +398,7 @@ contract GetterFacet is GetterFacetInterface {
 
     uint256 shortSize = ds.shortSizeOf[indexToken];
     uint256 shortAveragePrice = ds.shortAveragePriceOf[indexToken];
+    if (shortAveragePrice == 0) return nextPrice;
     uint256 priceDelta = shortAveragePrice > nextPrice
       ? shortAveragePrice - nextPrice
       : nextPrice - shortAveragePrice;
