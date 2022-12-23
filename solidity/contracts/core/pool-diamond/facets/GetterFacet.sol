@@ -993,12 +993,12 @@ contract GetterFacet is GetterFacetInterface {
     // Calculate the PnL to be realized from this transaction in regards to the Global Short PnL of all traders' short positions.
     // Realized PnL will be deducted from Global Short PnL. So, we will have the remaining unrealized PnL of all traders' short positions.
     // Example scenarios:
-    // _globalShortPnL = 10000  | _realizedPnl 1000   => return 10000 - 1000      = 9000
-    // _globalShortPnL = 10000  | _realizedPnl -1000  => return 10000 - (-1000)   = 11000
-    // _globalShortPnL = -10000 | _realizedPnl 1000   => return -10000 - 1000     = -11000
-    // _globalShortPnL = -10000 | _realizedPnl -1000  => return -10000 - (-1000)  = -9000
-    // _globalShortPnL = 10000  | _realizedPnl 11000  => return 10000 - 11000     = -1000
-    // _globalShortPnL = -10000 | _realizedPnl -11000 => return -10000 - (-11000) = 1000
+    // _globalShortPnL = 10000  | _realizedPnl = 1000   => return 10000 - 1000      = 9000
+    // _globalShortPnL = 10000  | _realizedPnl = -1000  => return 10000 - (-1000)   = 11000
+    // _globalShortPnL = -10000 | _realizedPnl = 1000   => return -10000 - 1000     = -11000
+    // _globalShortPnL = -10000 | _realizedPnl = -1000  => return -10000 - (-1000)  = -9000
+    // _globalShortPnL = 10000  | _realizedPnl = 11000  => return 10000 - 11000     = -1000
+    // _globalShortPnL = -10000 | _realizedPnl = -11000 => return -10000 - (-11000) = 1000
 
     bool hasProfit = _averagePrice > _nextPrice;
     if (hasProfit) {
