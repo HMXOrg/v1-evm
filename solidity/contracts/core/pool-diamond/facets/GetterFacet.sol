@@ -983,45 +983,50 @@ contract GetterFacet is GetterFacetInterface {
   }
 
   function _getNextDelta(
-    uint256 _delta,
+    uint256 _globalShortPnL,
     uint256 _averagePrice,
     uint256 _nextPrice,
     int256 _realizedPnl
   ) internal pure returns (bool, uint256) {
-    // global delta 10000, realised pnl 1000 => new pnl 9000
-    // global delta 10000, realised pnl -1000 => new pnl 11000
-    // global delta -10000, realised pnl 1000 => new pnl -11000
-    // global delta -10000, realised pnl -1000 => new pnl -9000
-    // global delta 10000, realised pnl 11000 => new pnl -1000 (flips sign)
-    // global delta -10000, realised pnl -11000 => new pnl 1000 (flips sign)
+    // _globalShortPnL = Global Short PnL in USD
+    // _realizedPnL = Realized PnL in USD of this transaction
+    // Calculate the PnL to be realized from this transaction in regards to the Global Short PnL of all traders' short positions.
+    // Realized PnL will be deducted from Global Short PnL. So, we will have the remaining unrealized PnL of all traders' short positions.
+    // Example scenarios:
+    // _globalShortPnL = 10000  | _realizedPnl 1000   => return 10000 - 1000      = 9000
+    // _globalShortPnL = 10000  | _realizedPnl -1000  => return 10000 - (-1000)   = 11000
+    // _globalShortPnL = -10000 | _realizedPnl 1000   => return -10000 - 1000     = -11000
+    // _globalShortPnL = -10000 | _realizedPnl -1000  => return -10000 - (-1000)  = -9000
+    // _globalShortPnL = 10000  | _realizedPnl 11000  => return 10000 - 11000     = -1000
+    // _globalShortPnL = -10000 | _realizedPnl -11000 => return -10000 - (-11000) = 1000
 
     bool hasProfit = _averagePrice > _nextPrice;
     if (hasProfit) {
       // global shorts pnl is positive
       if (_realizedPnl > 0) {
-        if (uint256(_realizedPnl) > _delta) {
-          _delta = uint256(_realizedPnl) - _delta;
+        if (uint256(_realizedPnl) > _globalShortPnL) {
+          _globalShortPnL = uint256(_realizedPnl) - _globalShortPnL;
           hasProfit = false;
         } else {
-          _delta = _delta - uint256(_realizedPnl);
+          _globalShortPnL = _globalShortPnL - uint256(_realizedPnl);
         }
       } else {
-        _delta = _delta + uint256(-_realizedPnl);
+        _globalShortPnL = _globalShortPnL + uint256(-_realizedPnl);
       }
 
-      return (hasProfit, _delta);
+      return (hasProfit, _globalShortPnL);
     }
 
     if (_realizedPnl > 0) {
-      _delta = _delta + uint256(_realizedPnl);
+      _globalShortPnL = _globalShortPnL + uint256(_realizedPnl);
     } else {
-      if (uint256(-_realizedPnl) > _delta) {
-        _delta = uint256(-_realizedPnl) - _delta;
+      if (uint256(-_realizedPnl) > _globalShortPnL) {
+        _globalShortPnL = uint256(-_realizedPnl) - _globalShortPnL;
         hasProfit = true;
       } else {
-        _delta = _delta - uint256(-_realizedPnl);
+        _globalShortPnL = _globalShortPnL - uint256(-_realizedPnl);
       }
     }
-    return (hasProfit, _delta);
+    return (hasProfit, _globalShortPnL);
   }
 }
