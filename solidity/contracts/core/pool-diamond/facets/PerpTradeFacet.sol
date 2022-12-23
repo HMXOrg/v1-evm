@@ -639,7 +639,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       isLong
     );
 
-    bool isFullClose;
+    bool isFullClose = position.size == sizeDelta;
     if (position.size != sizeDelta) {
       // Partially close the position
       position.entryBorrowingRate = GetterFacetInterface(address(this))
@@ -698,7 +698,6 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
       );
     } else {
       // Close position
-      isFullClose = true;
       if (isLong) {
         LibPoolV1.increaseGuaranteedUsd(collateralToken, vars.collateral);
         LibPoolV1.decreaseGuaranteedUsd(collateralToken, sizeDelta);
