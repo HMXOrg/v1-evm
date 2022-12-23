@@ -438,7 +438,9 @@ contract GetterFacet is GetterFacetInterface {
       ? shortSize + uint256(sizeDelta)
       : shortSize - uint256(-sizeDelta);
 
-    uint256 divisor = isProfit ? nextSize - nextDelta : nextSize + nextDelta;
+    uint256 divisor = isProfit
+      ? nextSize >= nextDelta ? (nextSize - nextDelta) : 0
+      : nextSize + nextDelta;
     return divisor > 0 ? (nextPrice * nextSize) / divisor : 0;
   }
 
