@@ -16,7 +16,9 @@ enum FacetCutAction {
   Remove,
 }
 
-const methods = ["getNextShortAveragePriceInt(address,uint256,int256,int256)"];
+const methods = [
+  "getNextShortAveragePriceWithRealizedPnl(address,uint256,int256,int256)",
+];
 
 const facetCuts = [
   {

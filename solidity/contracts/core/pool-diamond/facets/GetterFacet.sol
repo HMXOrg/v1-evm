@@ -411,7 +411,7 @@ contract GetterFacet is GetterFacetInterface {
     return (nextPrice * nextSize) / divisor;
   }
 
-  function getNextShortAveragePriceInt(
+  function getNextShortAveragePriceWithRealizedPnl(
     address indexToken,
     uint256 nextPrice,
     int256 sizeDelta,

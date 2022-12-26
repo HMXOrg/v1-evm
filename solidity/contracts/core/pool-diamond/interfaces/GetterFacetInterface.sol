@@ -144,7 +144,7 @@ interface GetterFacetInterface {
     uint256 sizeDelta
   ) external view returns (uint256);
 
-  function getNextShortAveragePriceInt(
+  function getNextShortAveragePriceWithRealizedPnl(
     address indexToken,
     uint256 nextPrice,
     int256 sizeDelta,

@@ -433,7 +433,9 @@ contract BaseTest is DSTest {
     selectors[60] = GetterFacet.getFundingFeeAccounting.selector;
     selectors[61] = GetterFacet.convertTokensToUsde30.selector;
     selectors[62] = GetterFacet.getFundingFee.selector;
-    selectors[63] = GetterFacet.getNextShortAveragePriceInt.selector;
+    selectors[63] = GetterFacet
+      .getNextShortAveragePriceWithRealizedPnl
+      .selector;
     selectors[64] = GetterFacet.getDeltaWithoutFundingFee.selector;
 
     DiamondCutInterface.FacetCut[] memory facetCuts = buildFacetCut(

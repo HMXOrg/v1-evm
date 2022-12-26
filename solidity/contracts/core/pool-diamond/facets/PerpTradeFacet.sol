@@ -497,7 +497,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
         ds.shortAveragePriceOf[indexToken] = vars.price;
       else {
         ds.shortAveragePriceOf[indexToken] = GetterFacetInterface(address(this))
-          .getNextShortAveragePriceInt(
+          .getNextShortAveragePriceWithRealizedPnl(
             indexToken,
             vars.price,
             int256(sizeDelta),
@@ -746,7 +746,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
           );
         uint256 realizedPnl = (pnl * sizeDelta) / position.size;
         ds.shortAveragePriceOf[indexToken] = GetterFacetInterface(address(this))
-          .getNextShortAveragePriceInt(
+          .getNextShortAveragePriceWithRealizedPnl(
             indexToken,
             vars.price,
             -int256(sizeDelta),
@@ -956,7 +956,7 @@ contract PerpTradeFacet is PerpTradeFacetInterface {
             position.lastIncreasedTime
           );
         ds.shortAveragePriceOf[indexToken] = GetterFacetInterface(address(this))
-          .getNextShortAveragePriceInt(
+          .getNextShortAveragePriceWithRealizedPnl(
             indexToken,
             vars.markPrice,
             -int256(position.size),
