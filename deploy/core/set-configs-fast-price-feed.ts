@@ -8,7 +8,7 @@ import { eip1559rapidGas } from "../utils/gas";
 const config = getConfig();
 
 const tokens = [config.Tokens.WBTC, config.Tokens.WETH, config.Tokens.WMATIC];
-const tokenPrecisions = [1000, 1000, 1000];
+const tokenPrecisions = [1000, 1000, 10000];
 const minAuthorizations = 1;
 const priceDataInterval = 60;
 const maxCumulativeDeltaDiffs = [1000000, 1000000, 1000000];
