@@ -8,24 +8,24 @@ const config = getConfig();
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
-  const Orderbook = await ethers.getContractFactory(
+  const RewardDistributor = await ethers.getContractFactory(
     "RewardDistributor",
     deployer
   );
 
   console.log(`> Preparing to upgrade RewardDistributor`);
-  const newOrderbookImpDeployTx = await upgrades.prepareUpgrade(
+  const newRewardDistributorImpDeployTx = await upgrades.prepareUpgrade(
     config.Staking.RewardDistributor.address,
-    Orderbook
+    RewardDistributor
   );
   console.log(`> Done`);
 
   console.log(
-    `> New Orderbook Implementation address: ${newOrderbookImpDeployTx}`
+    `> New RewardDistributor Implementation address: ${newRewardDistributorImpDeployTx}`
   );
   const upgradeTx = await upgrades.upgradeProxy(
     config.Staking.RewardDistributor.address,
-    Orderbook
+    RewardDistributor
   );
   console.log(`> ⛓ Tx is submitted: ${upgradeTx.deployTransaction.hash}`);
   console.log(`> Waiting for tx to be mined...`);
