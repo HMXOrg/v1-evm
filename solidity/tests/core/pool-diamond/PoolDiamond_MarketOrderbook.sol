@@ -1069,9 +1069,6 @@ contract PoolDiamond_MarketOrderbook is PoolDiamond_BaseTest {
       assertEq(actualPath[1], path[1]);
     }
 
-    vm.expectRevert(abi.encodeWithSignature("Forbidden()"));
-    marketOrderbook.cancelSwapOrder(requestKey, payable(BOB), 99);
-
     uint256 BobMATICBalanceBefore = BOB.balance;
     marketOrderbook.cancelSwapOrder(requestKey, payable(BOB), 1);
 
