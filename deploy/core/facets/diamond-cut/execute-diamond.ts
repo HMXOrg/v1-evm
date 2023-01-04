@@ -22,7 +22,7 @@ enum FacetCutAction {
 }
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-  const FACET = "GetterFacet";
+  const FACET = "PerpTradeFacet";
   const INITIALIZER_ADDRESS = ethers.constants.AddressZero;
 
   const deployer = (await ethers.getSigners())[0];
@@ -42,9 +42,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // Build the facetCuts array
   const contractFactory = await ethers.getContractFactory(FACET);
   const facetAddress = facetContractNameToAddress(FACET);
-  const existedFacetCuts = await diamondLoupeFacet.facetFunctionSelectors(
-    facetAddress
-  );
+  const existedFacetCuts = (await diamondLoupeFacet.facets())
+    .map((each) => each.functionSelectors)
+    .reduce((result, array) => result.concat(array), []);
   const facetCuts: Array<DiamondCutInterface.FacetCutStruct> = [];
   const replaceSelectors: Array<string> = [];
   const addSelectors: Array<string> = [];
@@ -78,7 +78,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.table(
     replaceSelectors.map((each) => {
       return {
-        functionName: contractFactory.interface.getFunction(each),
+        functionName: contractFactory.interface.getFunction(each).name,
         selector: each,
       };
     })
@@ -88,7 +88,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.table(
     addSelectors.map((each) => {
       return {
-        functionName: contractFactory.interface.getFunction(each),
+        functionName: contractFactory.interface.getFunction(each).name,
         selector: each,
       };
     })
@@ -120,4 +120,4 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 };
 
 export default func;
-func.tags = ["ExecuteDiamondCut-AccessControl"];
+func.tags = ["ExecuteDiamondCut"];
