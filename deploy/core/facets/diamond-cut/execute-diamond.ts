@@ -12,6 +12,7 @@ import {
   getSelectors,
 } from "../../../utils/diamond";
 import * as readlineSync from "readline-sync";
+import { eip1559rapidGas } from "../../../utils/gas";
 
 const config = getConfig();
 
@@ -111,7 +112,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const tx = await diamondCutFacet.diamondCut(
     facetCuts,
     INITIALIZER_ADDRESS,
-    "0x"
+    "0x",
+    {
+      ...(await eip1559rapidGas()),
+    }
   );
   console.log(`> Tx is submitted: ${tx.hash}`);
   console.log(`> Waiting for tx to be mined`);
