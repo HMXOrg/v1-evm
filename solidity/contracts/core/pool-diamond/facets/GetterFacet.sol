@@ -398,6 +398,7 @@ contract GetterFacet is GetterFacetInterface {
 
     uint256 shortSize = ds.shortSizeOf[indexToken];
     uint256 shortAveragePrice = ds.shortAveragePriceOf[indexToken];
+    if (shortAveragePrice == 0) return nextPrice;
     uint256 priceDelta = shortAveragePrice > nextPrice
       ? shortAveragePrice - nextPrice
       : nextPrice - shortAveragePrice;
@@ -408,6 +409,41 @@ contract GetterFacet is GetterFacetInterface {
     uint256 divisor = isProfit ? nextSize - delta : nextSize + delta;
 
     return (nextPrice * nextSize) / divisor;
+  }
+
+  function getNextShortAveragePriceWithRealizedPnl(
+    address indexToken,
+    uint256 nextPrice,
+    int256 sizeDelta,
+    int256 realizedPnl
+  ) public view returns (uint256) {
+    // Load diamond storage
+    LibPoolV1.PoolV1DiamondStorage storage ds = LibPoolV1
+      .poolV1DiamondStorage();
+
+    uint256 shortSize = ds.shortSizeOf[indexToken];
+    uint256 shortAveragePrice = ds.shortAveragePriceOf[indexToken];
+    if (shortAveragePrice == 0) return nextPrice;
+    uint256 priceDelta = shortAveragePrice > nextPrice
+      ? shortAveragePrice - nextPrice
+      : nextPrice - shortAveragePrice;
+    uint256 delta = (shortSize * priceDelta) / shortAveragePrice;
+
+    (bool isProfit, uint256 nextDelta) = _getNextDelta(
+      delta,
+      shortAveragePrice,
+      nextPrice,
+      realizedPnl
+    );
+
+    uint256 nextSize = sizeDelta > 0
+      ? shortSize + uint256(sizeDelta)
+      : shortSize - uint256(-sizeDelta);
+
+    uint256 divisor = isProfit
+      ? nextSize >= nextDelta ? (nextSize - nextDelta) : 0
+      : nextSize + nextDelta;
+    return divisor > 0 ? (nextPrice * nextSize) / divisor : 0;
   }
 
   function getPoolShortDelta(
@@ -945,5 +981,53 @@ contract GetterFacet is GetterFacetInterface {
     LibPoolV1.PoolV1DiamondStorage storage poolV1ds = LibPoolV1
       .poolV1DiamondStorage();
     return poolV1ds.accumFundingRateShort[indexToken];
+  }
+
+  function _getNextDelta(
+    uint256 _globalShortPnL,
+    uint256 _averagePrice,
+    uint256 _nextPrice,
+    int256 _realizedPnl
+  ) internal pure returns (bool, uint256) {
+    // _globalShortPnL = Global Short PnL in USD
+    // _realizedPnL = Realized PnL in USD of this transaction
+    // Calculate the PnL to be realized from this transaction in regards to the Global Short PnL of all traders' short positions.
+    // Realized PnL will be deducted from Global Short PnL. So, we will have the remaining unrealized PnL of all traders' short positions.
+    // Example scenarios:
+    // _globalShortPnL = 10000  | _realizedPnl = 1000   => return 10000 - 1000      = 9000
+    // _globalShortPnL = 10000  | _realizedPnl = -1000  => return 10000 - (-1000)   = 11000
+    // _globalShortPnL = -10000 | _realizedPnl = 1000   => return -10000 - 1000     = -11000
+    // _globalShortPnL = -10000 | _realizedPnl = -1000  => return -10000 - (-1000)  = -9000
+    // _globalShortPnL = 10000  | _realizedPnl = 11000  => return 10000 - 11000     = -1000
+    // _globalShortPnL = -10000 | _realizedPnl = -11000 => return -10000 - (-11000) = 1000
+
+    bool hasProfit = _averagePrice > _nextPrice;
+    if (hasProfit) {
+      // global shorts pnl is positive
+      if (_realizedPnl > 0) {
+        if (uint256(_realizedPnl) > _globalShortPnL) {
+          _globalShortPnL = uint256(_realizedPnl) - _globalShortPnL;
+          hasProfit = false;
+        } else {
+          _globalShortPnL = _globalShortPnL - uint256(_realizedPnl);
+        }
+      } else {
+        _globalShortPnL = _globalShortPnL + uint256(-_realizedPnl);
+      }
+
+      return (hasProfit, _globalShortPnL);
+    }
+
+    if (_realizedPnl > 0) {
+      _globalShortPnL = _globalShortPnL + uint256(_realizedPnl);
+    } else {
+      if (uint256(-_realizedPnl) > _globalShortPnL) {
+        _globalShortPnL = uint256(-_realizedPnl) - _globalShortPnL;
+        hasProfit = true;
+      } else {
+        _globalShortPnL = _globalShortPnL - uint256(-_realizedPnl);
+      }
+    }
+    return (hasProfit, _globalShortPnL);
   }
 }

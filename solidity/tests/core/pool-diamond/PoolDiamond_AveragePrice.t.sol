@@ -1748,10 +1748,27 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     assertEq(position.entryBorrowingRate, 0);
     assertEq(position.reserveAmount, 90 * 10 ** 18);
 
+    // Pool Short Delta should be 0, because there is no price movement.
+    (bool poolShortDeltaProfit, uint256 poolShortDelta) = poolGetterFacet
+      .getPoolShortDelta(address(wbtc));
+    assertFalse(poolShortDeltaProfit);
+    assertEq(poolShortDelta, 0);
+
     // Feed WBTC@50000 3 times
     wbtcPriceFeed.setLatestAnswer(50_000 * 10 ** 8);
     wbtcPriceFeed.setLatestAnswer(50_000 * 10 ** 8);
     wbtcPriceFeed.setLatestAnswer(50_000 * 10 ** 8);
+
+    // Assert Pool Short Delta
+    // 1. Pool short delta should be:
+    // = 90 * ((40000 - 50000) / 40000)
+    // = -22.5 USD
+    // 2. Pool short delta is at a loss
+    (poolShortDeltaProfit, poolShortDelta) = poolGetterFacet.getPoolShortDelta(
+      address(wbtc)
+    );
+    assertFalse(poolShortDeltaProfit);
+    assertEq(poolShortDelta, 22.5 * 10 ** 30);
 
     // Assert pool's AUM
     // 1. Pool's AUM by min price should be:
@@ -1788,10 +1805,50 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
       false
     );
 
+    // Assert Pool Short Delta
+    // 1. Pool short delta should be:
+    // = 90 * ((40000 - 50000) / 40000)
+    // = -22.5 USD
+    // 2. Pool short delta is at a loss
+    (poolShortDeltaProfit, poolShortDelta) = poolGetterFacet.getPoolShortDelta(
+      address(wbtc)
+    );
+    assertFalse(poolShortDeltaProfit);
+    assertEq(poolShortDelta, 22.5 * 10 ** 30);
+
+    // Assert position's delta
+    // 1. Position's delta should be:
+    // = 100 * ((40000 - 50000) / 40000)
+    // = -22.5 USD
+    // 2. Position is loss
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      false
+    );
+    assertEq(delta, 22.5 * 10 ** 30);
+    assertFalse(isProfit);
+
+    // Assert pool's state
+    // 1. Pool's WBTC short size should be:
+    // = 90 + 10 = 100 USD
+    // 2. Pool's WBTC short average price should be:
+    // = nextPrice * nextSize / (nextSize + nextDelta)
+    // = 50000 * 100 / (100 + 22.5) = 40816.32653061
+    // 3. Pool's DAI reserved should be 90 USD
+    assertEq(poolGetterFacet.shortSizeOf(address(wbtc)), 100 * 10 ** 30);
+    assertCloseWei(
+      poolGetterFacet.shortAveragePriceOf(address(wbtc)),
+      40816.32653061 * 10 ** 30,
+      0.00004 * 10 ** 30
+    );
+
     // Assert pool's AUM
     // 1. Pool's AUM by min price should be:
-    // = 100.697 + (90 * ((50000 - 40000) / 40000))
-    // = 123.197
+    // = 100.697 + (100 * ((50000 - 41580.04158004) / 41580.04158004))
+    // = 120.947
     // 2. Pool's AUM by max price should be:
     // = 100.697 + (90 * ((50000 - 40000) / 40000))
     // = 123.197
@@ -2118,8 +2175,6 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
       false
     );
     assertEq(delta, 0);
-    console.log("delta", delta);
-    console.log("isProfit", isProfit);
     assertTrue(isProfit, "isProfit");
 
     // Increase position size by 10 USD
@@ -2222,5 +2277,535 @@ contract PoolDiamond_AveragePriceTest is PoolDiamond_BaseTest {
     );
     assertEq(delta, 1763224181360201511335012594458);
     assertTrue(isProfit);
+  }
+
+  function testCorrectness_WhenShort_WhenTraderRealizeLoss() external {
+    // Initialized price feeds
+    daiPriceFeed.setLatestAnswer(1 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(400 * 10 ** 8);
+
+    // Assuming WBTC price is at 40,000
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
+
+    // Add 101 DAI as liquidity
+    dai.mint(address(poolDiamond), 101 * 10 ** 18);
+    poolLiquidityFacet.addLiquidity(address(this), address(dai), address(this));
+
+    // The following conditions need to be met:
+    // 1. Pool's AUM by min price should be:
+    // 101 * (1-0.003) = 100.697 USD
+    // 2. Pool's AUM by max price should be:
+    // 101 * (1-0.003) = 100.697 USD
+    assertEq(poolGetterFacet.getAumE18(false), 100.697 * 10 ** 18);
+    assertEq(poolGetterFacet.getAumE18(true), 100.697 * 10 ** 18);
+
+    // Open a 90 USD WBTC short position with 50 DAI as a collateral
+    dai.mint(address(poolDiamond), 50 * 10 ** 18);
+    poolPerpTradeFacet.increasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      90 * 10 ** 30,
+      false
+    );
+
+    // Assert pool's state
+    // 1. Pool's liquidity should be the same.
+    // 2. Pool's DAI fee reserved should be:
+    // = 0.303 + (90 * 0.001)
+    // = 0.393 DAI
+    // 3. Pool's WBTC short size should be:
+    // = 90 USD
+    // 4. Pool's WBTC short average price should be:
+    // = 40000 USD
+    // 5. Pool's DAI reserved should be 90 USD
+    assertEq(poolGetterFacet.liquidityOf(address(dai)), 100.697 * 10 ** 18);
+    assertEq(poolGetterFacet.feeReserveOf(address(dai)), 0.393 * 10 ** 18);
+    assertEq(poolGetterFacet.shortSizeOf(address(wbtc)), 90 * 10 ** 30);
+    assertEq(
+      poolGetterFacet.shortAveragePriceOf(address(wbtc)),
+      40_000 * 10 ** 30
+    );
+    assertEq(poolGetterFacet.reservedOf(address(dai)), 90 * 10 ** 18);
+
+    // Assert position
+    // 1. Position's size should be 90 USD
+    // 2. Position's collateral should be:
+    // = 50 - (90 * 0.001)
+    // = 49.91 USD
+    // 3. Position's average price should be: 40000 USD
+    // 4. Position's entry funding rate should be: 0
+    // 5. Position's reserve amount should be: 90 DAI
+    GetterFacetInterface.GetPositionReturnVars memory position = poolGetterFacet
+      .getPositionWithSubAccountId(
+        address(this),
+        0,
+        address(dai),
+        address(wbtc),
+        false
+      );
+    assertEq(position.size, 90 * 10 ** 30);
+    assertEq(position.collateral, 49.91 * 10 ** 30);
+    assertEq(position.averagePrice, 40_000 * 10 ** 30);
+    assertEq(position.entryBorrowingRate, 0);
+    assertEq(position.reserveAmount, 90 * 10 ** 18);
+
+    // Pool Short Delta should be 0, because there is no price movement.
+    (bool poolShortDeltaProfit, uint256 poolShortDelta) = poolGetterFacet
+      .getPoolShortDelta(address(wbtc));
+    assertFalse(poolShortDeltaProfit);
+    assertEq(poolShortDelta, 0);
+
+    // Feed WBTC@50000 3 times
+    wbtcPriceFeed.setLatestAnswer(50_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(50_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(50_000 * 10 ** 8);
+
+    // Assert Pool Short Delta
+    // 1. Pool short delta should be:
+    // = 90 * ((40000 - 50000) / 40000)
+    // = -22.5 USD
+    // 2. Pool short delta is at a loss
+    (poolShortDeltaProfit, poolShortDelta) = poolGetterFacet.getPoolShortDelta(
+      address(wbtc)
+    );
+    assertFalse(poolShortDeltaProfit);
+    assertEq(poolShortDelta, 22.5 * 10 ** 30);
+
+    // Assert pool's AUM
+    // 1. Pool's AUM by min price should be:
+    // = 100.697 + (90 * ((50000 - 40000) / 40000))
+    // = 123.197
+    // 2. Pool's AUM by max price should be:
+    // = 100.697 + (90 * ((50000 - 40000) / 40000))
+    // = 123.197
+    assertEq(poolGetterFacet.getAumE18(false), 123.197 * 10 ** 18);
+    assertEq(poolGetterFacet.getAumE18(true), 123.197 * 10 ** 18);
+
+    // Assert position's delta
+    // 1. Position's delta should be:
+    // = 90 * ((40000 - 50000) / 40000)
+    // = -22.5 USD
+    // 2. Position is loss
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      false
+    );
+    assertEq(delta, 22.5 * 10 ** 30);
+    assertFalse(isProfit);
+
+    // Increase position size by 10 USD
+    poolPerpTradeFacet.increasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      10 * 10 ** 30,
+      false
+    );
+
+    // Assert pool's state
+    // 1. Pool's WBTC short size should be:
+    // = 90 + 10 = 100 USD
+    // 2. Pool's WBTC short average price should be:
+    // = nextPrice * nextSize / (nextSize + nextDelta)
+    // = 50000 * 100 / (100 + 22.5) = 40816.32653061
+    // 3. Pool's DAI reserved should be 90 USD
+    assertEq(poolGetterFacet.shortSizeOf(address(wbtc)), 100 * 10 ** 30);
+    assertCloseWei(
+      poolGetterFacet.shortAveragePriceOf(address(wbtc)),
+      40816.32653061 * 10 ** 30,
+      0.00004 * 10 ** 30
+    );
+
+    // Assert position's delta
+    // 1. Position's delta should be:
+    // = 100 * ((40816.32653061 - 50000) / 40816.32653061)
+    // = -22.5 USD
+    // 2. Position is loss
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      false
+    );
+    assertEq(delta, 22.5 * 10 ** 30);
+    assertFalse(isProfit);
+
+    // Assert Pool Short Delta
+    // 1. Pool short delta should be:
+    // = 100 * ((40816.32653061 - 50000) / 40816.32653061)
+    // = -22.5 USD
+    // 2. Pool short delta is at a loss
+    (poolShortDeltaProfit, poolShortDelta) = poolGetterFacet.getPoolShortDelta(
+      address(wbtc)
+    );
+    assertFalse(poolShortDeltaProfit);
+    assertEq(poolShortDelta, 22.5 * 10 ** 30);
+
+    // Assert pool's AUM
+    // 1. Pool's AUM by min price should be:
+    // = 100.697 + (100 * ((50000 - 40816.32653061) / 40816.32653061))
+    // = 123.197
+    // 2. Pool's AUM by max price should be:
+    // = 100.697 + (100 * ((50000 - 40816.32653061) / 40816.32653061))
+    // = 123.197
+    assertEq(poolGetterFacet.getAumE18(false), 123.197 * 10 ** 18);
+    assertEq(poolGetterFacet.getAumE18(true), 123.197 * 10 ** 18);
+
+    // Assert position
+    // 1. Position's size should be:
+    // = 90 + 10
+    // = 100 USD
+    // 2. Position's collateral should be:
+    // = 49.91 - (10 * 0.001)
+    // = 49.9
+    // 3. Position's average price should be:
+    // = 50000 * (90 + 10) / (90 + 10 + 22.5)
+    // = 40816.32653061225 USD
+    // 4. Position's entry funding rate should be: 0
+    // 5. Position's reserve amount should be:
+    // = 90 + 10
+    // = 100 DAI
+    position = poolGetterFacet.getPositionWithSubAccountId(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      false
+    );
+    assertEq(position.size, 100 * 10 ** 30);
+    assertEq(position.collateral, 49.9 * 10 ** 30);
+    assertEq(position.averagePrice, 40816326530612244897959183673469387);
+    assertEq(position.entryBorrowingRate, 0);
+    assertEq(position.reserveAmount, 100 * 10 ** 18);
+
+    // Assert position's delta
+    // 1. Position's delta should be:
+    // = 100 * ((40816.32653061225 - 50000) / 40816.32653061225)
+    // = -22.5 USD
+    // 2. Position is loss
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      false
+    );
+    assertEq(delta, 22.5 * 10 ** 30);
+    assertFalse(isProfit);
+
+    // Decrease position size by 40 USD
+    poolPerpTradeFacet.decreasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      0,
+      40 * 10 ** 30,
+      false,
+      address(this)
+    );
+
+    // Assert pool's state
+    // 1. Pool's WBTC short size should be:
+    // = 100 - 40 = 60 USD
+    // 2. Pool's WBTC short average price should be:
+    // Realized Pnl = -22.5 * (40 / 100) = -9 USD
+    // Next delta after realized pnl = poolShortDelta - realizedPnl = 22.5 - 9 = 13.5
+    // = nextPrice * nextSize / (nextSize + nextDelta)
+    // = 50000 * 60 / (60 + 13.5) = 40816.32653061
+    assertEq(poolGetterFacet.shortSizeOf(address(wbtc)), 60 * 10 ** 30);
+    assertCloseWei(
+      poolGetterFacet.shortAveragePriceOf(address(wbtc)),
+      40816.32653061 * 10 ** 30,
+      0.00004 * 10 ** 30
+    );
+
+    // Assert Pool Short Delta
+    // 1. Pool short delta should be:
+    // = 60 * ((40816.32653061 - 50000) / 40816.32653061)
+    // = -13.5 USD
+    // 2. Pool short delta is at a loss
+    (poolShortDeltaProfit, poolShortDelta) = poolGetterFacet.getPoolShortDelta(
+      address(wbtc)
+    );
+    assertFalse(poolShortDeltaProfit);
+    assertEq(poolShortDelta, 13.5 * 10 ** 30);
+  }
+
+  function testCorrectness_WhenShort_WhenTraderRealizeProfit() external {
+    // Initialized price feeds
+    daiPriceFeed.setLatestAnswer(1 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
+    maticPriceFeed.setLatestAnswer(400 * 10 ** 8);
+
+    // Assuming WBTC price is at 40,000
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(40_000 * 10 ** 8);
+
+    // Add 101 DAI as liquidity
+    dai.mint(address(poolDiamond), 101 * 10 ** 18);
+    poolLiquidityFacet.addLiquidity(address(this), address(dai), address(this));
+
+    // The following conditions need to be met:
+    // 1. Pool's AUM by min price should be:
+    // 101 * (1-0.003) = 100.697 USD
+    // 2. Pool's AUM by max price should be:
+    // 101 * (1-0.003) = 100.697 USD
+    assertEq(poolGetterFacet.getAumE18(false), 100.697 * 10 ** 18);
+    assertEq(poolGetterFacet.getAumE18(true), 100.697 * 10 ** 18);
+
+    // Open a 90 USD WBTC short position with 50 DAI as a collateral
+    dai.mint(address(poolDiamond), 50 * 10 ** 18);
+    poolPerpTradeFacet.increasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      90 * 10 ** 30,
+      false
+    );
+
+    // Assert pool's state
+    // 1. Pool's liquidity should be the same.
+    // 2. Pool's DAI fee reserved should be:
+    // = 0.303 + (90 * 0.001)
+    // = 0.393 DAI
+    // 3. Pool's WBTC short size should be:
+    // = 90 USD
+    // 4. Pool's WBTC short average price should be:
+    // = 40000 USD
+    // 5. Pool's DAI reserved should be 90 USD
+    assertEq(poolGetterFacet.liquidityOf(address(dai)), 100.697 * 10 ** 18);
+    assertEq(poolGetterFacet.feeReserveOf(address(dai)), 0.393 * 10 ** 18);
+    assertEq(poolGetterFacet.shortSizeOf(address(wbtc)), 90 * 10 ** 30);
+    assertEq(
+      poolGetterFacet.shortAveragePriceOf(address(wbtc)),
+      40_000 * 10 ** 30
+    );
+    assertEq(poolGetterFacet.reservedOf(address(dai)), 90 * 10 ** 18);
+
+    // Assert position
+    // 1. Position's size should be 90 USD
+    // 2. Position's collateral should be:
+    // = 50 - (90 * 0.001)
+    // = 49.91 USD
+    // 3. Position's average price should be: 40000 USD
+    // 4. Position's entry funding rate should be: 0
+    // 5. Position's reserve amount should be: 90 DAI
+    GetterFacetInterface.GetPositionReturnVars memory position = poolGetterFacet
+      .getPositionWithSubAccountId(
+        address(this),
+        0,
+        address(dai),
+        address(wbtc),
+        false
+      );
+    assertEq(position.size, 90 * 10 ** 30);
+    assertEq(position.collateral, 49.91 * 10 ** 30);
+    assertEq(position.averagePrice, 40_000 * 10 ** 30);
+    assertEq(position.entryBorrowingRate, 0);
+    assertEq(position.reserveAmount, 90 * 10 ** 18);
+
+    // Pool Short Delta should be 0, because there is no price movement.
+    (bool poolShortDeltaProfit, uint256 poolShortDelta) = poolGetterFacet
+      .getPoolShortDelta(address(wbtc));
+    assertFalse(poolShortDeltaProfit);
+    assertEq(poolShortDelta, 0);
+
+    // Feed WBTC@30000 3 times
+    wbtcPriceFeed.setLatestAnswer(30_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(30_000 * 10 ** 8);
+    wbtcPriceFeed.setLatestAnswer(30_000 * 10 ** 8);
+
+    // Assert Pool Short Delta
+    // 1. Pool short delta should be:
+    // = 90 * ((40000 - 30000) / 40000)
+    // = 22.5 USD
+    // 2. Pool short delta is at a loss
+    (poolShortDeltaProfit, poolShortDelta) = poolGetterFacet.getPoolShortDelta(
+      address(wbtc)
+    );
+    assertTrue(poolShortDeltaProfit);
+    assertEq(poolShortDelta, 22.5 * 10 ** 30);
+
+    // Assert pool's AUM
+    // 1. Pool's AUM by min price should be:
+    // = 100.697 + (90 * ((30000 - 40000) / 40000))
+    // = 78.197
+    // 2. Pool's AUM by max price should be:
+    // = 100.697 + (90 * ((30000 - 40000) / 40000))
+    // = 78.197
+    assertEq(poolGetterFacet.getAumE18(false), 78.197 * 10 ** 18);
+    assertEq(poolGetterFacet.getAumE18(true), 78.197 * 10 ** 18);
+
+    // Assert position's delta
+    // 1. Position's delta should be:
+    // = 90 * ((40000 - 30000) / 40000)
+    // = 22.5 USD
+    // 2. Position is profitable
+    (bool isProfit, uint256 delta, ) = poolGetterFacet.getPositionDelta(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      false
+    );
+    assertEq(delta, 22.5 * 10 ** 30);
+    assertTrue(isProfit);
+
+    // Increase position size by 10 USD
+    poolPerpTradeFacet.increasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      10 * 10 ** 30,
+      false
+    );
+
+    // Assert position's delta
+    // 1. Position's delta should be:
+    // = 100 * ((40000 - 30000) / 40000)
+    // = 22.5 USD
+    // 2. Position is profitable
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      false
+    );
+    assertCloseWei(delta, 22.5 * 10 ** 30, 1);
+    assertTrue(isProfit);
+
+    // Assert pool's state
+    // 1. Pool's WBTC short size should be:
+    // = 90 + 10 = 100 USD
+    // 2. Pool's WBTC short average price should be:
+    // = nextPrice * nextSize / (nextSize + nextDelta)
+    // = 30000 * 100 / (100 - 22.5) = 38709.67741935
+    // 3. Pool's DAI reserved should be 90 USD
+    assertEq(poolGetterFacet.shortSizeOf(address(wbtc)), 100 * 10 ** 30);
+    assertCloseWei(
+      poolGetterFacet.shortAveragePriceOf(address(wbtc)),
+      38709.67741935 * 10 ** 30,
+      0.00004 * 10 ** 30
+    );
+
+    // Assert Pool Short Delta
+    // 1. Pool short delta should be:
+    // = 100 * ((38709.67741935 - 30000) / 38709.67741935)
+    // = 22.5 USD
+    // 2. Pool short delta is profitable
+    (poolShortDeltaProfit, poolShortDelta) = poolGetterFacet.getPoolShortDelta(
+      address(wbtc)
+    );
+    assertTrue(poolShortDeltaProfit);
+    assertCloseWei(poolShortDelta, 22.5 * 10 ** 30, 1);
+
+    // Assert pool's AUM
+    // 1. Pool's AUM by min price should be:
+    // = 100.697 + (100 * ((30000 - 38709.67741935) / 38709.67741935))
+    // = 78.197
+    // 2. Pool's AUM by max price should be:
+    // = 100.697 + (100 * ((30000 - 38709.67741935) / 38709.67741935))
+    // = 78.197
+    assertEq(poolGetterFacet.getAumE18(false), 78.197 * 10 ** 18);
+    assertEq(poolGetterFacet.getAumE18(true), 78.197 * 10 ** 18);
+
+    // Assert position
+    // 1. Position's size should be:
+    // = 90 + 10
+    // = 100 USD
+    // 2. Position's collateral should be:
+    // = 49.91 - (10 * 0.001)
+    // = 49.9
+    // 3. Position's average price should be:
+    // = 30000 * (90 + 10) / (90 + 10 - 22.5)
+    // = 38709.67741935 USD
+    // 4. Position's entry funding rate should be: 0
+    // 5. Position's reserve amount should be:
+    // = 90 + 10
+    // = 100 DAI
+    position = poolGetterFacet.getPositionWithSubAccountId(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      false
+    );
+    assertEq(position.size, 100 * 10 ** 30);
+    assertEq(position.collateral, 49.9 * 10 ** 30);
+    assertCloseWei(
+      position.averagePrice,
+      38709.67741935 * 10 ** 30,
+      0.00004 * 10 ** 30
+    );
+    assertEq(position.entryBorrowingRate, 0);
+    assertEq(position.reserveAmount, 100 * 10 ** 18);
+
+    // Assert position's delta
+    // 1. Position's delta should be:
+    // = 100 * ((38709.67741935 - 30000) / 38709.67741935)
+    // = 22.5 USD
+    // 2. Position is profitable
+    (isProfit, delta, ) = poolGetterFacet.getPositionDelta(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      false
+    );
+    assertCloseWei(delta, 22.5 * 10 ** 30, 1);
+    assertTrue(isProfit);
+
+    // Decrease position size by 40 USD
+    poolPerpTradeFacet.decreasePosition(
+      address(this),
+      0,
+      address(dai),
+      address(wbtc),
+      0,
+      40 * 10 ** 30,
+      false,
+      address(this)
+    );
+
+    // Assert pool's state
+    // 1. Pool's WBTC short size should be:
+    // = 100 - 40 = 60 USD
+    // 2. Pool's WBTC short average price should be:
+    // Realized Pnl = 22.5 * (40 / 100) = 9 USD
+    // Next delta after realized pnl = poolShortDelta - realizedPnl = 22.5 - 9 = 13.5
+    // = nextPrice * nextSize / (nextSize + nextDelta)
+    // = 30000 * 60 / (60 - 13.5) = 38709.67741935
+    assertEq(poolGetterFacet.shortSizeOf(address(wbtc)), 60 * 10 ** 30);
+    assertCloseWei(
+      poolGetterFacet.shortAveragePriceOf(address(wbtc)),
+      38709.67741935 * 10 ** 30,
+      0.00004 * 10 ** 30
+    );
+
+    // Assert Pool Short Delta
+    // 1. Pool short delta should be:
+    // = 60 * ((38709.67741935 - 30000) / 38709.67741935)
+    // = 13.5 USD
+    // 2. Pool short delta is profitable
+    (poolShortDeltaProfit, poolShortDelta) = poolGetterFacet.getPoolShortDelta(
+      address(wbtc)
+    );
+    assertTrue(poolShortDeltaProfit);
+    assertCloseWei(poolShortDelta, 13.5 * 10 ** 30, 1);
   }
 }

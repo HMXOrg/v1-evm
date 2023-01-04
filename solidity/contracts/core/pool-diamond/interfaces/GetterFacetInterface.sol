@@ -144,6 +144,13 @@ interface GetterFacetInterface {
     uint256 sizeDelta
   ) external view returns (uint256);
 
+  function getNextShortAveragePriceWithRealizedPnl(
+    address indexToken,
+    uint256 nextPrice,
+    int256 sizeDelta,
+    int256 realizedPnl
+  ) external view returns (uint256);
+
   struct GetPositionReturnVars {
     address primaryAccount;
     uint256 size;
@@ -273,4 +280,12 @@ interface GetterFacetInterface {
   ) external view returns (int256);
 
   function fundingRateFactor() external view returns (uint64);
+
+  function getDeltaWithoutFundingFee(
+    address indexToken,
+    uint256 size,
+    uint256 averagePrice,
+    bool isLong,
+    uint256 lastIncreasedTime
+  ) external view returns (bool, uint256);
 }
