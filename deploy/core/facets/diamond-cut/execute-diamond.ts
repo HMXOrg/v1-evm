@@ -2,7 +2,6 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import {
-  AccessControlFacet__factory,
   DiamondCutFacet__factory,
   DiamondCutInterface,
   DiamondLoupeFacet__factory,
@@ -21,26 +20,6 @@ enum FacetCutAction {
   Replace,
   Remove,
 }
-
-const methods = [
-  "allowPlugin(address)",
-  "denyPlugin(address)",
-  "getRoleAdmin(bytes32)",
-  "grantRole(bytes32,address)",
-  "hasRole(bytes32,address)",
-  "renounceRole(bytes32,address)",
-  "revokeRole(bytes32,address)",
-];
-
-const facetCuts = [
-  {
-    facetAddress: config.Pools.PLP.facets.accessControl,
-    action: FacetCutAction.Add,
-    functionSelectors: methods.map((each) => {
-      return AccessControlFacet__factory.createInterface().getSighash(each);
-    }),
-  },
-];
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const FACET = "GetterFacet";
