@@ -3,11 +3,6 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import {
   DiamondCutFacet__factory,
-  DiamondLoupeFacet__factory,
-  FundingRateFacet__factory,
-  GetterFacet__factory,
-  LiquidityFacetInterface__factory,
-  OwnershipFacet__factory,
   PerpTradeFacet__factory,
 } from "../../../../typechain";
 import { getConfig } from "../../../utils/config";
@@ -24,7 +19,7 @@ enum FacetCutAction {
 const facetCuts = [
   {
     facetAddress: config.Pools.PLP.facets.perpTrade,
-    action: FacetCutAction.Add,
+    action: FacetCutAction.Replace,
     functionSelectors: [
       PerpTradeFacet__factory.createInterface().getSighash(
         "checkLiquidation(address,address,address,bool,bool)"
