@@ -16,8 +16,6 @@ contract PoolOracle is OwnableUpgradeable {
   uint256 internal constant PRICE_PRECISION = 10 ** 30;
   uint256 internal constant ONE_USD = PRICE_PRECISION;
   uint256 internal constant BPS = 10000;
-  address public secondaryPriceFeed;
-  bool public isSecondaryPriceEnabled;
 
   struct PriceFeedInfo {
     ChainlinkPriceFeedInterface priceFeed;
@@ -28,6 +26,8 @@ contract PoolOracle is OwnableUpgradeable {
   mapping(address => PriceFeedInfo) public priceFeedInfo;
   uint80 public roundDepth;
   uint256 public maxStrictPriceDeviation;
+  address public secondaryPriceFeed;
+  bool public isSecondaryPriceEnabled;
 
   event SetMaxStrictPriceDeviation(
     uint256 prevMaxStrictPriceDeviation,
