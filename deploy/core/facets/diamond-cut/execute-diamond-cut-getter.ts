@@ -2,14 +2,8 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import {
-  AdminFacet__factory,
   DiamondCutFacet__factory,
-  DiamondLoupeFacet__factory,
-  FundingRateFacet__factory,
   GetterFacet__factory,
-  LiquidityFacetInterface__factory,
-  OwnershipFacet__factory,
-  PerpTradeFacet__factory,
 } from "../../../../typechain";
 import { getConfig } from "../../../utils/config";
 import { eip1559rapidGas } from "../../../utils/gas";
@@ -22,7 +16,9 @@ enum FacetCutAction {
   Remove,
 }
 
-const methods = ["convertUsde30ToTokens(address,uint256,bool)"];
+const methods = [
+  "getNextShortAveragePriceWithRealizedPnl(address,uint256,int256,int256)",
+];
 
 const facetCuts = [
   {

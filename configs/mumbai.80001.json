@@ -54,9 +54,9 @@
         "diamondLoupe": "0x27D6eF4F2C7c8f5c2998e739aC13b017460EeA86",
         "liquidity": "0x8420E3B27351230bEd9c3fDA827691702583C4d3",
         "fundingRate": "0x8bc4b320Db6FE510A5F9EA2240749f5AE5EcF4be",
-        "getter": "0x88b3f84e35b0B4B0Aa4020af1e9ac678b229A894",
+        "getter": "0x6141D0f3E6F30cDe207F3CA7F7Df238E219351f2",
         "ownership": "0x3d7558727Ea9b1f90c5438bfF533E801997d54f2",
-        "perpTrade": "0xBab75eD3AEE0Fa9C73868Fac75CbC11069FD7068",
+        "perpTrade": "0xffe48c0AE6049A5745F021056a628600a153D2bb",
         "diamondInitializer": "0xEE638c28816B9ee2458eBC79E19Fb97b8e9e6571",
         "poolConfigInitializer": "0xa034192E2f0f4cF2dCc8E0eAf2f836C600569504",
         "accessControlInitializer": "0x0182cB3A2Ea022e33ad6BB7f34f3a529c84292d6"

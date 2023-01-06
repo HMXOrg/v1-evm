@@ -188,6 +188,20 @@ contract RewardDistributor is OwnableUpgradeable {
     bytes32 merkleRoot
   ) external onlyFeeder {
     _claimAndSwap(tokens);
+    _feedProtocolRevenue(
+      feedingExpiredAt,
+      weekTimestamp,
+      referralRevenueAmount,
+      merkleRoot
+    );
+  }
+
+  function _feedProtocolRevenue(
+    uint256 feedingExpiredAt,
+    uint256 weekTimestamp,
+    uint256 referralRevenueAmount,
+    bytes32 merkleRoot
+  ) internal {
     // Transfer referral revenue to merkle airdrop address for distribution
     uint256 totalProtocolRevenue = IERC20Upgradeable(rewardToken).balanceOf(
       address(this)
@@ -215,6 +229,20 @@ contract RewardDistributor is OwnableUpgradeable {
       referralRevenueAmount,
       devFundAmount,
       stakingAmount
+    );
+  }
+
+  function feedProtocolRevenue(
+    uint256 feedingExpiredAt,
+    uint256 weekTimestamp,
+    uint256 referralRevenueAmount,
+    bytes32 merkleRoot
+  ) external onlyFeeder {
+    _feedProtocolRevenue(
+      feedingExpiredAt,
+      weekTimestamp,
+      referralRevenueAmount,
+      merkleRoot
     );
   }
 
