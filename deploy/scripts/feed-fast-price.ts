@@ -23,9 +23,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     deployer
   );
   const timestamp = (new Date().valueOf() / 1000).toFixed();
-  const tx = await mevAegis.setPricesWithBits(
+  const tx = await mevAegis[
+    "setPricesWithBitsAndExecute(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,address,bytes32)"
+  ](
     getPriceBits(["17431890", "1282760", "880"]),
     timestamp,
+    ethers.constants.MaxUint256,
+    ethers.constants.MaxUint256,
+    ethers.constants.MaxUint256,
+    ethers.constants.MaxUint256,
+    ethers.constants.MaxUint256,
+    ethers.constants.MaxUint256,
+    deployer.address,
     "0x0000000000000000000000000000000000000000000000000000000000000000",
     { gasLimit: 10000000 }
   );

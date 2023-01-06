@@ -15,7 +15,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   );
 
   console.log("> Set Secondary Price Feed for PoolOracle");
-  const tx = await poolOracle.setSecondaryPriceFeed(config.Pools.PLP.mevAegis);
+  const tx = await poolOracle.setSecondaryPriceFeed(config.Pools.PLP.mevAegis, {
+    ...(await eip1559rapidGas()),
+  });
   console.log(`> ⛓ Tx submitted: ${tx.hash}`);
   console.log(`> Waiting for tx to be mined...`);
   await tx.wait(3);

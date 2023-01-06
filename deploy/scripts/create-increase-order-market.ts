@@ -39,17 +39,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   //     ethers.constants.MaxUint256
   //   )
   // ).wait();
-  // await orderbook.setAdmin(deployer.address);
-  // await orderbook.setMinExecutionFee(ethers.utils.parseEther("0.002"));
-  // await orderbook.setDepositFee(ethers.utils.parseUnits("10", 30));
   const minExecutionFee = await orderbook.minExecutionFee();
-  console.log("minExecutionFee", minExecutionFee);
   await (
     await orderbook.createIncreasePosition(
       0, // _subAccountId
       [COLLATERAL_TOKEN], // _path
       INDEX_TOKEN, // _indexToken
-      ethers.utils.parseUnits("1", decimals), // _amountIn
+      ethers.utils.parseUnits("0.1", decimals), // _amountIn
       0, // _minOut
       ethers.utils.parseUnits("40000", 30), // _sizeDelta
       isLong, // _isLong

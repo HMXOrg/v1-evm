@@ -6,7 +6,7 @@ import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 
 const config = getConfig();
 
-const minExecutionFee = ethers.utils.parseEther("0.002");
+const minExecutionFee = ethers.utils.parseEther("0.2");
 const depositFeeBps = ethers.BigNumber.from(30); // 0.3%
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {

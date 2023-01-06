@@ -26,14 +26,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   await upgradeTx.deployTransaction.wait(3);
   console.log(`> Tx is mined!`);
 
-  const implAddress = await getImplementationAddress(
-    ethers.provider,
-    TARGET_ADDRESS
-  );
-
   console.log(`> Verify contract on Tenderly`);
   await tenderly.verify({
-    address: implAddress,
+    address: newPoolOracle.toString(),
     name: "PoolOracle",
   });
   console.log(`> ✅ Done`);

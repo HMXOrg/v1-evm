@@ -3,6 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { ethers, tenderly, upgrades } from "hardhat";
 import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 import { getConfig, writeConfigFile } from "../utils/config";
+import { eip1559rapidGas } from "../utils/gas";
 
 const config = getConfig();
 
@@ -27,6 +28,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     tokenManager,
     positionRouter,
     orderbook,
+    {
+      ...(await eip1559rapidGas()),
+    },
   ]);
   console.log(`> ⛓ Tx submitted: ${mevAegis.deployTransaction.hash}`);
   await mevAegis.deployTransaction.wait(3);

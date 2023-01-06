@@ -15,7 +15,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   );
 
   console.log("> Enable Secondary Price Feed for PoolOracle");
-  const tx = await poolOracle.setIsSecondaryPriceEnabled(true);
+  const tx = await poolOracle.setIsSecondaryPriceEnabled(true, {
+    ...(await eip1559rapidGas()),
+  });
   console.log(`> ⛓ Tx submitted: ${tx.hash}`);
   console.log(`> Waiting for tx to be mined...`);
   await tx.wait(3);

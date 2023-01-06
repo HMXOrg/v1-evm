@@ -20,10 +20,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   );
 
   console.log(`> Set Admin...`);
-  const tx = await orderbook.setAdmin(
-    ADMIN
-    // await eip1559rapidGas()
-  );
+  const tx = await orderbook.setAdmin(ADMIN, {
+    ...(await eip1559rapidGas()),
+  });
   console.log(`> ⛓ Tx submitted: ${tx.hash}`);
   console.log(`> Waiting for tx to be mined...`);
   await tx.wait(3);
