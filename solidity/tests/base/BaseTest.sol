@@ -31,7 +31,7 @@ import { WFeedableRewarder } from "solidity/contracts/staking/WFeedableRewarder.
 import { RewardDistributor } from "solidity/contracts/staking/RewardDistributor.sol";
 import { Compounder } from "solidity/contracts/staking/Compounder.sol";
 import { Vester } from "solidity/contracts/vesting/Vester.sol";
-import { ProxyAdmin } from "../interfaces/ProxyAdmin.sol";
+import { ProxyAdmin } from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import { Lockdrop } from "solidity/contracts/lockdrop/Lockdrop.sol";
 import { LockdropGateway } from "solidity/contracts/lockdrop/LockdropGateway.sol";
 import { LockdropConfig } from "solidity/contracts/lockdrop/LockdropConfig.sol";
@@ -136,18 +136,7 @@ contract BaseTest is DSTest {
     daiPriceFeed = deployMockChainlinkPriceFeed();
     usdcPriceFeed = deployMockChainlinkPriceFeed();
 
-    proxyAdmin = _setupProxyAdmin();
-  }
-
-  function _setupProxyAdmin() internal returns (ProxyAdmin) {
-    bytes memory _bytecode = abi.encodePacked(
-      vm.getCode("./out/ProxyAdmin.sol/ProxyAdmin.json")
-    );
-    address _address;
-    assembly {
-      _address := create(0, add(_bytecode, 0x20), mload(_bytecode))
-    }
-    return ProxyAdmin(address(_address));
+    proxyAdmin = new ProxyAdmin();
   }
 
   function buildDefaultSetPriceFeedInput()
