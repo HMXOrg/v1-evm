@@ -428,7 +428,7 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       } catch {
         // wrap this call in a try catch to prevent invalid cancels from blocking the loop
         try
-          this.cancelIncreasePosition(key, _executionFeeReceiver, index + 1) // index + 1 here to convert it to requestIndex
+          this.cancelIncreasePosition(key, _executionFeeReceiver, index)
         returns (bool _wasCancelled) {
           if (!_wasCancelled) {
             break;
@@ -475,7 +475,7 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
       } catch {
         // wrap this call in a try catch to prevent invalid cancels from blocking the loop
         try
-          this.cancelDecreasePosition(key, _executionFeeReceiver, index + 1) // index + 1 here to convert it to requestIndex
+          this.cancelDecreasePosition(key, _executionFeeReceiver, index)
         returns (bool _wasCancelled) {
           if (!_wasCancelled) {
             break;
@@ -521,9 +521,9 @@ contract MarketOrderbook is ReentrancyGuardUpgradeable, OwnableUpgradeable {
         }
       } catch {
         // wrap this call in a try catch to prevent invalid cancels from blocking the loop
-        try
-          this.cancelSwapOrder(key, _executionFeeReceiver, index + 1) // index + 1 here to convert it to requestIndex
-        returns (bool _wasCancelled) {
+        try this.cancelSwapOrder(key, _executionFeeReceiver, index) returns (
+          bool _wasCancelled
+        ) {
           if (!_wasCancelled) {
             break;
           }

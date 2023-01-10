@@ -15895,7 +15895,7 @@
             "label": "increasePositionRequests",
             "offset": 0,
             "slot": "171",
-            "type": "t_mapping(t_bytes32,t_struct(IncreasePositionRequest)3994_storage)",
+            "type": "t_mapping(t_bytes32,t_struct(IncreasePositionRequest)8967_storage)",
             "contract": "MarketOrderbook",
             "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:100"
           },
@@ -15911,7 +15911,7 @@
             "label": "decreasePositionRequests",
             "offset": 0,
             "slot": "173",
-            "type": "t_mapping(t_bytes32,t_struct(DecreasePositionRequest)4024_storage)",
+            "type": "t_mapping(t_bytes32,t_struct(DecreasePositionRequest)8997_storage)",
             "contract": "MarketOrderbook",
             "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:102"
           },
@@ -15927,7 +15927,7 @@
             "label": "swapOrderRequests",
             "offset": 0,
             "slot": "175",
-            "type": "t_mapping(t_bytes32,t_struct(SwapOrderRequest)4042_storage)",
+            "type": "t_mapping(t_bytes32,t_struct(SwapOrderRequest)9015_storage)",
             "contract": "MarketOrderbook",
             "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:104"
           }
@@ -15969,19 +15969,19 @@
             "label": "mapping(address => uint256)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_bytes32,t_struct(DecreasePositionRequest)4024_storage)": {
+          "t_mapping(t_bytes32,t_struct(DecreasePositionRequest)8997_storage)": {
             "label": "mapping(bytes32 => struct MarketOrderbook.DecreasePositionRequest)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_bytes32,t_struct(IncreasePositionRequest)3994_storage)": {
+          "t_mapping(t_bytes32,t_struct(IncreasePositionRequest)8967_storage)": {
             "label": "mapping(bytes32 => struct MarketOrderbook.IncreasePositionRequest)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_bytes32,t_struct(SwapOrderRequest)4042_storage)": {
+          "t_mapping(t_bytes32,t_struct(SwapOrderRequest)9015_storage)": {
             "label": "mapping(bytes32 => struct MarketOrderbook.SwapOrderRequest)",
             "numberOfBytes": "32"
           },
-          "t_struct(DecreasePositionRequest)4024_storage": {
+          "t_struct(DecreasePositionRequest)8997_storage": {
             "label": "struct MarketOrderbook.DecreasePositionRequest",
             "members": [
               {
@@ -16071,7 +16071,7 @@
             ],
             "numberOfBytes": "416"
           },
-          "t_struct(IncreasePositionRequest)3994_storage": {
+          "t_struct(IncreasePositionRequest)8967_storage": {
             "label": "struct MarketOrderbook.IncreasePositionRequest",
             "members": [
               {
@@ -16155,7 +16155,559 @@
             ],
             "numberOfBytes": "416"
           },
-          "t_struct(SwapOrderRequest)4042_storage": {
+          "t_struct(SwapOrderRequest)9015_storage": {
+            "label": "struct MarketOrderbook.SwapOrderRequest",
+            "members": [
+              {
+                "label": "account",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "path",
+                "type": "t_array(t_address)dyn_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "amountIn",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "minOut",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "shouldUnwrap",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "executionFee",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "blockNumber",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "blockTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "7"
+              }
+            ],
+            "numberOfBytes": "256"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "3dc73271c5d28d5cebc779fde3fc95caaba7ebb1c65bc5d42d4ba4239876a673": {
+      "address": "0xf8FEAb5E0396409Cd76731F3f0A9bE4633Ba2E8e",
+      "txHash": "0x5f97402cc5922ee3ccce1325781c96654216d9bad21a7bbca06744283c89a3a9",
+      "layout": {
+        "solcVersion": "0.8.17",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "_status",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:80"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "_owner",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_address",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "OwnableUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "label": "admin",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_address",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:67"
+          },
+          {
+            "label": "pool",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_address",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:68"
+          },
+          {
+            "label": "poolOracle",
+            "offset": 0,
+            "slot": "153",
+            "type": "t_address",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:69"
+          },
+          {
+            "label": "weth",
+            "offset": 0,
+            "slot": "154",
+            "type": "t_address",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:70"
+          },
+          {
+            "label": "depositFeeBps",
+            "offset": 0,
+            "slot": "155",
+            "type": "t_uint256",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:76"
+          },
+          {
+            "label": "increasePositionBufferBps",
+            "offset": 0,
+            "slot": "156",
+            "type": "t_uint256",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:77"
+          },
+          {
+            "label": "feeReserves",
+            "offset": 0,
+            "slot": "157",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:79"
+          },
+          {
+            "label": "minExecutionFee",
+            "offset": 0,
+            "slot": "158",
+            "type": "t_uint256",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:81"
+          },
+          {
+            "label": "minBlockDelayKeeper",
+            "offset": 0,
+            "slot": "159",
+            "type": "t_uint256",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:83"
+          },
+          {
+            "label": "minTimeDelayPublic",
+            "offset": 0,
+            "slot": "160",
+            "type": "t_uint256",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:84"
+          },
+          {
+            "label": "maxTimeDelay",
+            "offset": 0,
+            "slot": "161",
+            "type": "t_uint256",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:85"
+          },
+          {
+            "label": "isLeverageEnabled",
+            "offset": 0,
+            "slot": "162",
+            "type": "t_bool",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:87"
+          },
+          {
+            "label": "increasePositionRequestKeys",
+            "offset": 0,
+            "slot": "163",
+            "type": "t_array(t_bytes32)dyn_storage",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:89"
+          },
+          {
+            "label": "decreasePositionRequestKeys",
+            "offset": 0,
+            "slot": "164",
+            "type": "t_array(t_bytes32)dyn_storage",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:90"
+          },
+          {
+            "label": "swapOrderRequestKeys",
+            "offset": 0,
+            "slot": "165",
+            "type": "t_array(t_bytes32)dyn_storage",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:91"
+          },
+          {
+            "label": "increasePositionRequestKeysStart",
+            "offset": 0,
+            "slot": "166",
+            "type": "t_uint256",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:93"
+          },
+          {
+            "label": "decreasePositionRequestKeysStart",
+            "offset": 0,
+            "slot": "167",
+            "type": "t_uint256",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:94"
+          },
+          {
+            "label": "swapOrderRequestKeysStart",
+            "offset": 0,
+            "slot": "168",
+            "type": "t_uint256",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:95"
+          },
+          {
+            "label": "isPositionKeeper",
+            "offset": 0,
+            "slot": "169",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:97"
+          },
+          {
+            "label": "increasePositionsIndex",
+            "offset": 0,
+            "slot": "170",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:99"
+          },
+          {
+            "label": "increasePositionRequests",
+            "offset": 0,
+            "slot": "171",
+            "type": "t_mapping(t_bytes32,t_struct(IncreasePositionRequest)11570_storage)",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:100"
+          },
+          {
+            "label": "decreasePositionsIndex",
+            "offset": 0,
+            "slot": "172",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:101"
+          },
+          {
+            "label": "decreasePositionRequests",
+            "offset": 0,
+            "slot": "173",
+            "type": "t_mapping(t_bytes32,t_struct(DecreasePositionRequest)11600_storage)",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:102"
+          },
+          {
+            "label": "swapOrdersIndex",
+            "offset": 0,
+            "slot": "174",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:103"
+          },
+          {
+            "label": "swapOrderRequests",
+            "offset": 0,
+            "slot": "175",
+            "type": "t_mapping(t_bytes32,t_struct(SwapOrderRequest)11618_storage)",
+            "contract": "MarketOrderbook",
+            "src": "solidity/contracts/core/pool-diamond/MarketOrderbook.sol:104"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_bytes32)dyn_storage": {
+            "label": "bytes32[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(DecreasePositionRequest)11600_storage)": {
+            "label": "mapping(bytes32 => struct MarketOrderbook.DecreasePositionRequest)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(IncreasePositionRequest)11570_storage)": {
+            "label": "mapping(bytes32 => struct MarketOrderbook.IncreasePositionRequest)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(SwapOrderRequest)11618_storage)": {
+            "label": "mapping(bytes32 => struct MarketOrderbook.SwapOrderRequest)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(DecreasePositionRequest)11600_storage": {
+            "label": "struct MarketOrderbook.DecreasePositionRequest",
+            "members": [
+              {
+                "label": "account",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "subAccountId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "path",
+                "type": "t_array(t_address)dyn_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "indexToken",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "collateralDelta",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "sizeDelta",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "isLong",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "receiver",
+                "type": "t_address",
+                "offset": 1,
+                "slot": "6"
+              },
+              {
+                "label": "acceptablePrice",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "7"
+              },
+              {
+                "label": "minOut",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "8"
+              },
+              {
+                "label": "executionFee",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "9"
+              },
+              {
+                "label": "blockNumber",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "10"
+              },
+              {
+                "label": "blockTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "11"
+              },
+              {
+                "label": "withdrawETH",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "12"
+              }
+            ],
+            "numberOfBytes": "416"
+          },
+          "t_struct(IncreasePositionRequest)11570_storage": {
+            "label": "struct MarketOrderbook.IncreasePositionRequest",
+            "members": [
+              {
+                "label": "account",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "subAccountId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "path",
+                "type": "t_array(t_address)dyn_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "indexToken",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "amountIn",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "minOut",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "sizeDelta",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "isLong",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "7"
+              },
+              {
+                "label": "acceptablePrice",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "8"
+              },
+              {
+                "label": "executionFee",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "9"
+              },
+              {
+                "label": "blockNumber",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "10"
+              },
+              {
+                "label": "blockTime",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "11"
+              },
+              {
+                "label": "hasCollateralInETH",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "12"
+              }
+            ],
+            "numberOfBytes": "416"
+          },
+          "t_struct(SwapOrderRequest)11618_storage": {
             "label": "struct MarketOrderbook.SwapOrderRequest",
             "members": [
               {
