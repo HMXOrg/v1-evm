@@ -23,7 +23,7 @@ enum FacetCutAction {
 }
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-  const FACET = "PerpTradeFacet";
+  const FACET = "GetterFacet";
   const INITIALIZER_ADDRESS = ethers.constants.AddressZero;
 
   const deployer = (await ethers.getSigners())[0];

@@ -220,6 +220,7 @@
     "deploy:tenderly:staking:set-reward-distributor-params": "npx hardhat --network tenderly deploy --no-compile --reset --tags SetRewardDistributorParams",
     "deploy:matic:staking:upgrade-reward-distributor": "npx hardhat --network matic deploy --no-compile --reset --tags UpgradeRewardDistributor",
     "deploy:matic:staking:upgrade-feeder-rewarder": "npx hardhat --network matic deploy --no-compile --reset --tags UpgradeFeedableRewarder",
+    "deploy:matic:diamond-cut:execute-diamondcut": "npx hardhat --network matic deploy --no-compile --reset --tags ExecuteDiamondCut"
     "deploy:matic:admin:set-tax-bps": "npx hardhat --network matic deploy --no-compile --reset --tags SetTaxBps",
     "deploy:matic:admin:set-mint-burn-fee-bps": "npx hardhat --network matic deploy --no-compile --reset --tags SetMintBurnFeeBps"
   },
