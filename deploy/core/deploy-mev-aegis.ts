@@ -11,7 +11,7 @@ const priceDuration = 300;
 const maxPriceUpdateDelay = 3600;
 const minBlockInterval = 1;
 const maxDeviationBasisPoints = 500;
-const tokenManager = "0x6629eC35c8Aa279BA45Dbfb575c728d3812aE31a";
+const tokenManager = "0x6a5D2BF8ba767f7763cd342Cb62C5076f9924872"; // DEPLOYER
 const positionRouter = config.Pools.PLP.marketOrderbook;
 const orderbook = config.Pools.PLP.orderbook;
 
@@ -28,9 +28,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     tokenManager,
     positionRouter,
     orderbook,
-    {
-      ...(await eip1559rapidGas()),
-    },
   ]);
   console.log(`> ⛓ Tx submitted: ${mevAegis.deployTransaction.hash}`);
   await mevAegis.deployTransaction.wait(3);
