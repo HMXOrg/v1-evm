@@ -230,7 +230,7 @@
     "deploy:matic:pool:set-delay-values": "npx hardhat --network matic deploy --no-compile --reset --tags SetDelayValues",
     "deploy:matic:pool:set-admin-market-orderbook": "npx hardhat --network matic deploy --no-compile --reset --tags SetAdminMarketOrderbook",
     "deploy:matic:pool:set-position-keeper": "npx hardhat --network matic deploy --no-compile --reset --tags SetPositionKeeper",
-    "deploy:matic:pool:set-pool-oracle": "npx hardhat --network matic deploy --no-compile --reset --tags SetPoolOracle",
+    "deploy:matic:pool:set-pool-oracle-mev-aegis": "npx hardhat --network matic deploy --no-compile --reset --tags SetPoolOracleMEVAegis",
     "deploy:matic:admin:set-tax-bps": "npx hardhat --network matic deploy --no-compile --reset --tags SetTaxBps",
     "deploy:matic:admin:set-mint-burn-fee-bps": "npx hardhat --network matic deploy --no-compile --reset --tags SetMintBurnFeeBps",
     "deploy:matic:execute-diamond-cut": "npx hardhat --network matic deploy --no-compile --reset --tags ExecuteDiamondCut"
