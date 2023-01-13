@@ -43,7 +43,9 @@
     "PLP": {
       "poolDiamond": "0xE7D96684A56e60ffBAAe0fC0683879da48daB383",
       "oracle": "0xF4F7123fFe42c4C90A4bCDD2317D397E0B7d7cc0",
+      "mevAegis": "0xB4a23d17BceC486Cd4c9F945287d4413c01C0D48",
       "orderbook": "0x6a0f77D9eE49FfA3164CF87CeD9eE1a1f5278C4D",
+      "marketOrderbook": "0x10bA06AeF4a049Be64600474439a49c1Bba8bA5c",
       "facets": {
         "admin": "0x0FdE910552977041Dc8c7ef652b5a07B40B9e006",
         "accessControl": "0xfA0B82bE3C88F22cCf35cdEa66c6e5f9C4De8799",
@@ -52,7 +54,7 @@
         "diamondLoupe": "0x2D1F1Bec308AFd21B8a4D2aE5233Ef7241914416",
         "liquidity": "0x642DCcee2C90986A7472510A6a4E1f4126A76432",
         "fundingRate": "0xFB3b755Be8647589f03c5F647556D7E35db9438b",
-        "getter": "0xc8B1C6D2E09eC13c8c9362aFb7Cdbb2C4957C6c5",
+        "getter": "0xAaFd8cb389d36a1711F44878F00556Ac3478D72f",
         "ownership": "0xF0D92907236418Fa8Ee900E384b4c6928f7cADfc",
         "perpTrade": "0xAfc9aBA93Ac7B5006e637B71056Cf6BeAC81Ec4e",
         "diamondInitializer": "0x72399114898019Bace477623605D33a804437633",
