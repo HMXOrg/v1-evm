@@ -19,10 +19,16 @@ const contracts: string[] = [
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const deployer = (await ethers.getSigners())[0];
   for (let i = 0; i < contracts.length; i++) {
+    console.log(
+      `Transferring ownership of ${contracts[i]} to Timelock at ${config.Timelock}`
+    );
     const contract = Ownable__factory.connect(contracts[i], deployer);
-    await (await contract.transferOwnership(config.TimelockController)).wait();
-    console.log(`Transfer ownership of ${contracts[i]} to TimelockController`);
+    const tx = await contract.transferOwnership(config.Timelock);
+    console.log(`> ⛓ Tx submitted: ${tx.hash}`);
+    await tx.wait(3);
+    console.log(`> Success`);
   }
+  console.log(`> All Done`);
 };
 
 export default func;
