@@ -465,15 +465,15 @@ contract MEVAegis is OwnableUpgradeable {
       if (!_revertOnError) {
         try
           _orderbook.executeSwapOrder(
-            _decreaseOrders[i].primaryAccount,
-            _decreaseOrders[i].orderIndex,
+            _swapOrders[i].primaryAccount,
+            _swapOrders[i].orderIndex,
             payable(_feeReceiver)
           )
         {} catch {}
       } else {
         _orderbook.executeSwapOrder(
-          _decreaseOrders[i].primaryAccount,
-          _decreaseOrders[i].orderIndex,
+          _swapOrders[i].primaryAccount,
+          _swapOrders[i].orderIndex,
           payable(_feeReceiver)
         );
       }

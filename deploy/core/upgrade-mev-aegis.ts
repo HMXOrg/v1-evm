@@ -13,9 +13,16 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     config.Pools.PLP.mevAegis,
     MEVAegis
   );
+
   console.log(`> New MEVAegis Implementation address: ${newMEVAegisImp}`);
-  const tx = await upgrades.upgradeProxy(config.Pools.PLP.mevAegis, MEVAegis);
-  await tx.deployed();
+  const upgradeTx = await upgrades.upgradeProxy(
+    config.Pools.PLP.mevAegis,
+    MEVAegis
+  );
+  console.log(`> ⛓ Tx is submitted: ${upgradeTx.deployTransaction.hash}`);
+  console.log(`> Waiting for tx to be mined...`);
+  await upgradeTx.deployTransaction.wait(3);
+  console.log(`> Tx is mined!`);
 
   await tenderly.verify({
     address: newMEVAegisImp.toString(),
