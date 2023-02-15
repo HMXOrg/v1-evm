@@ -440,10 +440,12 @@ contract GetterFacet is GetterFacetInterface {
       ? shortSize + uint256(sizeDelta)
       : shortSize - uint256(-sizeDelta);
 
+    if (nextSize == 0) return 0;
+
     uint256 divisor = isProfit
       ? nextSize >= nextDelta ? (nextSize - nextDelta) : 0
       : nextSize + nextDelta;
-    return divisor > 0 ? (nextPrice * nextSize) / divisor : 0;
+    return divisor > 0 ? (nextPrice * nextSize) / divisor : nextPrice;
   }
 
   function getPoolShortDelta(
@@ -690,8 +692,8 @@ contract GetterFacet is GetterFacetInterface {
         aum += (liquidity * price) / 10 ** decimals;
       } else {
         uint256 shortSize = poolV1ds.shortSizeOf[token];
-        if (shortSize > 0) {
-          uint256 shortAveragePrice = poolV1ds.shortAveragePriceOf[token];
+        uint256 shortAveragePrice = poolV1ds.shortAveragePriceOf[token];
+        if (shortSize > 0 && shortAveragePrice > 0) {
           uint256 priceDelta;
           unchecked {
             priceDelta = shortAveragePrice > price
