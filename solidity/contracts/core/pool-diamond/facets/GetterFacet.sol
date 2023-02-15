@@ -690,8 +690,8 @@ contract GetterFacet is GetterFacetInterface {
         aum += (liquidity * price) / 10 ** decimals;
       } else {
         uint256 shortSize = poolV1ds.shortSizeOf[token];
-        if (shortSize > 0) {
-          uint256 shortAveragePrice = poolV1ds.shortAveragePriceOf[token];
+        uint256 shortAveragePrice = poolV1ds.shortAveragePriceOf[token];
+        if (shortSize > 0 && shortAveragePrice > 0) {
           uint256 priceDelta;
           unchecked {
             priceDelta = shortAveragePrice > price
