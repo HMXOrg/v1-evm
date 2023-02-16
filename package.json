@@ -236,7 +236,8 @@
     "deploy:matic:pool:set-pool-oracle-mev-aegis": "npx hardhat --network matic deploy --no-compile --reset --tags SetPoolOracleMEVAegis",
     "deploy:matic:admin:set-tax-bps": "npx hardhat --network matic deploy --no-compile --reset --tags SetTaxBps",
     "deploy:matic:admin:set-mint-burn-fee-bps": "npx hardhat --network matic deploy --no-compile --reset --tags SetMintBurnFeeBps",
-    "deploy:matic:execute-diamond-cut": "npx hardhat --network matic deploy --no-compile --reset --tags ExecuteDiamondCut"
+    "deploy:matic:execute-diamond-cut": "npx hardhat --network matic deploy --no-compile --reset --tags ExecuteDiamondCut",
+    "deploy:matic:oracle:upgrade-mev-aegis": "npx hardhat --network matic deploy --no-compile --reset --tags UpgradeMEVAegis"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-etherscan": "^3.1.2",
