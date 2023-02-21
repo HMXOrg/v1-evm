@@ -19,11 +19,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log(
     `> New MarketOrderbook Implementation address: ${newOrderbookImp}`
   );
-  const tx = await upgrades.upgradeProxy(
+  const upgradeTx = await upgrades.upgradeProxy(
     config.Pools.PLP.marketOrderbook,
     Orderbook
   );
-  await tx.deployed();
+  console.log(`> ⛓ Tx is submitted: ${upgradeTx.deployTransaction.hash}`);
+  console.log(`> Waiting for tx to be mined...`);
+  await upgradeTx.deployTransaction.wait(3);
+  console.log(`> Tx is mined!`);
 
   await tenderly.verify({
     address: newOrderbookImp.toString(),
