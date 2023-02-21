@@ -212,9 +212,12 @@
     "deploy:matic:airdrop:set-merkle-airdrop-feeder": "npx hardhat --network matic deploy --no-compile --reset --tags SetMerkleAirdropFeeder",
     "deploy:mumbai:airdrop:set-merkle-airdrop-feeder": "npx hardhat --network mumbai deploy --no-compile --reset --tags SetMerkleAirdropFeeder",
     "deploy:tenderly:airdrop:set-merkle-airdrop-feeder": "npx hardhat --network tenderly deploy --no-compile --reset --tags SetMerkleAirdropFeeder",
-    "deploy:matic:timelock:deploy-timelock": "npx hardhat --network matic deploy --no-compile --reset --tags TimelockController",
-    "deploy:mumbai:timelock:deploy-timelock": "npx hardhat --network mumbai deploy --no-compile --reset --tags TimelockController",
-    "deploy:tenderly:timelock:deploy-timelock": "npx hardhat --network tenderly deploy --no-compile --reset --tags TimelockController",
+    "deploy:matic:timelock:deploy-timelock": "npx hardhat --network matic deploy --no-compile --reset --tags Timelock",
+    "deploy:mumbai:timelock:deploy-timelock": "npx hardhat --network mumbai deploy --no-compile --reset --tags Timelock",
+    "deploy:tenderly:timelock:deploy-timelock": "npx hardhat --network tenderly deploy --no-compile --reset --tags Timelock",
+    "deploy:matic:timelock:set-owner-to-timelock": "npx hardhat --network matic deploy --no-compile --reset --tags SetOwnerToTimelock",
+    "deploy:mumbai:timelock:set-owner-to-timelock": "npx hardhat --network mumbai deploy --no-compile --reset --tags SetOwnerToTimelock",
+    "deploy:tenderly:timelock:set-owner-to-timelock": "npx hardhat --network tenderly deploy --no-compile --reset --tags SetOwnerToTimelock",
     "deploy:matic:staking:set-reward-distributor-params": "npx hardhat --network matic deploy --no-compile --reset --tags SetRewardDistributorParams",
     "deploy:mumbai:staking:set-reward-distributor-params": "npx hardhat --network mumbai deploy --no-compile --reset --tags SetRewardDistributorParams",
     "deploy:tenderly:staking:set-reward-distributor-params": "npx hardhat --network tenderly deploy --no-compile --reset --tags SetRewardDistributorParams",
@@ -234,7 +237,8 @@
     "deploy:matic:admin:set-tax-bps": "npx hardhat --network matic deploy --no-compile --reset --tags SetTaxBps",
     "deploy:matic:admin:set-mint-burn-fee-bps": "npx hardhat --network matic deploy --no-compile --reset --tags SetMintBurnFeeBps",
     "deploy:matic:execute-diamond-cut": "npx hardhat --network matic deploy --no-compile --reset --tags ExecuteDiamondCut",
-    "deploy:matic:pool:upgrade-market-orderbook": "npx hardhat --network matic deploy --no-compile --reset --tags UpgradeMarketOrderbook"
+    "deploy:matic:pool:upgrade-market-orderbook": "npx hardhat --network matic deploy --no-compile --reset --tags UpgradeMarketOrderbook",
+    "deploy:matic:oracle:upgrade-mev-aegis": "npx hardhat --network matic deploy --no-compile --reset --tags UpgradeMEVAegis"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-etherscan": "^3.1.2",

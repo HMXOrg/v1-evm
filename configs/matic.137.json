@@ -1,7 +1,8 @@
 {
   "commit": "cca54d20dab7cc4dcf7343869e302321f4817102",
   "Multicall": "0xa1B2b503959aedD81512C37e9dce48164ec6a94d",
-  "TimelockController": "",
+  "Timelock": "0x2Cc0E44e06b9866e50D24b4365499688efcB7647",
+  "ProxyAdmin": "0x60eAE3FEAF9128CfB9FC83d044398De525B888c0",
   "Dex": {
     "Curve": {
       "am3CRV": "0x445FE580eF8d70FF569aB36e80c647af338db351",
