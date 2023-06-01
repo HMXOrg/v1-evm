@@ -8,6 +8,7 @@
     "compile": "hardhat compile",
     "build": "yarn run build:cjs",
     "build:cjs": "tsc -p tsconfig.cjs.json",
+    "polygon": "hardhat console --no-compile --network matic",
     "scripts:build-merkle-tree": "npx ts-node ./deploy/scripts/build-merkle-tree.ts",
     "deploy:ethereum:tokens:p88": "npx hardhat --network ethereum deploy --no-compile --reset --tags P88Token",
     "deploy:matic:tokens:p88": "npx hardhat --network matic deploy --no-compile --reset --tags P88Token",
