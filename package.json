@@ -239,7 +239,8 @@
     "deploy:matic:admin:set-mint-burn-fee-bps": "npx hardhat --network matic deploy --no-compile --reset --tags SetMintBurnFeeBps",
     "deploy:matic:execute-diamond-cut": "npx hardhat --network matic deploy --no-compile --reset --tags ExecuteDiamondCut",
     "deploy:matic:pool:upgrade-market-orderbook": "npx hardhat --network matic deploy --no-compile --reset --tags UpgradeMarketOrderbook",
-    "deploy:matic:oracle:upgrade-mev-aegis": "npx hardhat --network matic deploy --no-compile --reset --tags UpgradeMEVAegis"
+    "deploy:matic:oracle:upgrade-mev-aegis": "npx hardhat --network matic deploy --no-compile --reset --tags UpgradeMEVAegis",
+    "deploy:matic:pool:set-is-leverage-enabled": "npx hardhat --network matic deploy --no-compile --reset --tags SetIsLeverageEnabled"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-etherscan": "^3.1.2",
